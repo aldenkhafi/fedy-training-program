@@ -958,7 +958,7 @@ html,body{width:100%;max-width:100%;min-width:0;overflow-x:hidden!important}
 
 
 
-<section id="training" class="panel"><div class="grid grid4"><div class="field"><label>Duration</label><select id="programMonths"><option>3</option><option>6</option><option>9</option><option>12</option></select></div><div class="field"><label>Frequency</label><select id="programFreq"><option value="2">2× / Week</option><option value="3">3× / Week</option><option value="4">4× / Week</option><option value="5">5× / Week</option><option value="6">6× / Week</option></select></div><div class="field"><label>Goal</label><select id="programGoal"><optgroup label="Existing Goals"><option>Fat Loss</option><option>Hypertrophy</option><option>Muscular Endurance</option><option>Strength</option><option>Strength Endurance</option><option>Power</option><option>Performance</option><option>General Fitness</option><option>Healthy Aging</option><option>Mobility</option><option>Return to Exercise</option><option>Corrective / Modification</option><option>Other</option></optgroup><optgroup label="Additional Goals"><option>Body Recomposition</option><option>Muscle Gain</option><option>Healthy Weight Management</option><option>Cardiorespiratory Fitness</option><option>Aerobic Endurance</option><option>Anaerobic Capacity</option><option>Work Capacity</option><option>Functional Fitness</option><option>Hybrid Athlete</option><option>Sport-Specific Performance</option><option>Speed & Agility</option><option>Coordination & Balance</option><option>Core Stability</option><option>Posture & Movement Quality</option><option>Injury Prevention</option><option>Rehabilitation</option><option>Prehabilitation</option><option>Longevity</option><option>Running Performance</option><option>Obstacle / Race Preparation</option><option>Low-Impact Fitness</option><option>Recovery & Resilience</option></optgroup></select></div><div class="field"><label>Default Resistance</label><select id="programResistance"><option>Machine</option><option>Barbell</option><option>Dumbbell</option><option>Cable</option><option>Kettlebell</option><option>Bodyweight</option><option>Band</option><option>Mixed</option></select></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Age (years)</label><input id="programAge" type="number" min="10" max="90" placeholder="e.g. 30"></div><div class="field"><label>Gender</label><select id="programGender"><option value="male">Male</option><option value="female">Female</option></select></div><div class="field"><label>Body Weight (kg)</label><input id="programWeight" type="number" min="20" max="250" placeholder="e.g. 70"></div><div class="field"><label>Height (cm)</label><input id="programHeight" type="number" min="100" max="230" placeholder="e.g. 170"></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Squat / Leg Press — Load (kg)</label><input id="rmLowerW" type="number" min="0" placeholder="e.g. 40" oninput="updateE1RMPreview('Lower')"></div><div class="field"><label>Squat / Leg Press — Reps</label><input id="rmLowerR" type="number" min="1" max="20" placeholder="e.g. 8" oninput="updateE1RMPreview('Lower')"><small id="rmLowerOut" class="muted" style="display:block;margin-top:4px;font-size:12px"></small></div><div class="field"><label>Bench / Chest Press — Load (kg)</label><input id="rmPushW" type="number" min="0" placeholder="e.g. 20" oninput="updateE1RMPreview('Push')"></div><div class="field"><label>Bench / Chest Press — Reps</label><input id="rmPushR" type="number" min="1" max="20" placeholder="e.g. 8" oninput="updateE1RMPreview('Push')"><small id="rmPushOut" class="muted" style="display:block;margin-top:4px;font-size:12px"></small></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Row / Pulldown — Load (kg)</label><input id="rmPullW" type="number" min="0" placeholder="e.g. 30" oninput="updateE1RMPreview('Pull')"></div><div class="field"><label>Row / Pulldown — Reps</label><input id="rmPullR" type="number" min="1" max="20" placeholder="e.g. 8" oninput="updateE1RMPreview('Pull')"><small id="rmPullOut" class="muted" style="display:block;margin-top:4px;font-size:12px"></small></div><div class="field"><label>Deadlift / Hip Hinge — Load (kg)</label><input id="rmHingeW" type="number" min="0" placeholder="e.g. 50" oninput="updateE1RMPreview('Hinge')"></div><div class="field"><label>Deadlift / Hip Hinge — Reps</label><input id="rmHingeR" type="number" min="1" max="20" placeholder="e.g. 8" oninput="updateE1RMPreview('Hinge')"><small id="rmHingeOut" class="muted" style="display:block;margin-top:4px;font-size:12px"></small></div></div><p class="muted" style="margin-top:6px;font-size:12px">Optional — isi beban kerja aktual (bukan harus 1RM) yang baru saja diselesaikan member untuk pola gerak terkait. Estimasi 1RM (rumus Epley) akan langsung muncul di bawah kolom Reps begitu kedua nilai diisi, dan dipakai untuk mempersonalisasi rekomendasi beban per exercise — bukan lagi hanya estimasi generik dari berat badan. Kosongkan jika belum ada data.</p><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Level Fitness</label><select id="programLevel"><option value="auto">AUTO — berdasarkan data client</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></div><div class="field" style="grid-column:span 3"><label>Exercise / Workout Type <span class="small" style="font-weight:600">(pilihan mengikuti Goal)</span></label><select id="programWorkoutType" onchange="updateWorkoutTypeNote()"><optgroup label="General / Full Body"><option value="standard">Standard (Movement Pattern Split)</option><option value="fullbody">Full Body Workout</option><option value="totalbody">Total Body Conditioning</option><option value="functional">Functional Fitness</option><option value="lowimpact">Low-Impact Conditioning</option></optgroup><optgroup label="Strength / Hypertrophy"><option value="strengthpower">Strength &amp; Power</option><option value="hypertrophy">Hypertrophy / Bodybuilding</option><option value="upperlower">Upper / Lower Split</option><option value="ppl">Split Routine (Push / Pull / Legs)</option><option value="bro">Split Bro (1 Otot / Hari)</option><option value="superset">Super Set</option><option value="giantset">Giant Set / Tri-Set</option><option value="cluster">Cluster Sets</option><option value="density">Density Training</option><option value="tempo">Tempo / Eccentric Training</option><option value="contrast">Contrast / Complex Training</option></optgroup><optgroup label="Hybrid / Conditioning / Competition"><option value="hybrid">Hybrid Training</option><option value="hyrox">HYROX Style</option><option value="metcon">METCON / CrossFit Style</option><option value="circuit">Circuit Training</option><option value="hiit">HIIT</option><option value="zone2">Zone 2 / Aerobic Base</option><option value="engine">Engine Builder</option><option value="runlift">Run + Lift Hybrid</option><option value="ocr">Obstacle / Race Conditioning</option><option value="tabata">TABATA</option><option value="emom">EMOM</option><option value="amrap">AMRAP</option><option value="fortime">FOR TIME</option><option value="ladder">Ladder / Pyramid</option></optgroup><optgroup label="Specialized / Recovery"><option value="rehab">Rehabilitation / Corrective</option><option value="corebalance">Core &amp; Balance</option><option value="mobilityflow">Mobility Flow</option><option value="prehab">Prehabilitation / Injury Prevention</option><option value="recovery">Active Recovery</option></optgroup><option value="auto">AUTO — Goal &amp; Assessment Based</option></select><p id="wtypeNote" class="muted" style="margin-top:6px;font-size:12px">Structured programming based on fundamental movement patterns: squat, push, pull, hinge, and carry/core.</p></div></div><div class="actions"><button id="btnGenerateTraining" class="btn" type="button">Generate Training Program</button><button id="btnResetTraining" class="btn alt" type="button">Reset Program</button><button id="btnSaveTraining" class="btn alt" type="button">💾 Save Full Program</button><button id="btnLoadTraining" class="btn alt" type="button">📂 Load Full Program</button><button id="saveFullProgramPdfBtn" class="btn alt" type="button">▣ Save Full Program PDF</button><button id="btnPrintTraining" class="btn alt" type="button">Print Training Program</button></div><div id="trainingResult" class="result"></div></section>
+<section id="training" class="panel"><div class="grid grid4"><div class="field"><label>Client Name</label><input id="clientName" type="text" placeholder="e.g. John Doe" autocomplete="name"></div><div class="field"><label>Duration</label><select id="programMonths"><option>3</option><option>6</option><option>9</option><option>12</option></select></div><div class="field"><label>Frequency</label><select id="programFreq"><option value="2">2× / Week</option><option value="3">3× / Week</option><option value="4">4× / Week</option><option value="5">5× / Week</option><option value="6">6× / Week</option></select></div><div class="field"><label>Goal</label><select id="programGoal"><optgroup label="Existing Goals"><option>Fat Loss</option><option>Hypertrophy</option><option>Muscular Endurance</option><option>Strength</option><option>Strength Endurance</option><option>Power</option><option>Performance</option><option>General Fitness</option><option>Healthy Aging</option><option>Mobility</option><option>Return to Exercise</option><option>Corrective / Modification</option><option>Other</option></optgroup><optgroup label="Additional Goals"><option>Body Recomposition</option><option>Muscle Gain</option><option>Healthy Weight Management</option><option>Cardiorespiratory Fitness</option><option>Aerobic Endurance</option><option>Anaerobic Capacity</option><option>Work Capacity</option><option>Functional Fitness</option><option>Hybrid Athlete</option><option>Sport-Specific Performance</option><option>Speed & Agility</option><option>Coordination & Balance</option><option>Core Stability</option><option>Posture & Movement Quality</option><option>Injury Prevention</option><option>Rehabilitation</option><option>Prehabilitation</option><option>Longevity</option><option>Running Performance</option><option>Obstacle / Race Preparation</option><option>Low-Impact Fitness</option><option>Recovery & Resilience</option></optgroup></select></div><div class="field"><label>Default Resistance</label><select id="programResistance"><option>Machine</option><option>Barbell</option><option>Dumbbell</option><option>Cable</option><option>Kettlebell</option><option>Bodyweight</option><option>Band</option><option>Mixed</option></select></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Age (years)</label><input id="programAge" type="number" min="10" max="90" placeholder="e.g. 30"></div><div class="field"><label>Gender</label><select id="programGender"><option value="male">Male</option><option value="female">Female</option></select></div><div class="field"><label>Body Weight (kg)</label><input id="programWeight" type="number" min="20" max="250" placeholder="e.g. 70"></div><div class="field"><label>Height (cm)</label><input id="programHeight" type="number" min="100" max="230" placeholder="e.g. 170"></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Squat / Leg Press — Load (kg)</label><input id="rmLowerW" type="number" min="0" placeholder="e.g. 40" oninput="updateE1RMPreview('Lower')"></div><div class="field"><label>Squat / Leg Press — Reps</label><input id="rmLowerR" type="number" min="1" max="20" placeholder="e.g. 8" oninput="updateE1RMPreview('Lower')"><small id="rmLowerOut" class="muted" style="display:block;margin-top:4px;font-size:12px"></small></div><div class="field"><label>Bench / Chest Press — Load (kg)</label><input id="rmPushW" type="number" min="0" placeholder="e.g. 20" oninput="updateE1RMPreview('Push')"></div><div class="field"><label>Bench / Chest Press — Reps</label><input id="rmPushR" type="number" min="1" max="20" placeholder="e.g. 8" oninput="updateE1RMPreview('Push')"><small id="rmPushOut" class="muted" style="display:block;margin-top:4px;font-size:12px"></small></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Row / Pulldown — Load (kg)</label><input id="rmPullW" type="number" min="0" placeholder="e.g. 30" oninput="updateE1RMPreview('Pull')"></div><div class="field"><label>Row / Pulldown — Reps</label><input id="rmPullR" type="number" min="1" max="20" placeholder="e.g. 8" oninput="updateE1RMPreview('Pull')"><small id="rmPullOut" class="muted" style="display:block;margin-top:4px;font-size:12px"></small></div><div class="field"><label>Deadlift / Hip Hinge — Load (kg)</label><input id="rmHingeW" type="number" min="0" placeholder="e.g. 50" oninput="updateE1RMPreview('Hinge')"></div><div class="field"><label>Deadlift / Hip Hinge — Reps</label><input id="rmHingeR" type="number" min="1" max="20" placeholder="e.g. 8" oninput="updateE1RMPreview('Hinge')"><small id="rmHingeOut" class="muted" style="display:block;margin-top:4px;font-size:12px"></small></div></div><p class="muted" style="margin-top:6px;font-size:12px">Optional — isi beban kerja aktual (bukan harus 1RM) yang baru saja diselesaikan member untuk pola gerak terkait. Estimasi 1RM (rumus Epley) akan langsung muncul di bawah kolom Reps begitu kedua nilai diisi, dan dipakai untuk mempersonalisasi rekomendasi beban per exercise — bukan lagi hanya estimasi generik dari berat badan. Kosongkan jika belum ada data.</p><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Level Fitness</label><select id="programLevel"><option value="auto">AUTO — berdasarkan data client</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></div><div class="field" style="grid-column:span 3"><label>Exercise / Workout Type <span class="small" style="font-weight:600">(pilihan mengikuti Goal)</span></label><select id="programWorkoutType" onchange="updateWorkoutTypeNote()"><optgroup label="General / Full Body"><option value="standard">Standard (Movement Pattern Split)</option><option value="fullbody">Full Body Workout</option><option value="totalbody">Total Body Conditioning</option><option value="functional">Functional Fitness</option><option value="lowimpact">Low-Impact Conditioning</option></optgroup><optgroup label="Strength / Hypertrophy"><option value="strengthpower">Strength &amp; Power</option><option value="hypertrophy">Hypertrophy / Bodybuilding</option><option value="upperlower">Upper / Lower Split</option><option value="ppl">Split Routine (Push / Pull / Legs)</option><option value="bro">Split Bro (1 Otot / Hari)</option><option value="superset">Super Set</option><option value="giantset">Giant Set / Tri-Set</option><option value="cluster">Cluster Sets</option><option value="density">Density Training</option><option value="tempo">Tempo / Eccentric Training</option><option value="contrast">Contrast / Complex Training</option></optgroup><optgroup label="Hybrid / Conditioning / Competition"><option value="hybrid">Hybrid Training</option><option value="hyrox">HYROX Style</option><option value="metcon">METCON / CrossFit Style</option><option value="circuit">Circuit Training</option><option value="hiit">HIIT</option><option value="zone2">Zone 2 / Aerobic Base</option><option value="engine">Engine Builder</option><option value="runlift">Run + Lift Hybrid</option><option value="ocr">Obstacle / Race Conditioning</option><option value="tabata">TABATA</option><option value="emom">EMOM</option><option value="amrap">AMRAP</option><option value="fortime">FOR TIME</option><option value="ladder">Ladder / Pyramid</option></optgroup><optgroup label="Specialized / Recovery"><option value="rehab">Rehabilitation / Corrective</option><option value="corebalance">Core &amp; Balance</option><option value="mobilityflow">Mobility Flow</option><option value="prehab">Prehabilitation / Injury Prevention</option><option value="recovery">Active Recovery</option></optgroup><option value="auto">AUTO — Goal &amp; Assessment Based</option></select><p id="wtypeNote" class="muted" style="margin-top:6px;font-size:12px">Structured programming based on fundamental movement patterns: squat, push, pull, hinge, and carry/core.</p></div></div><div class="actions"><button id="btnGenerateTraining" class="btn" type="button">Generate Training Program</button><button id="btnResetTraining" class="btn alt" type="button">Reset Program</button><button id="btnSaveTraining" class="btn alt" type="button">💾 Save Full Program</button><button id="btnLoadTraining" class="btn alt" type="button">📂 Load Full Program</button><button id="saveFullProgramPdfBtn" class="btn alt" type="button">▣ Save Full Program PDF</button><button id="btnPrintTraining" class="btn alt" type="button">Print Training Program</button></div><div id="trainingResult" class="result"></div></section>
 
 <section id="adminAccess" class="panel"><div class="section-title"><div><h2>Admin Access Approval</h2><p>Hanya Admin <b>aldenkhafi0203@gmail.com</b> yang dapat Approve, Reject, atau Revoke akses akun.</p></div></div><div id="adminAccessResult" class="report"><div class="notice">Memuat daftar permintaan...</div></div></section>
 </main></div>
@@ -1995,7 +1995,7 @@ function fjBuildAllTrainingHTML(st,period=null){
   return out||'<div class="notice">Tidak ada hari pada periode yang dipilih.</div>';
 }
 function fjTrainingFormSnapshot(){
- const ids=['programMonths','programFreq','programGoal','programResistance','programAge','programGender','programWeight','programHeight','programLevel','programWorkoutType','rmLowerW','rmLowerR','rmPushW','rmPushR','rmPullW','rmPullR','rmHingeW','rmHingeR'];
+ const ids=['clientName','programMonths','programFreq','programGoal','programResistance','programAge','programGender','programWeight','programHeight','programLevel','programWorkoutType','rmLowerW','rmLowerR','rmPushW','rmPushR','rmPullW','rmPullR','rmHingeW','rmHingeR'];
  const out={};ids.forEach(id=>{const e=document.getElementById(id);if(e)out[id]=e.value;});
  return out;
 }
@@ -4069,299 +4069,58 @@ if ('serviceWorker' in navigator) {
   html[data-fj-device="phone"] #ptm-schedule .grid4{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
 }
 </style>
-<script id="training-admin-boot">
-(function(){
-  function fjStandaloneNav(){
-    document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.onclick=function(){
-      document.querySelectorAll('.navbtn[data-tab]').forEach(function(x){x.classList.remove('active')});
-      b.classList.add('active');
-      document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
-      var p=document.getElementById(b.dataset.tab);if(p)p.classList.add('active');
-      if(b.dataset.tab==='adminAccess' && typeof loadAdminAccess==='function') loadAdminAccess();
-    }});
-    var d=document.getElementById('todayPill');if(d)d.textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-  }
-  window.addEventListener('load',fjStandaloneNav);
-})();
-</script><script id="fj-final-button-safety-v2">
-(function(){
-  if(typeof window.loadFullTrainingProgramFromDevice==='function' && typeof window.loadFullTrainingProgram!=='function') window.loadFullTrainingProgram=window.loadFullTrainingProgramFromDevice;
-  if(typeof window.saveFullTrainingProgramPDF!=='function') window.saveFullTrainingProgramPDF=function(){try{printSection('training')}catch(e){window.print()}};
-  document.addEventListener('DOMContentLoaded',function(){
-    var lock=document.querySelector('.navbtn[onclick*="lockApp"]');
-    if(lock) lock.addEventListener('click',function(e){ if(typeof window.lockApp==='function'){e.preventDefault();window.lockApp()} });
-  });
-})();
-</script><script id="fj-training-runtime-v4">
-(function(){
-  'use strict';
-  function id(x){return document.getElementById(x)}
-  function err(title,e){
-    console.error(title,e);
-    var box=id('trainingResult');
-    if(box){box.innerHTML='<div class="notice warn" style="margin-top:16px"><b>'+title+'</b><br><span style="overflow-wrap:anywhere">'+String(e&&e.message||e||'Unknown error').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})+'</span></div>';}
-    else alert(title+'\n'+(e&&e.message||e||''));
-  }
-  function bind(){
-    var handlers={
-      btnGenerateTraining:function(){try{if(typeof window.generateProgram!=='function')throw new Error('Generate function unavailable.');window.generateProgram();}catch(e){err('Generate Training Program gagal.',e)}},
-      btnResetTraining:function(){try{if(typeof window.resetAdvancedProgram!=='function')throw new Error('Reset function unavailable.');window.resetAdvancedProgram();}catch(e){err('Reset Program gagal.',e)}},
-      btnSaveTraining:function(){try{if(typeof window.saveFullTrainingProgram!=='function')throw new Error('Save function unavailable.');window.saveFullTrainingProgram();}catch(e){err('Save Full Program gagal.',e)}},
-      btnLoadTraining:function(){try{if(typeof window.loadFullTrainingProgramFromDevice!=='function')throw new Error('Load function unavailable.');window.loadFullTrainingProgramFromDevice();}catch(e){err('Load Full Program gagal.',e)}},
-      saveFullProgramPdfBtn:function(){try{if(typeof window.saveFullTrainingProgramPDF!=='function')throw new Error('PDF function unavailable.');window.saveFullTrainingProgramPDF();}catch(e){err('Save Full Program PDF gagal.',e)}},
-      btnPrintTraining:function(){try{if(typeof window.printSection!=='function')throw new Error('Print function unavailable.');window.printSection('training');}catch(e){err('Print Training Program gagal.',e)}},
-      btnLockApp:function(){try{if(typeof window.lockApp!=='function')throw new Error('Lock function unavailable.');window.lockApp();}catch(e){err('Lock gagal.',e)}}
-    };
-    Object.keys(handlers).forEach(function(k){var el=id(k);if(!el)return;el.onclick=handlers[k];el.style.pointerEvents='auto';});
-    document.querySelectorAll('.navbtn[data-tab]').forEach(function(btn){btn.onclick=function(){document.querySelectorAll('.navbtn[data-tab]').forEach(function(x){x.classList.remove('active')});btn.classList.add('active');document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});var p=id(btn.dataset.tab);if(p)p.classList.add('active');if(btn.dataset.tab==='adminAccess'&&typeof window.loadAdminAccess==='function'){window.loadAdminAccess().catch(function(e){err('Admin Access Approval gagal dimuat.',e)})}}});
-    var t=id('training');if(t)t.classList.add('active');
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-})();
-</script>
-<style id="fj-training-runtime-layout-v3">
-html,body{width:100%;max-width:100%;min-width:0;overflow-x:hidden!important}
-.app{width:100%!important;max-width:100%!important;grid-template-columns:minmax(300px,426px) minmax(0,1fr)!important}
-.main{min-width:0!important;width:auto!important;max-width:none!important;overflow-x:hidden!important;box-sizing:border-box!important}
-.panel#training,.panel#adminAccess{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
-.panel#training .grid,.panel#training .grid4,.panel#training .grid3,.panel#training .grid2{width:100%!important;max-width:100%!important;min-width:0!important}
-.panel#training .field,.panel#training .card,.panel#training .hero,.panel#training .result{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
-.panel#training input,.panel#training select,.panel#training textarea{max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
-.actions{max-width:100%!important;box-sizing:border-box!important;display:flex!important;flex-wrap:wrap!important;gap:14px!important}
-.actions .btn{max-width:100%!important;box-sizing:border-box!important}
-#trainingResult{width:100%!important;min-width:0!important;overflow:visible!important}
-#trainingResult .grid{min-width:0!important}
-@media(max-width:1100px){.app{grid-template-columns:250px minmax(0,1fr)!important}.main{padding:24px!important}.grid4{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
-@media(max-width:700px){.app{display:block!important}.side{width:100%!important;height:auto!important;min-height:0!important;position:relative!important}.main{padding:18px 14px!important}.grid,.grid2,.grid3,.grid4{grid-template-columns:1fr!important}.actions .btn{width:100%!important}.actions{flex-direction:column!important}}
-</style>
-<style id="fj-v5-print-mobile-fix">
-/* V5: Training Program only — responsive like the base app and clean A4 print/PDF. */
-html,body{width:100%;max-width:100%;overflow-x:hidden}
-.app{grid-template-columns:300px minmax(0,1fr)!important;min-height:100vh}
-.side{width:300px;min-width:300px;max-width:300px;min-height:100vh;height:100vh;position:sticky;top:0;box-sizing:border-box}
-.main{min-width:0;width:auto;max-width:none;overflow-x:hidden;box-sizing:border-box}
-.panel#training{min-width:0;max-width:100%;box-sizing:border-box}
-#training .grid,#training .grid2,#training .grid3,#training .grid4{min-width:0;max-width:100%;box-sizing:border-box}
-#training .field,#training .card,#trainingResult{min-width:0;max-width:100%;box-sizing:border-box}
-#trainingResult{overflow:visible}
-.fj-table-scroll{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.program-day-table{min-width:980px}
-/* Dedicated print root is created only while printing. */
-#fj-training-print-root{display:none}
-@media(max-width:900px){
-  .app{grid-template-columns:1fr!important}
-  .side{position:relative;width:100%;min-width:0;max-width:none;height:auto;min-height:0}
-  .side .nav{display:flex;flex-wrap:wrap;gap:8px}
-  .side .navgroup{width:100%}
-  .side .navbtn{flex:1 1 220px;min-width:0}
-  .main{width:100%;min-width:0;padding-left:14px!important;padding-right:14px!important}
-}
-@media(max-width:600px){
-  .top h1{font-size:30px!important}
-  .top p{font-size:14px!important}
-  #training .grid,#training .grid2,#training .grid3,#training .grid4{grid-template-columns:1fr!important}
-  #training .actions{display:grid!important;grid-template-columns:1fr!important;width:100%!important}
-  #training .actions .btn{width:100%!important;min-width:0!important}
-  .main{padding-left:10px!important;padding-right:10px!important}
-}
-@media print{
-  @page{size:A4 portrait;margin:10mm 9mm 11mm 9mm}
-  html,body{background:#fff!important;overflow:visible!important;height:auto!important}
-  body>*{display:none!important}
-  #fj-training-print-root{display:block!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;color:#152f3b!important;background:#fff!important;font-family:Arial,Helvetica,sans-serif!important}
-  #fj-training-print-root *{box-sizing:border-box!important}
-  #fj-training-print-root .print-header{border-bottom:2px solid #174f70;padding:0 0 7px;margin:0 0 10px}
-  #fj-training-print-root .print-brand{font-size:20px;font-weight:900;letter-spacing:.4px;color:#123f5e}
-  #fj-training-print-root .print-title{font-size:22px;font-weight:900;color:#123f5e;margin-top:2px}
-  #fj-training-print-root .print-date{font-size:9px;color:#668092;margin-top:2px}
-  #fj-training-print-root .client-box{border:1px solid #ccdbe3;border-radius:7px;padding:8px 9px;margin:0 0 10px;break-inside:avoid;page-break-inside:avoid}
-  #fj-training-print-root .client-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px 10px}
-  #fj-training-print-root .client-item{min-width:0}
-  #fj-training-print-root .client-label{font-size:7px;text-transform:uppercase;letter-spacing:.45px;font-weight:800;color:#668092}
-  #fj-training-print-root .client-value{font-size:10px;font-weight:700;color:#173e53;overflow-wrap:anywhere}
-  #fj-training-print-root .result-wrap{width:100%;max-width:100%;overflow:visible}
-  #fj-training-print-root .result-wrap .notice{display:none!important}
-  #fj-training-print-root .result-wrap .program-month-card,
-  #fj-training-print-root .result-wrap .program-month,
-  #fj-training-print-root .result-wrap .card{box-shadow:none!important;break-inside:auto!important;page-break-inside:auto!important}
-  #fj-training-print-root .result-wrap h1,#fj-training-print-root .result-wrap h2,#fj-training-print-root .result-wrap h3,#fj-training-print-root .result-wrap h4{break-after:avoid;page-break-after:avoid}
-  #fj-training-print-root .result-wrap .fj-table-scroll{overflow:visible!important;width:100%!important;max-width:100%!important}
-  #fj-training-print-root .result-wrap table{width:100%!important;min-width:0!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:6.5px!important}
-  #fj-training-print-root .result-wrap th,#fj-training-print-root .result-wrap td{padding:3px 2px!important;line-height:1.18!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:top!important}
-  #fj-training-print-root .result-wrap th{font-size:6px!important}
-  #fj-training-print-root .result-wrap .program-session-detail{break-inside:auto!important;page-break-inside:auto!important}
-  #fj-training-print-root .result-wrap .program-session-heading{break-inside:avoid!important;page-break-inside:avoid!important}
-  #fj-training-print-root .result-wrap .fj-all-session{break-inside:auto!important;page-break-inside:auto!important;margin-bottom:7px!important}
-  #fj-training-print-root .result-wrap .program-week-panel{break-inside:auto!important;page-break-inside:auto!important}
-  #fj-training-print-root .result-wrap *{max-width:100%!important}
-}
-@media print and (max-width:700px){
-  #fj-training-print-root .client-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-</style>
-<script id="fj-v5-print-functions">
-(function(){
-  function esc(v){return String(v??'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function val(id){var e=document.getElementById(id);return e?String(e.value||'').trim():''}
-  function makeClientData(){
-    var rows=[
-      ['Client',val('clientName')||'—'],
-      ['Age',val('programAge')||val('age')||'—'],
-      ['Gender',val('programGender')||val('sex')||'—'],
-      ['Body Weight',val('programWeight')||val('weight')?((val('programWeight')||val('weight'))+' kg'):'—'],
-      ['Height',val('programHeight')||val('height')?((val('programHeight')||val('height'))+' cm'):'—'],
-      ['Goal',val('programGoal')||val('goal')||'—'],
-      ['Level',val('programLevel')||'AUTO'],
-      ['Workout Type',val('programWorkoutType')||'—'],
-      ['Duration',val('programMonths')?((val('programMonths'))+' months'):'—'],
-      ['Frequency',val('programFreq')||'—']
-    ];
-    return rows;
-  }
-  window.fjBuildTrainingPrintRoot=function(){
-    var root=document.createElement('div');root.id='fj-training-print-root';
-    var now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-    var html='<div class="print-header"><div class="print-brand">FITNESS JOURNEY</div><div class="print-title">Training Program</div><div class="print-date">Generated '+esc(now)+'</div></div>';
-    html+='<div class="client-box"><div class="client-grid">';
-    makeClientData().forEach(function(r){html+='<div class="client-item"><div class="client-label">'+esc(r[0])+'</div><div class="client-value">'+esc(r[1])+'</div></div>';});
-    html+='</div></div>';
-    var result=document.getElementById('trainingResult');
-    html+='<div class="result-wrap">'+(result&&result.innerHTML.trim()?result.innerHTML:'<p>No generated training program.</p>')+'</div>';
-    root.innerHTML=html;return root;
-  };
-  window.printSection=function(id){
-    if(id!=='training'){window.print();return;}
-    var old=document.getElementById('fj-training-print-root');if(old)old.remove();
-    var root=window.fjBuildTrainingPrintRoot();document.body.appendChild(root);
-    var oldTitle=document.title;document.title='Fitness Journey - Training Program - '+(val('clientName')||'Client');
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      window.print();
-      setTimeout(function(){root.remove();document.title=oldTitle},800);
-    })});
-  };
-  window.saveFullTrainingProgramPDF=function(){
-    if(!document.getElementById('trainingResult')?.innerHTML.trim()){
-      alert('Generate Training Program terlebih dahulu.');return;
-    }
-    window.printSection('training');
-  };
-})();
-</script>
 
-<style id="fj-v6-final-responsive-print">
-/* V6 — preserve base responsive behaviour; constrain desktop sidebar and mobile to viewport. */
-html,body{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important}
-.app{display:grid!important;grid-template-columns:300px minmax(0,1fr)!important;width:100%!important;min-width:0!important;max-width:100%!important}
-.side{width:300px!important;min-width:300px!important;max-width:300px!important;box-sizing:border-box!important}
-.main{width:auto!important;min-width:0!important;max-width:none!important;overflow-x:hidden!important;box-sizing:border-box!important}
-#training{min-width:0!important;max-width:100%!important;overflow:visible!important}
-#training .grid,#training .grid2,#training .grid3,#training .grid4{width:100%!important;max-width:100%!important;min-width:0!important}
-#training .field,#training input,#training select,#training textarea,#training .card,#trainingResult{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
-#trainingResult{overflow:visible!important}
-#trainingResult .program-week-tabs,#trainingResult .program-session-tabs{min-width:0!important;max-width:100%!important}
-#trainingResult .program-day-table{width:100%!important;max-width:100%!important}
-.fj-table-scroll{max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
-@media(max-width:1100px){
-  .app{grid-template-columns:235px minmax(0,1fr)!important}
-  .side{width:235px!important;min-width:235px!important;max-width:235px!important}
-  .main{padding:24px!important}
-}
-@media(max-width:700px){
-  .app{display:block!important;width:100%!important}
-  .side{position:relative!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:0!important}
-  .main{width:100%!important;min-width:0!important;padding:18px 14px!important}
-  #training .grid,#training .grid2,#training .grid3,#training .grid4{grid-template-columns:1fr!important}
-  #training .actions{display:grid!important;grid-template-columns:1fr!important;width:100%!important;gap:10px!important}
-  #training .actions .btn{width:100%!important;min-width:0!important;max-width:100%!important}
-  #trainingResult .program-session-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  #trainingResult .program-week-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  #trainingResult .program-session-heading{display:flex!important;flex-direction:column!important;align-items:stretch!important}
-  #trainingResult .program-session-meta{justify-content:flex-start!important}
-}
-@media(max-width:430px){
-  .main{padding:14px 10px!important}
-  .top h1{font-size:24px!important}
-  #trainingResult .program-session-tabs,#trainingResult .program-week-tabs{grid-template-columns:1fr!important}
-}
-/* Print/PDF contains ONLY client/program data and generated training output. */
-@media print{
-  @page{size:A4 portrait;margin:9mm 8mm 10mm 8mm}
-  html,body{background:#fff!important;width:auto!important;min-width:0!important;overflow:visible!important;height:auto!important}
-  body>*{display:none!important}
-  #fj-training-print-root{display:block!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0!important;background:#fff!important;color:#16364a!important;font-family:Arial,Helvetica,sans-serif!important;font-size:9px!important;line-height:1.3!important}
-  #fj-training-print-root *{box-sizing:border-box!important;max-width:100%!important}
-  #fj-training-print-root .print-header{border-bottom:2px solid #174f70;padding:0 0 5px;margin:0 0 7px}
-  #fj-training-print-root .print-brand{font-size:17px;font-weight:900;letter-spacing:.5px;color:#123f5e}
-  #fj-training-print-root .print-title{font-size:18px;font-weight:900;color:#123f5e;margin-top:1px}
-  #fj-training-print-root .print-date{font-size:7px;color:#668092;margin-top:1px}
-  #fj-training-print-root .client-box{border:1px solid #cbd9e1;border-radius:6px;padding:6px 7px;margin:0 0 7px;break-inside:avoid;page-break-inside:avoid}
-  #fj-training-print-root .client-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px 8px!important}
-  #fj-training-print-root .client-item{min-width:0!important}
-  #fj-training-print-root .client-label{font-size:6.5px!important;text-transform:uppercase;letter-spacing:.35px;font-weight:800;color:#6a8291}
-  #fj-training-print-root .client-value{font-size:8.5px!important;font-weight:700;color:#173e53;overflow-wrap:anywhere!important;word-break:normal!important}
-  #fj-training-print-root .result-wrap{width:100%!important;max-width:100%!important;overflow:visible!important}
-  #fj-training-print-root .result-wrap>.notice{display:none!important}
-  /* The generated full-program renderer may contain UI tabs/buttons; never print them. */
-  #fj-training-print-root button,
-  #fj-training-print-root .program-week-tabs,
-  #fj-training-print-root .program-session-tabs,
-  #fj-training-print-root .no-print,
-  #fj-training-print-root .print-hide{display:none!important}
-  #fj-training-print-root .fj-all-month{width:100%!important;max-width:100%!important;margin:0 0 8px!important;padding:0!important;break-inside:auto!important;page-break-inside:auto!important}
-  #fj-training-print-root .fj-all-month:first-child{break-before:auto!important;page-break-before:auto!important}
-  #fj-training-print-root .fj-all-month:not(:first-child){break-before:auto!important;page-break-before:auto!important}
-  #fj-training-print-root .fj-all-session{width:100%!important;max-width:100%!important;margin:0 0 7px!important;padding:5px 0 0!important;border-top:1px solid #d7e1e6!important;break-inside:auto!important;page-break-inside:auto!important}
-  #fj-training-print-root .fj-all-session h4{font-size:8px!important;margin:0 0 3px!important;color:#174f70!important;break-after:avoid!important;page-break-after:avoid!important}
-  #fj-training-print-root h2,#fj-training-print-root h3,#fj-training-print-root h4{break-after:avoid!important;page-break-after:avoid!important}
-  #fj-training-print-root table{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:6.5px!important;break-inside:auto!important;page-break-inside:auto!important}
-  #fj-training-print-root thead{display:table-header-group!important}
-  #fj-training-print-root tr{break-inside:auto!important;page-break-inside:auto!important}
-  #fj-training-print-root th,#fj-training-print-root td{padding:2.5px 2px!important;line-height:1.2!important;vertical-align:top!important;overflow-wrap:anywhere!important;word-break:normal!important}
-  #fj-training-print-root th{font-size:6px!important}
-  #fj-training-print-root .program-session-detail{width:100%!important;max-width:100%!important;break-inside:auto!important;page-break-inside:auto!important}
-  #fj-training-print-root .program-session-heading{break-inside:avoid!important;page-break-inside:avoid!important}
-  #fj-training-print-root .program-session-meta{display:flex!important;flex-wrap:wrap!important;gap:3px!important}
-  #fj-training-print-root .program-session-meta span{font-size:6.5px!important;padding:2px 4px!important;white-space:normal!important}
-  #fj-training-print-root .card{box-shadow:none!important;border-color:#d6e0e5!important}
-}
+<!-- CLEAN STANDALONE RUNTIME: Training Program + Admin Access Approval only -->
+<style id="fj-clean-standalone-css">
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-width:0;overflow-x:hidden}body{background:#f5f8fb}
+.app{display:grid!important;grid-template-columns:230px minmax(0,1fr)!important;min-height:100vh;width:100%;overflow:visible!important}
+.side{width:230px!important;min-width:230px!important;max-width:230px!important;height:100vh!important;position:sticky!important;top:0;overflow:auto!important;background:#07577f!important}
+.main{min-width:0!important;width:auto!important;max-width:none!important;padding:28px 30px!important;overflow-x:hidden!important}
+.top{min-width:0!important}.top h1{margin:0}.panel{min-width:0!important;max-width:100%!important}.panel:not(#training):not(#adminAccess){display:none!important}
+#training .grid,#training .grid2,#training .grid3,#training .grid4{width:100%!important;min-width:0!important;max-width:100%!important}
+#training .field,#training input,#training select,#training textarea{min-width:0!important;max-width:100%!important;width:100%;box-sizing:border-box}
+#training .actions{display:flex!important;flex-wrap:wrap!important;gap:10px!important;width:100%!important;max-width:100%!important}
+#training .actions .btn{flex:0 1 auto;min-width:0;max-width:100%}
+#trainingResult{width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important}
+#trainingResult img{max-width:100%!important;height:auto!important}.fj-table-scroll{max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+.program-day-table{min-width:760px}
+#adminAccess{display:none}.panel.active#adminAccess{display:block!important}
+@media(max-width:900px){.app{grid-template-columns:200px minmax(0,1fr)!important}.side{width:200px!important;min-width:200px!important;max-width:200px!important}.main{padding:22px 18px!important}}
+@media(max-width:680px){.app{display:block!important}.side{position:relative!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:0!important}.main{width:100%!important;padding:16px 12px!important}.top{display:block!important}.top h1{font-size:26px!important}.top p{font-size:13px!important}.pill{margin-top:8px!important}.nav{display:flex!important;flex-wrap:wrap!important;gap:8px!important}.navbtn{flex:1 1 140px!important}.side-footer{margin-top:12px!important}.panel{padding:0!important}.panel .grid,.panel .grid2,.panel .grid3,.panel .grid4{grid-template-columns:1fr!important}.actions{display:grid!important;grid-template-columns:1fr!important}.actions .btn{width:100%!important}.program-day-table{min-width:700px}}
+/* Print is a dedicated document: only client data + generated result. */
+@page{size:A4;margin:10mm}
+@media print{html,body{background:#fff!important;overflow:visible!important}.app,#auth,.toast,.modal,.side,.main,.top{display:none!important}#fj-training-print-root{display:block!important;position:static!important;width:100%!important;color:#111!important;background:#fff!important;font-family:Arial,sans-serif!important}.fj-print-header{border-bottom:2px solid #17364e;padding-bottom:8px;margin-bottom:12px}.fj-print-brand{font-size:12px;font-weight:700;letter-spacing:1px;color:#17364e}.fj-print-title{font-size:22px;font-weight:800;margin-top:2px}.fj-print-date{font-size:9px;color:#666;margin-top:3px}.fj-print-client{border:1px solid #d7dee5;border-radius:8px;padding:10px;margin-bottom:14px}.fj-print-client-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 18px}.fj-print-client-item{min-width:0}.fj-print-label{font-size:8px;text-transform:uppercase;color:#6b7280;font-weight:700}.fj-print-value{font-size:10px;font-weight:600;margin-top:1px;overflow-wrap:anywhere}.fj-print-result{width:100%}.fj-print-result *{max-width:100%!important}.fj-print-result table{width:100%!important;border-collapse:collapse!important;table-layout:auto!important}.fj-print-result th,.fj-print-result td{font-size:8px!important;padding:4px!important;vertical-align:top!important;overflow-wrap:anywhere!important}.fj-print-result .program-session-card,.fj-print-result .session-card,.fj-print-result .card{break-inside:avoid!important}.fj-print-result .program-week,.fj-print-result .month-card{break-inside:avoid!important}.fj-print-result h1,.fj-print-result h2,.fj-print-result h3{break-after:avoid!important}.fj-print-result tr{break-inside:avoid!important}.fj-print-result .fj-table-scroll{overflow:visible!important}.fj-print-result .program-day-table{min-width:0!important}.fj-print-result button,.fj-print-result .btn{display:none!important}}
 </style>
-<script id="fj-v6-final-print-functions">
-(function(){
-  function esc(v){return String(v??'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function val(id,fallback){var e=document.getElementById(id);var v=e?String(e.value||'').trim():'';return v||fallback||'—'}
-  function clientRows(){return [
-    ['Client',val('clientName')],['Age',val('programAge',val('age'))+' years'],['Gender',val('programGender',val('sex'))],
-    ['Body Weight',val('programWeight',val('weight'))+' kg'],['Height',val('programHeight',val('height'))+' cm'],
-    ['Goal',val('programGoal',val('goal'))],['Fitness Level',val('programLevel','AUTO')],['Workout Type',val('programWorkoutType')],
-    ['Duration',val('programMonths')+' months'],['Frequency',val('programFreq')]
-  ]}
-  function buildRoot(){
-    var root=document.createElement('div');root.id='fj-training-print-root';
-    var date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-    var h='<div class="print-header"><div class="print-brand">FITNESS JOURNEY</div><div class="print-title">Training Program</div><div class="print-date">Generated '+esc(date)+'</div></div>';
-    h+='<div class="client-box"><div class="client-grid">';
-    clientRows().forEach(function(r){h+='<div class="client-item"><div class="client-label">'+esc(r[0])+'</div><div class="client-value">'+esc(r[1])+'</div></div>'});
-    h+='</div></div><div class="result-wrap">';
-    var st=window.__FJAdvancedState;
-    var full='';
-    if(st&&typeof window.fjBuildAllTrainingHTML==='function'){try{full=window.fjBuildAllTrainingHTML(st,window.__FJ_PDF_PERIOD||null)||''}catch(e){console.error(e)}}
-    if(!full){var result=document.getElementById('trainingResult');full=result&&result.innerHTML.trim()?result.innerHTML:'<p>No generated training program.</p>'}
-    h+=full+'</div>';root.innerHTML=h;return root;
-  }
-  function doPrint(){
-    var old=document.getElementById('fj-training-print-root');if(old)old.remove();
-    var root=buildRoot();document.body.appendChild(root);
-    var oldTitle=document.title;document.title='Fitness Journey - Training Program - '+val('clientName','Client');
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      window.print();setTimeout(function(){if(root.parentNode)root.remove();document.title=oldTitle},1200);
-    })});
-  }
-  window.fjBuildTrainingPrintRoot=buildRoot;
-  window.printSection=function(id){if(id==='training')doPrint();else window.print()};
-  window.saveFullTrainingProgramPDF=function(){
-    if(!window.__FJAdvancedState){alert('Generate Training Program terlebih dahulu.');return}
-    doPrint();
-  };
+<script id="fj-clean-runtime">
+(function(){'use strict';
+ function $(id){return document.getElementById(id)}
+ function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+ function val(id,fb){var e=$(id),v=e?String(e.value||'').trim():'';return v||fb||'—'}
+ function clientRows(){return [
+  ['Client',val('clientName')],['Age',val('programAge','—')+' years'],['Gender',val('programGender','—')],
+  ['Body Weight',val('programWeight','—')+' kg'],['Height',val('programHeight','—')+' cm'],
+  ['Goal',val('programGoal')],['Fitness Level',val('programLevel','AUTO')],['Workout Type',val('programWorkoutType')],
+  ['Duration',val('programMonths')+' months'],['Frequency',val('programFreq')+' / week']
+ ];}
+ window.fjBuildTrainingPrintRoot=function(){
+  var old=$('fj-training-print-root');if(old)old.remove();
+  var root=document.createElement('div');root.id='fj-training-print-root';
+  var now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  var h='<div class="fj-print-header"><div class="fj-print-brand">FITNESS JOURNEY</div><div class="fj-print-title">Training Program</div><div class="fj-print-date">Generated '+esc(now)+'</div></div>';
+  h+='<div class="fj-print-client"><div class="fj-print-client-grid">';
+  clientRows().forEach(function(r){h+='<div class="fj-print-client-item"><div class="fj-print-label">'+esc(r[0])+'</div><div class="fj-print-value">'+esc(r[1])+'</div></div>';});
+  h+='</div></div><div class="fj-print-result">';
+  var r=$('trainingResult');h+=(r&&r.innerHTML.trim())?r.innerHTML:'<p>No generated training program.</p>';
+  h+='</div>';root.innerHTML=h;return root;
+ };
+ window.printSection=function(id){if(id!=='training'){window.print();return}var root=window.fjBuildTrainingPrintRoot();document.body.appendChild(root);var title=document.title;document.title='Fitness Journey - Training Program - '+val('clientName','Client');setTimeout(function(){window.print();setTimeout(function(){if(root.parentNode)root.remove();document.title=title},1000)},80)};
+ window.saveFullTrainingProgramPDF=function(){if(!$('trainingResult')||!$('trainingResult').innerHTML.trim()){alert('Generate Training Program terlebih dahulu.');return}window.printSection('training')};
+ function bind(){
+  var map={btnGenerateTraining:function(){try{window.generateProgram()}catch(e){console.error(e);alert('Generate Training Program gagal: '+e.message)}},btnResetTraining:function(){try{window.resetAdvancedProgram()}catch(e){console.error(e);if($('trainingResult'))$('trainingResult').innerHTML=''}},btnSaveTraining:function(){try{if(typeof window.saveFullTrainingProgram==='function')window.saveFullTrainingProgram();else alert('Save belum tersedia.')}catch(e){console.error(e);alert('Save gagal: '+e.message)}},btnLoadTraining:function(){try{if(typeof window.loadFullTrainingProgram==='function')window.loadFullTrainingProgram();else if(typeof window.loadFullTrainingProgramFromDevice==='function')window.loadFullTrainingProgramFromDevice();else alert('Load belum tersedia.')}catch(e){console.error(e);alert('Load gagal: '+e.message)}},saveFullProgramPdfBtn:function(){window.saveFullTrainingProgramPDF()},btnPrintTraining:function(){window.printSection('training')},btnLockApp:function(){if(typeof window.lockApp==='function')window.lockApp();else{var a=$('auth'),app=document.querySelector('.app');if(app)app.style.display='none';if(a)a.style.display='flex'}}};
+  Object.keys(map).forEach(function(k){var e=$(k);if(e){e.onclick=map[k];e.style.pointerEvents='auto'}});
+  document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.onclick=function(){document.querySelectorAll('.navbtn[data-tab]').forEach(function(x){x.classList.remove('active')});b.classList.add('active');document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});var p=$(b.dataset.tab);if(p)p.classList.add('active');if(b.dataset.tab==='adminAccess'&&typeof window.loadAdminAccess==='function'){try{window.loadAdminAccess()}catch(e){console.error(e)}}}});
+  var d=$('todayPill');if(d)d.textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
 </script>
-</body></html>

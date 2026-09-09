@@ -1,8 +1,8 @@
 {
-  "name": "TRAINING PROGRAM \u2014 Personal Trainer",
-  "short_name": "TRAINING PROGRAM",
-  "description": "Standalone Personal Trainer Training Program workspace",
-  "lang": "id-ID",
+  "name": "FITNESS JOURNEY — Training Program",
+  "short_name": "FITNESS JOURNEY",
+  "description": "Training Program + Admin Access Approval",
+  "lang": "en-US",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -10,9 +10,9 @@
     "window-controls-overlay",
     "standalone"
   ],
-  "orientation": "any",
+  "orientation": "portrait",
   "background_color": "#eef6f6",
-  "theme_color": "#134b46",
+  "theme_color": "#102a43",
   "icons": [
     {
       "src": "icon-192.png",

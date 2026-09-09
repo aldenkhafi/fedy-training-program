@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
-<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" name="viewport"/><meta content="#102a43" name="theme-color"/><meta content="yes" name="mobile-web-app-capable"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/><meta content="FITNESS JOURNEY" name="apple-mobile-web-app-title"/><link href="manifest.webmanifest" rel="manifest"/><link href="icon-192.png" rel="apple-touch-icon"/><title>FITNESS JOURNEY — TRAINING PROGRAM</title><title>FEDY Training Program</title>
-
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" name="viewport"/><meta content="#102a43" name="theme-color"/><meta content="yes" name="mobile-web-app-capable"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/><meta content="FITNESS JOURNEY" name="apple-mobile-web-app-title"/><link href="manifest.webmanifest" rel="manifest"/><link href="icon-192.png" rel="apple-touch-icon"/><title>FEDY Training Program</title>
+<style id="fj-pt-reco-fix">.sg-kpi.sg-reco{min-width:0}.sg-kpi.sg-reco b{font-size:clamp(18px,2.2vw,28px);word-break:break-word}.sg-final-pair>div{min-width:0}.sg-final-pair b{word-break:break-word}</style>
 <style id="fj-session-day-final-style">
 .fj-month-selector{display:flex;gap:6px;overflow-x:auto;padding:6px 0 8px;margin-top:10px;scrollbar-width:thin}.fj-month-tab{flex:0 0 auto;border:1px solid #c8dce9;border-radius:9px;padding:7px 10px;background:#f5f9fc;color:#174b73;font-size:11px;font-weight:900;cursor:pointer}.fj-month-tab.active{background:#0f5f86;color:#fff;border-color:#0f5f86}.fj-week-tab.active{outline:2px solid rgba(15,95,134,.18);outline-offset:1px}.fj-session-tab.active{outline:2px solid rgba(15,95,134,.16);outline-offset:1px}.fj-session-panel-live{display:block!important}
 .fj-week-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 10px}
@@ -70,85 +70,7 @@
 @media(max-width:700px){.program-session-meta{justify-content:flex-start}}
 </style>
 
-<style id="fj-v33-elegant-unified-ui">
-/* V33 — unified elegant visual system: compact, readable, section-coded, no logic changes */
-:root{
-  --v33-blue:#1769aa;--v33-blue-soft:#edf6fd;--v33-green:#16845a;--v33-green-soft:#edf9f3;
-  --v33-gold:#b87900;--v33-gold-soft:#fff7e7;--v33-purple:#7650a8;--v33-purple-soft:#f6f0fb;
-  --v33-red:#b83b32;--v33-red-soft:#fff1ef;--v33-border:#d6e5ef;
-  --v33-ink:#163f63;--v33-muted:#66839b;--v33-shadow:0 8px 24px rgba(24,67,98,.07)
-}
-/* Presentation: smaller, cleaner cards with strong visual separation */
-#presentation .section-title{margin-bottom:10px}
-#presentation .presentation-grid{gap:12px}
-#presentation .prescard{min-height:0;border-radius:16px;box-shadow:var(--v33-shadow);transition:transform .16s ease,box-shadow .16s ease}
-#presentation .prescard-panel{min-height:176px!important;height:176px!important;padding:22px 18px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-#presentation .prescard .prescard-icon{width:40px;height:40px;margin-bottom:9px;font-size:26px}
-#presentation .prescard-panel .prescard-tag{margin-bottom:8px;padding:4px 9px;font-size:9px}
-#presentation .prescard-panel>div:first-of-type{font-size:17px;line-height:1.25}
-#presentation .prescard-panel .muted{font-size:11px!important;margin-top:5px!important}
-#presentation .prescard:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(24,67,98,.11)}
-/* Give every major result section a restrained accent instead of one flat color */
-#assessmentResult>.card,#smartGoalResult>.card,#membershipResult>.card,#myResult>.card,#trainingResult>.card,#fittest .result>.card{position:relative;overflow:hidden}
-#assessmentResult>.card::before,#smartGoalResult>.card::before,#membershipResult>.card::before,#myResult>.card::before,#trainingResult>.card::before,#fittest .result>.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--v33-blue)}
-#assessmentResult>.card:nth-child(2)::before,#smartGoalResult>.card:nth-child(2)::before,#membershipResult>.card:nth-child(2)::before,#myResult>.card:nth-child(2)::before,#trainingResult>.card:nth-child(2)::before,#fittest .result>.card:nth-child(2)::before{background:var(--v33-green)}
-#assessmentResult>.card:nth-child(3)::before,#smartGoalResult>.card:nth-child(3)::before,#membershipResult>.card:nth-child(3)::before,#myResult>.card:nth-child(3)::before,#trainingResult>.card:nth-child(3)::before,#fittest .result>.card:nth-child(3)::before{background:var(--v33-gold)}
-#assessmentResult>.card:nth-child(4)::before,#smartGoalResult>.card:nth-child(4)::before,#membershipResult>.card:nth-child(4)::before,#myResult>.card:nth-child(4)::before,#trainingResult>.card:nth-child(4)::before,#fittest .result>.card:nth-child(4)::before{background:var(--v33-purple)}
-/* Training: compact week navigation and no clipped labels */
-#trainingResult>.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
-#trainingResult>.grid>.card{padding:12px;border-radius:15px;box-shadow:var(--v33-shadow)}
-#trainingResult>.grid>.card>h3{font-size:14px;margin-bottom:5px}
-#trainingResult>.grid>.card>p{font-size:11px;line-height:1.4;margin:4px 0}
-#trainingResult .program-week-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:9px 0}
-#trainingResult .program-week-tab{min-width:0;width:100%;min-height:52px;padding:8px 7px;border-radius:10px;text-align:center;line-height:1.15;white-space:normal;overflow:visible;display:flex;flex-direction:column;justify-content:center;align-items:center}
-#trainingResult .program-week-tab small{display:block;margin-top:3px;font-size:9.5px;line-height:1.2;white-space:normal;overflow:visible;text-overflow:clip;word-break:normal;overflow-wrap:anywhere}
-#trainingResult .program-week-panel{padding:9px;border-radius:12px}
-#trainingResult .program-session-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 10px}
-#trainingResult .program-session-tab{min-height:56px;padding:8px 6px;border-radius:10px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:visible}
-#trainingResult .program-session-tab span{font-size:10px;line-height:1.15;white-space:normal;overflow:visible;text-overflow:clip;word-break:normal}
-#trainingResult .program-session-tab small{font-size:9px;line-height:1.18;white-space:normal;display:block;-webkit-line-clamp:unset;overflow:visible;text-overflow:clip;word-break:normal;overflow-wrap:anywhere;margin-top:3px}
-#trainingResult .program-session-detail{padding:9px;border-radius:11px;overflow:visible}
-#trainingResult .program-session-heading{padding:8px 9px;border-radius:9px;margin-bottom:8px;align-items:flex-start}
-#trainingResult .program-session-heading strong{font-size:13px;line-height:1.2}
-#trainingResult .program-session-heading span{font-size:10px;line-height:1.25}
-#trainingResult .program-session-meta{font-size:10px;line-height:1.35;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}
-#trainingResult .program-session-meta span{padding:3px 6px;border-radius:999px;background:#f0f7fb;color:#52758d;white-space:nowrap}
-#trainingResult .fj-table-scroll,.program-session-exercise .fj-table-scroll{overflow:auto;max-width:100%;border:1px solid var(--v33-border);border-radius:9px}
-#trainingResult .program-day-table{min-width:980px;font-size:10px}
-#trainingResult .program-day-table th,#trainingResult .program-day-table td{padding:6px 7px;vertical-align:top;line-height:1.3}
-#trainingResult .program-session-progression{font-size:10px;line-height:1.4;padding:7px 9px}
-#trainingResult .program-session-exercise .muted,#trainingResult .program-session-exercise .notice{font-size:10px;line-height:1.4}
-/* Compact KPI cards while preserving readable numbers */
-.kpi-group{padding:9px 10px 10px;margin-bottom:8px;border-radius:12px;box-shadow:none}
-.kpi-group-title{font-size:10px;margin-bottom:6px}
-.kpi-mini-grid{gap:6px}
-.kpi-mini{padding:7px 8px;border-radius:9px}
-.kpi-mini b{font-size:14px;line-height:1.22}
-.kpi-mini span{font-size:10px;line-height:1.25}
-/* Result/health cards: alternate restrained accents, not rainbow */
-#assessmentResult>.grid,#smartGoalResult>.grid{gap:10px}
-#assessmentResult>.card h3,#smartGoalResult>.card h3,#membershipResult>.card h3,#myResult>.card h3{font-size:15px}
-/* Keep long monetary values and recommendations readable */
-.price,.price-green,.big,.sg-kpi b,.sg-final-pair b{overflow-wrap:anywhere;word-break:normal}
-/* Responsive: compact desktop, comfortable tablet/mobile */
-@media(max-width:1100px){
-  #trainingResult>.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media(max-width:760px){
-  #presentation .prescard-panel{height:150px!important;min-height:150px!important;padding:16px 12px!important}
-  #presentation .prescard-panel>div:first-of-type{font-size:15px}
-  #trainingResult>.grid{grid-template-columns:1fr}
-  #trainingResult .program-week-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #trainingResult .program-session-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #trainingResult .program-session-heading{display:block}
-  #trainingResult .program-session-meta{justify-content:flex-start;margin-top:6px}
-}
-@media(max-width:420px){
-  #presentation .presentation-grid{gap:9px}
-  #presentation .prescard-panel{height:138px!important;min-height:138px!important}
-  #trainingResult .program-week-tabs,#trainingResult .program-session-tabs{gap:5px}
-}
-</style>
+
 
 <style id="fj-progressive-session-polish">
 .program-session-tab span,.program-session-tab small{white-space:normal!important;text-overflow:clip!important;-webkit-line-clamp:unset!important;overflow:visible!important;display:block}
@@ -206,18 +128,67 @@ html,body{background:var(--fj-bg)!important;color:#173b59}
 @media(max-width:900px){.fj-sidebar{width:205px;flex-basis:205px}.training-shell-main{width:calc(100% - 205px)}.training-shell-main .main{padding:20px}.fj-brand{font-size:18px}}
 @media(max-width:620px){.app{display:block}.fj-sidebar{position:relative;width:100%;height:auto;max-height:none;padding:13px 10px;box-shadow:0 3px 12px rgba(4,72,112,.12)}.fj-brand{display:inline-block;margin-right:10px}.fj-sub{display:inline-block;margin:0 0 0 3px}.fj-active{display:none}.fj-group{display:inline-block;margin:9px 5px 5px 3px}.fj-nav{display:inline-block;width:auto;margin:3px 3px 3px 0;padding:9px 11px}.training-shell-main{width:100%}.training-shell-main .main{padding:12px}#training{padding:14px;border-radius:14px}#training .section-title h2{font-size:24px}}
 </style>
-<style id="training-print-only">@media print{body.fj-printing-training *{visibility:hidden!important}body.fj-printing-training #training,body.fj-printing-training #training *{visibility:visible!important}body.fj-printing-training #training{position:absolute!important;left:0!important;top:0!important;width:100%!important;box-shadow:none!important;border:0!important}body.fj-printing-training .fj-sidebar{display:none!important}body.fj-printing-training .actions{display:none!important}}</style>
-<style id="admin-approval-only">#fjAdminNav{margin-top:6px}.fj-admin-head{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #d9eaf3}.fj-admin-head span{font-size:12px;font-weight:800;color:#4f7c91}.fj-admin-actions{display:flex;gap:7px;flex-wrap:wrap}.fj-admin-row{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid #edf3f6}.fj-admin-row button{border:0;border-radius:9px;padding:8px 12px;font-weight:850;cursor:pointer}.fj-approve{background:#20ae8d;color:#fff}.fj-reject{background:#fff1f1;color:#a23b3b}@media(max-width:620px){.fj-admin-row{align-items:flex-start;flex-direction:column}.fj-admin-actions{width:100%}}</style>
+
+<style id="fj-stable-training-layout">
+html,body{width:100%;max-width:100%;margin:0;padding:0;overflow-x:hidden}
+*,*::before,*::after{box-sizing:border-box}
+.app{display:flex;width:100%;min-width:0;max-width:100%;align-items:stretch}
+.fj-sidebar{flex:0 0 245px;width:245px;max-width:245px;min-width:0}
+.training-shell-main{flex:1 1 auto!important;width:auto!important;min-width:0!important;max-width:calc(100% - 245px)!important;overflow-x:hidden}
+.training-shell-main .main{width:100%!important;max-width:none!important;min-width:0!important;padding:30px 34px}
+#training{width:100%!important;max-width:100%!important;min-width:0!important;overflow:hidden}
+#training>.grid,#trainingResult>.grid{width:100%!important;max-width:100%!important;min-width:0!important}
+#trainingResult{width:100%!important;max-width:100%!important;min-width:0!important;overflow:hidden}
+/* Generated months are deliberately one full-width column. This is the source of the desktop clipping seen in the broken build. */
+#trainingResult>.grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
+#trainingResult>.grid>.card{width:100%!important;max-width:100%!important;min-width:0!important;overflow:hidden!important}
+#trainingResult .program-week-tabs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;min-width:0!important;max-width:100%!important}
+#trainingResult .program-week-tab{width:100%!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;white-space:normal!important;overflow-wrap:anywhere!important}
+#trainingResult .program-week-panel,#trainingResult .program-session-tabs,#trainingResult .program-session-detail{width:100%!important;min-width:0!important;max-width:100%!important}
+#trainingResult .program-session-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important}
+#trainingResult .program-session-tab{width:100%!important;min-width:0!important;max-width:100%!important;overflow:hidden!important}
+#trainingResult .fj-table-scroll{width:100%!important;max-width:100%!important;overflow-x:auto!important}
+#trainingResult table{max-width:none!important}
+#training .actions{width:100%!important;min-width:0!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+#training .actions .btn{width:100%!important;min-width:0!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
+.fj-admin-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(6,32,50,.72);backdrop-filter:blur(5px);z-index:10000}
+.fj-admin-overlay.open{display:flex}
+.fj-admin-panel{width:min(1000px,96vw);max-height:90vh;overflow:auto;background:#fff;border:1px solid #c7e0ef;border-radius:20px;box-shadow:0 25px 80px rgba(0,0,0,.25);padding:24px;color:#173b59}
+.fj-admin-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:1px solid #d9eaf3;padding-bottom:14px;margin-bottom:14px}
+.fj-admin-kicker{font-size:10px;font-weight:900;letter-spacing:1.4px;color:#4f7c91}.fj-admin-head h2{margin:3px 0 4px;color:#064b7d}.fj-admin-head p{margin:0;color:#607d90}.fj-admin-close{border:0;background:#eef6fb;color:#174b73;border-radius:10px;width:38px;height:38px;font-size:25px;cursor:pointer}
+.fj-admin-status{padding:10px 12px;border-radius:10px;background:#eef8ff;color:#47758d;margin-bottom:12px}.fj-admin-table-wrap{width:100%;overflow:auto;border:1px solid #d9eaf3;border-radius:12px}.fj-admin-table{width:100%;min-width:700px;border-collapse:collapse}.fj-admin-table th,.fj-admin-table td{padding:10px 11px;border-bottom:1px solid #e8f0f5;text-align:left;vertical-align:middle}.fj-admin-table th{background:#f1f8fc;color:#315e7d;font-size:11px}.fj-admin-table td{font-size:12px}.fj-admin-table button{border:0;border-radius:8px;padding:7px 10px;font-weight:850;cursor:pointer}.fj-admin-approve{background:#20ae8d;color:#fff}.fj-admin-reject{background:#fff1f1;color:#a23b3b}
+@media(max-width:900px){.fj-sidebar{flex-basis:205px;width:205px;max-width:205px}.training-shell-main{max-width:calc(100% - 205px)!important}.training-shell-main .main{padding:20px}.fj-brand{font-size:18px}}
+@media(max-width:760px){
+ .training-shell-main .main{padding:10px!important}
+ #training{padding:14px!important}
+ #trainingResult>.grid{grid-template-columns:1fr!important}
+ #trainingResult .program-week-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #trainingResult .program-session-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #training .actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:620px){.app{display:block}.fj-sidebar{width:100%;max-width:none;position:relative;height:auto;padding:13px 10px}.training-shell-main{width:100%!important;max-width:none!important}.training-shell-main .main{padding:12px!important}}
+@media(max-width:430px){#trainingResult .program-week-tabs,#trainingResult .program-session-tabs{grid-template-columns:1fr!important}#training .actions{grid-template-columns:1fr!important}}
+</style>
 </head><body>
+<div aria-hidden="true" class="fj-admin-overlay" id="fjAdminOverlay">
+<div aria-labelledby="fjAdminTitle" aria-modal="true" class="fj-admin-panel" role="dialog">
+<div class="fj-admin-head">
+<div><div class="fj-admin-kicker">MASTER ADMIN</div><h2 id="fjAdminTitle">Admin Access Approval</h2><p>Daftar akun yang meminta akses Training Program.</p></div>
+<button aria-label="Close" class="fj-admin-close" id="fjAdminClose" type="button">×</button>
+</div>
+<div class="fj-admin-status" id="fjAdminStatus">Memuat request...</div>
+<div class="fj-admin-table-wrap"><table class="fj-admin-table"><thead><tr><th>Nama</th><th>Email</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr></thead><tbody id="fjAdminRows"></tbody></table></div>
+</div>
+</div>
+
 <div class="app">
 <aside class="fj-sidebar">
-  <div class="fj-brand">FITNESS JOURNEY</div><div class="fj-sub">TRAINING PROGRAM</div>
-  <div class="fj-active">Module aktif<br><b>Training Program</b></div>
-  <div class="fj-group">TRAINING</div>
-  <button class="fj-nav active training" type="button" onclick="document.getElementById('training')?.scrollIntoView({behavior:'smooth',block:'start'})">▣ TRAINING PROGRAM</button>
-  <button class="fj-nav" id="fjAdminNav" type="button" style="display:none" onclick="fjOpenAdminApproval()">▣ ADMIN ACCESS APPROVAL</button>
-</aside>
-<main class="main training-only-app training-shell-main"><section class="panel active" id="training"><div class="section-title"><div><h2>Training Program</h2><p>Goal-specific programming with load, resistance, sets, reps, rest, RPE/RIR, volume and progression.</p></div></div><div class="grid grid4"><div class="field"><label>Client Name</label><input autocomplete="name" id="clientName" placeholder="cth. John Doe" type="text"/></div><div class="field"><label>Duration</label><select id="programMonths"><option>3</option><option>6</option><option>9</option><option>12</option></select></div><div class="field"><label>Frequency</label><select id="programFreq"><option value="2">2× / Week</option><option value="3">3× / Week</option><option value="4">4× / Week</option><option value="5">5× / Week</option><option value="6">6× / Week</option></select></div><div class="field"><label>Goal</label><select id="programGoal"><optgroup label="Existing Goals"><option>Fat Loss</option><option>Hypertrophy</option><option>Muscular Endurance</option><option>Strength</option><option>Strength Endurance</option><option>Power</option><option>Performance</option><option>General Fitness</option><option>Healthy Aging</option><option>Mobility</option><option>Return to Exercise</option><option>Corrective / Modification</option><option>Other</option></optgroup><optgroup label="Additional Goals"><option>Body Recomposition</option><option>Muscle Gain</option><option>Healthy Weight Management</option><option>Cardiorespiratory Fitness</option><option>Aerobic Endurance</option><option>Anaerobic Capacity</option><option>Work Capacity</option><option>Functional Fitness</option><option>Hybrid Athlete</option><option>Sport-Specific Performance</option><option>Speed &amp; Agility</option><option>Coordination &amp; Balance</option><option>Core Stability</option><option>Posture &amp; Movement Quality</option><option>Injury Prevention</option><option>Rehabilitation</option><option>Prehabilitation</option><option>Longevity</option><option>Running Performance</option><option>Obstacle / Race Preparation</option><option>Low-Impact Fitness</option><option>Recovery &amp; Resilience</option></optgroup></select></div><div class="field"><label>Default Resistance</label><select id="programResistance"><option>Machine</option><option>Barbell</option><option>Dumbbell</option><option>Cable</option><option>Kettlebell</option><option>Bodyweight</option><option>Band</option><option>Mixed</option></select></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Age (years)</label><input id="programAge" max="90" min="10" placeholder="cth. 30" type="number"/></div><div class="field"><label>Gender</label><select id="programGender"><option value="male">Male</option><option value="female">Female</option></select></div><div class="field"><label>Body Weight (kg)</label><input id="programWeight" max="250" min="20" placeholder="cth. 70" type="number"/></div><div class="field"><label>Height (cm)</label><input id="programHeight" max="230" min="100" placeholder="cth. 170" type="number"/></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Squat / Leg Press — Beban (kg)</label><input id="rmLowerW" min="0" oninput="updateE1RMPreview('Lower')" placeholder="cth. 40" type="number"/></div><div class="field"><label>Squat / Leg Press — Reps</label><input id="rmLowerR" max="20" min="1" oninput="updateE1RMPreview('Lower')" placeholder="cth. 8" type="number"/><small class="muted" id="rmLowerOut" style="display:block;margin-top:4px;font-size:12px"></small></div><div class="field"><label>Bench / Chest Press — Beban (kg)</label><input id="rmPushW" min="0" oninput="updateE1RMPreview('Push')" placeholder="cth. 20" type="number"/></div><div class="field"><label>Bench / Chest Press — Reps</label><input id="rmPushR" max="20" min="1" oninput="updateE1RMPreview('Push')" placeholder="cth. 8" type="number"/><small class="muted" id="rmPushOut" style="display:block;margin-top:4px;font-size:12px"></small></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Row / Pulldown — Beban (kg)</label><input id="rmPullW" min="0" oninput="updateE1RMPreview('Pull')" placeholder="cth. 30" type="number"/></div><div class="field"><label>Row / Pulldown — Reps</label><input id="rmPullR" max="20" min="1" oninput="updateE1RMPreview('Pull')" placeholder="cth. 8" type="number"/><small class="muted" id="rmPullOut" style="display:block;margin-top:4px;font-size:12px"></small></div><div class="field"><label>Deadlift / Hip Hinge — Beban (kg)</label><input id="rmHingeW" min="0" oninput="updateE1RMPreview('Hinge')" placeholder="cth. 50" type="number"/></div><div class="field"><label>Deadlift / Hip Hinge — Reps</label><input id="rmHingeR" max="20" min="1" oninput="updateE1RMPreview('Hinge')" placeholder="cth. 8" type="number"/><small class="muted" id="rmHingeOut" style="display:block;margin-top:4px;font-size:12px"></small></div></div><p class="muted" style="margin-top:6px;font-size:12px">Optional — enter the actual working load (bukan harus 1RM) recently completed by the client untuk pola gerak terkait. Estimated 1RM (Epley formula) appears below the Reps field once both values are entered and is used to personalize exercise loading recommendations instead of relying only on generic body-weight estimates. Leave blank if unavailable.</p><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Level Fitness</label><select id="programLevel"><option value="auto">AUTO — berdasarkan data client</option><option value="beginner">Pemula (Beginner)</option><option value="intermediate">Menengah (Intermediate)</option><option value="advanced">Lanjut (Advanced)</option></select></div><div class="field" style="grid-column:span 3"><label>Exercise / Workout Type <span class="small" style="font-weight:600">(pilihan mengikuti Goal)</span></label><select id="programWorkoutType" onchange="updateWorkoutTypeNote()"><optgroup label="General / Full Body"><option value="standard">Standard (Movement Pattern Split)</option><option value="fullbody">Full Body Workout</option><option value="totalbody">Total Body Conditioning</option><option value="functional">Functional Fitness</option><option value="lowimpact">Low-Impact Conditioning</option></optgroup><optgroup label="Strength / Hypertrophy"><option value="strengthpower">Strength &amp; Power</option><option value="hypertrophy">Hypertrophy / Bodybuilding</option><option value="upperlower">Upper / Lower Split</option><option value="ppl">Split Routine (Push / Pull / Legs)</option><option value="bro">Split Bro (1 Otot / Hari)</option><option value="superset">Super Set</option><option value="giantset">Giant Set / Tri-Set</option><option value="cluster">Cluster Sets</option><option value="density">Density Training</option><option value="tempo">Tempo / Eccentric Training</option><option value="contrast">Contrast / Complex Training</option></optgroup><optgroup label="Hybrid / Conditioning / Competition"><option value="hybrid">Hybrid Training</option><option value="hyrox">HYROX Style</option><option value="metcon">METCON / CrossFit Style</option><option value="circuit">Circuit Training</option><option value="hiit">HIIT</option><option value="zone2">Zone 2 / Aerobic Base</option><option value="engine">Engine Builder</option><option value="runlift">Run + Lift Hybrid</option><option value="ocr">Obstacle / Race Conditioning</option><option value="tabata">TABATA</option><option value="emom">EMOM</option><option value="amrap">AMRAP</option><option value="fortime">FOR TIME</option><option value="ladder">Ladder / Pyramid</option></optgroup><optgroup label="Specialized / Recovery"><option value="rehab">Rehabilitation / Corrective</option><option value="corebalance">Core &amp; Balance</option><option value="mobilityflow">Mobility Flow</option><option value="prehab">Prehabilitation / Injury Prevention</option><option value="recovery">Active Recovery</option></optgroup><option value="auto">AUTO — Goal &amp; Assessment Based</option></select><p class="muted" id="wtypeNote" style="margin-top:6px;font-size:12px">Program terstruktur berbasis pola gerak dasar: squat, push, pull, hinge, carry/core — model paling scientific untuk progres jangka panjang.</p></div></div><div class="actions"><button class="btn" onclick="generateProgram()">Generate PT Program</button><button class="btn alt" onclick="resetAdvancedProgram()">Reset Advanced Program</button><button class="btn alt" onclick="saveFullTrainingProgram()" type="button">💾 Save Full Program</button><button class="btn alt" onclick="loadFullTrainingProgramFromDevice()" type="button">📂 Load Full Program</button><button class="btn alt" id="saveFullProgramPdfBtn" onclick="window.saveFullTrainingProgramPDF()" type="button">▣ Save Full Program PDF</button><button class="btn alt" onclick="printSection('training')">Print Training Program</button></div><div class="result" id="trainingResult"></div></section><section class="panel" id="adminApproval" style="display:none"><div class="section-title"><div><h2>Admin Access Approval</h2><p>Master Admin: <b>aldenkhafi0203@gmail.com</b> — review users requesting access to Training Program.</p></div></div><div id="fjAdminList" class="fj-admin-list"><div class="fj-auth-status">Loading access requests...</div></div></section></main></div>
+<div class="fj-brand">FITNESS JOURNEY</div><div class="fj-sub">TRAINING PROGRAM</div>
+<div class="fj-active">Module aktif<br/><b>Training Program</b></div>
+<div class="fj-group">TRAINING</div>
+<button class="fj-nav active training" onclick="document.getElementById('training')?.scrollIntoView({behavior:'smooth',block:'start'})" type="button">▣ TRAINING PROGRAM</button>
+<div class="fj-group" id="fjAdminGroup" style="display:none">ADMIN</div><button class="fj-nav" id="fjAdminBtn" style="display:none" type="button">✓ ADMIN ACCESS APPROVAL</button></aside>
+<main class="main training-only-app training-shell-main"><section class="panel active" id="training"><div class="section-title"><div><h2>Training Program</h2><p>Goal-specific programming with load, resistance, sets, reps, rest, RPE/RIR, volume and progression.</p></div></div><div class="grid grid4"><div class="field"><label>Client Name</label><input autocomplete="name" id="clientName" placeholder="cth. John Doe" type="text"/></div><div class="field"><label>Duration</label><select id="programMonths"><option>3</option><option>6</option><option>9</option><option>12</option></select></div><div class="field"><label>Frequency</label><select id="programFreq"><option value="2">2× / Week</option><option value="3">3× / Week</option><option value="4">4× / Week</option><option value="5">5× / Week</option><option value="6">6× / Week</option></select></div><div class="field"><label>Goal</label><select id="programGoal"><optgroup label="Existing Goals"><option>Fat Loss</option><option>Hypertrophy</option><option>Muscular Endurance</option><option>Strength</option><option>Strength Endurance</option><option>Power</option><option>Performance</option><option>General Fitness</option><option>Healthy Aging</option><option>Mobility</option><option>Return to Exercise</option><option>Corrective / Modification</option><option>Other</option></optgroup><optgroup label="Additional Goals"><option>Body Recomposition</option><option>Muscle Gain</option><option>Healthy Weight Management</option><option>Cardiorespiratory Fitness</option><option>Aerobic Endurance</option><option>Anaerobic Capacity</option><option>Work Capacity</option><option>Functional Fitness</option><option>Hybrid Athlete</option><option>Sport-Specific Performance</option><option>Speed &amp; Agility</option><option>Coordination &amp; Balance</option><option>Core Stability</option><option>Posture &amp; Movement Quality</option><option>Injury Prevention</option><option>Rehabilitation</option><option>Prehabilitation</option><option>Longevity</option><option>Running Performance</option><option>Obstacle / Race Preparation</option><option>Low-Impact Fitness</option><option>Recovery &amp; Resilience</option></optgroup></select></div><div class="field"><label>Default Resistance</label><select id="programResistance"><option>Machine</option><option>Barbell</option><option>Dumbbell</option><option>Cable</option><option>Kettlebell</option><option>Bodyweight</option><option>Band</option><option>Mixed</option></select></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Usia (tahun)</label><input id="programAge" max="90" min="10" placeholder="cth. 30" type="number"/></div><div class="field"><label>Gender</label><select id="programGender"><option value="male">Pria</option><option value="female">Wanita</option></select></div><div class="field"><label>Berat Badan (kg)</label><input id="programWeight" max="250" min="20" placeholder="cth. 70" type="number"/></div><div class="field"><label>Tinggi Badan (cm)</label><input id="programHeight" max="230" min="100" placeholder="cth. 170" type="number"/></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Squat / Leg Press — Beban (kg)</label><input id="rmLowerW" min="0" oninput="updateE1RMPreview('Lower')" placeholder="cth. 40" type="number"/></div><div class="field"><label>Squat / Leg Press — Reps</label><input id="rmLowerR" max="20" min="1" oninput="updateE1RMPreview('Lower')" placeholder="cth. 8" type="number"/><small class="muted" id="rmLowerOut" style="display:block;margin-top:4px;font-size:12px"></small></div><div class="field"><label>Bench / Chest Press — Beban (kg)</label><input id="rmPushW" min="0" oninput="updateE1RMPreview('Push')" placeholder="cth. 20" type="number"/></div><div class="field"><label>Bench / Chest Press — Reps</label><input id="rmPushR" max="20" min="1" oninput="updateE1RMPreview('Push')" placeholder="cth. 8" type="number"/><small class="muted" id="rmPushOut" style="display:block;margin-top:4px;font-size:12px"></small></div></div><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Row / Pulldown — Beban (kg)</label><input id="rmPullW" min="0" oninput="updateE1RMPreview('Pull')" placeholder="cth. 30" type="number"/></div><div class="field"><label>Row / Pulldown — Reps</label><input id="rmPullR" max="20" min="1" oninput="updateE1RMPreview('Pull')" placeholder="cth. 8" type="number"/><small class="muted" id="rmPullOut" style="display:block;margin-top:4px;font-size:12px"></small></div><div class="field"><label>Deadlift / Hip Hinge — Beban (kg)</label><input id="rmHingeW" min="0" oninput="updateE1RMPreview('Hinge')" placeholder="cth. 50" type="number"/></div><div class="field"><label>Deadlift / Hip Hinge — Reps</label><input id="rmHingeR" max="20" min="1" oninput="updateE1RMPreview('Hinge')" placeholder="cth. 8" type="number"/><small class="muted" id="rmHingeOut" style="display:block;margin-top:4px;font-size:12px"></small></div></div><p class="muted" style="margin-top:6px;font-size:12px">Opsional — isi beban kerja aktual (bukan harus 1RM) yang baru saja diselesaikan member untuk pola gerak terkait. Estimasi 1RM (rumus Epley) akan langsung muncul di bawah kolom Reps begitu kedua nilai diisi, dan dipakai untuk mempersonalisasi rekomendasi beban per exercise — bukan lagi hanya estimasi generik dari berat badan. Kosongkan jika belum ada data.</p><div class="grid grid4" style="margin-top:12px"><div class="field"><label>Level Fitness</label><select id="programLevel"><option value="auto">AUTO — berdasarkan data client</option><option value="beginner">Pemula (Beginner)</option><option value="intermediate">Menengah (Intermediate)</option><option value="advanced">Lanjut (Advanced)</option></select></div><div class="field" style="grid-column:span 3"><label>Exercise / Workout Type <span class="small" style="font-weight:600">(pilihan mengikuti Goal)</span></label><select id="programWorkoutType" onchange="updateWorkoutTypeNote()"><optgroup label="General / Full Body"><option value="standard">Standard (Movement Pattern Split)</option><option value="fullbody">Full Body Workout</option><option value="totalbody">Total Body Conditioning</option><option value="functional">Functional Fitness</option><option value="lowimpact">Low-Impact Conditioning</option></optgroup><optgroup label="Strength / Hypertrophy"><option value="strengthpower">Strength &amp; Power</option><option value="hypertrophy">Hypertrophy / Bodybuilding</option><option value="upperlower">Upper / Lower Split</option><option value="ppl">Split Routine (Push / Pull / Legs)</option><option value="bro">Split Bro (1 Otot / Hari)</option><option value="superset">Super Set</option><option value="giantset">Giant Set / Tri-Set</option><option value="cluster">Cluster Sets</option><option value="density">Density Training</option><option value="tempo">Tempo / Eccentric Training</option><option value="contrast">Contrast / Complex Training</option></optgroup><optgroup label="Hybrid / Conditioning / Competition"><option value="hybrid">Hybrid Training</option><option value="hyrox">HYROX Style</option><option value="metcon">METCON / CrossFit Style</option><option value="circuit">Circuit Training</option><option value="hiit">HIIT</option><option value="zone2">Zone 2 / Aerobic Base</option><option value="engine">Engine Builder</option><option value="runlift">Run + Lift Hybrid</option><option value="ocr">Obstacle / Race Conditioning</option><option value="tabata">TABATA</option><option value="emom">EMOM</option><option value="amrap">AMRAP</option><option value="fortime">FOR TIME</option><option value="ladder">Ladder / Pyramid</option></optgroup><optgroup label="Specialized / Recovery"><option value="rehab">Rehabilitation / Corrective</option><option value="corebalance">Core &amp; Balance</option><option value="mobilityflow">Mobility Flow</option><option value="prehab">Prehabilitation / Injury Prevention</option><option value="recovery">Active Recovery</option></optgroup><option value="auto">AUTO — Goal &amp; Assessment Based</option></select><p class="muted" id="wtypeNote" style="margin-top:6px;font-size:12px">Program terstruktur berbasis pola gerak dasar: squat, push, pull, hinge, carry/core — model paling scientific untuk progres jangka panjang.</p></div></div><div class="actions"><button class="btn" onclick="generateProgram()">Generate PT Program</button><button class="btn alt" onclick="resetAdvancedProgram()">Reset Advanced Program</button><button class="btn alt" onclick="saveFullTrainingProgram()" type="button">💾 Save Full Program</button><button class="btn alt" onclick="loadFullTrainingProgramFromDevice()" type="button">📂 Load Full Program</button><button class="btn alt" id="saveFullProgramPdfBtn" onclick="window.saveFullTrainingProgramPDF()" type="button">▣ Save Full Program PDF</button><button class="btn alt" onclick="printSection('training')">Print Training Program</button></div><div class="result" id="trainingResult"></div></section></main></div>
 <style id="fj-level4-style">
 .fj-level4{margin-top:18px;padding:18px;border:1px solid #dce8e6;border-radius:16px;background:#fbfefd}
 .fj-level4 h3{margin:0 0 8px}
@@ -292,20 +263,11 @@ html,body{background:var(--fj-bg)!important;color:#173b59}
 @media(max-width:900px){.program-session-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.program-session-tabs{grid-template-columns:1fr}.program-session-tab{min-height:64px}.program-session-heading{display:block}.program-session-meta{text-align:left;margin-top:6px}}
 </style>
-
 <div aria-live="polite" id="fj-level4-output" style="display:none"></div>
-
-
-
-
-
-
 <style id="fj-v20-fix11-requested-only">
   /* Requested: remove the small phase/focus text shown on every Training Program week tab. */
   #trainingResult .program-week-tab small{display:none!important}
 </style>
-
-
 <style id="fix16-training-stable">
 /* TRAINING PROGRAM ONLY — prevent horizontal text runaway and keep the existing frames. */
 #trainingResult{min-width:0;overflow:hidden}
@@ -316,19 +278,9 @@ html,body{background:var(--fj-bg)!important;color:#173b59}
 
 
 
-
-
-
-
-
-
-
-
-
-
 <div class="fj-auth-overlay" id="fjAuthOverlay"><div class="fj-auth-box" id="fjAuthBox">
 <h2>Training Program Access</h2><p id="fjAuthText">Silakan login. Akses Training Program hanya diberikan setelah disetujui Master Admin.</p>
-<button class="fj-auth-btn" id="fjGoogleBtn" type="button">Continue with Google</button><div class="fj-auth-status" id="fjAuthStatus">Memeriksa akses...</div><div class="fj-admin-list" id="fjAdminList"></div>
+<button class="fj-auth-btn" id="fjGoogleBtn" type="button">Continue with Google</button><div class="fj-auth-status" id="fjAuthStatus">Memeriksa akses...</div>
 </div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script><script id="training-core-only">const EXO_POOL={
  lower:[{name:'Back Squat',muscle:'Quadriceps, Glutes, Core',equip:'Barbell'},{name:'Front Squat',muscle:'Quadriceps, Core, Punggung Atas',equip:'Barbell'},{name:'Goblet Squat',muscle:'Quadriceps, Glutes, Core',equip:'Dumbbell'},{name:'Bulgarian Split Squat',muscle:'Quadriceps, Glutes, Keseimbangan',equip:'Dumbbell'},{name:'Leg Press',muscle:'Quadriceps, Glutes',equip:'Machine'},{name:'Walking Lunge',muscle:'Quadriceps, Glutes, Keseimbangan',equip:'Bodyweight'},{name:'Kettlebell Front Squat',muscle:'Quadriceps, Glutes, Core',equip:'Kettlebell'},{name:'Cable Squat',muscle:'Quadriceps, Glutes',equip:'Cable'},{name:'Band Squat',muscle:'Quadriceps, Glutes',equip:'Band'},{name:'Step-Up',muscle:'Quadriceps, Glutes, Keseimbangan',equip:'Bodyweight'},{name:'Jump Squat',muscle:'Quadriceps, Glutes, Power',equip:'Bodyweight'},{name:'Pistol Squat (Assisted)',muscle:'Quadriceps, Glutes, Keseimbangan',equip:'Bodyweight'},{name:'Hack Squat Machine',muscle:'Quadriceps, Glutes',equip:'Machine'},{name:'Zercher Squat',muscle:'Quadriceps, Core, Punggung Atas',equip:'Barbell'},{name:'Landmine Squat',muscle:'Quadriceps, Glutes, Core',equip:'Barbell'},{name:'Single-Leg Press',muscle:'Quadriceps, Glutes, Keseimbangan',equip:'Machine'},{name:'Kettlebell Goblet Reverse Lunge',muscle:'Quadriceps, Glutes, Keseimbangan',equip:'Kettlebell'},{name:'Band Lateral Squat Walk',muscle:'Glutes, Abduktor',equip:'Band'}],
@@ -1164,7 +1116,7 @@ window.saveFullTrainingProgramPDF=function(){
  };
  const rawWeight=Number(val('programWeight',''))||0, rawHeight=Number(val('programHeight',''))||0;
  const calcBmi=rawWeight>0&&rawHeight>0?(rawWeight/((rawHeight/100)**2)).toFixed(1):'';
- const statusValue=val('cwStatus',val('scheduleStatus',''));
+ const statusValue='';
  const bmiValue=val('cwBmi',calcBmi);
 
  // PDF ONLY: build a temporary print document containing EVERY week/session.
@@ -1197,7 +1149,7 @@ window.saveFullTrainingProgramPDF=function(){
          <div><b>Frequency</b><span>${esc(val('programFreq'))}</span></div>
          <div><b>Goal</b><span>${esc(val('programGoal'))}</span></div>
          <div><b>Workout Type</b><span>${esc(val('programWorkoutType'))}</span></div>
-         <div><b>Schedule Status</b><span>${esc(statusValue)}</span></div>
+         
          <div><b>BMI</b><span>${esc(bmiValue)}</span></div>
          <div><b>Default Resistance</b><span>${esc(val('programResistance'))}</span></div>
        </div>
@@ -1599,27 +1551,11 @@ window.saveFullTrainingProgramPDF=function(){
   }
   window.buildUniqueSessionDay=function(st,m,w,d){try{return build(st,Math.max(1,Number(m)||1),Math.max(0,Number(w)||0),Math.max(0,Number(d)||0))}catch(e){console.error('FIX16 training renderer',e);return '<div class="notice warn"><b>Training session could not be rendered.</b> Please select the session again.</div>'}};
   /* One-shot English cleanup. No MutationObserver, no recursive text replacement. */
-  function englishTraining(){const root=document.getElementById('training');if(!root)return;const map=[['Usia (tahun)','Age (years)'],['Pria','Male'],['Wanita','Female'],['Berat Badan (kg)','Body Weight (kg)'],['Tinggi Badan (cm)','Height (cm)'],['Beban (kg)','Load (kg)'],['Pemula (Beginner)','Beginner'],['Menengah (Intermediate)','Intermediate'],['Lanjut (Advanced)','Advanced'],['Optional — enter the actual working load (bukan harus 1RM) recently completed by the client untuk pola gerak terkait.','Optional — enter the actual working load completed for the related movement pattern.'],['Program terstruktur berbasis pola gerak dasar: squat, push, pull, hinge, carry/core — model paling scientific untuk progres jangka panjang.','Structured around squat, push, pull, hinge and core/carry movement patterns for long-term progression.']];const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);for(const n of nodes){let t=n.nodeValue;for(const [a,b] of map){if(t.includes(a))t=t.split(a).join(b)}n.nodeValue=t}}
+  function englishTraining(){const root=document.getElementById('training');if(!root)return;const map=[['Usia (tahun)','Age (years)'],['Pria','Male'],['Wanita','Female'],['Berat Badan (kg)','Body Weight (kg)'],['Tinggi Badan (cm)','Height (cm)'],['Beban (kg)','Load (kg)'],['Pemula (Beginner)','Beginner'],['Menengah (Intermediate)','Intermediate'],['Lanjut (Advanced)','Advanced'],['Opsional — isi beban kerja aktual (bukan harus 1RM) yang baru saja diselesaikan member untuk pola gerak terkait.','Optional — enter the actual working load completed for the related movement pattern.'],['Program terstruktur berbasis pola gerak dasar: squat, push, pull, hinge, carry/core — model paling scientific untuk progres jangka panjang.','Structured around squat, push, pull, hinge and core/carry movement patterns for long-term progression.']];const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);for(const n of nodes){let t=n.nodeValue;for(const [a,b] of map){if(t.includes(a))t=t.split(a).join(b)}n.nodeValue=t}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',englishTraining,{once:true});else englishTraining();
   window.__FJFix16={scope:'training-only',version:'16.0',recursiveTranslator:false,progressive:true};
 })();
-</script><script id="training-actions-fix">
-function resetAdvancedProgram(){
-  window.__FJAdvancedState=null;
-  if(typeof program!=='undefined')program=null;
-  const r=document.getElementById('trainingResult');if(r)r.innerHTML='';
-  ['programMonths','programFreq','programGoal','programResistance','programAge','programGender','programWeight','programHeight','programLevel','programWorkoutType','rmLowerW','rmLowerR','rmPushW','rmPushR','rmPullW','rmPullR','rmHingeW','rmHingeR'].forEach(id=>{const e=document.getElementById(id);if(e){if(e.tagName==='SELECT')e.selectedIndex=0;else e.value='';}});
-  ['rmLowerOut','rmPushOut','rmPullOut','rmHingeOut'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='';});
-  if(typeof updateWorkoutTypeNote==='function')updateWorkoutTypeNote();
-  if(typeof window.trainingToast==='function')window.trainingToast('Training Program reset.');
-}
-function printSection(id){
-  const el=document.getElementById(id);if(!el){alert('Training Program section not found.');return;}
-  document.body.classList.add('fj-printing-training');el.classList.add('print-target');window.print();
-  setTimeout(()=>{document.body.classList.remove('fj-printing-training');el.classList.remove('print-target')},500);
-}
-</script>
-<script id="fj-pwa-register">
+</script><script id="fj-pwa-register">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(() => {});
@@ -1696,116 +1632,99 @@ if ('serviceWorker' in navigator) {
   #trainingResult .program-session-tabs{gap:6px!important}
 }
 </style>
+
+<script id="fj-stable-runtime">
+(function(){
+  'use strict';
+  window.resetAdvancedProgram=function(){
+    const ids=['clientName','programMonths','programFreq','programGoal','programResistance','programAge','programGender','programWeight','programHeight','rmLowerW','rmLowerR','rmPushW','rmPushR','rmPullW','rmPullR','rmHingeW','rmHingeR','programLevel','programWorkoutType'];
+    ids.forEach(id=>{const el=document.getElementById(id);if(!el)return;if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
+    ['rmLowerOut','rmPushOut','rmPullOut','rmHingeOut'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
+    const note=document.getElementById('wtypeNote');if(note)note.textContent='Program terstruktur berbasis pola gerak dasar: squat, push, pull, hinge, carry/core — model paling scientific untuk progres jangka panjang.';
+    const result=document.getElementById('trainingResult');if(result)result.innerHTML='';
+    window.__FJAdvancedState=null;
+    try{localStorage.removeItem('fj_full_training_program_v70')}catch(e){}
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+})();
+</script>
+
 <script id="fj-auth-approval">
-/* Standalone Training Program access gate + Master Admin approval. */
 window.FEDY_AUTH_CONFIG={
   supabaseUrl:'https://byaerupvscjjsujpplhy.supabase.co',
   supabaseAnonKey:'sb_publishable_Q5tmtuKKv0Fh_7SGYTtcwQ_s6vtzsIr',
   masterAdminEmail:'aldenkhafi0203@gmail.com'
 };
 (function(){
- 'use strict';
- const C=window.FEDY_AUTH_CONFIG;
- const overlay=document.getElementById('fjAuthOverlay'), status=document.getElementById('fjAuthStatus'), btn=document.getElementById('fjGoogleBtn');
- const adminNav=document.getElementById('fjAdminNav'), adminPanel=document.getElementById('adminApproval'), adminList=document.getElementById('fjAdminList');
- let sb=null,currentUser=null, handling=false;
- const adminEmail=String(C.masterAdminEmail).toLowerCase();
- const isAdmin=e=>String(e||'').toLowerCase()===adminEmail;
- const setStatus=m=>{if(status)status.textContent=m};
- const show=()=>{if(overlay)overlay.style.display='flex'};
- const hide=()=>{if(overlay)overlay.style.display='none'};
- const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
- function showAdmin(){if(adminNav)adminNav.style.display='block';if(adminPanel)adminPanel.style.display='block'}
- function hideAdmin(){if(adminNav)adminNav.style.display='none';if(adminPanel)adminPanel.style.display='none'}
- function goTraining(){document.getElementById('training')?.scrollIntoView({behavior:'smooth',block:'start'});document.querySelector('.fj-nav.training')?.focus()}
- async function rpc(name,args){const r=await sb.rpc(name,args||{});if(r.error)throw r.error;return r.data}
- async function getMyAccess(user){
-   /* SECURITY DEFINER RPC avoids the recursive user_access SELECT policy. */
-   try{return await rpc('fj_get_my_access',{p_user_id:user.id})}catch(e){
-     const msg=String(e?.message||e);
-     if(/function .*fj_get_my_access|does not exist/i.test(msg)){
-       const r=await sb.from('user_access').select('user_id,email,full_name,role,status').eq('user_id',user.id).maybeSingle();
-       if(r.error)throw r.error; return r.data;
-     }
-     throw e;
-   }
- }
- async function ensureNonAdminRow(user){
-   const existing=await getMyAccess(user);
-   if(existing)return Array.isArray(existing)?existing[0]:existing;
-   const ins=await sb.from('user_access').insert({user_id:user.id,email:user.email||'',full_name:user.user_metadata?.full_name||user.user_metadata?.name||'',role:'user',status:'pending'});
-   if(ins.error && !/duplicate|already exists|unique/i.test(ins.error.message))throw ins.error;
-   const again=await getMyAccess(user); return Array.isArray(again)?again[0]:again;
- }
- async function loadAdmin(){
-   if(!adminList)return;
-   adminList.innerHTML='<div class="fj-auth-status">Loading access requests...</div>';
-   try{
-     let rows;
-     try{rows=await rpc('fj_admin_list_user_access',{p_admin_email:adminEmail});}
-     catch(e){
-       const msg=String(e?.message||e);
-       if(!/function .*fj_admin_list_user_access|does not exist/i.test(msg))throw e;
-       const q=await sb.from('user_access').select('user_id,email,full_name,role,status,created_at').order('created_at',{ascending:true});
-       if(q.error)throw q.error; rows=q.data||[];
-     }
-     rows=Array.isArray(rows)?rows:[];
-     const pending=rows.filter(r=>String(r.status||'').toLowerCase()==='pending');
-     adminList.innerHTML=`<div class="fj-admin-head"><b>Access Requests</b><span>${pending.length} pending</span></div>`+
-       (rows.length?rows.map(r=>{
-         const email=String(r.email||''); if(email.toLowerCase()===adminEmail)return '';
-         const st=String(r.status||'pending').toUpperCase();
-         return `<div class="fj-admin-row"><span><b>${esc(r.full_name||'User')}</b><br><small>${esc(email)}</small><br><small>Status: ${esc(st)}</small></span><span class="fj-admin-actions"><button class="fj-approve" data-a="${esc(r.user_id)}">Approve</button><button class="fj-reject" data-r="${esc(r.user_id)}">Reject</button></span></div>`;
-       }).join(''):'<div class="fj-auth-status">No access requests.</div>');
-     adminList.querySelectorAll('[data-a]').forEach(x=>x.onclick=async()=>{await setAccess(x.dataset.a,'approved')});
-     adminList.querySelectorAll('[data-r]').forEach(x=>x.onclick=async()=>{await setAccess(x.dataset.r,'rejected')});
-   }catch(e){
-     adminList.innerHTML='<div class="fj-auth-status">Approval database policy is not ready.<br><small>'+esc(e.message||e)+'</small><br><b>Run SUPABASE_AUTH_SETUP.sql once in Supabase SQL Editor.</b></div>';
-   }
- }
- async function setAccess(userId,newStatus){
-   try{
-     try{await rpc('fj_admin_set_user_status',{p_target_user_id:userId,p_new_status:newStatus,p_admin_email:adminEmail});}
-     catch(e){
-       const msg=String(e?.message||e);
-       if(!/function .*fj_admin_set_user_status|does not exist/i.test(msg))throw e;
-       const q=await sb.from('user_access').update({status:newStatus}).eq('user_id',userId); if(q.error)throw q.error;
-     }
-     await loadAdmin();
-   }catch(e){alert('Gagal mengubah akses: '+(e.message||e));}
- }
- async function handleSession(session){
-   if(handling)return; handling=true;
-   try{
-     currentUser=session?.user||null;
-     if(!currentUser){show();hideAdmin();setStatus('Silakan login dengan Google untuk mengajukan akses.');return;}
-     const email=String(currentUser.email||'').toLowerCase();
-     if(isAdmin(email)){
-       /* Master Admin is never blocked by user_access RLS. */
-       hide();showAdmin();setStatus('Master Admin access granted.');await loadAdmin();return;
-     }
-     hideAdmin();
-     let row;
-     try{row=await ensureNonAdminRow(currentUser)}catch(e){show();setStatus('Tidak dapat membaca status approval. Jalankan SUPABASE_AUTH_SETUP.sql di Supabase SQL Editor.');return;}
-     show();
-     const st=String(row?.status||'pending').toLowerCase();
-     if(st==='approved'){hide();goTraining();}
-     else if(st==='rejected'){setStatus('Akses ditolak oleh Master Admin. Hubungi administrator.');}
-     else setStatus('Akun terdaftar. Menunggu approval Master Admin.');
-   }finally{handling=false}
- }
- async function start(){
-   show();
-   if(!window.supabase){setStatus('Memuat sistem login...');return;}
-   try{
-     sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey);
-     btn.onclick=async()=>{setStatus('Membuka Google...');const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)setStatus(error.message)};
-     const {data,error}=await sb.auth.getSession();if(error)throw error;
-     await handleSession(data.session);
-     sb.auth.onAuthStateChange((_e,session)=>setTimeout(()=>handleSession(session),0));
-   }catch(e){setStatus('Supabase tidak dapat dihubungkan: '+(e.message||e));}
- }
- window.fjOpenAdminApproval=async function(){if(!isAdmin(currentUser?.email))return;showAdmin();document.getElementById('adminApproval')?.scrollIntoView({behavior:'smooth',block:'start'});await loadAdmin()};
- window.addEventListener('load',()=>{const tag=document.createElement('script');tag.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';tag.onload=start;tag.onerror=()=>setStatus('Gagal memuat library login.');document.head.appendChild(tag)});
+  'use strict';
+  const C=window.FEDY_AUTH_CONFIG;
+  const overlay=document.getElementById('fjAuthOverlay'),status=document.getElementById('fjAuthStatus'),btn=document.getElementById('fjGoogleBtn');
+  const adminBtn=document.getElementById('fjAdminBtn'),adminGroup=document.getElementById('fjAdminGroup'),adminOverlay=document.getElementById('fjAdminOverlay'),adminClose=document.getElementById('fjAdminClose'),adminRows=document.getElementById('fjAdminRows'),adminStatus=document.getElementById('fjAdminStatus');
+  let sb=null,currentUser=null;
+  const isAdmin=email=>String(email||'').trim().toLowerCase()===C.masterAdminEmail.toLowerCase();
+  const setStatus=m=>{if(status)status.textContent=m};
+  const showAuth=()=>{if(overlay)overlay.style.display='flex'};
+  const hideAuth=()=>{if(overlay)overlay.style.display='none'};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function setAdminVisible(v){if(adminBtn)adminBtn.style.display=v?'block':'none';if(adminGroup)adminGroup.style.display=v?'block':'none';}
+  function openAdmin(){if(!adminOverlay)return;adminOverlay.classList.add('open');adminOverlay.setAttribute('aria-hidden','false');loadAdminRequests();}
+  function closeAdmin(){if(!adminOverlay)return;adminOverlay.classList.remove('open');adminOverlay.setAttribute('aria-hidden','true');}
+  async function ensureAccess(){
+    if(!currentUser||!sb)return null;
+    const {data,error}=await sb.rpc('ensure_my_access');
+    if(error)throw error;
+    return data;
+  }
+  async function loadAdminRequests(){
+    if(!sb||!isAdmin(currentUser?.email)||!adminRows)return;
+    adminRows.innerHTML='<tr><td colspan="5">Memuat request...</td></tr>';
+    const {data,error}=await sb.rpc('admin_list_access_requests');
+    if(error){adminRows.innerHTML='<tr><td colspan="5">Gagal memuat approval: '+esc(error.message)+'</td></tr>';if(adminStatus)adminStatus.textContent='Jalankan SUPABASE_AUTH_SETUP.sql satu kali di Supabase SQL Editor.';return;}
+    const rows=Array.isArray(data)?data:[];
+    const pending=rows.filter(r=>String(r.status).toLowerCase()==='pending').length;
+    if(adminStatus)adminStatus.textContent=rows.length?`${pending} pending request(s) • ${rows.length} total account(s)`:'Belum ada request akses.';
+    if(!rows.length){adminRows.innerHTML='<tr><td colspan="5">Belum ada request akses.</td></tr>';return;}
+    adminRows.innerHTML=rows.map(r=>{
+      const st=String(r.status||'pending').toUpperCase();
+      const action=st==='PENDING'?`<button class="fj-admin-approve" data-a="${esc(r.user_id)}">Approve</button> <button class="fj-admin-reject" data-r="${esc(r.user_id)}">Reject</button>`:'—';
+      return `<tr><td><b>${esc(r.full_name||'—')}</b></td><td>${esc(r.email||'—')}</td><td>${esc(st)}</td><td>${r.created_at?new Date(r.created_at).toLocaleString('id-ID'):'—'}</td><td>${action}</td></tr>`;
+    }).join('');
+    adminRows.querySelectorAll('[data-a]').forEach(b=>b.addEventListener('click',()=>setAccess(b.dataset.a,'approved')));
+    adminRows.querySelectorAll('[data-r]').forEach(b=>b.addEventListener('click',()=>setAccess(b.dataset.r,'rejected')));
+  }
+  async function setAccess(target,statusValue){
+    if(!sb||!isAdmin(currentUser?.email))return;
+    const {error}=await sb.rpc('admin_set_user_status',{target_user_id:target,new_status:statusValue});
+    if(error){alert('Gagal mengubah status: '+error.message);return;}
+    loadAdminRequests();
+  }
+  async function handleUser(user){
+    currentUser=user;showAuth();setAdminVisible(isAdmin(user.email));
+    try{
+      const access=await ensureAccess();
+      const role=String(access?.role||'user').toLowerCase(), st=String(access?.status||'pending').toLowerCase();
+      if(isAdmin(user.email)){
+        hideAuth();setAdminVisible(true);return;
+      }
+      if(st==='approved'){setStatus('Akses disetujui.');hideAuth();}
+      else if(st==='rejected'){setStatus('Akses ditolak oleh Master Admin.');}
+      else {setStatus('Akun terdaftar. Menunggu approval Master Admin.');}
+    }catch(e){
+      if(isAdmin(user.email)){hideAuth();setAdminVisible(true);return;}
+      setStatus('Tidak dapat membaca status approval. Pastikan SUPABASE_AUTH_SETUP.sql sudah dijalankan.');
+    }
+  }
+  async function start(){
+    showAuth();
+    if(!window.supabase){setStatus('Memuat sistem login...');return;}
+    sb=window.supabase.createClient(C.supabaseUrl,C.supabaseAnonKey);
+    if(btn)btn.onclick=async()=>{setStatus('Membuka Google Login...');const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)setStatus(error.message)};
+    if(adminBtn)adminBtn.addEventListener('click',openAdmin);if(adminClose)adminClose.addEventListener('click',closeAdmin);if(adminOverlay)adminOverlay.addEventListener('click',e=>{if(e.target===adminOverlay)closeAdmin()});
+    const {data:{session}}=await sb.auth.getSession();
+    if(session)await handleUser(session.user);else setStatus('Silakan login dengan Google untuk mengajukan akses.');
+    sb.auth.onAuthStateChange((_event,session2)=>{if(session2)handleUser(session2.user);else{currentUser=null;setAdminVisible(false);showAuth()}});
+  }
+  window.addEventListener('load',()=>{const tag=document.createElement('script');tag.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';tag.onload=start;tag.onerror=()=>setStatus('Gagal memuat library login.');document.head.appendChild(tag)});
 })();
-</script></body></html>
+</script>
+</body></html>

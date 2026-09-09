@@ -2648,7 +2648,7 @@ async function loadAdminAccess(){
 async function setAccess(id,status){
   if(!sb||String(currentUser?.email||'').toLowerCase()!=='aldenkhafi0203@gmail.com')return;
   const next=String(status||'pending').toLowerCase();
-  const payload={status:next,approved_by:next==='approved'?'aldenkhafi0203@gmail.com':null,approved_at:next==='approved'?new Date().toISOString():null,updated_at:new Date().toISOString()};
+  const payload={status:next,approved_by:next==='approved'?(currentUser?.id||null):null,approved_at:next==='approved'?new Date().toISOString():null,updated_at:new Date().toISOString()};
   const {error}=await sb.from('user_access').update(payload).eq('id',id);
   if(error){alert('Access update failed: '+error.message);return;}
   await loadAdminAccess();

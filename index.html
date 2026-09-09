@@ -2329,6 +2329,43 @@ function fjV4BuildSession(st,m,w,d){
 }
 function buildUniqueSessionDay(st,month,weekIndex,sessionIndex){return fjV4BuildSession(st,Math.max(1,Number(month)||1),Math.max(0,Number(weekIndex)||0),Math.max(0,Number(sessionIndex)||0));}
 
+function showProgramSession(month,weekIndex,sessionIndex){
+ const st=window.__FJAdvancedState;
+ if(!st)return;
+ const detail=document.getElementById(`program-session-detail-${month}-${weekIndex}`);
+ if(!detail)return;
+ const safeMonth=Math.max(1,Number(month)||1), safeWeek=Math.max(0,Number(weekIndex)||0), safeSession=Math.max(0,Number(sessionIndex)||0);
+ const key=`${safeMonth}-${safeWeek}-${safeSession}`;
+ if(detail.dataset.sessionKey===key && detail.innerHTML.trim())return;
+ const panel=document.getElementById(`program-week-panel-${safeMonth}`);
+ panel?.querySelectorAll('.program-session-tab').forEach((b,i)=>b.classList.toggle('active',i===safeSession));
+ const phase=safeMonth<=Math.ceil(st.months*.25)?'FOUNDATION':safeMonth<=Math.ceil(st.months*.55)?'BUILD':safeMonth<=Math.ceil(st.months*.85)?'PROGRESS':'CONSOLIDATE / REASSESS';
+ const focus=['Technique & baseline','Volume / skill build','Overload / density','Consolidate + recovery'][safeWeek]||'Progression';
+ const progression=safeWeek===0?'Establish baseline: RPE 6–7, 3–4 RIR.':safeWeek===1?'Build volume: add 1–2 reps before load when technique is stable.':safeWeek===2?'Overload: add 2.5–5% only when reps, technique and recovery are adequate.':'Deload/reassess: reduce volume and do not force load increases.';
+ const label=String.fromCharCode(65+safeSession);
+ const reps=st.g==='Strength'&&phase==='PROGRESS'?'3–5':st.g==='Hypertrophy'&&phase==='PROGRESS'?'6–10':st.cfg[2];
+ const phaseBase=phase==='FOUNDATION'?0:phase==='BUILD'?8:phase==='PROGRESS'?16:0;
+ const DURATION_BY_TYPE={zone2:'25–45 min',recovery:'20–40 min',mobilityflow:'20–35 min',prehab:'25–40 min',tabata:'25–40 min',hiit:'30–45 min',emom:'25–40 min',amrap:'25–40 min',fortime:'25–40 min',circuit:'35–50 min',corebalance:'25–35 min',rehab:'30–45 min',metcon:'45–60 min',hyrox:'50–70 min'};
+ const duration=DURATION_BY_TYPE[st.wtype]||'60–75 min',rest=st.cfg?.[3]||'60–120s',rpe=st.cfg?.[4]||'RPE 6–8';
+ window.__FJSessionSeed=(safeWeek*17)+safeSession;
+ window.__FJProgramContext={month:safeMonth,weekIndex:safeWeek,sessionIndex:safeSession,totalMonths:Number(st.months)||12,goal:st.g,age:st.age||0,e1rm:st.e1rm||null,weight:st.weight||0};
+ let details='';
+ try{
+   // Use the dedicated one-session renderer first. It is synchronous and isolated,
+   // so a session click never depends on the legacy multi-session generators.
+   details=buildUniqueSessionDay(st,safeMonth,safeWeek,safeSession);
+ }catch(err){
+   console.error('Session renderer failed; using safe fallback',err);
+   try{details=buildPatternTable(safeMonth,st.level,st.weight,st.res,phaseBase,reps,st.cfg,safeSession,st.months,st.g,st.age,st.e1rm,safeWeek)}catch(err2){
+     console.error('Fallback renderer failed',err2);
+     details=`<div class="notice warn"><b>Program sementara tidak dapat dirender.</b><br>Silakan klik session kembali. Error telah ditangani tanpa menghentikan aplikasi.</div>`;
+   }
+ }
+ detail.innerHTML=`<div class="program-session-detail"><div class="program-session-heading"><div><strong>SESSION ${label} — DAY ${safeSession+1}</strong><span>${focus} • ${phase} • Month ${safeMonth} • Week ${safeWeek+1}</span></div><div class="program-session-meta"><span>Duration: ${duration}</span><span>Rest: ${rest}</span><span>RPE: ${rpe}</span></div></div><div class="program-session-exercise">${details}</div><div class="program-session-progression"><b>Progression:</b> ${progression} ${safeMonth>1?`Month ${safeMonth} memakai exercise/load context berbeda untuk menjaga progresi.`:''}</div></div>`;
+ detail.dataset.sessionKey=key;
+}
+
+
 function fjBuildAllTrainingHTML(st,period=null){
   const months=Math.max(1,Number(st?.months)||1), freq=Math.max(1,Number(st?.freq)||3);
   const totalDays=months*4*freq;

@@ -1152,6 +1152,42 @@ html,body{max-width:100%;overflow-x:hidden}
 </main></div>
 <div id="modal" class="modal"><div class="modalbox"><div class="modalbar"><b id="modalTitle">Presentation</b><div><button class="close" onclick="prevPres()">←</button><button class="close" onclick="nextPres()">→</button><button class="close" onclick="closeModal()">Close</button></div></div><img id="modalImg"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+/* FJ V24 compatibility guard: keep showProgramSession globally available for inline handlers. */
+if(typeof window.showProgramSession !== 'function'){
+  window.showProgramSession=function(month,weekIndex,sessionIndex){
+    const st=window.__FJAdvancedState;
+    if(!st){ console.warn('Training Program state is not ready yet.'); return; }
+    const detail=document.getElementById(`program-session-detail-${month}-${weekIndex}`);
+    if(!detail)return;
+    const safeMonth=Math.max(1,Number(month)||1), safeWeek=Math.max(0,Number(weekIndex)||0), safeSession=Math.max(0,Number(sessionIndex)||0);
+    const key=`${safeMonth}-${safeWeek}-${safeSession}`;
+    if(detail.dataset.sessionKey===key && detail.innerHTML.trim())return;
+    const panel=document.getElementById(`program-week-panel-${safeMonth}`);
+    panel?.querySelectorAll('.program-session-tab').forEach((b,i)=>b.classList.toggle('active',i===safeSession));
+    const phase=safeMonth<=Math.ceil(st.months*.25)?'FOUNDATION':safeMonth<=Math.ceil(st.months*.55)?'BUILD':safeMonth<=Math.ceil(st.months*.85)?'PROGRESS':'CONSOLIDATE / REASSESS';
+    const focus=['Technique & baseline','Volume / skill build','Overload / density','Consolidate + recovery'][safeWeek]||'Progression';
+    const progression=safeWeek===0?'Establish baseline: RPE 6–7, 3–4 RIR.':safeWeek===1?'Build volume: add 1–2 reps before load when technique is stable.':safeWeek===2?'Overload: add 2.5–5% only when reps, technique and recovery are adequate.':'Deload/reassess: reduce volume and do not force load increases.';
+    const label=String.fromCharCode(65+safeSession);
+    const reps=st.g==='Strength'&&phase==='PROGRESS'?'3–5':st.g==='Hypertrophy'&&phase==='PROGRESS'?'6–10':st.cfg[2];
+    const phaseBase=phase==='FOUNDATION'?0:phase==='BUILD'?8:phase==='PROGRESS'?16:0;
+    const DURATION_BY_TYPE={zone2:'25–45 min',recovery:'20–40 min',mobilityflow:'20–35 min',prehab:'25–40 min',tabata:'25–40 min',hiit:'30–45 min',emom:'25–40 min',amrap:'25–40 min',fortime:'25–40 min',circuit:'35–50 min',corebalance:'25–35 min',rehab:'30–45 min',metcon:'45–60 min',hyrox:'50–70 min'};
+    const duration=DURATION_BY_TYPE[st.wtype]||'60–75 min',rest=st.cfg?.[3]||'60–120s',rpe=st.cfg?.[4]||'RPE 6–8';
+    window.__FJSessionSeed=(safeWeek*17)+safeSession;
+    window.__FJProgramContext={month:safeMonth,weekIndex:safeWeek,sessionIndex:safeSession,totalMonths:Number(st.months)||12,goal:st.g,age:st.age||0,e1rm:st.e1rm||null,weight:st.weight||0};
+    let details='';
+    try{ details=buildUniqueSessionDay(st,safeMonth,safeWeek,safeSession); }catch(err){
+      console.error('Session renderer failed; using safe fallback',err);
+      try{ details=buildPatternTable(safeMonth,st.level,st.weight,st.res,phaseBase,reps,st.cfg,safeSession,st.months,st.g,st.age,st.e1rm,safeWeek); }catch(err2){
+        console.error('Fallback renderer failed',err2);
+        details='<div class="notice warn"><b>Program sementara tidak dapat dirender.</b><br>Silakan klik session kembali. Error telah ditangani tanpa menghentikan aplikasi.</div>';
+      }
+    }
+    detail.innerHTML=`<div class="program-session-detail"><div class="program-session-heading"><div><strong>SESSION ${label} — DAY ${safeSession+1}</strong><span>${focus} • ${phase} • Month ${safeMonth} • Week ${safeWeek+1}</span></div><div class="program-session-meta"><span>Duration: ${duration}</span><span>Rest: ${rest}</span><span>RPE: ${rpe}</span></div></div><div class="program-session-exercise">${details}</div><div class="program-session-progression"><b>Progression:</b> ${progression} ${safeMonth>1?`Month ${safeMonth} memakai exercise/load context berbeda untuk menjaga progresi.`:''}</div></div>`;
+    detail.dataset.sessionKey=key;
+  };
+}
+</script>
+<script>
 const blue=[['BLB3M',3,0,1750000,583333.33,150000],['BLB4M',4,0,2099000,524750,170000],['BLB5M',5,0,2412000,482400,180000],['BLB6M',6,1,3300000,471428.57,200000],['BLB8M',8,0,3450000,431250,200000],['BLB9M',9,0,3712000,412444.44,200000],['BLB10M',10,2,4888000,407333.33,200000],['BLB12M',12,2,5588000,399142.86,200000],['BLB14M',14,2,6190000,386875,200000],['BLB15M',15,3,6850000,380555.56,200000],['BLB20M',20,4,8888000,370333.33,300000]];
 const family=[['BLBAD13MF',3,0,1699000,566333.33,80000],['BLBAD14MF',4,0,1999000,499750,90000],['BLBAD15MF',5,0,2312000,462400,100000],['BLBAD16MF',6,1,3199000,457000,120000],['BLBAD18MF',8,0,3300000,412500,120000],['BLBAD19MF',9,0,3560000,395555.56,150000],['BLBAD112MF',12,2,5299000,378500,150000],['BLBAD114MF',14,2,5890000,368125,150000],['BLBAD115MF',15,3,6550000,363888.89,150000],['BLBAD120MF',20,4,8388000,349500,200000]];
 const smartBund=[['SMRTA-10BUND',10,'75 days',2990000,299000,180,100000],['SMRTA-20BUND',20,'90 days',5380000,269000,330,150000],['SMRTA-35BUND',35,'120 days',8365000,239000,500,200000],['SMRTA-50BUND',50,'180 days',11450000,229000,750,250000],['SMRTA-100BUND',100,'365 days',22400000,224000,1470,300000]];

@@ -2115,255 +2115,188 @@ function workoutTypeSpecificDay(st,m,w,d,phase,phaseNo,level){
    Selection pipeline: client data -> goal -> workout type -> phase -> readiness/experience -> resistance ->
    energy/skill/complexity/fatigue -> compound/isolation priority -> deterministic variation -> order.
 */
-const FJ_V4_META={
- 'Box Jump':{role:'power',skill:4,energy:4,complexity:4,fatigue:3,impact:4},
- 'Jump Squat':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:4},
- 'Plyo Push-Up':{role:'power',skill:4,energy:4,complexity:4,fatigue:3,impact:3},
- 'Medicine Ball Slam':{role:'power',skill:3,energy:4,complexity:2,fatigue:2,impact:2},
- 'Wall Ball Shot':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:2},
- 'Kettlebell Push Press':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:2},
- 'Thruster':{role:'power',skill:4,energy:5,complexity:4,fatigue:5,impact:2},
- 'Devil Press':{role:'power',skill:5,energy:5,complexity:5,fatigue:5,impact:3},
- 'Man Maker':{role:'power',skill:5,energy:5,complexity:5,fatigue:5,impact:3},
- 'Kettlebell Swing':{role:'power',skill:3,energy:5,complexity:3,fatigue:4,impact:2},
- 'Back Squat':{role:'compound',skill:5,energy:5,complexity:4,fatigue:5},
- 'Front Squat':{role:'compound',skill:5,energy:5,complexity:5,fatigue:5},
- 'Conventional Deadlift':{role:'compound',skill:5,energy:5,complexity:5,fatigue:5},
- 'Trap Bar Deadlift':{role:'compound',skill:4,energy:5,complexity:4,fatigue:5},
- 'Romanian Deadlift':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},
- 'Barbell Bench Press':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},
- 'Overhead Press':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},
- 'Barbell Row':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},
- 'Pull-Up / Assisted Pull-Up':{role:'compound',skill:4,energy:4,complexity:4,fatigue:4},
- 'T-Bar Row':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},
- 'Leg Press':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},
- 'Hack Squat Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},
- 'Chest Press Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},
- 'Shoulder Press Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},
- 'Dumbbell Bench Press':{role:'compound',skill:3,energy:4,complexity:3,fatigue:3},
- 'Dumbbell Shoulder Press':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},
- 'Goblet Squat':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},
- 'Bulgarian Split Squat':{role:'secondary',skill:4,energy:4,complexity:4,fatigue:4},
- 'Walking Lunge':{role:'secondary',skill:3,energy:4,complexity:3,fatigue:3},
- 'Step-Up':{role:'secondary',skill:2,energy:3,complexity:3,fatigue:2},
- 'Single-Leg RDL':{role:'secondary',skill:4,energy:3,complexity:4,fatigue:3},
- 'Single-Leg Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},
- 'Dumbbell Row':{role:'secondary',skill:3,energy:3,complexity:2,fatigue:3},
- 'Single-Arm Dumbbell Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},
- 'Kettlebell Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},
- 'Seated Cable Row':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},
- 'Lat Pulldown':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},
- 'Cable Chest Press':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},
- 'Incline Dumbbell Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},
- 'Arnold Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},
- 'Landmine Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},
- 'Hip Thrust Machine':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:3},
- 'Dumbbell RDL':{role:'secondary',skill:3,energy:3,complexity:2,fatigue:3},
- 'Kettlebell Deadlift':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:3},
- 'Cable Pull-Through':{role:'secondary',skill:2,energy:2,complexity:2,fatigue:2},
- 'Good Morning (Band)':{role:'secondary',skill:3,energy:2,complexity:3,fatigue:3},
- 'Band Hip Thrust':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:2},
- 'Nordic Curl (Assisted)':{role:'secondary',skill:4,energy:2,complexity:4,fatigue:3},
- 'Pistol Squat (Assisted)':{role:'secondary',skill:5,energy:3,complexity:5,fatigue:4},
- 'Zercher Squat':{role:'compound',skill:5,energy:4,complexity:5,fatigue:5},
- 'Landmine Squat':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},
- 'Kettlebell Front Squat':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},
- 'Cable Squat':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},
- 'Band Squat':{role:'compound',skill:1,energy:2,complexity:1,fatigue:1},
- 'Push-Up':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},
- 'Dip (Chest-Focused)':{role:'secondary',skill:4,energy:3,complexity:4,fatigue:3},
- 'Pike Push-Up':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:2},
- 'Single-Arm Cable Press':{role:'secondary',skill:3,energy:2,complexity:3,fatigue:2},
- 'Band Chest Press':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:1},
- 'Band Overhead Press':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:1},
- 'Chin-Up':{role:'compound',skill:4,energy:4,complexity:4,fatigue:4},
- 'Inverted Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:2},
- 'Renegade Row':{role:'secondary',skill:4,energy:4,complexity:5,fatigue:4},
- 'Machine Row':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:2},
- 'Face Pull':{role:'accessory',skill:2,energy:1,complexity:2,fatigue:1},
- 'Band Pull-Apart / Row':{role:'accessory',skill:1,energy:1,complexity:1,fatigue:1},
- 'Barbell Bicep Curl':{role:'isolation',skill:2,energy:1,complexity:1,fatigue:1},
- 'Dumbbell Hammer Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},
- 'Cable Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},
- 'Tricep Pushdown':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},
- 'Overhead Tricep Extension':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},
- 'Skull Crusher':{role:'isolation',skill:2,energy:1,complexity:2,fatigue:1},
- 'Band Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},
- 'Diamond Push-Up':{role:'isolation',skill:2,energy:2,complexity:2,fatigue:2},
- 'Plank':{role:'core',skill:1,energy:1,complexity:1,fatigue:1},
- 'Farmer\'s Carry':{role:'core',skill:2,energy:3,complexity:2,fatigue:3},
- 'Kettlebell Carry':{role:'core',skill:2,energy:3,complexity:2,fatigue:3},
- 'Cable Woodchop':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},
- 'Band Pallof Press':{role:'core',skill:1,energy:1,complexity:1,fatigue:1},
- 'Leg Raise':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},
- 'Hanging Knee Raise':{role:'core',skill:3,energy:2,complexity:3,fatigue:2},
- 'Ab Wheel Rollout':{role:'core',skill:4,energy:2,complexity:4,fatigue:3},
- 'Cable Anti-Rotation Press':{role:'core',skill:2,energy:1,complexity:2,fatigue:1},
- 'Turkish Get-Up (Partial)':{role:'skill',skill:5,energy:2,complexity:5,fatigue:3},
- 'Suitcase Carry':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},
- 'Renegade Plank Row':{role:'core',skill:4,energy:3,complexity:5,fatigue:4},
- 'Burpee':{role:'conditioning',skill:3,energy:5,complexity:3,fatigue:5,impact:3},
- 'Battle Rope Slam':{role:'conditioning',skill:2,energy:5,complexity:2,fatigue:4},
- 'Sled Push':{role:'conditioning',skill:2,energy:5,complexity:2,fatigue:4},
- 'Rowing Erg (cal/meter)':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},
- 'Assault Bike (cal)':{role:'conditioning',skill:1,energy:4,complexity:1,fatigue:3},
- 'Jump Rope (Double Under/Single)':{role:'conditioning',skill:3,energy:4,complexity:3,fatigue:3,impact:3},
- 'Mountain Climber':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},
- 'Sandbag Carry':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},
- 'Bear Crawl':{role:'conditioning',skill:3,energy:3,complexity:3,fatigue:3},
- 'Medicine Ball Slam':{role:'power',skill:3,energy:4,complexity:2,fatigue:2},
- "Farmer's Carry (Heavy)":{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:4},
- 'Sled Pull (Backward)':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3}
+const FJ_V5_META={
+  'Box Jump':{role:'power',skill:4,energy:4,complexity:4,fatigue:3,impact:4},'Jump Squat':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:4},'Plyo Push-Up':{role:'power',skill:4,energy:4,complexity:4,fatigue:3,impact:3},'Medicine Ball Slam':{role:'power',skill:3,energy:4,complexity:2,fatigue:2,impact:2},'Wall Ball Shot':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:2},'Kettlebell Push Press':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:2},'Thruster':{role:'power',skill:4,energy:5,complexity:4,fatigue:5,impact:2},'Devil Press':{role:'power',skill:5,energy:5,complexity:5,fatigue:5,impact:3},'Man Maker':{role:'power',skill:5,energy:5,complexity:5,fatigue:5,impact:3},'Kettlebell Swing':{role:'power',skill:3,energy:5,complexity:3,fatigue:4,impact:2},
+  'Back Squat':{role:'compound',skill:5,energy:5,complexity:4,fatigue:5},'Front Squat':{role:'compound',skill:5,energy:5,complexity:5,fatigue:5},'Conventional Deadlift':{role:'compound',skill:5,energy:5,complexity:5,fatigue:5},'Trap Bar Deadlift':{role:'compound',skill:4,energy:5,complexity:4,fatigue:5},'Romanian Deadlift':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Barbell Bench Press':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Overhead Press':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Barbell Row':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Pull-Up / Assisted Pull-Up':{role:'compound',skill:4,energy:4,complexity:4,fatigue:4},'Chin-Up':{role:'compound',skill:4,energy:4,complexity:4,fatigue:4},'T-Bar Row':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Leg Press':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},'Hack Squat Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},'Chest Press Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},'Shoulder Press Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},'Dumbbell Bench Press':{role:'compound',skill:3,energy:4,complexity:3,fatigue:3},'Dumbbell Shoulder Press':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},'Goblet Squat':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},'Landmine Squat':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},'Kettlebell Front Squat':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},'Cable Squat':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},'Band Squat':{role:'compound',skill:1,energy:2,complexity:1,fatigue:1},'Push-Up':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},
+  'Bulgarian Split Squat':{role:'secondary',skill:4,energy:4,complexity:4,fatigue:4},'Walking Lunge':{role:'secondary',skill:3,energy:4,complexity:3,fatigue:3},'Step-Up':{role:'secondary',skill:2,energy:3,complexity:3,fatigue:2},'Single-Leg RDL':{role:'secondary',skill:4,energy:3,complexity:4,fatigue:3},'Single-Leg Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Dumbbell Row':{role:'secondary',skill:3,energy:3,complexity:2,fatigue:3},'Single-Arm Dumbbell Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Kettlebell Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Seated Cable Row':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},'Lat Pulldown':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},'Cable Chest Press':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},'Incline Dumbbell Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Arnold Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Landmine Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Hip Thrust Machine':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:3},'Dumbbell RDL':{role:'secondary',skill:3,energy:3,complexity:2,fatigue:3},'Kettlebell Deadlift':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:3},'Cable Pull-Through':{role:'secondary',skill:2,energy:2,complexity:2,fatigue:2},'Good Morning (Band)':{role:'secondary',skill:3,energy:2,complexity:3,fatigue:3},'Band Hip Thrust':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:2},'Nordic Curl (Assisted)':{role:'secondary',skill:4,energy:2,complexity:4,fatigue:3},'Pistol Squat (Assisted)':{role:'secondary',skill:5,energy:3,complexity:5,fatigue:4},'Dip (Chest-Focused)':{role:'secondary',skill:4,energy:3,complexity:4,fatigue:3},'Pike Push-Up':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:2},'Single-Arm Cable Press':{role:'secondary',skill:3,energy:2,complexity:3,fatigue:2},'Band Chest Press':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:1},'Band Overhead Press':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:1},'Inverted Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:2},'Renegade Row':{role:'secondary',skill:4,energy:4,complexity:5,fatigue:4},'Machine Row':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:2},
+  'Face Pull':{role:'accessory',skill:2,energy:1,complexity:2,fatigue:1},'Band Pull-Apart / Row':{role:'accessory',skill:1,energy:1,complexity:1,fatigue:1},'Barbell Bicep Curl':{role:'isolation',skill:2,energy:1,complexity:1,fatigue:1},'Dumbbell Hammer Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Cable Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Tricep Pushdown':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Overhead Tricep Extension':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Skull Crusher':{role:'isolation',skill:2,energy:1,complexity:2,fatigue:1},'Band Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Diamond Push-Up':{role:'isolation',skill:2,energy:2,complexity:2,fatigue:2},
+  'Plank':{role:'core',skill:1,energy:1,complexity:1,fatigue:1},"Farmer's Carry":{role:'core',skill:2,energy:3,complexity:2,fatigue:3},'Kettlebell Carry':{role:'core',skill:2,energy:3,complexity:2,fatigue:3},'Cable Woodchop':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},'Band Pallof Press':{role:'core',skill:1,energy:1,complexity:1,fatigue:1},'Leg Raise':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},'Conditioning Finisher (bike/row erg)':{role:'conditioning',skill:1,energy:4,complexity:1,fatigue:2},'Hanging Knee Raise':{role:'core',skill:3,energy:2,complexity:3,fatigue:2},'Ab Wheel Rollout':{role:'core',skill:4,energy:2,complexity:4,fatigue:3},'Cable Anti-Rotation Press':{role:'core',skill:2,energy:1,complexity:2,fatigue:1},'Turkish Get-Up (Partial)':{role:'skill',skill:5,energy:2,complexity:5,fatigue:3},'Suitcase Carry':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},'Renegade Plank Row':{role:'core',skill:4,energy:3,complexity:5,fatigue:4},
+  'Burpee':{role:'conditioning',skill:3,energy:5,complexity:3,fatigue:5,impact:3},'Battle Rope Slam':{role:'conditioning',skill:2,energy:5,complexity:2,fatigue:4},'Sled Push':{role:'conditioning',skill:2,energy:5,complexity:2,fatigue:4},'Rowing Erg (cal/meter)':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},'Assault Bike (cal)':{role:'conditioning',skill:1,energy:4,complexity:1,fatigue:3},'Jump Rope (Double Under/Single)':{role:'conditioning',skill:3,energy:4,complexity:3,fatigue:3,impact:3},'Mountain Climber':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},'Sandbag Carry':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},'Bear Crawl':{role:'conditioning',skill:3,energy:3,complexity:3,fatigue:3},"Farmer's Carry (Heavy)":{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:4},'Sled Pull (Backward)':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3}
 };
-function fjV4Meta(ex){
-  const n=String(ex?.name||''); if(FJ_V4_META[n])return FJ_V4_META[n];
-  const m=String(ex?.muscle||'').toLowerCase(),e=n.toLowerCase();
-  if(/power|jump|slam|push press|swing/.test(m+' '+e))return {role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:/jump/.test(e)?4:2};
-  if(/curl|pushdown|extension/.test(e))return {role:'isolation',skill:1,energy:1,complexity:1,fatigue:1};
-  if(/plank|pallof|woodchop|carry|raise|rollout|bird dog/.test(e))return {role:'core',skill:2,energy:2,complexity:2,fatigue:2};
-  if(/squat|press|row|deadlift|lunge|pulldown|pull-up|push-up|thrust/.test(e))return {role:'compound',skill:3,energy:3,complexity:3,fatigue:3};
-  return {role:'accessory',skill:2,energy:2,complexity:2,fatigue:2};
+function fjV5Meta(ex){const n=String(ex?.name||'');if(FJ_V5_META[n])return FJ_V5_META[n];const e=n.toLowerCase();if(/jump|slam|swing|push press|thruster|devil press|man maker/.test(e))return {role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:/jump/.test(e)?4:2};if(/curl|pushdown|extension|crusher/.test(e))return {role:'isolation',skill:1,energy:1,complexity:1,fatigue:1};if(/plank|pallof|woodchop|carry|raise|rollout|bird dog/.test(e))return {role:'core',skill:2,energy:2,complexity:2,fatigue:2};if(/squat|press|row|deadlift|lunge|pulldown|pull-up|push-up|thrust/.test(e))return {role:'compound',skill:3,energy:3,complexity:3,fatigue:3};return {role:'accessory',skill:2,energy:2,complexity:2,fatigue:2};}
+function fjV5Hash(x){let h=2166136261;for(const c of String(x)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function fjV5Level(st){const x=String(st.level||'').toLowerCase();if(x==='beginner')return 'Beginner';if(x==='advanced')return 'Advanced';if(x==='intermediate')return 'Intermediate';return resolveProgramLevel(st)}
+function fjV5Phase(m,w,total,level,goal){return fjProgressionV3(m,w,total,level,goal)}
+function fjV5Equipment(ex){return String(ex?.equip||'').trim()}
+function fjV5Eligible(ex,st,ctx){
+ const res=ctx.res,meta=fjV5Meta(ex),name=String(ex?.name||'').toLowerCase();
+ if(!ex?.name)return false;
+ if(res!=='Mixed'&&fjV5Equipment(ex)!==res)return false;
+ if(meta.impact>=4&&!ctx.highImpactAllowed)return false;
+ if(ctx.level==='Beginner'&&(meta.skill>=4||meta.complexity>=4))return false;
+ if(ctx.type==='zone2'&&meta.role!=='conditioning')return false;
+ if(['tabata','hiit','amrap','emom','fortime'].includes(ctx.type)&&!['conditioning','power'].includes(meta.role))return false;
+ if(['mobilityflow','recovery'].includes(ctx.type)&&!['core','accessory','skill'].includes(meta.role))return false;
+ if(['rehab','prehab'].includes(ctx.type)&&(meta.role==='power'||meta.impact>=3||meta.skill>=5))return false;
+ if(['Mobility','Corrective / Modification'].includes(ctx.goal)&&(meta.role==='power'||meta.fatigue>=4))return false;
+ if(ctx.goal==='Low-Impact Fitness'&&(meta.impact>=3))return false;
+ return true;
 }
-function fjV4Hash(x){let h=2166136261;for(let i=0;i<String(x).length;i++){h^=String(x).charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-function fjV4Level(st){return resolveProgramLevel(st)}
-function fjV4Phase(m,w,total,level,goal){
-  const p=fjProgressionV3(m,w,total,level,goal); return p;
+function fjV5Candidates(st,ctx){
+ const pools=[];Object.keys(EXO_POOL).forEach(p=>pools.push([p,EXO_POOL[p]]));pools.push(['arms',ARM_POOL],['balance',BALANCE_POOL]);
+ if(ctx.needsConditioning)pools.push(['conditioning',CONDITIONING_POOL]);
+ if(ctx.type==='mobilityflow'||ctx.goal==='Mobility')pools.push(['mobility',MOBILITY_POOL.map(x=>({...x,name:x.name,equip:'Bodyweight',muscle:x.target||'Mobility'}))]);
+ const out=[];const seen=new Set();for(const [pattern,pool] of pools)for(const ex of pool||[]){if(seen.has(ex.name))continue;if(fjV5Eligible(ex,st,ctx)){seen.add(ex.name);out.push({...ex,pattern})}}return out;
 }
-function fjV4Eligible(ex,st,ctx){
-  const res=st.res||'Mixed',meta=fjV4Meta(ex),level=ctx.level,goal=ctx.goal,type=ctx.type;
-  if(res!=='Mixed' && String(ex.equip||'')!==res)return false;
-  if(meta.impact>=4 && (ctx.readiness==='Low'||ctx.readiness==='Poor'||Number(st.age)>=65||/pain|medical condition/i.test(String(st.medical||''))))return false;
-  if(level==='Beginner' && (meta.skill>=4 || meta.complexity>=4))return false;
-  if(type==='zone2' && meta.role!=='conditioning')return false;
-  if(['tabata','hiit','amrap','emom','fortime'].includes(type) && !['conditioning','power'].includes(meta.role))return false;
-  if(['mobilityflow','recovery'].includes(type) && !['core','accessory','skill'].includes(meta.role))return false;
-  if(['rehab','prehab'].includes(type) && (meta.role==='power'||meta.impact>=3||meta.skill>=5))return false;
-  if(goal==='Mobility' && (meta.role==='power'||meta.fatigue>=4))return false;
-  if(goal==='Corrective / Modification' && (meta.role==='power'||meta.skill>=5||meta.fatigue>=4))return false;
-  return true;
+function fjV5PatternCycle(type,goal,d){
+ if(type==='ppl')return [['upperPush','core','arms'],['upperPull','core','arms'],['lower','hinge','core']][d%3];
+ if(type==='upperlower')return d%2===0?['lower','hinge','core']:['upperPush','upperPull','core'];
+ if(type==='bro')return [['upperPush','arms','core'],['upperPull','arms','core'],['lower','core'],['hinge','core'],['arms','upperPush','core']][d%5];
+ if(['Power','Strength'].includes(goal))return [['lower','upperPush','core'],['hinge','upperPull','core'],['lower','upperPull','core'],['upperPush','hinge','core'],['lower','upperPush','hinge']][d%5];
+ return [['lower','upperPush','core'],['hinge','upperPull','core'],['lower','upperPull','core'],['upperPush','hinge','core'],['lower','upperPull','core']][d%5];
 }
-function fjV4AllCandidates(st,ctx){
-  const arr=[];
-  const seen=new Set();
-  const add=(pool,pattern)=>{(pool||[]).forEach(ex=>{if(!ex?.name||seen.has(ex.name))return;if(fjV4Eligible(ex,st,ctx)){seen.add(ex.name);arr.push({...ex,pattern})}})};
-  Object.keys(EXO_POOL).forEach(p=>add(EXO_POOL[p],p)); add(ARM_POOL,'arms'); add(BALANCE_POOL,'balance');
-  if(ctx.needsConditioning)add(CONDITIONING_POOL,'conditioning');
-  return arr;
+function fjV5RolePlan(ctx){
+ const t=ctx.type,g=ctx.goal;
+ if(t==='zone2')return [['conditioning']];
+ if(['tabata','hiit','amrap','emom','fortime'].includes(t))return [['power','conditioning'],['conditioning'],['conditioning'],['core','conditioning']];
+ if(['mobilityflow','recovery'].includes(t))return [['skill','accessory','core'],['accessory','core'],['core','accessory']];
+ if(['rehab','prehab'].includes(t))return [['skill','accessory','compound'],['accessory','core','compound'],['accessory','core']];
+ if(g==='Power')return [['power'],['compound'],['secondary','compound'],['accessory','isolation'],['core']];
+ if(g==='Strength')return [['compound'],['secondary','compound'],['secondary','accessory'],['isolation','accessory'],['core']];
+ if(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(g))return [['compound'],['secondary'],['secondary','compound'],['accessory','isolation'],['isolation','core']];
+ if(['Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity'].includes(g))return [['conditioning','compound'],['conditioning'],['conditioning','core'],['core']];
+ if(['Fat Loss','Healthy Weight Management'].includes(g))return [['compound','secondary'],['secondary','compound'],['conditioning','accessory'],['core','conditioning']];
+ if(['Mobility','Corrective / Modification'].includes(g))return [['skill','accessory'],['accessory','core'],['core','accessory']];
+ return [['compound'],['secondary','compound'],['secondary','accessory'],['accessory','isolation'],['core']];
 }
-function fjV4GoalWeights(goal,type,phase,level){
-  const w={skill:1,power:1,compound:2,secondary:2,accessory:1.5,isolation:1,conditioning:1,core:1,fatigue:-.4,complexity:-.2,energy:0};
-  if(goal==='Power'){w.power=7;w.skill=4;w.compound=5;w.secondary=3;w.isolation=.5;w.fatigue=-.7}
-  else if(goal==='Strength'){w.compound=7;w.secondary=4;w.skill=4;w.power=2;w.fatigue=-.5}
-  else if(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(goal)){w.compound=6;w.secondary=4;w.isolation=3;w.accessory=3;w.fatigue=-.3}
-  else if(['Fat Loss','Healthy Weight Management','Work Capacity'].includes(goal)){w.compound=5;w.conditioning=5;w.secondary=3;w.fatigue=-.8}
-  else if(['Cardiorespiratory Fitness','Aerobic Endurance'].includes(goal)){w.conditioning=7;w.compound=2;w.fatigue=-.5}
-  else if(goal==='Muscular Endurance'||goal==='Strength Endurance'){w.secondary=4;w.compound=4;w.conditioning=4;w.fatigue=-.6}
-  else if(['Mobility','Corrective / Modification'].includes(goal)){w.skill=3;w.accessory=4;w.core=4;w.compound=2;w.fatigue=-1}
-  if(level==='Beginner'){w.skill*=.35;w.compound+=1;w.fatigue=-.9;w.complexity=-.8}
-  if(phase==='PROGRESS'&&['Strength','Hypertrophy','Muscle Gain'].includes(goal)){w.compound+=1;w.secondary+=.5}
-  if(type==='metcon'){w.conditioning+=2;w.compound+=2}
-  if(type==='strengthpower'){w.power+=2;w.compound+=2}
-  if(type==='hypertrophy'){w.compound+=1;w.isolation+=1}
-  return w;
+function fjV5Pick(pool,ctx,index,used){
+ const desired=ctx.patternTargets;let arr=pool.filter(x=>!used.has(x.name));
+ if(!arr.length)return null;
+ const roleOrder=ctx.rolePlan[index]||ctx.rolePlan[ctx.rolePlan.length-1];
+ const exact=arr.filter(x=>roleOrder.includes(fjV5Meta(x).role));
+ if(exact.length)arr=exact;
+ const patternExact=arr.filter(x=>desired.includes(x.pattern));if(patternExact.length)arr=patternExact;
+ arr.sort((a,b)=>{
+   const ma=fjV5Meta(a),mb=fjV5Meta(b),ra=roleOrder.indexOf(ma.role),rb=roleOrder.indexOf(mb.role);
+   if(ra!==rb)return ra-rb;
+   const pa=desired.indexOf(a.pattern),pb=desired.indexOf(b.pattern);if(pa!==pb)return pa-pb;
+   const sa=(ctx.level==='Beginner'?-ma.complexity:ma.skill)+(ctx.goal==='Strength'||ctx.goal==='Power'?ma.energy:0);
+   const sb=(ctx.level==='Beginner'?-mb.complexity:mb.skill)+(ctx.goal==='Strength'||ctx.goal==='Power'?mb.energy:0);
+   if(sb!==sa)return sb-sa;
+   return fjV5Hash(`${ctx.identity}|${index}|${a.name}`)-fjV5Hash(`${ctx.identity}|${index}|${b.name}`);
+ });
+ return arr[0]||null;
 }
-function fjV4RoleTarget(ctx,index){
-  const {goal,type,level,phase}=ctx;
-  if(['zone2'].includes(type))return ['conditioning'];
-  if(['tabata','hiit','amrap','emom','fortime'].includes(type))return index===0?['skill','power','conditioning']:['conditioning'];
-  if(['mobilityflow','recovery'].includes(type))return index===0?['skill','core','accessory']:['core','accessory'];
-  if(['rehab','prehab'].includes(type))return index===0?['skill','accessory','compound']:['accessory','core','compound'];
-  if(goal==='Power')return index===0?['power']:index===1?['compound']:index===2?['secondary','compound']:['accessory','isolation','core'];
-  if(goal==='Strength')return index===0?['compound']:index===1?['secondary','compound']:index===2?['accessory','secondary']:['isolation','core'];
-  if(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(goal)){
-    if(level==='Advanced'&&phase==='PROGRESS'&&index===0&&ctx.preExhaust)return ['isolation','accessory'];
-    return index===0?['compound']:index===1?['secondary','compound']:index===2?['accessory','isolation']:['isolation','core'];
+function fjV5Prescription(ex,ctx,index){
+ const m=fjV5Meta(ex),g=ctx.goal,p=ctx.prog;let sets=p.sets,reps=p.reps,rpe=p.rpe,rir=p.rir,rest=p.rest;
+ if(m.role==='power'){sets=2+(ctx.phase==='PROGRESS'?1:0);reps='3–5';rpe=Math.min(8,p.rpe);rir='2–3';rest='120–180s'}
+ else if(m.role==='compound'){sets=Math.max(2,p.sets);reps=g==='Strength'?'3–6':(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(g)?'6–10':p.reps);rest=g==='Strength'?'120–180s':p.rest}
+ else if(m.role==='secondary'){sets=Math.max(2,p.sets-1);reps=g==='Strength'?'6–10':(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(g)?'8–12':'8–15');rest='60–120s'}
+ else if(m.role==='accessory'||m.role==='isolation'){sets=Math.max(2,p.sets-1);reps='10–15';rest='45–90s'}
+ else if(m.role==='core'){sets=Math.max(2,p.sets-1);reps='20–45 sec';rest='30–60s'}
+ else if(m.role==='conditioning'){sets=ctx.type==='zone2'?1:ctx.phase==='PROGRESS'?3:2;reps=ctx.type==='zone2'?'25–45 min conversational pace':ctx.type==='tabata'?'20s work / 10s recovery':'30–60 sec work';rest=ctx.type==='zone2'?'—':'30–90s';rir='—'}
+ if(ctx.level==='Beginner')rpe=Math.min(7,rpe);return {sets,reps,rpe,rir,rest};
+}
+function fjV5Load(ex,st,ctx,p){
+ if(fjV5Equipment(ex)==='Bodyweight'||fjV5Equipment(ex)==='Bosu'||fjV5Equipment(ex)==='Stability Ball'||fjV5Equipment(ex)==='Medicine Ball'||fjV5Equipment(ex)==='Rope'||fjV5Equipment(ex)==='Sled'||fjV5Equipment(ex)==='Sandbag')return {loadText:'Self-selected / coach-prescribed load',nextText:'Progress reps, time, range, tempo or load only when technique and recovery are stable'};
+ try{const e=estimateExerciseLoad(ex.name,resolveProgramLevel(st),st.weight,ctx.phase==='FOUNDATION'?0:ctx.phase==='BUILD'?8:ctx.phase==='PROGRESS'?16:10,st.g,st.age,p.reps,st.e1rm,ctx.month,ctx.week,ctx.session,st.months);return {loadText:e.loadText,nextText:e.nextText}}catch(_){return {loadText:'Coach-prescribed starting load',nextText:'Progress 2.5–5% when technique and recovery are stable'}}
+}
+function fjV5Row(ex,st,ctx,index){
+ const p=fjV5Prescription(ex,ctx,index),load=fjV5Load(ex,st,ctx,p),role=fjV5Meta(ex).role;
+ const block=role==='power'?'POWER':index===0?'PRIMARY':index===1?'SECONDARY':role==='secondary'?'SECONDARY':role==='compound'?'COMPOUND':role==='accessory'?'ACCESSORY':role==='isolation'?'ISOLATION':role==='conditioning'?'CONDITIONING':role==='skill'?'SKILL':'CORE';
+ const focus=role==='power'?'Power / speed':index===0?'Primary movement / highest priority':index===1?'Secondary movement / supporting priority':role==='secondary'?'Secondary movement / supporting priority':role==='compound'?'Compound strength':role==='accessory'?'Accessory / stability':role==='isolation'?'Isolation / local muscular work':role==='conditioning'?'Energy-system conditioning':role==='skill'?'Movement skill / control':'Trunk / core control';
+ return `<tr><td><b>${block}</b></td><td><b>${ex.name}</b></td><td>${p.sets}</td><td>${p.reps}</td><td><b>${load.loadText}</b></td><td>RPE ${p.rpe}</td><td>${p.rir==='—'?'—':p.rir+' RIR'}</td><td>${p.rest}</td><td>${load.nextText}</td><td>${focus}</td><td><b>${fjV5Equipment(ex)||'—'}</b></td></tr>`;
+}
+function fjV6EquipmentExact(ex,res){
+  if(!ex)return false;
+  const e=String(ex.equip||'').trim(), r=String(res||'Mixed').trim();
+  return r==='Mixed' ? true : e===r;
+}
+function fjV6PatternCandidates(st,ctx,pattern){
+  const sources={
+    lower:EXO_POOL.lower||[], upperPush:EXO_POOL.upperPush||[], upperPull:EXO_POOL.upperPull||[], hinge:EXO_POOL.hinge||[], core:EXO_POOL.core||[], arms:ARM_POOL||[], conditioning:CONDITIONING_POOL||[], balance:BALANCE_POOL||[]
+  };
+  let pool=(sources[pattern]||[]).slice();
+  if(ctx.type==='ppl'&&pattern==='arms')pool=ARM_POOL||[];
+  return pool.filter(ex=>fjV5Eligible(ex,st,ctx)&&fjV6EquipmentExact(ex,ctx.res));
+}
+function fjV6RoleCandidates(pool,role,ctx){
+  const exact=pool.filter(ex=>fjV5Meta(ex).role===role);
+  if(exact.length)return exact;
+  /* Only allow a controlled role fallback inside the SAME movement pattern. */
+  const fallback={compound:['secondary'],secondary:['compound'],accessory:['isolation','core'],isolation:['accessory'],power:['compound'],skill:['accessory','core'],conditioning:['power'],core:['accessory','skill']}[role]||[];
+  for(const r of fallback){const a=pool.filter(ex=>fjV5Meta(ex).role===r);if(a.length)return a;}
+  return [];
+}
+function fjV6Pick(pool,ctx,role,slot,used){
+  let arr=fjV6RoleCandidates(pool,role,ctx).filter(x=>!used.has(x.name));
+  if(!arr.length)return null;
+  arr.sort((a,b)=>{
+    const ma=fjV5Meta(a),mb=fjV5Meta(b);
+    const complexityPenalty=ctx.level==='Beginner' ? (mb.complexity-ma.complexity)*3 : 0;
+    const skillScore=(ctx.goal==='Power'||ctx.goal==='Strength') ? (ma.skill+ma.energy) : ma.skill;
+    const skillScoreB=(ctx.goal==='Power'||ctx.goal==='Strength') ? (mb.skill+mb.energy) : mb.skill;
+    if(complexityPenalty)return complexityPenalty;
+    if(skillScoreB!==skillScore)return skillScoreB-skillScore;
+    const fatigue=(ctx.phase==='FOUNDATION'||ctx.lowReadiness)?(ma.fatigue-mb.fatigue):0;
+    if(fatigue)return fatigue;
+    return fjV5Hash(`${ctx.identity}|${ctx.pattern}|${role}|${slot}|${a.name}`)-fjV5Hash(`${ctx.identity}|${ctx.pattern}|${role}|${slot}|${b.name}`);
+  });
+  return arr[0]||null;
+}
+function fjV6SlotPlan(ctx){
+  const g=ctx.goal,t=ctx.type;
+  if(t==='zone2')return [{pattern:'conditioning',role:'conditioning'}];
+  if(['tabata','hiit','amrap','emom','fortime'].includes(t))return [
+    {pattern:'conditioning',role:'conditioning'},{pattern:'conditioning',role:'conditioning'},{pattern:'conditioning',role:'conditioning'},{pattern:'core',role:'core'}
+  ];
+  if(t==='ppl'){
+    const p=['upperPush','upperPull','lower'][ctx.day%3];
+    return p==='lower' ? [{pattern:'lower',role:'compound'},{pattern:'hinge',role:'secondary'},{pattern:'lower',role:'secondary'},{pattern:'core',role:'core'}]
+      : p==='upperPush' ? [{pattern:'upperPush',role:'compound'},{pattern:'upperPush',role:'secondary'},{pattern:'upperPush',role:'accessory'},{pattern:'core',role:'core'}]
+      : [{pattern:'upperPull',role:'compound'},{pattern:'upperPull',role:'secondary'},{pattern:'upperPull',role:'accessory'},{pattern:'core',role:'core'}];
   }
-  if(['Fat Loss','Healthy Weight Management'].includes(goal))return index===0?['compound','secondary']:index===1?['secondary','compound']:index===2?['conditioning','accessory']:['core','isolation','conditioning'];
-  if(['Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity'].includes(goal))return index===0?['conditioning','compound']:['conditioning','core','accessory'];
-  if(level==='Beginner')return index===0?['skill','compound']:index===1?['compound','secondary']:index===2?['secondary','accessory']:['core','isolation'];
-  return index===0?['compound','secondary']:index===1?['secondary','compound']:index===2?['accessory','isolation']:['core','conditioning'];
+  if(t==='upperlower'){
+    return ctx.day%2===0 ? [{pattern:'lower',role:'compound'},{pattern:'hinge',role:'secondary'},{pattern:'lower',role:'secondary'},{pattern:'core',role:'core'}]
+      : [{pattern:'upperPush',role:'compound'},{pattern:'upperPull',role:'secondary'},{pattern:'upperPush',role:'secondary'},{pattern:'core',role:'core'}];
+  }
+  if(g==='Power')return [{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'power'},{pattern:ctx.day%2?'upperPull':'hinge',role:'compound'},{pattern:ctx.day%2?'upperPull':'lower',role:'secondary'},{pattern:'core',role:'core'}];
+  if(g==='Strength')return [{pattern:['lower','hinge','upperPush','upperPull'][ctx.day%4],role:'compound'},{pattern:['hinge','upperPull','upperPush','lower'][ctx.day%4],role:'secondary'},{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'secondary'},{pattern:'core',role:'core'}];
+  if(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(g))return [{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'compound'},{pattern:['upperPush','upperPull','hinge','lower'][ctx.day%4],role:'secondary'},{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'secondary'},{pattern:'core',role:'core'}];
+  if(['Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity'].includes(g))return [{pattern:'conditioning',role:'conditioning'},{pattern:['lower','hinge','upperPush','upperPull'][ctx.day%4],role:'compound'},{pattern:'conditioning',role:'conditioning'},{pattern:'core',role:'core'}];
+  if(['Mobility','Corrective / Modification','Rehabilitation','Prehabilitation'].includes(g))return [{pattern:'core',role:'skill'},{pattern:['upperPull','lower','hinge','upperPush'][ctx.day%4],role:'accessory'},{pattern:['lower','upperPull','upperPush','hinge'][ctx.day%4],role:'accessory'}];
+  if(['Fat Loss','Healthy Weight Management'].includes(g))return [{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'compound'},{pattern:['hinge','upperPull','lower','upperPush'][ctx.day%4],role:'secondary'},{pattern:'conditioning',role:'conditioning'},{pattern:'core',role:'core'}];
+  return [{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'compound'},{pattern:['upperPush','upperPull','hinge','lower'][ctx.day%4],role:'secondary'},{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'secondary'},{pattern:'core',role:'core'}];
 }
-function fjV4Score(ex,ctx,index,used,history){
-  const meta=fjV4Meta(ex),w=fjV4GoalWeights(ctx.goal,ctx.type,ctx.phase,ctx.level),roles=fjV4RoleTarget(ctx,index);
-  let s=0;
-  const roleIndex=roles.indexOf(meta.role); if(roleIndex>=0)s+=18-roleIndex*5; else s-=8;
-  s+=(w[meta.role]||0)*2;
-  const desiredPattern=ctx.patternTargets[index%ctx.patternTargets.length];
-  if(ex.pattern===desiredPattern)s+=24;
-  else if(ctx.patterns.includes(ex.pattern))s+=5;
-  if(ctx.coveredPatterns.has(ex.pattern))s-=7;
-  if(ctx.usedMuscles.has(String(ex.muscle||'').split(',')[0]))s-=3;
-  if(used.has(ex.name))s-=100;
-  const recent=history.indexOf(ex.name); if(recent>=0)s-=Math.max(0,18-recent*2);
-  s+=(w.skill||0)*(ctx.skillDemand?Math.min(meta.skill,ctx.skillDemand):0)*.35;
-  if((ctx.goal==='Strength'||ctx.goal==='Power')&&index===0)s+=meta.skill*2.2+meta.energy*1.1;
-  s+=(w.energy||0)*meta.energy*.15;
-  s+=(w.complexity||0)*meta.complexity*.2;
-  s+=(w.fatigue||0)*meta.fatigue;
-  if(ctx.lowReadiness)s-=meta.fatigue*1.5;
-  if(ctx.highImpactAllowed===false)s-=meta.impact||0;
-  const phaseFit=(ctx.phase==='FOUNDATION'&&meta.complexity<=3)||(ctx.phase==='BUILD'&&meta.complexity<=4)||(ctx.phase==='PROGRESS')?2:0;s+=phaseFit;
-  s+=(fjV4Hash(`${ctx.identity}|${index}|${ex.name}`)%1000)/100000;
-  return s;
-}
-function fjV4Pick(candidates,ctx,index,used,history){
-  const scored=candidates.map(ex=>({ex,score:fjV4Score(ex,ctx,index,used,history)})).sort((a,b)=>b.score-a.score);
-  return scored[0]?.ex||null;
-}
-function fjV4Prescription(ex,ctx,index){
-  const meta=fjV4Meta(ex),goal=ctx.goal,phase=ctx.phase,level=ctx.level;
-  let sets=ctx.prog.sets, reps=ctx.prog.reps, rpe=ctx.prog.rpe, rir=ctx.prog.rir, rest=ctx.prog.rest;
-  if(meta.role==='power'){sets=2+(phase==='PROGRESS'?1:0);reps='3–5';rpe=Math.min(8,ctx.prog.rpe);rir='2–3';rest='120–180s'}
-  else if(meta.role==='compound'){sets=Math.max(2,ctx.prog.sets);reps=goal==='Strength'?'3–6':goal==='Hypertrophy'||goal==='Muscle Gain'?'6–10':ctx.prog.reps;rest=goal==='Strength'?'120–180s':ctx.prog.rest}
-  else if(meta.role==='isolation'||meta.role==='accessory'){sets=Math.max(2,ctx.prog.sets-1);reps=goal==='Strength'?'8–12':'10–15';rest='45–90s'}
-  else if(meta.role==='core'){sets=Math.max(2,ctx.prog.sets-1);reps='20–45 sec';rest='30–60s'}
-  else if(meta.role==='conditioning'){sets=phase==='PROGRESS'?3:2;reps=ctx.type==='zone2'?'25–45 min conversational pace':ctx.type==='tabata'?'20s work / 10s recovery':'30–60 sec work';rest=ctx.type==='zone2'?'—':'30–90s';rir='—';rpe=Math.min(8,ctx.prog.rpe)}
-  if(level==='Beginner'){rpe=Math.min(7,rpe);rir=typeof rir==='string'?rir:'3';}
-  return {sets,reps,rpe,rir,rest};
-}
-function fjV4Load(ex,st,ctx,p){
-  if(String(ex.equip||'')==='Bodyweight')return {loadText:'Bodyweight / self-load',nextText:'Progress reps, range of motion, tempo or leverage when technique remains controlled'};
-  const e=estimateExerciseLoad(ex.name,resolveProgramLevel(st),st.weight,ctx.phase==='FOUNDATION'?0:ctx.phase==='BUILD'?8:ctx.phase==='PROGRESS'?16:10,st.g,st.age,p.reps,st.e1rm,ctx.month,ctx.week,ctx.session,st.months);
-  return {loadText:e.loadText,nextText:e.nextText};
-}
-function fjV4Row(ex,st,ctx,index){
-  const p=fjV4Prescription(ex,ctx,index),load=fjV4Load(ex,st,ctx,p),meta=fjV4Meta(ex);
-  const block=meta.role==='power'?'POWER':meta.role==='compound'?'PRIMARY COMPOUND':meta.role==='secondary'?'SECONDARY':meta.role==='accessory'?'ACCESSORY':meta.role==='isolation'?'ISOLATION':meta.role==='conditioning'?'CONDITIONING':'CORE / CONTROL';
-  const focus=meta.role==='power'?'Power / speed intent':meta.role==='compound'?'Primary strength / force production':meta.role==='secondary'?'Secondary movement pattern':meta.role==='isolation'?'Local muscular development':meta.role==='conditioning'?'Energy-system conditioning':'Trunk control / movement quality';
-  return `<tr><td><b>${block}</b></td><td><b>${ex.name}</b></td><td>${p.sets}</td><td>${p.reps}</td><td><b>${load.loadText}</b></td><td>RPE ${p.rpe}</td><td>${p.rir==='—'?'—':p.rir+' RIR'}</td><td>${p.rest}</td><td>${load.nextText}</td><td>${focus}</td><td>${ex.equip||'Bodyweight'}</td></tr>`;
-}
-function fjV4BuildSession(st,m,w,d){
-  const goal=st.g||'General Fitness',type=st.wtype||'standard',level=fjV4Level(st),phase=fjV4Phase(m,w,Number(st.months)||1,level,goal),res=st.res||'Mixed';
-  const readiness=String(st.readiness||'').toLowerCase(),lowReadiness=/low|poor|limited|tired/.test(readiness),highImpactAllowed=!lowReadiness&&Number(st.age||0)<65&&!/pain|medical condition/i.test(String(st.medical||''));
-  const needsConditioning=['tabata','hiit','amrap','emom','fortime','zone2','metcon','hyrox','ocr','circuit','density'].includes(type)||['Fat Loss','Healthy Weight Management','Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity','Hybrid Athlete'].includes(goal);
-  const patterns=goal==='Power'?['lower','hinge','upperPush','upperPull']:goal==='Strength'?['lower','hinge','upperPush','upperPull']:['lower','upperPush','upperPull','hinge','core'];
-  const ord=((m-1)*4+Number(w||0))*Math.max(1,Number(st.freq)||3)+Number(d||0);
+function fjV6BuildSession(st,m,w,d){
+  const goal=st.g||'General Fitness',type=st.wtype||'standard',level=fjV5Level(st),phase=fjV5Phase(m,w,Number(st.months)||1,level,goal),res=st.res||'Mixed';
+  const read=String(st.readiness||'').toLowerCase();
+  const lowReadiness=/low|poor|limited|tired/.test(read);
+  const highImpactAllowed=!lowReadiness&&Number(st.age||0)<65&&!/pain|medical condition/i.test(String(st.medical||''));
+  const needsConditioning=['tabata','hiit','amrap','emom','fortime','zone2'].includes(type)||['Fat Loss','Healthy Weight Management','Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity'].includes(goal);
   const identity=[st.name,st.age,st.gender,st.weight,st.height,st.activity,st.experience,st.readiness,st.medical,goal,type,res,level,m,w,d].join('|');
-  const patternCycle=type==='ppl'?['upperPush','upperPull','lower']:type==='upperlower'?(d%2===0?['lower','hinge','core']:['upperPush','upperPull','core']):goal==='Power'?['lower','hinge','upperPush','upperPull','core']:goal==='Strength'?['lower','hinge','upperPush','upperPull','core']:['lower','upperPush','upperPull','hinge','core'];
-  const ctx={goal,type,level,phase:phase.phase,prog:phase,month:m,week:w,session:d,patterns,patternTargets:patternCycle,identity,readiness:st.readiness||'',lowReadiness,highImpactAllowed,needsConditioning,coveredPatterns:new Set(),usedMuscles:new Set(),skillDemand:level==='Beginner'?2:level==='Intermediate'?4:5,preExhaust:level==='Advanced'&&phase.phase==='PROGRESS'&&(fjV4Hash(identity)%3===0)};
-  let candidates=fjV4AllCandidates(st,ctx);
-  if(type==='ppl'){const cyc=['upperPush','upperPull','lower'][d%3];candidates=candidates.filter(x=>x.pattern===cyc||x.pattern==='core'||(needsConditioning&&x.pattern==='conditioning'))}
-  if(type==='upperlower'){const cyc=d%2===0?['lower','hinge']:['upperPush','upperPull'];candidates=candidates.filter(x=>cyc.includes(x.pattern)||x.pattern==='core'||(needsConditioning&&x.pattern==='conditioning'))}
-  if(type==='bro'){const cyc=['upperPush','upperPull','lower','hinge','upperPush'][d%5];candidates=candidates.filter(x=>x.pattern===cyc||x.pattern==='core'||x.pattern==='arms')}
-  if(type==='metcon')candidates=candidates.filter(x=>['compound','secondary','power','conditioning','core'].includes(fjV4Meta(x).role));
-  const count=type==='zone2'?1:(['tabata','hiit','amrap','emom','fortime'].includes(type)?4:lowReadiness?4:5);
-  const used=new Set(),history=[];const rows=[];
-  for(let i=0;i<count;i++){
-    const roles=fjV4RoleTarget(ctx,i);
-    let pool=candidates.filter(ex=>roles.includes(fjV4Meta(ex).role));
-    if(!pool.length)pool=candidates.filter(ex=>!used.has(ex.name));
-    const ex=fjV4Pick(pool,ctx,i,used,history); if(!ex)continue;
-    used.add(ex.name);history.unshift(ex.name);ctx.coveredPatterns.add(ex.pattern);ctx.usedMuscles.add(String(ex.muscle||'').split(',')[0]);rows.push(fjV4Row(ex,st,ctx,i));
+  const ctx={goal,type,level,phase:phase.phase,prog:phase,res,month:m,week:w,session:d,day:d,identity,needsConditioning,highImpactAllowed,lowReadiness};
+  const plan=fjV6SlotPlan(ctx),used=new Set(),rows=[];
+  for(let i=0;i<plan.length;i++){
+    const slot=plan[i],localCtx={...ctx,pattern:slot.pattern};
+    let pool=fjV6PatternCandidates(st,localCtx,slot.pattern);
+    /* Strict equipment: if no exercise exists for the selected equipment, do NOT borrow another pattern/equipment. */
+    const ex=fjV6Pick(pool,localCtx,slot.role,i,used);
+    if(!ex)continue;
+    used.add(ex.name);
+    rows.push(fjV5Row(ex,st,localCtx,rows.length));
   }
-  if(needsConditioning&&type!=='zone2'&&!['tabata','hiit','amrap','emom','fortime'].includes(type)){
-    const cp=candidates.filter(x=>fjV4Meta(x).role==='conditioning'&&!used.has(x.name));
-    const ex=fjV4Pick(cp,ctx,Math.min(count,4),used,history);if(ex)rows.push(fjV4Row(ex,st,ctx,rows.length));
+  /* No hidden equipment substitution. Conditioning is added only when the exact equipment exists. */
+  if(needsConditioning&&!['zone2','tabata','hiit','amrap','emom','fortime'].includes(type)&&!plan.some(x=>x.pattern==='conditioning')){
+    const localCtx={...ctx,pattern:'conditioning'};
+    const ex=fjV6Pick(fjV6PatternCandidates(st,localCtx,'conditioning'),localCtx,'conditioning',99,used);
+    if(ex){used.add(ex.name);rows.push(fjV5Row(ex,st,localCtx,rows.length));}
   }
-  if(!rows.length)return `<div class="notice warn">No exercise matches all selected constraints. The engine did not bypass the selected Default Resistance or client safety constraints.</div>`;
-  const title=(window.WORKOUT_TYPES?.[type]?.label)||(type==='standard'?'STANDARD PROGRAM':type.toUpperCase());
-  return `<div class="notice" style="margin:8px 0"><b>${title}</b><br><span class="muted">Goal: <b>${goal}</b> • Client level: <b>${level}</b> • Default Resistance: <b>${res}</b> • Phase: <b>${phase.phase}</b></span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Estimated Starting Load (kg)</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${rows.join('')}</tbody></table></div><div class="notice" style="margin-top:8px"><b>Selection & sequencing:</b> Client data, goal, workout type, phase, experience/readiness, Default Resistance, exercise skill, energy demand, complexity, fatigue and movement role determine exercise eligibility, selection and order. ACSM/NASM/WHO principles guide volume, intensity, progression, recovery and aerobic work.</div>`;
+  if(!rows.length)return `<div class="notice warn">No exercise matches the selected Goal + Workout Type + Client data + Default Resistance. The selected equipment is a hard constraint and will never be substituted.</div>`;
+  const title=window.WORKOUT_TYPES?.[type]?.label||type.toUpperCase();
+  return `<div class="notice" style="margin:8px 0"><b>${title}</b><br><span class="muted">Goal: <b>${goal}</b> • Client level: <b>${level}</b> • Default Resistance: <b>${res}</b> • Phase: <b>${phase.phase}</b></span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Estimated Starting Load (kg)</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${rows.join('')}</tbody></table></div><div class="notice" style="margin-top:8px"><b>Strict engine:</b> Each slot is tied to a specific movement pattern and programming role. Default Resistance is an exact equipment filter; no exercise from another equipment category is substituted.</div>`;
 }
-function buildUniqueSessionDay(st,month,weekIndex,sessionIndex){return fjV4BuildSession(st,Math.max(1,Number(month)||1),Math.max(0,Number(weekIndex)||0),Math.max(0,Number(sessionIndex)||0));}
+function buildUniqueSessionDay(st,month,weekIndex,sessionIndex){return fjV6BuildSession(st,Math.max(1,Number(month)||1),Math.max(0,Number(weekIndex)||0),Math.max(0,Number(sessionIndex)||0));}
 
 function showProgramSession(month,weekIndex,sessionIndex){
  const st=window.__FJAdvancedState;

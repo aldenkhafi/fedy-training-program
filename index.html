@@ -2558,25 +2558,115 @@ function saveSupabaseConfig(){const url=document.getElementById('sbUrl').value.t
 function showAuth(msg='',kind=''){const el=document.getElementById('authMsg');if(!el)return;el.textContent=msg;el.style.display=msg?'block':'none';el.className='notice '+(kind==='warn'?'warn':'')}
 async function initSupabase(){const c=await getSbConfig();if(!c){document.getElementById('supabaseSetup').style.display='block';document.getElementById('authLogin').style.display='none';document.getElementById('auth').style.display='flex';showAuth('Vercel belum menyediakan konfigurasi Supabase. Pastikan NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY sudah ada di Environment Variables, lalu Redeploy.','warn');return false}try{sb=window.supabase.createClient(c.url,c.key);const {data,error}=await sb.auth.getSession();if(error)throw error;await handleSession(data.session);sb.auth.onAuthStateChange((_e,session)=>{setTimeout(()=>handleSession(session),0)});return true}catch(e){document.getElementById('supabaseSetup').style.display='block';document.getElementById('authLogin').style.display='none';document.getElementById('auth').style.display='flex';showAuth('Supabase belum dapat dihubungkan: '+e.message,'warn');return false}}
 async function signInGoogle(){if(!sb){showAuth('Hubungkan Supabase terlebih dahulu.','warn');return}showAuth('Membuka Google...');const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)showAuth(error.message,'warn')}
-function fjAccessMeta(){try{return JSON.parse(localStorage.getItem('fjUserRoles')||'{}')}catch(e){return {}}}
-function fjCurrentRole(email){const e=String(email||'').toLowerCase();if(e==='aldenkhafi0203@gmail.com')return {role:'MASTER_ADMIN',outlet:'ALL'};const m=fjAccessMeta()[e]||{};if(String(m.status||'').toUpperCase()==='REJECTED')return {role:'PENDING_ROLE',outlet:''};return {role:m.role||'PENDING_ROLE',outlet:m.outlet||''};}
-function fjCanPTM(){const r=fjCurrentRole(currentUser?.email);return r.role==='MASTER_ADMIN'||r.role==='PT'||r.role==='MANAGER';}
-function fjApplyAccessUI(){const r=fjCurrentRole(currentUser?.email);const b=document.querySelector('.ptm-main-nav');if(b)b.style.display=fjCanPTM()?'block':'none';}
-async function handleSession(session){currentUser=session?.user||null;if(!currentUser){document.getElementById('auth').style.display='flex';return}const email=(currentUser.email||'').toLowerCase();let row=null;
-if(email!=='aldenkhafi0203@gmail.com'){
- try{const r=await sb.from('user_access').select('*').eq('user_id',currentUser.id).maybeSingle();if(r.error)throw r.error;row=r.data}catch(e){document.getElementById('auth').style.display='flex';showAuth('Tidak dapat membaca status approval: '+e.message,'warn');return}
+function fjAccessMeta(){
+  try{return JSON.parse(localStorage.getItem('fjUserRoles')||'{}')}catch(e){return {}}
 }
-if(!row && email!=='aldenkhafi0203@gmail.com'){try{const r=await sb.from('user_access').insert({user_id:currentUser.id,email,status:'pending'}).select().single();row=r.data}catch(e){}}
-if(email==='aldenkhafi0203@gmail.com' || row?.status==='approved'){document.getElementById('auth').style.display='none';document.getElementById('adminNav').style.display=email==='aldenkhafi0203@gmail.com'?'block':'none';const ag=document.getElementById('adminGroup');if(ag)ag.style.display=email==='aldenkhafi0203@gmail.com'?'block':'none';const un=document.getElementById('sideUserName');if(un)un.textContent=currentUser.user_metadata?.full_name||currentUser.email||'User';const ur=document.getElementById('sideUserRole');if(ur)ur.textContent=email==='aldenkhafi0203@gmail.com'?'Master Admin':'Approved User';if(email==='aldenkhafi0203@gmail.com')loadAdminAccess();return}
-document.getElementById('auth').style.display='flex';showAuth(row?.status==='rejected'?'Access rejected by Admin.':'Access request is waiting for Admin approval.','warn')}
-async function loadAdminAccess(){if(!sb||!currentUser||currentUser.email.toLowerCase()!=='aldenkhafi0203@gmail.com')return;const box=document.getElementById('adminAccessResult');const {data,error}=await sb.from('user_access').select('*').order('created_at',{ascending:false});if(error){box.innerHTML='<div class="notice warn">Failed to load: '+error.message+'</div>';return}if(!data?.length){box.innerHTML='<div class="notice">No access requests yet.</div>';return}box.innerHTML='<div class="tablewrap"><table class="table"><thead><tr><th>Email</th><th>Status</th><th>Role</th><th>Club / Outlet</th><th>Created</th><th>Action</th></tr></thead><tbody>'+data.map(r=>{const meta=fjAccessMeta()[String(r.email||'').toLowerCase()]||{};return `<tr><td>${r.email}</td><td><b>${r.status}</b></td><td><select id="role_${r.id}"><option value="PENDING_ROLE" ${meta.role==='PENDING_ROLE'||!meta.role?'selected':''}>Pending role</option><option value="PT" ${meta.role==='PT'?'selected':''}>PT</option><option value="MANAGER" ${meta.role==='MANAGER'?'selected':''}>Manager</option></select></td><td><input id="outlet_${r.id}" value="${meta.outlet||''}" placeholder="Club / Outlet"></td><td>${r.created_at?new Date(r.created_at).toLocaleString():''}</td><td><div class="actions"><button class="btn green" onclick="setAccess('${r.id}','approved')">Approve</button><button class="btn orange" onclick="setAccess('${r.id}','rejected')">Reject</button><button class="btn alt" onclick="setAccess('${r.id}','pending')">Revoke</button><button class="btn alt" onclick="saveUserRole('${r.email}', '${r.id}')">Save Role</button></div></td></tr>`}).join('')+'</tbody></table></div>'}async function setAccess(id,status){if(!sb||!currentUser||currentUser.email.toLowerCase()!=='aldenkhafi0203@gmail.com')return;const {error}=await sb.from('user_access').update({status,approved_by:status==='approved'?'aldenkhafi0203@gmail.com':null,approved_at:status==='approved'?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq('id',id);if(error)alert(error.message);else loadAdminAccess()}
-function saveUserRole(email,rowId){const e=String(email||'').toLowerCase();const roles=fjAccessMeta();roles[e]={role:document.getElementById('role_'+rowId)?.value||'PENDING_ROLE',outlet:document.getElementById('outlet_'+rowId)?.value.trim()||'',updatedAt:new Date().toISOString()};localStorage.setItem('fjUserRoles',JSON.stringify(roles));ptmToast('Role & Club/Outlet tersimpan ✓');fjApplyAccessUI();loadAdminAccess();}
+function fjCurrentRole(email){
+  const e=String(email||'').trim().toLowerCase();
+  if(e==='aldenkhafi0203@gmail.com') return {role:'MASTER_ADMIN',outlet:'ALL'};
+  const m=fjAccessMeta()[e]||{};
+  return {role:String(m.role||'PENDING_ROLE').toUpperCase(),outlet:String(m.outlet||'')};
+}
+function fjCanPTM(){
+  const r=fjCurrentRole(currentUser?.email);
+  return ['MASTER_ADMIN','PT','MANAGER'].includes(r.role);
+}
+function fjApplyAccessUI(){
+  const isAdmin=String(currentUser?.email||'').toLowerCase()==='aldenkhafi0203@gmail.com';
+  const nav=document.getElementById('adminNav'), group=document.getElementById('adminGroup');
+  if(nav) nav.style.display=isAdmin?'flex':'none';
+  if(group) group.style.display=isAdmin?'block':'none';
+}
+function fjEscape(v){
+  return String(v??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+}
+async function handleSession(session){
+  currentUser=session?.user||null;
+  const auth=document.getElementById('auth'), app=document.querySelector('.app');
+  if(!currentUser){
+    if(app)app.style.display='none';
+    if(auth)auth.style.display='flex';
+    return;
+  }
+  const email=String(currentUser.email||'').trim().toLowerCase();
+  let row=null;
+  if(email!=='aldenkhafi0203@gmail.com'){
+    try{
+      const q=await sb.from('user_access').select('id,user_id,email,status,created_at,approved_by,approved_at,updated_at').eq('user_id',currentUser.id).maybeSingle();
+      if(q.error) throw q.error;
+      row=q.data;
+      if(!row){
+        const ins=await sb.from('user_access').insert({user_id:currentUser.id,email,status:'pending'}).select('id,user_id,email,status,created_at,approved_by,approved_at,updated_at').single();
+        if(ins.error) throw ins.error;
+        row=ins.data;
+      }
+    }catch(e){
+      if(app)app.style.display='none';
+      if(auth)auth.style.display='flex';
+      showAuth('Unable to read access approval: '+(e.message||e),'warn');
+      return;
+    }
+  }
+  const approved=email==='aldenkhafi0203@gmail.com' || String(row?.status||'').toLowerCase()==='approved';
+  if(!approved){
+    if(app)app.style.display='none';
+    if(auth)auth.style.display='flex';
+    const st=String(row?.status||'pending').toLowerCase();
+    showAuth(st==='rejected'?'Access rejected by Master Admin.':'Access request is waiting for Master Admin approval.','warn');
+    return;
+  }
+  if(auth)auth.style.display='none';
+  if(app)app.style.display='grid';
+  const name=document.getElementById('sideUserName'), role=document.getElementById('sideUserRole');
+  if(name)name.textContent=currentUser.user_metadata?.full_name||currentUser.email||'User';
+  if(role)role.textContent=email==='aldenkhafi0203@gmail.com'?'Master Admin':'Approved User';
+  fjApplyAccessUI();
+  if(email==='aldenkhafi0203@gmail.com') await loadAdminAccess();
+}
+async function loadAdminAccess(){
+  const box=document.getElementById('adminAccessResult');
+  const isAdmin=String(currentUser?.email||'').trim().toLowerCase()==='aldenkhafi0203@gmail.com';
+  if(!box||!isAdmin||!sb)return;
+  box.innerHTML='<div class="notice">Loading access requests...</div>';
+  const {data,error}=await sb.from('user_access').select('id,user_id,email,status,created_at,approved_by,approved_at,updated_at').order('created_at',{ascending:false});
+  if(error){box.innerHTML='<div class="notice warn">Failed to load access requests: '+fjEscape(error.message)+'</div>';return;}
+  if(!data?.length){box.innerHTML='<div class="notice">No access requests yet.</div>';return;}
+  const roles=fjAccessMeta();
+  box.innerHTML=`<div class="admin-access-table-scroll"><table class="table admin-access-table"><thead><tr><th>Email</th><th>Status</th><th>Role</th><th>Club / Outlet</th><th>Created</th><th>Actions</th></tr></thead><tbody>${data.map(r=>{
+    const meta=roles[String(r.email||'').toLowerCase()]||{};
+    const status=String(r.status||'pending').toLowerCase();
+    return `<tr>
+      <td>${fjEscape(r.email)}</td>
+      <td><span class="admin-status admin-status-${fjEscape(status)}">${fjEscape(status.toUpperCase())}</span></td>
+      <td><select id="role_${fjEscape(r.id)}"><option value="PENDING_ROLE" ${String(meta.role||'PENDING_ROLE')==='PENDING_ROLE'?'selected':''}>Pending role</option><option value="PT" ${String(meta.role||'')==='PT'?'selected':''}>PT</option><option value="MANAGER" ${String(meta.role||'')==='MANAGER'?'selected':''}>Manager</option></select></td>
+      <td><input id="outlet_${fjEscape(r.id)}" value="${fjEscape(meta.outlet||'')}" placeholder="Club / Outlet"></td>
+      <td>${r.created_at?fjEscape(new Date(r.created_at).toLocaleString()):'-'}</td>
+      <td><div class="admin-access-actions"><button class="btn green" type="button" onclick="setAccess('${fjEscape(r.id)}','approved')">Approve</button><button class="btn orange" type="button" onclick="setAccess('${fjEscape(r.id)}','rejected')">Reject</button><button class="btn alt" type="button" onclick="setAccess('${fjEscape(r.id)}','pending')">Revoke</button><button class="btn alt" type="button" onclick="saveUserRole('${fjEscape(r.email)}','${fjEscape(r.id)}')">Save Role</button></div></td>
+    </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+async function setAccess(id,status){
+  if(!sb||String(currentUser?.email||'').toLowerCase()!=='aldenkhafi0203@gmail.com')return;
+  const next=String(status||'pending').toLowerCase();
+  const payload={status:next,approved_by:next==='approved'?'aldenkhafi0203@gmail.com':null,approved_at:next==='approved'?new Date().toISOString():null,updated_at:new Date().toISOString()};
+  const {error}=await sb.from('user_access').update(payload).eq('id',id);
+  if(error){alert('Access update failed: '+error.message);return;}
+  await loadAdminAccess();
+}
+function saveUserRole(email,rowId){
+  const e=String(email||'').trim().toLowerCase(), roles=fjAccessMeta();
+  roles[e]={role:document.getElementById('role_'+rowId)?.value||'PENDING_ROLE',outlet:document.getElementById('outlet_'+rowId)?.value.trim()||'',updatedAt:new Date().toISOString()};
+  localStorage.setItem('fjUserRoles',JSON.stringify(roles));
+  if(typeof ptmToast==='function')ptmToast('Role & Club / Outlet saved ✓');
+  loadAdminAccess();
+}
 async function lockApp(){
- try{if(window.sb&&typeof window.sb.auth?.signOut==='function')await window.sb.auth.signOut();}catch(e){console.warn('Sign out:',e)}
- currentUser=null;
- const app=document.querySelector('.app');if(app)app.style.display='none';
- const auth=document.getElementById('auth');if(auth){auth.style.display='flex';}
- const msg=document.getElementById('authMsg');if(msg){msg.style.display='none';msg.textContent='';}
+  try{if(window.sb?.auth?.signOut)await window.sb.auth.signOut();}catch(e){console.warn('Sign out:',e)}
+  currentUser=null;
+  const app=document.querySelector('.app'), auth=document.getElementById('auth');
+  if(app)app.style.display='none';
+  if(auth)auth.style.display='flex';
+  const msg=document.getElementById('authMsg');if(msg){msg.style.display='none';msg.textContent='';}
 }
 function sgAvailableMembershipMonths(type){const map={blue,family,ultra,ultraFamily};const all=(map[type]||blue).map(x=>+x[1]).filter(Number.isFinite);return [...new Set(all)].sort((a,b)=>a-b)}
 function sgAvailablePTPackages(type){const arr=ptData[type]||[];return arr.map(x=>({sessions:+x[1],duration:x[2],price:+x[3],code:x[0]})).sort((a,b)=>a.sessions-b.sessions)}
@@ -4793,6 +4883,54 @@ html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden!important}
   body:before{content:'Please rotate your phone to portrait mode';position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;padding:32px!important;box-sizing:border-box!important;background:#fff!important;color:#17364e!important;font:800 20px/1.4 Arial,sans-serif!important}
   body>*{visibility:hidden!important}
   body:before{visibility:visible!important}
+}
+
+/* V18 FINAL: one horizontal scroller for the exercise table only. */
+#trainingResult .program-session-exercise{
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  overflow:visible!important;box-sizing:border-box!important;
+}
+#trainingResult .program-session-exercise > *{min-width:0!important;max-width:100%!important;box-sizing:border-box!important;}
+#trainingResult .program-session-exercise > .fj-table-scroll,
+#trainingResult .program-session-exercise > .tablewrap{
+  display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;box-sizing:border-box!important;
+}
+#trainingResult .program-session-exercise > .fj-table-scroll > table,
+#trainingResult .program-session-exercise > .tablewrap > table{
+  width:1400px!important;min-width:1400px!important;max-width:none!important;
+  table-layout:fixed!important;
+}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(1),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(1){width:80px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(2),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(2){width:180px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(3),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(3){width:75px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(4),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(4){width:95px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(5),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(5){width:150px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(6),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(6){width:65px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(7),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(7){width:75px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(8),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(8){width:170px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(9),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(9){width:170px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(10),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(10){width:160px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table th:nth-child(11),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(11){width:120px!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(9),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(10),#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(11){white-space:normal!important;line-height:1.15!important;vertical-align:top!important}
+#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(9) > *,#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(10) > *,#trainingResult .program-session-exercise > .fj-table-scroll table td:nth-child(11) > *{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow:hidden!important;max-height:2.3em!important}
+.admin-access-table-scroll{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.admin-access-table{min-width:900px}
+.admin-access-actions{display:flex;flex-wrap:wrap;gap:6px;min-width:330px}
+.admin-status{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:800;font-size:11px}
+.admin-status-approved{background:#dcfce7;color:#166534}.admin-status-rejected{background:#fee2e2;color:#991b1b}.admin-status-pending{background:#fef3c7;color:#92400e}
+@media screen and (max-width:767px) and (pointer:coarse){
+  html,body{width:100%!important;min-width:0!important;overflow-x:hidden!important;overflow-y:auto!important}
+  .app{display:block!important;width:100%!important;min-width:0!important;height:auto!important;min-height:100dvh!important;overflow:visible!important}
+  .side{position:relative!important;left:auto!important;top:auto!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}
+  .main{width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;overflow:visible!important}
+  #trainingResult{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important}
+  #trainingResult .program-session-detail{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important}
+}
+@media screen and (max-width:767px) and (pointer:coarse) and (orientation:landscape){
+  body>*{visibility:hidden!important}
+  body::before{content:'Please rotate your phone to portrait mode';visibility:visible!important;position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:24px!important;box-sizing:border-box!important;text-align:center!important;background:#07577f!important;color:#fff!important;font:800 20px/1.35 Arial,sans-serif!important}
 }
 </style>
 <script>

@@ -1,0 +1,30 @@
+{
+  "name": "TRAINING PROGRAM \u2014 Personal Trainer",
+  "short_name": "TRAINING PROGRAM",
+  "description": "Standalone Personal Trainer Training Program workspace",
+  "lang": "id-ID",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "orientation": "any",
+  "background_color": "#eef6f6",
+  "theme_color": "#134b46",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

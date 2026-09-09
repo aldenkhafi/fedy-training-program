@@ -2348,7 +2348,7 @@ function fjSectionPDF(sectionId){
 function resetAdvancedProgram(){
  window.__FJAdvancedState=null;program=null;const r=document.getElementById('trainingResult');if(r)r.innerHTML='';['programMonths','programFreq','programGoal','programResistance','programAge','programGender','programWeight','programHeight','programLevel','programWorkoutType'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=e.defaultValue;});if(typeof filterWorkoutTypesByGoal==='function'){try{filterWorkoutTypesByGoal()}catch(e){}}else if(typeof updateWorkoutTypeNote==='function'){try{updateWorkoutTypeNote()}catch(e){}}
 }
-function updateResult(){document.getElementById('myResult').innerHTML=`<div class="grid"> <div class="card"><div class="label">Client</div><div class="big">${assessment?.name||'—'}</div></div><div class="card"><div class="label">Goal</div><div class="big">${assessment?.goal||program?.g||'—'}</div></div><div class="card"><div class="label">Membership</div><div class="big">${selectedMembership?selectedMembership.months+'M':'—'}</div></div><div class="card"><div class="label">PT</div><div class="big">${selectedPT?selectedPT.sessions+' sessions':'—'}</div></div><div class="card"><div class="label">Mode</div><div class="big">${regular?'REGULAR':'FIRST VISIT INCENTIVE'}</div></div></div><div class="notice" style="margin-top:12px">Detail lengkap tersedia pada panel Assessment, Training Program dan Membership Plan Calculator.</div>`}
+function updateResult(){const _legacyResult=document.getElementById('myResult');if(!_legacyResult)return;_legacyResult.innerHTML=`<div class="grid"> <div class="card"><div class="label">Client</div><div class="big">${assessment?.name||'—'}</div></div><div class="card"><div class="label">Goal</div><div class="big">${assessment?.goal||program?.g||'—'}</div></div><div class="card"><div class="label">Membership</div><div class="big">${selectedMembership?selectedMembership.months+'M':'—'}</div></div><div class="card"><div class="label">PT</div><div class="big">${selectedPT?selectedPT.sessions+' sessions':'—'}</div></div><div class="card"><div class="label">Mode</div><div class="big">${regular?'REGULAR':'FIRST VISIT INCENTIVE'}</div></div></div><div class="notice" style="margin-top:12px">Detail lengkap tersedia pada panel Assessment, Training Program dan Membership Plan Calculator.</div>`}
 function printSection(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('print-target'));document.getElementById(id).classList.add('print-target');window.print();setTimeout(()=>document.getElementById(id).classList.remove('print-target'),500)}
 function saveData(){const ids=['clientName','age','sex','goal','height','weight','waist','rhr','activity','experience','readiness','medical','memType','memDuration','memDuration2','ptType','ptDuration','cashback','cashback1','cashback2','programMonths','programFreq','programGoal','programResistance','fitDate','fitLevel','fitRhr','fitBp','fitWeight','fitBodyFat','fitWaist','fit6mw','fitPush','fitPlank','fitSts','fitBalance','fitReach','fitMovement','fitCardio','fitNotes'];let d={};ids.forEach(id=>d[id]=document.getElementById(id)?.value||'');localStorage.setItem('fitnessJourneyFinal',JSON.stringify(d));alert('Data tersimpan di browser ini.')}
 function loadData(){let d=null;try{d=JSON.parse(localStorage.getItem('fitnessJourneyFinal')||'null')}catch(e){localStorage.removeItem('fitnessJourneyFinal')}if(!d||typeof d!=='object'){alert('Belum ada data tersimpan atau data tersimpan rusak.');return}Object.entries(d).forEach(([id,v])=>{let e=document.getElementById(id);if(e)e.value=v});fillMembership();calculateMembership();alert('Data berhasil dimuat.')}
@@ -4122,5 +4122,182 @@ if ('serviceWorker' in navigator) {
   var d=$('todayPill');if(d)d.textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
+})();
+</script>
+
+<style id="fj-v9-final-layout">
+/* V9 — final layout: fixed sidebar, fluid content, mobile-first form, horizontal result scroll */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{min-height:100vh}
+.app{display:block!important;min-height:100vh;width:100%}
+.side{
+  position:fixed!important;left:0!important;top:0!important;bottom:0!important;
+  width:240px!important;height:100vh!important;min-height:100vh!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  padding:22px 16px!important;z-index:100!important;
+}
+.main{
+  margin-left:240px!important;width:calc(100% - 240px)!important;
+  min-width:0!important;padding:26px 30px 50px!important;overflow-x:hidden!important;
+}
+.brand{font-size:18px!important;margin:4px 6px 22px!important}
+.brand small{font-size:9px!important}
+.navgroup{font-size:11px!important;padding:8px 7px 4px!important}
+.navbtn{font-size:14px!important;padding:11px 12px!important;min-height:42px!important}
+.side-footer{font-size:13px!important}
+.panel{min-width:0!important;width:100%!important}
+#training .grid{min-width:0!important}
+#trainingResult{width:100%!important;min-width:0!important}
+#trainingResult>.grid{min-width:0!important;width:100%!important}
+#trainingResult>.grid>.card{min-width:0!important}
+
+/* Session exercise content stays horizontal; user scrolls the result area sideways. */
+#trainingResult .program-session-exercise,
+#trainingResult .program-session-detail,
+#trainingResult .fj-table-scroll{
+  max-width:100%!important;
+  min-width:0!important;
+}
+#trainingResult .program-session-exercise{
+  overflow-x:auto!important;overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#trainingResult .program-session-exercise>*{
+  min-width:980px;
+}
+#trainingResult .program-session-exercise .program-day-table,
+#trainingResult .program-session-exercise .fj-table-scroll{
+  min-width:980px!important;
+}
+
+/* Don't allow a very tall single exercise card to force the whole page sideways. */
+#trainingResult .program-session-detail{overflow:visible!important}
+
+/* Print/PDF root is the only thing printed. */
+@media print{
+  @page{size:A4 portrait;margin:9mm}
+  html,body{width:auto!important;overflow:visible!important;background:#fff!important}
+  .fj-pdf-cover{break-after:auto!important;page-break-after:auto!important}
+  .fj-pdf-full-program .fj-all-month{break-before:auto!important;page-break-before:auto!important}
+  .fj-pdf-full-program .fj-all-month:first-child{break-before:auto!important;page-break-before:auto!important}
+  .fj-pdf-full-program .fj-all-session{break-inside:avoid!important;page-break-inside:avoid!important}
+}
+</style>
+<style id="fj-v9-mobile">
+@media(max-width:700px){
+  html,body{width:100vw;max-width:100vw;overflow-x:hidden!important}
+  .side{
+    width:188px!important;padding:16px 10px!important;
+  }
+  .main{
+    margin-left:188px!important;width:calc(100vw - 188px)!important;
+    padding:18px 14px 40px!important;
+  }
+  .brand{font-size:15px!important;margin:2px 4px 18px!important}
+  .brand small{font-size:8px!important;letter-spacing:1.2px!important}
+  .navgroup{font-size:9px!important;padding-left:4px!important}
+  .navbtn{font-size:12px!important;padding:9px 8px!important;white-space:normal!important}
+  .side-footer{font-size:11px!important}
+  .top h1{font-size:24px!important}
+  .top p{font-size:12px!important}
+  /* Input fields become two columns inside the available mobile content. */
+  #training>.grid.grid4,
+  #training .grid4{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+  }
+  #training .grid4>.field{min-width:0!important}
+  #training .field input,#training .field select,#training .field textarea{
+    width:100%!important;min-width:0!important;
+  }
+  /* Buttons remain full-width rows within the available mobile area. */
+  #training .actions{
+    display:grid!important;grid-template-columns:1fr!important;gap:8px!important;
+  }
+  /* Generated result is intentionally a horizontal canvas, not squeezed into a tiny column. */
+  #trainingResult{
+    width:100%!important;overflow-x:auto!important;overflow-y:visible!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  #trainingResult>.grid{
+    width:max-content!important;min-width:100%!important;
+    grid-template-columns:repeat(3,minmax(330px,1fr))!important;
+  }
+  #trainingResult .card{min-width:330px!important}
+  #trainingResult .program-session-tabs{
+    min-width:720px!important;
+    grid-template-columns:repeat(3,minmax(220px,1fr))!important;
+  }
+  #trainingResult .program-session-exercise>*{min-width:980px!important}
+}
+@media(max-width:420px){
+  .side{width:170px!important}
+  .main{margin-left:170px!important;width:calc(100vw - 170px)!important;padding:16px 10px 32px!important}
+  .top h1{font-size:21px!important}
+  #training>.grid.grid4,#training .grid4{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  #training .field label{font-size:10px!important}
+  #training .field input,#training .field select{font-size:12px!important;padding:8px!important}
+}
+</style>
+<script id="fj-v9-final-runtime">
+(function(){
+  'use strict';
+  function byId(id){return document.getElementById(id)}
+
+  /* The training engine is allowed to finish rendering even though old My Result
+     was removed from the standalone application. */
+  const oldUpdate=window.updateResult;
+  window.updateResult=function(){
+    const el=byId('myResult');
+    if(!el)return;
+    try{ if(typeof oldUpdate==='function') return oldUpdate.apply(this,arguments); }catch(e){console.warn('Legacy result ignored:',e); }
+  };
+
+  /* Print and PDF always use the complete generated program, regardless of
+     which week/session tab is currently open. */
+  function printTrainingOnly(){
+    if(!window.__FJAdvancedState){alert('Generate Training Program terlebih dahulu.');return}
+    if(typeof window.saveFullTrainingProgramPDF==='function'){
+      window.saveFullTrainingProgramPDF();
+      return;
+    }
+    alert('PDF/Print engine belum siap.');
+  }
+  window.printSection=function(id){
+    if(id==='training'){printTrainingOnly();return}
+    const el=byId(id); if(el) window.print();
+  };
+  window.saveFullTrainingProgramPDF=window.saveFullTrainingProgramPDF||printTrainingOnly;
+
+  /* Keep sidebar fixed while only the right application area scrolls. */
+  function lockMobilePortrait(){
+    try{
+      if(window.matchMedia('(max-width: 700px)').matches &&
+         screen.orientation && screen.orientation.lock){
+        const p=screen.orientation.lock('portrait');
+        if(p&&p.catch)p.catch(function(){});
+      }
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',lockMobilePortrait);
+  window.addEventListener('resize',lockMobilePortrait);
+
+  /* Remove accidental legacy duplicate Training Program headings inside the panel,
+     but never remove the main page title. */
+  function cleanDuplicateHeading(){
+    const panel=byId('training'); if(!panel)return;
+    const hs=panel.querySelectorAll('h1,h2');
+    let seen=false;
+    hs.forEach(function(h){
+      if(/^\s*Training Program\s*$/i.test(h.textContent||'')){
+        if(seen) h.remove(); else seen=true;
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded',cleanDuplicateHeading);
 })();
 </script>

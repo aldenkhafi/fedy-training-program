@@ -1036,6 +1036,97 @@ html,body{max-width:100%;overflow-x:hidden}
   .main{min-width:0!important;overflow-x:hidden!important}
 }
 </style>
+
+<style id="fj-v16-mobile-portrait-lock">
+/* V16: MOBILE PHONE = PORTRAIT CANVAS ONLY. Do not change working app logic. */
+@media screen and (max-width: 600px){
+  html, body{
+    width:100%!important; min-width:0!important; max-width:100%!important;
+    height:auto!important; min-height:100%!important;
+    overflow-x:hidden!important; overflow-y:auto!important;
+    margin:0!important; padding:0!important;
+  }
+  body{touch-action:pan-y!important; overscroll-behavior-x:none!important;}
+  .app{
+    display:block!important; width:100%!important; max-width:100%!important; min-width:0!important;
+    min-height:100vh!important; height:auto!important; overflow:visible!important;
+  }
+  .side{
+    position:relative!important; top:auto!important; left:auto!important; right:auto!important;
+    width:100%!important; min-width:0!important; max-width:100%!important;
+    height:auto!important; min-height:0!important; max-height:none!important;
+    overflow:visible!important; box-sizing:border-box!important;
+  }
+  .main{
+    position:relative!important; top:auto!important; left:auto!important; right:auto!important;
+    width:100%!important; min-width:0!important; max-width:100%!important;
+    height:auto!important; min-height:0!important; max-height:none!important;
+    overflow-x:hidden!important; overflow-y:visible!important;
+    box-sizing:border-box!important;
+  }
+  /* Input area: two columns on phone. */
+  #training .grid,#training .grid2,#training .grid3,#training .grid4{
+    display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    width:100%!important; min-width:0!important; max-width:100%!important;
+  }
+  #training .field{min-width:0!important; max-width:100%!important;}
+  #training .field input,#training .field select,#training .field textarea{
+    width:100%!important; min-width:0!important; max-width:100%!important;
+  }
+  /* Buttons remain inside portrait width. */
+  #training .actions{width:100%!important; max-width:100%!important; grid-template-columns:1fr 1fr!important;}
+  #training .actions .btn{min-width:0!important; width:100%!important; max-width:100%!important;}
+  /* Result itself never makes the phone page wider. */
+  #trainingResult{
+    width:100%!important; min-width:0!important; max-width:100%!important;
+    overflow-x:hidden!important; overflow-y:visible!important;
+  }
+  /* Exercise tables scroll INSIDE their own box, exactly like a desktop table viewed through a phone. */
+  #trainingResult .program-session-exercise,
+  #trainingResult .fj-table-scroll,
+  #trainingResult .tablewrap{
+    width:100%!important; max-width:100%!important; min-width:0!important;
+    overflow-x:auto!important; overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-x pan-y!important;
+  }
+  #trainingResult .program-session-exercise > .fj-table-scroll,
+  #trainingResult .program-session-exercise > .tablewrap{
+    width:max-content!important; min-width:980px!important; max-width:none!important;
+  }
+  #trainingResult .program-day-table,
+  #trainingResult .program-session-exercise table{
+    min-width:980px!important; width:980px!important; max-width:none!important;
+  }
+  /* Compact headings/cells: maximum two visual lines. */
+  #trainingResult .program-day-table th,
+  #trainingResult .program-day-table td{line-height:1.15!important;}
+  #trainingResult .program-day-table th:nth-child(n+4),
+  #trainingResult .program-day-table td:nth-child(n+4){
+    white-space:normal!important; overflow:hidden!important;
+  }
+  /* Prevent common metric labels/values from becoming 3+ lines. */
+  #trainingResult .program-day-table th b,
+  #trainingResult .program-day-table td b,
+  #trainingResult .program-day-table th span,
+  #trainingResult .program-day-table td span{
+    display:block!important; max-height:2.3em!important; overflow:hidden!important;
+    text-overflow:clip!important;
+  }
+}
+/* Only a real phone gets the portrait blocker. Tablets remain responsive in landscape. */
+@media screen and (max-width:600px) and (orientation:landscape){
+  html,body{width:100vw!important;height:100vh!important;overflow:hidden!important;}
+  body > *{visibility:hidden!important;}
+  body::before{
+    content:'Please rotate your phone to portrait mode';
+    visibility:visible!important; position:fixed!important; inset:0!important; z-index:2147483647!important;
+    display:flex!important; align-items:center!important; justify-content:center!important;
+    padding:28px!important; box-sizing:border-box!important; text-align:center!important;
+    background:#07577f!important; color:#fff!important; font:800 20px/1.35 Arial,sans-serif!important;
+  }
+}
+</style>
 </head><body>
 <div id="auth" class="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" rows="3" placeholder="eyJ..."></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan & Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" onclick="signInGoogle()">G Masuk dengan Google</button></div><div id="authMsg" class="notice" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
@@ -4587,3 +4678,48 @@ html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden!important}
   window.addEventListener('load',bind);
 })();
 </script>
+
+<!-- V15 MOBILE PORTRAIT FINAL OVERRIDES -->
+<style id="fj-v15-mobile-portrait-final">
+/* Phone is a true portrait layout: page itself never becomes a horizontal canvas. */
+@media screen and (max-width:760px){
+  html,body{width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;position:static!important}
+  body{touch-action:pan-y!important;-webkit-text-size-adjust:100%!important}
+  .app{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;min-height:100vh!important;overflow:visible!important;position:static!important}
+  .side{position:relative!important;display:block!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;overflow:visible!important;box-sizing:border-box!important}
+  .main{position:relative!important;display:block!important;left:auto!important;right:auto!important;top:auto!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;max-height:none!important;overflow-x:hidden!important;overflow-y:visible!important;box-sizing:border-box!important}
+  .panel{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+  #training{width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important}
+  #training .grid,#training .grid2,#training .grid3,#training .grid4{width:100%!important;max-width:100%!important;min-width:0!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;box-sizing:border-box!important}
+  #training .field,#training input,#training select,#training textarea{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+  #training .actions{width:100%!important;max-width:100%!important;grid-template-columns:1fr!important}
+  #trainingResult{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important;overflow-y:visible!important}
+  /* Only the exercise table gets an internal horizontal scroll. The phone page itself never does. */
+  #trainingResult .program-session-exercise{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;box-sizing:border-box!important}
+  #trainingResult .program-session-exercise > .fj-table-scroll,
+  #trainingResult .program-session-exercise > .tablewrap{width:max-content!important;min-width:980px!important;max-width:none!important;overflow:visible!important}
+  #trainingResult .program-session-exercise table{min-width:980px!important;max-width:none!important}
+  /* Compact table labels: Load, Reps, Next Target etc. never exceed two visual lines. */
+  #trainingResult .program-day-table th,
+  #trainingResult .program-day-table td{white-space:normal!important;line-height:1.22!important;vertical-align:top!important}
+  #trainingResult .program-day-table td:nth-child(4),
+  #trainingResult .program-day-table td:nth-child(5),
+  #trainingResult .program-day-table td:nth-child(9),
+  #trainingResult .program-day-table td:nth-child(10),
+  #trainingResult .program-day-table td:nth-child(11){max-height:2.55em!important;height:auto!important;overflow:hidden!important}
+  #trainingResult .program-day-table td:nth-child(4) b,
+  #trainingResult .program-day-table td:nth-child(5) b,
+  #trainingResult .program-day-table td:nth-child(9),
+  #trainingResult .program-day-table td:nth-child(10),
+  #trainingResult .program-day-table td:nth-child(11){display:block!important;max-height:2.55em!important;overflow:hidden!important}
+  /* Remove the old progression explanation completely. */
+  #trainingResult .program-session-progression{display:none!important}
+}
+/* If a phone is physically rotated, keep the app in portrait-style presentation rather than reflowing into landscape. */
+@media screen and (max-width:760px) and (orientation:landscape){
+  html,body{overflow:hidden!important;width:100vw!important;height:100vh!important}
+  body:before{content:'Please rotate your phone to portrait mode';position:fixed;z-index:2147483647;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:32px;box-sizing:border-box;background:#fff;color:#17364e;font:700 20px/1.4 Arial,sans-serif}
+  body > *{visibility:hidden!important}
+  body:before{visibility:visible!important}
+}
+</style>

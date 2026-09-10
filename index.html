@@ -1152,42 +1152,6 @@ html,body{max-width:100%;overflow-x:hidden}
 </main></div>
 <div id="modal" class="modal"><div class="modalbox"><div class="modalbar"><b id="modalTitle">Presentation</b><div><button class="close" onclick="prevPres()">←</button><button class="close" onclick="nextPres()">→</button><button class="close" onclick="closeModal()">Close</button></div></div><img id="modalImg"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
-/* FJ V24 compatibility guard: keep showProgramSession globally available for inline handlers. */
-if(typeof window.showProgramSession !== 'function'){
-  window.showProgramSession=function(month,weekIndex,sessionIndex){
-    const st=window.__FJAdvancedState;
-    if(!st){ console.warn('Training Program state is not ready yet.'); return; }
-    const detail=document.getElementById(`program-session-detail-${month}-${weekIndex}`);
-    if(!detail)return;
-    const safeMonth=Math.max(1,Number(month)||1), safeWeek=Math.max(0,Number(weekIndex)||0), safeSession=Math.max(0,Number(sessionIndex)||0);
-    const key=`${safeMonth}-${safeWeek}-${safeSession}`;
-    if(detail.dataset.sessionKey===key && detail.innerHTML.trim())return;
-    const panel=document.getElementById(`program-week-panel-${safeMonth}`);
-    panel?.querySelectorAll('.program-session-tab').forEach((b,i)=>b.classList.toggle('active',i===safeSession));
-    const phase=safeMonth<=Math.ceil(st.months*.25)?'FOUNDATION':safeMonth<=Math.ceil(st.months*.55)?'BUILD':safeMonth<=Math.ceil(st.months*.85)?'PROGRESS':'CONSOLIDATE / REASSESS';
-    const focus=['Technique & baseline','Volume / skill build','Overload / density','Consolidate + recovery'][safeWeek]||'Progression';
-    const progression=safeWeek===0?'Establish baseline: RPE 6–7, 3–4 RIR.':safeWeek===1?'Build volume: add 1–2 reps before load when technique is stable.':safeWeek===2?'Overload: add 2.5–5% only when reps, technique and recovery are adequate.':'Deload/reassess: reduce volume and do not force load increases.';
-    const label=String.fromCharCode(65+safeSession);
-    const reps=st.g==='Strength'&&phase==='PROGRESS'?'3–5':st.g==='Hypertrophy'&&phase==='PROGRESS'?'6–10':st.cfg[2];
-    const phaseBase=phase==='FOUNDATION'?0:phase==='BUILD'?8:phase==='PROGRESS'?16:0;
-    const DURATION_BY_TYPE={zone2:'25–45 min',recovery:'20–40 min',mobilityflow:'20–35 min',prehab:'25–40 min',tabata:'25–40 min',hiit:'30–45 min',emom:'25–40 min',amrap:'25–40 min',fortime:'25–40 min',circuit:'35–50 min',corebalance:'25–35 min',rehab:'30–45 min',metcon:'45–60 min',hyrox:'50–70 min'};
-    const duration=DURATION_BY_TYPE[st.wtype]||'60–75 min',rest=st.cfg?.[3]||'60–120s',rpe=st.cfg?.[4]||'RPE 6–8';
-    window.__FJSessionSeed=(safeWeek*17)+safeSession;
-    window.__FJProgramContext={month:safeMonth,weekIndex:safeWeek,sessionIndex:safeSession,totalMonths:Number(st.months)||12,goal:st.g,age:st.age||0,e1rm:st.e1rm||null,weight:st.weight||0};
-    let details='';
-    try{ details=buildUniqueSessionDay(st,safeMonth,safeWeek,safeSession); }catch(err){
-      console.error('Session renderer failed; using safe fallback',err);
-      try{ details=buildPatternTable(safeMonth,st.level,st.weight,st.res,phaseBase,reps,st.cfg,safeSession,st.months,st.g,st.age,st.e1rm,safeWeek); }catch(err2){
-        console.error('Fallback renderer failed',err2);
-        details='<div class="notice warn"><b>Program sementara tidak dapat dirender.</b><br>Silakan klik session kembali. Error telah ditangani tanpa menghentikan aplikasi.</div>';
-      }
-    }
-    detail.innerHTML=`<div class="program-session-detail"><div class="program-session-heading"><div><strong>SESSION ${label} — DAY ${safeSession+1}</strong><span>${focus} • ${phase} • Month ${safeMonth} • Week ${safeWeek+1}</span></div><div class="program-session-meta"><span>Duration: ${duration}</span><span>Rest: ${rest}</span><span>RPE: ${rpe}</span></div></div><div class="program-session-exercise">${details}</div><div class="program-session-progression"><b>Progression:</b> ${progression} ${safeMonth>1?`Month ${safeMonth} memakai exercise/load context berbeda untuk menjaga progresi.`:''}</div></div>`;
-    detail.dataset.sessionKey=key;
-  };
-}
-</script>
-<script>
 const blue=[['BLB3M',3,0,1750000,583333.33,150000],['BLB4M',4,0,2099000,524750,170000],['BLB5M',5,0,2412000,482400,180000],['BLB6M',6,1,3300000,471428.57,200000],['BLB8M',8,0,3450000,431250,200000],['BLB9M',9,0,3712000,412444.44,200000],['BLB10M',10,2,4888000,407333.33,200000],['BLB12M',12,2,5588000,399142.86,200000],['BLB14M',14,2,6190000,386875,200000],['BLB15M',15,3,6850000,380555.56,200000],['BLB20M',20,4,8888000,370333.33,300000]];
 const family=[['BLBAD13MF',3,0,1699000,566333.33,80000],['BLBAD14MF',4,0,1999000,499750,90000],['BLBAD15MF',5,0,2312000,462400,100000],['BLBAD16MF',6,1,3199000,457000,120000],['BLBAD18MF',8,0,3300000,412500,120000],['BLBAD19MF',9,0,3560000,395555.56,150000],['BLBAD112MF',12,2,5299000,378500,150000],['BLBAD114MF',14,2,5890000,368125,150000],['BLBAD115MF',15,3,6550000,363888.89,150000],['BLBAD120MF',20,4,8388000,349500,200000]];
 const smartBund=[['SMRTA-10BUND',10,'75 days',2990000,299000,180,100000],['SMRTA-20BUND',20,'90 days',5380000,269000,330,150000],['SMRTA-35BUND',35,'120 days',8365000,239000,500,200000],['SMRTA-50BUND',50,'180 days',11450000,229000,750,250000],['SMRTA-100BUND',100,'365 days',22400000,224000,1470,300000]];
@@ -1775,8 +1739,7 @@ function showProgramWeek(month,weekIndex){
  const reps=st.g==='Strength'&&m>Math.ceil(st.months*.55)?'3–5':st.g==='Hypertrophy'&&m>Math.ceil(st.months*.55)?'6–10':st.cfg[2];const phaseBoost=phase==='FOUNDATION'?0:phase==='BUILD'?8:phase==='PROGRESS'?16:22;
  const sessionTabs=Array.from({length:st.freq},(_,i)=>{
   const label=String.fromCharCode(65+i);
-  const names=['Foundation • Full Body','Strength • Skill','Conditioning • Capacity','Performance • Finisher','Accessory • Core','Recovery • Engine'];
-  return `<button type="button" class="program-session-tab${i===0?' active':''}" data-session="${i}" onclick="showProgramSession(${month},${weekIndex},${i})"><span>SESSION ${label}</span><small>${names[i]||'Training Session'}</small></button>`;
+  return `<button type="button" class="program-session-tab${i===0?' active':''}" data-session="${i}" onclick="showProgramSession(${month},${weekIndex},${i})"><span>SESSION ${label}</span></button>`;
  }).join('');
  target.innerHTML=`<div class="program-session-tabs">${sessionTabs}</div><div id="program-session-detail-${month}-${weekIndex}"></div>`;
  showProgramSession(month,weekIndex,0);
@@ -2109,343 +2072,93 @@ function workoutTypeSpecificDay(st,m,w,d,phase,phaseNo,level){
   const title=(window.WORKOUT_TYPES?.[type]?.label)||type.toUpperCase();
   return `<div class="notice" style="margin:8px 0"><b>${title}</b><br><span class="muted">Selection is locked to Goal + Workout Type + Client data + Default Resistance. Progression changes by phase, week and session.</span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets/Rounds</th><th>Reps / Time</th><th>Estimated Load</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${body}</tbody></table></div><div class="notice" style="margin-top:8px"><b>Programming standard:</b> ACSM/NASM/WHO-aligned principles: individualization, movement quality, appropriate volume/intensity, progressive overload, recovery and aerobic/conditioning progression. These standards guide the engine; they do not prescribe one fixed exercise list.</div>`;
 }
-/* ================= FITNESS JOURNEY — EXERCISE SELECTION + SEQUENCING ENGINE v4 =================
-   STRICT PATCH: replaces only the Training Program session selection/sequencing layer.
-   Existing UI, auth, Admin Access, PWA, save/load, PDF, navigation and all other systems stay untouched.
-   Selection pipeline: client data -> goal -> workout type -> phase -> readiness/experience -> resistance ->
-   energy/skill/complexity/fatigue -> compound/isolation priority -> deterministic variation -> order.
+
+/* ================= CLEAN TRAINING PROGRAM ENGINE V29 =================
+   This is the only active session renderer. It is intentionally rebuilt from the
+   V22 base instead of stacking another selector on top of previous engines.
+   Rules: client data -> goal -> workout type -> resistance -> session template ->
+   exercise role -> progression. Exercise library is the only exercise source.
 */
-const FJ_V5_META={
-  'Box Jump':{role:'power',skill:4,energy:4,complexity:4,fatigue:3,impact:4},'Jump Squat':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:4},'Plyo Push-Up':{role:'power',skill:4,energy:4,complexity:4,fatigue:3,impact:3},'Medicine Ball Slam':{role:'power',skill:3,energy:4,complexity:2,fatigue:2,impact:2},'Wall Ball Shot':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:2},'Kettlebell Push Press':{role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:2},'Thruster':{role:'power',skill:4,energy:5,complexity:4,fatigue:5,impact:2},'Devil Press':{role:'power',skill:5,energy:5,complexity:5,fatigue:5,impact:3},'Man Maker':{role:'power',skill:5,energy:5,complexity:5,fatigue:5,impact:3},'Kettlebell Swing':{role:'power',skill:3,energy:5,complexity:3,fatigue:4,impact:2},
-  'Back Squat':{role:'compound',skill:5,energy:5,complexity:4,fatigue:5},'Front Squat':{role:'compound',skill:5,energy:5,complexity:5,fatigue:5},'Conventional Deadlift':{role:'compound',skill:5,energy:5,complexity:5,fatigue:5},'Trap Bar Deadlift':{role:'compound',skill:4,energy:5,complexity:4,fatigue:5},'Romanian Deadlift':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Barbell Bench Press':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Overhead Press':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Barbell Row':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Pull-Up / Assisted Pull-Up':{role:'compound',skill:4,energy:4,complexity:4,fatigue:4},'Chin-Up':{role:'compound',skill:4,energy:4,complexity:4,fatigue:4},'T-Bar Row':{role:'compound',skill:4,energy:4,complexity:3,fatigue:4},'Leg Press':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},'Hack Squat Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},'Chest Press Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},'Shoulder Press Machine':{role:'compound',skill:2,energy:3,complexity:2,fatigue:3},'Dumbbell Bench Press':{role:'compound',skill:3,energy:4,complexity:3,fatigue:3},'Dumbbell Shoulder Press':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},'Goblet Squat':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},'Landmine Squat':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},'Kettlebell Front Squat':{role:'compound',skill:3,energy:3,complexity:3,fatigue:3},'Cable Squat':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},'Band Squat':{role:'compound',skill:1,energy:2,complexity:1,fatigue:1},'Push-Up':{role:'compound',skill:2,energy:3,complexity:2,fatigue:2},
-  'Bulgarian Split Squat':{role:'secondary',skill:4,energy:4,complexity:4,fatigue:4},'Walking Lunge':{role:'secondary',skill:3,energy:4,complexity:3,fatigue:3},'Step-Up':{role:'secondary',skill:2,energy:3,complexity:3,fatigue:2},'Single-Leg RDL':{role:'secondary',skill:4,energy:3,complexity:4,fatigue:3},'Single-Leg Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Dumbbell Row':{role:'secondary',skill:3,energy:3,complexity:2,fatigue:3},'Single-Arm Dumbbell Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Kettlebell Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Seated Cable Row':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},'Lat Pulldown':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},'Cable Chest Press':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:2},'Incline Dumbbell Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Arnold Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Landmine Press':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:3},'Hip Thrust Machine':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:3},'Dumbbell RDL':{role:'secondary',skill:3,energy:3,complexity:2,fatigue:3},'Kettlebell Deadlift':{role:'secondary',skill:2,energy:3,complexity:2,fatigue:3},'Cable Pull-Through':{role:'secondary',skill:2,energy:2,complexity:2,fatigue:2},'Good Morning (Band)':{role:'secondary',skill:3,energy:2,complexity:3,fatigue:3},'Band Hip Thrust':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:2},'Nordic Curl (Assisted)':{role:'secondary',skill:4,energy:2,complexity:4,fatigue:3},'Pistol Squat (Assisted)':{role:'secondary',skill:5,energy:3,complexity:5,fatigue:4},'Dip (Chest-Focused)':{role:'secondary',skill:4,energy:3,complexity:4,fatigue:3},'Pike Push-Up':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:2},'Single-Arm Cable Press':{role:'secondary',skill:3,energy:2,complexity:3,fatigue:2},'Band Chest Press':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:1},'Band Overhead Press':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:1},'Inverted Row':{role:'secondary',skill:3,energy:3,complexity:3,fatigue:2},'Renegade Row':{role:'secondary',skill:4,energy:4,complexity:5,fatigue:4},'Machine Row':{role:'secondary',skill:1,energy:2,complexity:1,fatigue:2},
-  'Face Pull':{role:'accessory',skill:2,energy:1,complexity:2,fatigue:1},'Band Pull-Apart / Row':{role:'accessory',skill:1,energy:1,complexity:1,fatigue:1},'Barbell Bicep Curl':{role:'isolation',skill:2,energy:1,complexity:1,fatigue:1},'Dumbbell Hammer Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Cable Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Tricep Pushdown':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Overhead Tricep Extension':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Skull Crusher':{role:'isolation',skill:2,energy:1,complexity:2,fatigue:1},'Band Curl':{role:'isolation',skill:1,energy:1,complexity:1,fatigue:1},'Diamond Push-Up':{role:'isolation',skill:2,energy:2,complexity:2,fatigue:2},
-  'Plank':{role:'core',skill:1,energy:1,complexity:1,fatigue:1},"Farmer's Carry":{role:'core',skill:2,energy:3,complexity:2,fatigue:3},'Kettlebell Carry':{role:'core',skill:2,energy:3,complexity:2,fatigue:3},'Cable Woodchop':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},'Band Pallof Press':{role:'core',skill:1,energy:1,complexity:1,fatigue:1},'Leg Raise':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},'Conditioning Finisher (bike/row erg)':{role:'conditioning',skill:1,energy:4,complexity:1,fatigue:2},'Hanging Knee Raise':{role:'core',skill:3,energy:2,complexity:3,fatigue:2},'Ab Wheel Rollout':{role:'core',skill:4,energy:2,complexity:4,fatigue:3},'Cable Anti-Rotation Press':{role:'core',skill:2,energy:1,complexity:2,fatigue:1},'Turkish Get-Up (Partial)':{role:'skill',skill:5,energy:2,complexity:5,fatigue:3},'Suitcase Carry':{role:'core',skill:2,energy:2,complexity:2,fatigue:2},'Renegade Plank Row':{role:'core',skill:4,energy:3,complexity:5,fatigue:4},
-  'Burpee':{role:'conditioning',skill:3,energy:5,complexity:3,fatigue:5,impact:3},'Battle Rope Slam':{role:'conditioning',skill:2,energy:5,complexity:2,fatigue:4},'Sled Push':{role:'conditioning',skill:2,energy:5,complexity:2,fatigue:4},'Rowing Erg (cal/meter)':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},'Assault Bike (cal)':{role:'conditioning',skill:1,energy:4,complexity:1,fatigue:3},'Jump Rope (Double Under/Single)':{role:'conditioning',skill:3,energy:4,complexity:3,fatigue:3,impact:3},'Mountain Climber':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},'Sandbag Carry':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3},'Bear Crawl':{role:'conditioning',skill:3,energy:3,complexity:3,fatigue:3},"Farmer's Carry (Heavy)":{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:4},'Sled Pull (Backward)':{role:'conditioning',skill:2,energy:4,complexity:2,fatigue:3}
+const FJ29_GOAL_FAMILY={
+  strength:['Strength','Power','Performance','Sport-Specific Performance','Speed & Agility','Running Performance'],
+  hypertrophy:['Hypertrophy','Muscle Gain','Body Recomposition'],
+  endurance:['Muscular Endurance','Strength Endurance','Aerobic Endurance','Cardiorespiratory Fitness','Work Capacity'],
+  fatloss:['Fat Loss','Healthy Weight Management','Low-Impact Fitness'],
+  functional:['General Fitness','Functional Fitness','Healthy Aging','Longevity','Hybrid Athlete','Obstacle / Race Preparation'],
+  mobility:['Mobility','Posture & Movement Quality','Recovery & Resilience'],
+  corrective:['Rehabilitation','Prehabilitation','Injury Prevention','Return to Exercise'],
+  core:['Core Stability','Coordination & Balance']
 };
-function fjV5Meta(ex){const n=String(ex?.name||'');if(FJ_V5_META[n])return FJ_V5_META[n];const e=n.toLowerCase();if(/jump|slam|swing|push press|thruster|devil press|man maker/.test(e))return {role:'power',skill:3,energy:4,complexity:3,fatigue:3,impact:/jump/.test(e)?4:2};if(/curl|pushdown|extension|crusher/.test(e))return {role:'isolation',skill:1,energy:1,complexity:1,fatigue:1};if(/plank|pallof|woodchop|carry|raise|rollout|bird dog/.test(e))return {role:'core',skill:2,energy:2,complexity:2,fatigue:2};if(/squat|press|row|deadlift|lunge|pulldown|pull-up|push-up|thrust/.test(e))return {role:'compound',skill:3,energy:3,complexity:3,fatigue:3};return {role:'accessory',skill:2,energy:2,complexity:2,fatigue:2};}
-function fjV5Hash(x){let h=2166136261;for(const c of String(x)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
-function fjV5Level(st){const x=String(st.level||'').toLowerCase();if(x==='beginner')return 'Beginner';if(x==='advanced')return 'Advanced';if(x==='intermediate')return 'Intermediate';return resolveProgramLevel(st)}
-function fjV5Phase(m,w,total,level,goal){return fjProgressionV3(m,w,total,level,goal)}
-function fjV5Equipment(ex){return String(ex?.equip||'').trim()}
-function fjV5Eligible(ex,st,ctx){
- const res=ctx.res,meta=fjV5Meta(ex),name=String(ex?.name||'').toLowerCase();
- if(!ex?.name)return false;
- if(res!=='Mixed'&&fjV5Equipment(ex)!==res)return false;
- if(meta.impact>=4&&!ctx.highImpactAllowed)return false;
- if(ctx.level==='Beginner'&&(meta.skill>=4||meta.complexity>=4))return false;
- if(ctx.type==='zone2'&&meta.role!=='conditioning')return false;
- if(['tabata','hiit','amrap','emom','fortime'].includes(ctx.type)&&!['conditioning','power'].includes(meta.role))return false;
- if(['mobilityflow','recovery'].includes(ctx.type)&&!['core','accessory','skill'].includes(meta.role))return false;
- if(['rehab','prehab'].includes(ctx.type)&&(meta.role==='power'||meta.impact>=3||meta.skill>=5))return false;
- if(['Mobility','Corrective / Modification'].includes(ctx.goal)&&(meta.role==='power'||meta.fatigue>=4))return false;
- if(ctx.goal==='Low-Impact Fitness'&&(meta.impact>=3))return false;
- return true;
+const FJ29_GOAL_KEY={};Object.keys(FJ29_GOAL_FAMILY).forEach(k=>FJ29_GOAL_FAMILY[k].forEach(g=>FJ29_GOAL_KEY[g]=k));
+function fj29Hash(v){let h=2166136261>>>0;for(const c of String(v??'')){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function fj29Level(st){return resolveProgramLevel(st)}
+function fj29Phase(st,m,w){const total=Math.max(1,Number(st.months)||1),ratio=m/total;let phase=ratio<=.25?'FOUNDATION':ratio<=.55?'BUILD':ratio<=.85?'PROGRESS':'CONSOLIDATE';let week=w%4;let sets=fj29Level(st)==='beginner'?2:fj29Level(st)==='advanced'?4:3;let rpe=6,rir=3,reps='8–12',rest='90–120s';if(phase==='BUILD'){rpe=7;rir=2;sets+=0;reps='8–12'}if(phase==='PROGRESS'){rpe=8;rir=1;sets+=1;reps='6–10';rest='90–150s'}if(phase==='CONSOLIDATE'){rpe=6;rir=3;sets=Math.max(2,sets-1);reps='8–10';rest='60–120s'}if(week===3){rpe=Math.max(5,rpe-1);sets=Math.max(2,sets-1)}
+  const goal=st.g||'General Fitness';if(['Strength','Power'].includes(goal)){reps=phase==='PROGRESS'?'3–5':'4–8';rest='150–240s'}
+  if(['Muscular Endurance','Strength Endurance'].includes(goal)){reps='12–20';rest='45–90s'}
+  if(['Mobility','Recovery & Resilience'].includes(goal)){reps='30–60 sec';rest='30–60s';rpe=5;rir=4}
+  return {phase,week,sets,rpe,rir,reps,rest};
 }
-function fjV5Candidates(st,ctx){
- const pools=[];Object.keys(EXO_POOL).forEach(p=>pools.push([p,EXO_POOL[p]]));pools.push(['arms',ARM_POOL],['balance',BALANCE_POOL]);
- if(ctx.needsConditioning)pools.push(['conditioning',CONDITIONING_POOL]);
- if(ctx.type==='mobilityflow'||ctx.goal==='Mobility')pools.push(['mobility',MOBILITY_POOL.map(x=>({...x,name:x.name,equip:'Bodyweight',muscle:x.target||'Mobility'}))]);
- const out=[];const seen=new Set();for(const [pattern,pool] of pools)for(const ex of pool||[]){if(seen.has(ex.name))continue;if(fjV5Eligible(ex,st,ctx)){seen.add(ex.name);out.push({...ex,pattern})}}return out;
+function fj29Risk(st){const t=[st.medical,st.readiness,st.experience].map(x=>String(x||'').toLowerCase()).join(' ');return {impact:/knee|joint|impact|pain|ache|older|low readiness|low/.test(t)||Number(st.age)>=65,back:/back|lumbar|spine/.test(t),shoulder:/shoulder|rotator|overhead pain/.test(t),low:/low readiness|poor readiness|fatigue|recovery/.test(t)} }
+function fj29Allowed(ex,st){if(!ex)return false;const n=String(ex.name||'').toLowerCase(),r=fj29Risk(st);if(r.impact&&/box jump|jump squat|plyo|burpee|double under/.test(n))return false;if(r.back&&/deadlift|good morning|heavy swing|bent-over row/.test(n))return false;if(r.shoulder&&/overhead|shoulder press|snatch|push press|dip|bench press/.test(n))return false;return true}
+function fj29Equip(pool,res){const a=(pool||[]).filter(Boolean);if(!res||res==='Mixed')return a;return a.filter(x=>String(x.equip||'').toLowerCase()===String(res).toLowerCase())}
+function fj29GoalScore(ex,goal,role,phase,level){const n=String(ex.name||'').toLowerCase(),mus=String(ex.muscle||'').toLowerCase();let s=0;const fam=FJ29_GOAL_KEY[goal]||'functional';
+  if(fam==='strength'){if(role==='primary')s+=/squat|deadlift|bench|row|press|pull-up|pulldown/.test(n)?35:0;if(phase==='PROGRESS'&&/barbell|machine/.test(ex.equip||''))s+=8;if(/jump|plyo|push press|swing/.test(n)&&goal==='Power')s+=28}
+  if(fam==='hypertrophy'){if(/bench|press|row|pulldown|squat|lunge|deadlift|rdl|hip thrust/.test(n))s+=22;if(role==='accessory')s+=10;if(/curl|extension|pushdown/.test(n))s+=18}
+  if(fam==='endurance'){if(/carry|swing|row|bike|rope|band/.test(n))s+=18;if(/machine|cable|band|bodyweight/.test(ex.equip||''))s+=6}
+  if(fam==='fatloss'){if(/swing|burpee|thruster|carry|row|bike|rope|sled|wall ball|mountain/.test(n))s+=28;if(/squat|lunge|row|press/.test(n))s+=12}
+  if(fam==='functional'){if(/unilateral|carry|step|lunge|row|press|squat|hinge/.test(n))s+=12;if(/balance|core/.test(mus))s+=4}
+  if(fam==='mobility'){s+=/mobility|stretch|switch|rotation/.test(n)?40:0}
+  if(fam==='corrective'){s+=/pallof|face pull|bird dog|plank|balance|single-leg/.test(n)?30:0;if(role==='primary'&&/deadlift|heavy|jump/.test(n))s-=25}
+  if(fam==='core'){s+=/core|plank|carry|anti-|woodchop|pallof|rollout|raise/.test(n+' '+mus)?30:0}
+  if(level==='beginner'&&/pistol|plyo|box jump|turkish|renegade|deadlift/.test(n))s-=12;
+  if(level==='advanced'&&/barbell|machine|cable/.test(ex.equip||''))s+=3;
+  if(role==='primary'&&/curl|pushdown|face pull/.test(n))s-=18;
+  if(role==='isolation'&&/squat|deadlift/.test(n))s-=8;
+  return s;
 }
-function fjV5PatternCycle(type,goal,d){
- if(type==='ppl')return [['upperPush','core','arms'],['upperPull','core','arms'],['lower','hinge','core']][d%3];
- if(type==='upperlower')return d%2===0?['lower','hinge','core']:['upperPush','upperPull','core'];
- if(type==='bro')return [['upperPush','arms','core'],['upperPull','arms','core'],['lower','core'],['hinge','core'],['arms','upperPush','core']][d%5];
- if(['Power','Strength'].includes(goal))return [['lower','upperPush','core'],['hinge','upperPull','core'],['lower','upperPull','core'],['upperPush','hinge','core'],['lower','upperPush','hinge']][d%5];
- return [['lower','upperPush','core'],['hinge','upperPull','core'],['lower','upperPull','core'],['upperPush','hinge','core'],['lower','upperPull','core']][d%5];
+function fj29Candidates(pool,st,role,phase,used,goal){const res=st.res||'Mixed',level=fj29Level(st);let c=fj29Equip(pool,res).filter(x=>fj29Allowed(x,st)&&!used.has(x.name));if(!c.length)c=fj29Equip(pool,res).filter(x=>fj29Allowed(x,st));c.sort((a,b)=>{const sa=fj29GoalScore(a,goal,role,phase,level),sb=fj29GoalScore(b,goal,role,phase,level);return sb-sa});if(!c.length)return null;return c}
+function fj29Pick(pool,st,role,phase,used,slot,sessionOrdinal){const c=fj29Candidates(pool,st,role,phase,used,st.g||'General Fitness');if(!c?.length)return null;const identity=[st.name,st.age,st.gender,st.weight,st.height,st.activity,st.experience,st.readiness,st.medical,st.g,st.wtype,st.res,st.level,st.months,st.freq,phase,sessionOrdinal,slot].join('|');const top=Math.min(c.length,Math.max(3,Math.ceil(c.length*.55)));const idx=fj29Hash(identity)%top;return c[idx]}
+function fj29Prescribe(st,prog,role,fmt,idx){let sets=prog.sets,reps=prog.reps,rpe=prog.rpe,rir=prog.rir,rest=prog.rest;if(role==='primary'&&['Strength','Power'].includes(st.g)){sets=Math.max(2,sets);reps=prog.phase==='PROGRESS'?'3–5':'4–6';rest='150–240s'}if(role==='accessory'||role==='isolation'){sets=Math.max(2,sets-1);reps=prog.phase==='PROGRESS'?'8–12':'10–15';rest='45–90s'}if(['tabata'].includes(fmt)){sets=8;reps='20s work / 10s rest';rest='10s';rpe=8;rir='—'}if(fmt==='emom'){sets=1;reps='8–12 reps or 30–40s each minute';rest='remaining minute';rir='—'}if(fmt==='amrap'){sets=1;reps='8–15 reps';rest='self-regulated';rir='—'}if(fmt==='fortime'){sets=1;reps='8–15 reps';rest='as needed';rir='—'}if(fmt==='circuit'){sets=prog.phase==='PROGRESS'?3:2;reps='30–45s or 8–15 reps';rest='15–45s';rir='—'}if(fmt==='giantset'||fmt==='superset'){sets=Math.max(2,sets-1);rest='30–60s after each round';}return {sets,reps,rpe,rir,rest}}
+function fj29Load(ex,st,prog,m,w,d){try{return fjLoadV3(ex,st,'',prog,m,w,d)}catch(e){return {loadText:ex.equip==='Bodyweight'?'Bodyweight / self-load':'Use a conservative starting load and confirm by RPE',nextText:'Progress load 2.5–5% when target reps are achieved with stable technique'}}}
+function fj29Roles(st,m,w,d){const goal=st.g||'General Fitness',type=st.wtype||'standard',fam=FJ29_GOAL_KEY[goal]||'functional',freq=Math.max(1,Number(st.freq)||3),cycle=d%freq;
+  if(type==='ppl'){const day=['push','pull','legs'][d%3];return day==='push'?['upperPush','upperPush','upperPush','upperPush','upperPush']:day==='pull'?['upperPull','upperPull','upperPull','upperPull','upperPull']:['lower','hinge','lower','hinge','lower']}
+  if(type==='upperlower')return d%2===0?['lower','hinge','lower','hinge','lower']:['upperPush','upperPull','upperPush','upperPull','upperPush'];
+  if(type==='bro'){const p=['upperPush','upperPull','lower','hinge','upperPush'][d%5];return p==='upperPush'?[ 'upperPush','upperPush','upperPush','upperPush','upperPush']:p==='upperPull'?['upperPull','upperPull','upperPull','upperPull','upperPull']:['lower','hinge','lower','hinge','lower']}
+  if(type==='strengthpower'||fam==='strength')return goal==='Power'?['lower','hinge','upperPush','upperPull','lower']:['lower','hinge','upperPush','upperPull','hinge'];
+  if(type==='hypertrophy'||fam==='hypertrophy')return cycle%2===0?['lower','upperPush','upperPull','hinge','upperPush','upperPull']:['upperPull','upperPush','hinge','lower','upperPull','upperPush'];
+  if(fam==='mobility')return ['lower','upperPull','hinge','upperPush','lower'];
+  if(fam==='corrective')return ['upperPull','lower','upperPush','hinge','upperPull'];
+  if(fam==='core')return ['core','lower','upperPull','hinge','upperPush'];
+  if(type==='metcon'||type==='hybrid'||type==='hyrox'||type==='totalbody')return ['lower','upperPush','upperPull','hinge','conditioning'];
+  if(type==='tabata'||type==='hiit'||type==='amrap'||type==='emom'||type==='fortime'||type==='circuit'||type==='zone2')return ['conditioning','conditioning','conditioning','conditioning','conditioning'];
+  if(type==='superset')return ['upperPush','upperPull','lower','hinge','upperPush','upperPull'];
+  if(type==='giantset')return ['upperPush','upperPull','upperPush','lower','hinge','lower'];
+  return ['lower','upperPush','upperPull','hinge','upperPush'];
 }
-function fjV5RolePlan(ctx){
- const t=ctx.type,g=ctx.goal;
- if(t==='zone2')return [['conditioning']];
- if(['tabata','hiit','amrap','emom','fortime'].includes(t))return [['power','conditioning'],['conditioning'],['conditioning'],['core','conditioning']];
- if(['mobilityflow','recovery'].includes(t))return [['skill','accessory','core'],['accessory','core'],['core','accessory']];
- if(['rehab','prehab'].includes(t))return [['skill','accessory','compound'],['accessory','core','compound'],['accessory','core']];
- if(g==='Power')return [['power'],['compound'],['secondary','compound'],['accessory','isolation'],['core']];
- if(g==='Strength')return [['compound'],['secondary','compound'],['secondary','accessory'],['isolation','accessory'],['core']];
- if(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(g))return [['compound'],['secondary'],['secondary','compound'],['accessory','isolation'],['isolation','core']];
- if(['Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity'].includes(g))return [['conditioning','compound'],['conditioning'],['conditioning','core'],['core']];
- if(['Fat Loss','Healthy Weight Management'].includes(g))return [['compound','secondary'],['secondary','compound'],['conditioning','accessory'],['core','conditioning']];
- if(['Mobility','Corrective / Modification'].includes(g))return [['skill','accessory'],['accessory','core'],['core','accessory']];
- return [['compound'],['secondary','compound'],['secondary','accessory'],['accessory','isolation'],['core']];
-}
-function fjV5Pick(pool,ctx,index,used){
- const desired=ctx.patternTargets;let arr=pool.filter(x=>!used.has(x.name));
- if(!arr.length)return null;
- const roleOrder=ctx.rolePlan[index]||ctx.rolePlan[ctx.rolePlan.length-1];
- const exact=arr.filter(x=>roleOrder.includes(fjV5Meta(x).role));
- if(exact.length)arr=exact;
- const patternExact=arr.filter(x=>desired.includes(x.pattern));if(patternExact.length)arr=patternExact;
- arr.sort((a,b)=>{
-   const ma=fjV5Meta(a),mb=fjV5Meta(b),ra=roleOrder.indexOf(ma.role),rb=roleOrder.indexOf(mb.role);
-   if(ra!==rb)return ra-rb;
-   const pa=desired.indexOf(a.pattern),pb=desired.indexOf(b.pattern);if(pa!==pb)return pa-pb;
-   const sa=(ctx.level==='Beginner'?-ma.complexity:ma.skill)+(ctx.goal==='Strength'||ctx.goal==='Power'?ma.energy:0);
-   const sb=(ctx.level==='Beginner'?-mb.complexity:mb.skill)+(ctx.goal==='Strength'||ctx.goal==='Power'?mb.energy:0);
-   if(sb!==sa)return sb-sa;
-   return fjV5Hash(`${ctx.identity}|${index}|${a.name}`)-fjV5Hash(`${ctx.identity}|${index}|${b.name}`);
- });
- return arr[0]||null;
-}
-function fjV5Prescription(ex,ctx,index){
- const m=fjV5Meta(ex),g=ctx.goal,p=ctx.prog;let sets=p.sets,reps=p.reps,rpe=p.rpe,rir=p.rir,rest=p.rest;
- if(m.role==='power'){sets=2+(ctx.phase==='PROGRESS'?1:0);reps='3–5';rpe=Math.min(8,p.rpe);rir='2–3';rest='120–180s'}
- else if(m.role==='compound'){sets=Math.max(2,p.sets);reps=g==='Strength'?'3–6':(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(g)?'6–10':p.reps);rest=g==='Strength'?'120–180s':p.rest}
- else if(m.role==='secondary'){sets=Math.max(2,p.sets-1);reps=g==='Strength'?'6–10':(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(g)?'8–12':'8–15');rest='60–120s'}
- else if(m.role==='accessory'||m.role==='isolation'){sets=Math.max(2,p.sets-1);reps='10–15';rest='45–90s'}
- else if(m.role==='core'){sets=Math.max(2,p.sets-1);reps='20–45 sec';rest='30–60s'}
- else if(m.role==='conditioning'){sets=ctx.type==='zone2'?1:ctx.phase==='PROGRESS'?3:2;reps=ctx.type==='zone2'?'25–45 min conversational pace':ctx.type==='tabata'?'20s work / 10s recovery':'30–60 sec work';rest=ctx.type==='zone2'?'—':'30–90s';rir='—'}
- if(ctx.level==='Beginner')rpe=Math.min(7,rpe);return {sets,reps,rpe,rir,rest};
-}
-function fjV5Load(ex,st,ctx,p){
- if(fjV5Equipment(ex)==='Bodyweight'||fjV5Equipment(ex)==='Bosu'||fjV5Equipment(ex)==='Stability Ball'||fjV5Equipment(ex)==='Medicine Ball'||fjV5Equipment(ex)==='Rope'||fjV5Equipment(ex)==='Sled'||fjV5Equipment(ex)==='Sandbag')return {loadText:'Self-selected / coach-prescribed load',nextText:'Progress reps, time, range, tempo or load only when technique and recovery are stable'};
- try{const e=estimateExerciseLoad(ex.name,resolveProgramLevel(st),st.weight,ctx.phase==='FOUNDATION'?0:ctx.phase==='BUILD'?8:ctx.phase==='PROGRESS'?16:10,st.g,st.age,p.reps,st.e1rm,ctx.month,ctx.week,ctx.session,st.months);return {loadText:e.loadText,nextText:e.nextText}}catch(_){return {loadText:'Coach-prescribed starting load',nextText:'Progress 2.5–5% when technique and recovery are stable'}}
-}
-function fjV5Row(ex,st,ctx,index){
- const p=fjV5Prescription(ex,ctx,index),load=fjV5Load(ex,st,ctx,p),role=fjV5Meta(ex).role;
- const block=role==='power'?'POWER':index===0?'PRIMARY':index===1?'SECONDARY':role==='secondary'?'SECONDARY':role==='compound'?'COMPOUND':role==='accessory'?'ACCESSORY':role==='isolation'?'ISOLATION':role==='conditioning'?'CONDITIONING':role==='skill'?'SKILL':'CORE';
- const focus=role==='power'?'Power / speed':index===0?'Primary movement / highest priority':index===1?'Secondary movement / supporting priority':role==='secondary'?'Secondary movement / supporting priority':role==='compound'?'Compound strength':role==='accessory'?'Accessory / stability':role==='isolation'?'Isolation / local muscular work':role==='conditioning'?'Energy-system conditioning':role==='skill'?'Movement skill / control':'Trunk / core control';
- return `<tr><td><b>${block}</b></td><td><b>${ex.name}</b></td><td>${p.sets}</td><td>${p.reps}</td><td><b>${load.loadText}</b></td><td>RPE ${p.rpe}</td><td>${p.rir==='—'?'—':p.rir+' RIR'}</td><td>${p.rest}</td><td>${load.nextText}</td><td>${focus}</td><td><b>${fjV5Equipment(ex)||'—'}</b></td></tr>`;
-}
-function fjV6EquipmentExact(ex,res){
-  if(!ex)return false;
-  const e=String(ex.equip||'').trim(), r=String(res||'Mixed').trim();
-  return r==='Mixed' ? true : e===r;
-}
-function fjV6PatternCandidates(st,ctx,pattern){
-  const sources={
-    lower:EXO_POOL.lower||[], upperPush:EXO_POOL.upperPush||[], upperPull:EXO_POOL.upperPull||[], hinge:EXO_POOL.hinge||[], core:EXO_POOL.core||[], arms:ARM_POOL||[], conditioning:CONDITIONING_POOL||[], balance:BALANCE_POOL||[]
-  };
-  let pool=(sources[pattern]||[]).slice();
-  if(ctx.type==='ppl'&&pattern==='arms')pool=ARM_POOL||[];
-  return pool.filter(ex=>fjV5Eligible(ex,st,ctx)&&fjV6EquipmentExact(ex,ctx.res));
-}
-function fjV6RoleCandidates(pool,role,ctx){
-  const exact=pool.filter(ex=>fjV5Meta(ex).role===role);
-  if(exact.length)return exact;
-  /* Only allow a controlled role fallback inside the SAME movement pattern. */
-  const fallback={compound:['secondary'],secondary:['compound'],accessory:['isolation','core'],isolation:['accessory'],power:['compound'],skill:['accessory','core'],conditioning:['power'],core:['accessory','skill']}[role]||[];
-  for(const r of fallback){const a=pool.filter(ex=>fjV5Meta(ex).role===r);if(a.length)return a;}
-  return [];
-}
-function fjV6Pick(pool,ctx,role,slot,used){
-  let arr=fjV6RoleCandidates(pool,role,ctx).filter(x=>!used.has(x.name));
-  if(!arr.length)return null;
-  arr.sort((a,b)=>{
-    const ma=fjV5Meta(a),mb=fjV5Meta(b);
-    const complexityPenalty=ctx.level==='Beginner' ? (mb.complexity-ma.complexity)*3 : 0;
-    const skillScore=(ctx.goal==='Power'||ctx.goal==='Strength') ? (ma.skill+ma.energy) : ma.skill;
-    const skillScoreB=(ctx.goal==='Power'||ctx.goal==='Strength') ? (mb.skill+mb.energy) : mb.skill;
-    if(complexityPenalty)return complexityPenalty;
-    if(skillScoreB!==skillScore)return skillScoreB-skillScore;
-    const fatigue=(ctx.phase==='FOUNDATION'||ctx.lowReadiness)?(ma.fatigue-mb.fatigue):0;
-    if(fatigue)return fatigue;
-    return fjV5Hash(`${ctx.identity}|${ctx.pattern}|${role}|${slot}|${a.name}`)-fjV5Hash(`${ctx.identity}|${ctx.pattern}|${role}|${slot}|${b.name}`);
-  });
-  return arr[0]||null;
-}
-function fjV6SlotPlan(ctx){
-  const g=ctx.goal,t=ctx.type;
-  if(t==='zone2')return [{pattern:'conditioning',role:'conditioning'}];
-  if(['tabata','hiit','amrap','emom','fortime'].includes(t))return [
-    {pattern:'conditioning',role:'conditioning'},{pattern:'conditioning',role:'conditioning'},{pattern:'conditioning',role:'conditioning'},{pattern:'core',role:'core'}
-  ];
-  if(t==='ppl'){
-    const p=['upperPush','upperPull','lower'][ctx.day%3];
-    return p==='lower' ? [{pattern:'lower',role:'compound'},{pattern:'hinge',role:'secondary'},{pattern:'lower',role:'secondary'},{pattern:'core',role:'core'}]
-      : p==='upperPush' ? [{pattern:'upperPush',role:'compound'},{pattern:'upperPush',role:'secondary'},{pattern:'upperPush',role:'accessory'},{pattern:'core',role:'core'}]
-      : [{pattern:'upperPull',role:'compound'},{pattern:'upperPull',role:'secondary'},{pattern:'upperPull',role:'accessory'},{pattern:'core',role:'core'}];
+function fj29PoolForPattern(p){if(p==='conditioning')return CONDITIONING_POOL;if(p==='arms')return ARM_POOL;if(p==='mobility')return MOBILITY_POOL;return EXO_POOL[p]||[]}
+function fj29Format(st,roles){const t=st.wtype||'standard';if(t==='tabata')return {name:'TABATA',count:4,rowsPerBlock:4,sets:8};if(t==='emom')return {name:'EMOM',count:4,rowsPerBlock:4,sets:1};if(t==='amrap')return {name:'AMRAP',count:5,rowsPerBlock:5,sets:1};if(t==='fortime')return {name:'FOR TIME',count:5,rowsPerBlock:5,sets:1};if(t==='circuit')return {name:'CIRCUIT',count:6,rowsPerBlock:6,sets:3};if(t==='giantset')return {name:'GIANT SET / TRI-SET',count:6,rowsPerBlock:3,sets:3};if(t==='superset')return {name:'SUPER SET',count:6,rowsPerBlock:2,sets:3};if(t==='zone2')return {name:'ZONE 2',count:1,rowsPerBlock:1,sets:1};if(t==='hiit')return {name:'HIIT',count:5,rowsPerBlock:5,sets:1};if(t==='metcon')return {name:'METCON',count:5,rowsPerBlock:5,sets:3};if(t==='hyrox')return {name:'HYROX',count:5,rowsPerBlock:5,sets:3};if(t==='hybrid'||t==='totalbody')return {name:(window.WORKOUT_TYPES?.[t]?.label||t).toUpperCase(),count:5,rowsPerBlock:5,sets:3};return {name:(window.WORKOUT_TYPES?.[t]?.label||'STANDARD PROGRAM').toUpperCase(),count:roles.length,rowsPerBlock:roles.length,sets:3}}
+function buildUniqueSessionDay(st,month,weekIndex,sessionIndex){
+  const m=Math.max(1,Number(month)||1),w=Math.max(0,Number(weekIndex)||0),d=Math.max(0,Number(sessionIndex)||0);const prog=fj29Phase(st,m,w),roles=fj29Roles(st,m,w,d),fmt=fj29Format(st,roles),used=new Set(),rows=[];
+  const count=fmt.count;const picked=[];
+  for(let i=0;i<count;i++){
+    let pattern=roles[i%roles.length];if(pattern==='conditioning'&&['Mobility','Rehabilitation','Injury Prevention','Prehabilitation'].includes(st.g))pattern='core';
+    const pool=fj29PoolForPattern(pattern);let ex=fj29Pick(pool,st,i===0?'primary':i<2?'secondary':i===count-1?'accessory':'support',prog.phase,used,i,((m-1)*4+w)*Math.max(1,Number(st.freq)||3)+d);
+    if(!ex && pattern!=='core'){ex=fj29Pick(fj29PoolForPattern('core'),st,'support',prog.phase,used,100+i,((m-1)*4+w)*Math.max(1,Number(st.freq)||3)+d)}
+    if(ex){used.add(ex.name);picked.push({ex,pattern,index:i})}
   }
-  if(t==='upperlower'){
-    return ctx.day%2===0 ? [{pattern:'lower',role:'compound'},{pattern:'hinge',role:'secondary'},{pattern:'lower',role:'secondary'},{pattern:'core',role:'core'}]
-      : [{pattern:'upperPush',role:'compound'},{pattern:'upperPull',role:'secondary'},{pattern:'upperPush',role:'secondary'},{pattern:'core',role:'core'}];
-  }
-  if(g==='Power')return [{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'power'},{pattern:ctx.day%2?'upperPull':'hinge',role:'compound'},{pattern:ctx.day%2?'upperPull':'lower',role:'secondary'},{pattern:'core',role:'core'}];
-  if(g==='Strength')return [{pattern:['lower','hinge','upperPush','upperPull'][ctx.day%4],role:'compound'},{pattern:['hinge','upperPull','upperPush','lower'][ctx.day%4],role:'secondary'},{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'secondary'},{pattern:'core',role:'core'}];
-  if(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(g))return [{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'compound'},{pattern:['upperPush','upperPull','hinge','lower'][ctx.day%4],role:'secondary'},{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'secondary'},{pattern:'core',role:'core'}];
-  if(['Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity'].includes(g))return [{pattern:'conditioning',role:'conditioning'},{pattern:['lower','hinge','upperPush','upperPull'][ctx.day%4],role:'compound'},{pattern:'conditioning',role:'conditioning'},{pattern:'core',role:'core'}];
-  if(['Mobility','Corrective / Modification','Rehabilitation','Prehabilitation'].includes(g))return [{pattern:'core',role:'skill'},{pattern:['upperPull','lower','hinge','upperPush'][ctx.day%4],role:'accessory'},{pattern:['lower','upperPull','upperPush','hinge'][ctx.day%4],role:'accessory'}];
-  if(['Fat Loss','Healthy Weight Management'].includes(g))return [{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'compound'},{pattern:['hinge','upperPull','lower','upperPush'][ctx.day%4],role:'secondary'},{pattern:'conditioning',role:'conditioning'},{pattern:'core',role:'core'}];
-  return [{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'compound'},{pattern:['upperPush','upperPull','hinge','lower'][ctx.day%4],role:'secondary'},{pattern:['lower','upperPush','upperPull','hinge'][ctx.day%4],role:'secondary'},{pattern:'core',role:'core'}];
+  // Never silently output an undersized session. The only exception is a genuinely
+  // impossible hard-equipment constraint; in that case show the reason instead of bad exercise.
+  if(picked.length<count){const available=new Set();roles.forEach(p=>fj29Equip(fj29PoolForPattern(p),st.res||'Mixed').filter(x=>fj29Allowed(x,st)).forEach(x=>available.add(x.name)));if(available.size<count)return `<div class="notice warn"><b>Program cannot be safely completed with the current constraints.</b><br>Only ${available.size} compatible exercises exist for the selected client data, Goal, Workout Type and Default Resistance. No incompatible exercise has been substituted.</div>`}
+  if(!picked.length)return `<div class="notice warn"><b>No compatible exercise found.</b><br>Change the Default Resistance or Workout Type.</div>`;
+  const type=st.wtype||'standard';let html='';
+  if(['tabata','emom','amrap','fortime','circuit','giantset','superset'].includes(type)){
+    const groupSize=fmt.rowsPerBlock;for(let i=0;i<picked.length;i++){const x=picked[i],p=fj29Prescribe(st,prog,i===0?'primary':i<2?'secondary':'accessory',type,i);let block='';if(type==='giantset')block=`TRI-SET ${Math.floor(i/groupSize)+1} • ${String.fromCharCode(65+(i%groupSize))}`;else if(type==='superset')block=`SUPERSET ${Math.floor(i/groupSize)+1} • ${String.fromCharCode(65+(i%groupSize))}`;else if(type==='tabata')block=`BLOCK ${Math.floor(i/2)+1}`;else block=`STATION ${i+1}`;const load=fj29Load(x.ex,st,prog,m,w,d);let reps=p.reps;if(type==='tabata')reps='20s work / 10s rest';if(type==='emom')reps='8–12 reps or 30–40s at minute start';if(type==='amrap')reps='8–15 reps';if(type==='fortime')reps='8–15 reps';html+=`<tr><td><b>${block}</b></td><td><b>${x.ex.name}</b></td><td>${p.sets}</td><td>${reps}</td><td><b>${load.loadText}</b></td><td>RPE ${p.rpe}</td><td>${p.rir}</td><td>${p.rest}</td><td>${load.nextText}</td><td>${patternEnglish(x.pattern)}</td><td>${x.ex.equip||'Bodyweight'}</td></tr>`}
+  } else {picked.forEach((x,i)=>{const role=i===0?'primary':i<2?'secondary':i===picked.length-1?'accessory':'support',p=fj29Prescribe(st,prog,role,type,i),load=fj29Load(x.ex,st,prog,m,w,d);html+=`<tr><td><b>${role.toUpperCase()}</b></td><td><b>${x.ex.name}</b></td><td>${p.sets}</td><td>${p.reps}</td><td><b>${load.loadText}</b></td><td>RPE ${p.rpe}</td><td>${p.rir} RIR</td><td>${p.rest}</td><td>${load.nextText}</td><td>${patternEnglish(x.pattern)}</td><td>${x.ex.equip||'Bodyweight'}</td></tr>`})}
+  const progression=`<div class="notice" style="margin-top:8px"><b>Progression:</b> ${prog.phase} • Week ${w+1} • Target effort RPE ${prog.rpe} • ${prog.rir} RIR. Progress load 2.5–5% when the target is achieved with stable technique; otherwise keep or reduce load. Exercise selection changes by client data, goal, workout type, resistance, phase and session demand.</div>`;
+  return `<div class="notice" style="margin:8px 0"><b>${fmt.name}</b><br><span class="muted">Goal: <b>${st.g||'General Fitness'}</b> • Client level: <b>${fj29Level(st)}</b> • Default Resistance: <b>${st.res||'Mixed'}</b> • Phase: <b>${prog.phase}</b></span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Estimated Starting Load (kg)</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${html}</tbody></table></div>${progression}`;
 }
-function fjV6BuildSession(st,m,w,d){
-  const goal=st.g||'General Fitness',type=st.wtype||'standard',level=fjV5Level(st),phase=fjV5Phase(m,w,Number(st.months)||1,level,goal),res=st.res||'Mixed';
-  const read=String(st.readiness||'').toLowerCase();
-  const lowReadiness=/low|poor|limited|tired/.test(read);
-  const highImpactAllowed=!lowReadiness&&Number(st.age||0)<65&&!/pain|medical condition/i.test(String(st.medical||''));
-  const needsConditioning=['tabata','hiit','amrap','emom','fortime','zone2'].includes(type)||['Fat Loss','Healthy Weight Management','Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity'].includes(goal);
-  const identity=[st.name,st.age,st.gender,st.weight,st.height,st.activity,st.experience,st.readiness,st.medical,goal,type,res,level,m,w,d].join('|');
-  const ctx={goal,type,level,phase:phase.phase,prog:phase,res,month:m,week:w,session:d,day:d,identity,needsConditioning,highImpactAllowed,lowReadiness};
-  const plan=fjV6SlotPlan(ctx),used=new Set(),rows=[];
-  for(let i=0;i<plan.length;i++){
-    const slot=plan[i],localCtx={...ctx,pattern:slot.pattern};
-    let pool=fjV6PatternCandidates(st,localCtx,slot.pattern);
-    /* Strict equipment: if no exercise exists for the selected equipment, do NOT borrow another pattern/equipment. */
-    const ex=fjV6Pick(pool,localCtx,slot.role,i,used);
-    if(!ex)continue;
-    used.add(ex.name);
-    rows.push(fjV5Row(ex,st,localCtx,rows.length));
-  }
-  /* No hidden equipment substitution. Conditioning is added only when the exact equipment exists. */
-  if(needsConditioning&&!['zone2','tabata','hiit','amrap','emom','fortime'].includes(type)&&!plan.some(x=>x.pattern==='conditioning')){
-    const localCtx={...ctx,pattern:'conditioning'};
-    const ex=fjV6Pick(fjV6PatternCandidates(st,localCtx,'conditioning'),localCtx,'conditioning',99,used);
-    if(ex){used.add(ex.name);rows.push(fjV5Row(ex,st,localCtx,rows.length));}
-  }
-  if(!rows.length)return `<div class="notice warn">No exercise matches the selected Goal + Workout Type + Client data + Default Resistance. The selected equipment is a hard constraint and will never be substituted.</div>`;
-  const title=window.WORKOUT_TYPES?.[type]?.label||type.toUpperCase();
-  return `<div class="notice" style="margin:8px 0"><b>${title}</b><br><span class="muted">Goal: <b>${goal}</b> • Client level: <b>${level}</b> • Default Resistance: <b>${res}</b> • Phase: <b>${phase.phase}</b></span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Estimated Starting Load (kg)</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
-}
-/* V28 — Session-template-aware exercise engine. Training Program only. */
-function fjV8Hash(s){let h=2166136261>>>0;for(const c of String(s||'')){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
-function fjV8Exact(pool,res){const a=(pool||[]).filter(Boolean);if(String(res||'Mixed')==='Mixed')return a;return a.filter(e=>String(e.equip||'').trim()===String(res||'').trim())}
-function fjV8Profile(st,m,w,d){
- const goal=st.g||'General Fitness', type=st.wtype||'standard', level=fjV5Level(st), res=st.res||'Mixed';
- const phase=fjV5Phase(m,w,Number(st.months)||1,level,goal);
- const low=/low|poor|limited|tired/i.test(String(st.readiness||''));
- const impactOK=!low&&Number(st.age||0)<65&&!/pain|medical condition/i.test(String(st.medical||''));
- return {goal,type,level,res,phase,low,impactOK,seed:fjV8Hash([st.name,st.age,st.gender,st.weight,st.height,st.activity,st.experience,st.readiness,st.medical,goal,type,res,level,m,w,d].join('|'))};
-}
-function fjV8GoalAllowed(e,ctx,pattern){
- const n=String(e?.name||'').toLowerCase(), meta=fjV5Meta(e);
- if(!e?.name)return false;
- if(meta.impact>=4&&!ctx.impactOK)return false;
- if(ctx.level==='Beginner'&&(meta.skill>=4||meta.complexity>=4))return false;
- if(['Mobility','Corrective / Modification','Rehabilitation','Prehabilitation','Recovery & Resilience'].includes(ctx.goal) && (meta.role==='power'||meta.fatigue>=4))return false;
- if(['Low-Impact Fitness','Healthy Aging','Longevity'].includes(ctx.goal) && meta.impact>=3)return false;
- if(ctx.type==='zone2' && pattern!=='conditioning')return false;
- if(['tabata','hiit','amrap','emom','fortime'].includes(ctx.type) && !['conditioning','core','power'].includes(meta.role))return false;
- return true;
-}
-function fjV8Pool(ctx,pattern){
- const map={
-  squat:'lower',lower:'lower',lunge:'lower',
-  hinge:'hinge',
-  push:'upperPush',upperPush:'upperPush',
-  pull:'upperPull',upperPull:'upperPull',
-  core:'core',arms:'arms',conditioning:'conditioning',balance:'balance'
- };
- const key=map[pattern]||pattern, pools={lower:EXO_POOL.lower||[],hinge:EXO_POOL.hinge||[],upperPush:EXO_POOL.upperPush||[],upperPull:EXO_POOL.upperPull||[],core:EXO_POOL.core||[],arms:ARM_POOL||[],conditioning:CONDITIONING_POOL||[],balance:BALANCE_POOL||[]};
- let pool=pools[key]||[];
- pool=fjV8Exact(pool,ctx.res).filter(e=>fjV8GoalAllowed(e,ctx,key));
- if(ctx.type==='lowimpact'||ctx.goal==='Low-Impact Fitness')pool=pool.filter(e=>!/(jump|plyo|burpee|double under)/i.test(e.name));
- return pool;
-}
-function fjV8Focus(st,d,m,w){
- const base=typeof DAY_FOCUSES!=='undefined'?DAY_FOCUSES:[
-  {name:'STRENGTH & CONTROL',patterns:['squat','hinge','push','pull','core']},
-  {name:'HYPERTROPHY & VOLUME',patterns:['push','pull','lunge','hinge','core']},
-  {name:'CONDITIONING & ATHLETIC',patterns:['lunge','push','pull','conditioning','core']},
-  {name:'FULL BODY PERFORMANCE',patterns:['hinge','squat','push','pull','conditioning']}
- ];
- let idx=(d+(m-1)*2+(w-1))%base.length, f=base[idx];
- const g=String(st.g||'').toLowerCase(), type=String(st.wtype||'').toLowerCase();
- if(type==='ppl') f=[{name:'PUSH',patterns:['push','push','push','core']},{name:'PULL',patterns:['pull','pull','pull','core']},{name:'LEGS',patterns:['squat','hinge','lunge','core']}][d%3];
- else if(type==='upperlower') f=d%2===0?{name:'LOWER',patterns:['squat','hinge','lunge','core']}:{name:'UPPER',patterns:['push','pull','push','core']};
- else if(type==='bro') f=[{name:'CHEST / TRICEPS',patterns:['push','push','push','core']},{name:'BACK / BICEPS',patterns:['pull','pull','pull','core']},{name:'LEGS',patterns:['squat','hinge','lunge','core']},{name:'SHOULDERS',patterns:['push','push','pull','core']},{name:'ARMS',patterns:['arms','arms','push','pull']}][d%5];
- else if(['cardiorespiratory fitness','aerobic endurance','work capacity'].includes(g)) f={name:'CONDITIONING',patterns:['conditioning','conditioning','core']};
- else if(['mobility','coordination & balance','core stability','rehabilitation','prehabilitation','return to exercise'].includes(g)) f={name:'CONTROL / MOBILITY',patterns:['core','lower','upperPull','upperPush']};
- else if(['power','speed & agility','sport-specific performance'].includes(g)) f={name:'POWER / PERFORMANCE',patterns:['lower','hinge','push','pull','core']};
- return f;
-}
-function fjV8RankPick(pool,ctx,slot,used){
- const arr=pool.filter(e=>!used.has(e.name)); if(!arr.length)return null;
- const scored=arr.map(e=>{const m=fjV5Meta(e), n=e.name.toLowerCase();let s=(m.skill*4)+(m.energy*3)-(m.fatigue*(ctx.low?3:1));
-  if(ctx.goal==='Power'&&m.role==='power')s+=20; if(['Strength','Hypertrophy','Muscle Gain','Body Recomposition'].includes(ctx.goal)&&m.role==='compound')s+=12;
-  if(ctx.level==='Beginner')s-=m.complexity*2;
-  if(/single|unilateral|split|carry|row|press/.test(n))s+=((ctx.seed+slot*17)%7);
-  s+=fjV8Hash(`${ctx.seed}|${ctx.phase.phase||ctx.phase}|${slot}|${e.name}`)%101/1000; return {e,s};
- }); scored.sort((a,b)=>b.s-a.s); return scored[0]?.e||null;
-}
-function fjV8Prescription(ctx,index,count,format){
- const p=ctx.phase, beginner=ctx.level==='Beginner', advanced=ctx.level==='Advanced';
- const base=beginner?2:advanced?4:3;
- let sets=base, reps=ctx.goal==='Strength'?'4–6':(['Hypertrophy','Muscle Gain','Body Recomposition'].includes(ctx.goal)?'8–12':p.phase==='FOUNDATION'?'10–15':'8–12');
- if(p.phase==='BUILD')sets=base; if(p.phase==='PROGRESS')sets=base+1; if(p.phase==='CONSOLIDATE / REASSESS')sets=Math.max(2,base-1);
- if(['tabata'].includes(format))return {sets:'8 rounds',reps:'20s work / 10s rest',rpe:'8–9',rest:'10s'};
- if(format==='emom')return {sets:'1 minute',reps:advanced?'8–12 reps':beginner?'6–10 reps':'8–12 reps',rpe:'7–9',rest:'remaining minute'};
- if(format==='amrap')return {sets:`${p.phase==='PROGRESS'?12:p.phase==='BUILD'?10:8} min`,reps:`${6+((index+ctx.seed)%4)*2} reps`,rpe:'7–9',rest:'self-regulated'};
- if(format==='fortime')return {sets:'1 block',reps:p.phase==='PROGRESS'?'15–21 reps':'9–15 reps',rpe:'8–9',rest:'as needed'};
- if(format==='circuit'||format==='giantset'||format==='superset')return {sets:`${Math.max(2,sets-1)} rounds`,reps:'8–15 reps',rpe:p.phase==='PROGRESS'?'8–9':'7–8',rest:format==='giantset'?'60–90s after full round':'60–120s'};
- return {sets,reps,rpe:p.phase==='PROGRESS'?'8':p.phase==='CONSOLIDATE / REASSESS'?'6–7':'7–8',rest:['Strength','Power'].includes(ctx.goal)?'120–180s':'60–120s'};
-}
-function fjV8FormatPatterns(ctx){
- const t=ctx.type;
- if(t==='superset')return [['push','pull'],['squat','hinge'],['core','core']];
- if(t==='giantset')return [['push','pull','core'],['squat','hinge','lunge'],['push','pull','core']];
- if(['tabata','hiit','amrap','emom','fortime','circuit','engine','zone2'].includes(t))return [['conditioning','conditioning','conditioning','core']];
- if(t==='metcon')return [['squat','push','pull','conditioning','core'],['hinge','push','pull','conditioning','core']];
- if(t==='hybrid'||t==='hyrox'||t==='runlift'||t==='ocr'||t==='totalbody')return [['squat','push','pull','hinge','conditioning','core']];
- if(t==='contrast')return [['squat','lower','hinge','conditioning'],['push','upperPush','pull','conditioning']];
- if(t==='cluster'||t==='tempo'||t==='density'||t==='ladder')return [['squat','hinge','push','pull','core']];
- return null;
-}
-function fjV8BuildSession(st,m,w,d){
- const ctx=fjV8Profile(st,m,w,d), focus=fjV8Focus(st,d,m,w), used=new Set(), rows=[];
- const special=fjV8FormatPatterns(ctx);
- let patternGroups=special||[focus.patterns];
- if(ctx.type==='standard'||ctx.type==='fullbody'||ctx.type==='functional'||ctx.type==='strengthpower'||ctx.type==='hypertrophy'||ctx.type==='upperlower'||ctx.type==='ppl'||ctx.type==='bro') patternGroups=[focus.patterns];
- const group=patternGroups[d%patternGroups.length]||focus.patterns;
- const format=ctx.type;
- const targetCount=Math.min(format==='giantset'?6:format==='superset'?6:format==='circuit'||format==='tabata'||format==='hiit'||format==='emom'||format==='amrap'||format==='fortime'?8:6, group.length* (format==='giantset'?2:1));
- const patterns=[]; for(let i=0;i<targetCount;i++)patterns.push(group[i%group.length]);
- // For special formats, rotate the group between sessions/months instead of reusing the same first exercises.
- for(let i=0;i<patterns.length;i++){
-   const pat=patterns[(i+((m+w+d)%Math.max(1,patterns.length)))%patterns.length];
-   const pool=fjV8Pool(ctx,pat); if(!pool.length)continue;
-   const ex=fjV8RankPick(pool,ctx,i,used); if(!ex)continue; used.add(ex.name);
-   const p=fjV8Prescription(ctx,i,patterns.length,format);
-   let block=i===0?'PRIMARY':i===1?'SECONDARY':i===2?'ACCESSORY':'FINISHER';
-   if(format==='superset')block=`${String.fromCharCode(65+Math.floor(i/2))}${i%2?'2':'1'}`;
-   if(format==='giantset')block=`SET ${Math.floor(i/3)+1} • ${['A','B','C'][i%3]}`;
-   if(['tabata','emom','amrap','fortime','hiit','circuit'].includes(format))block=format.toUpperCase();
-   const load=(()=>{try{const x=estimateExerciseLoad(ex.name,resolveProgramLevel(st),st.weight,ctx.phase.phase==='FOUNDATION'?0:ctx.phase.phase==='BUILD'?8:16,st.g,st.age,p.reps,st.e1rm,m,w,d,st.months);return x?.loadText||'Coach-prescribed starting load'}catch(_){return 'Coach-prescribed starting load'}})();
-   const next=ctx.phase.phase==='CONSOLIDATE / REASSESS'?'Reduce volume and reassess quality.':ctx.phase.phase==='PROGRESS'?'Add 2.5–5% load or 1 quality set when target RPE and technique are achieved.':ctx.phase.phase==='BUILD'?'Add reps within range before increasing load.':'Establish baseline technique and working load.';
-   rows.push(`<tr><td><b>${block}</b></td><td><b>${ex.name}</b></td><td>${p.sets}</td><td>${p.reps}</td><td><b>${load}</b></td><td>RPE ${p.rpe}</td><td>${ctx.phase.rir||'2'} RIR</td><td>${p.rest}</td><td>${next}</td><td>${String(ex.muscle||'Movement quality').replace(/Punggung Atas/g,'Upper Back').replace(/Punggung/g,'Back').replace(/Dada/g,'Chest').replace(/Bahu/g,'Shoulders').replace(/Tungkai/g,'Legs').replace(/Perut/g,'Abdominals')}</td><td>${ex.equip||'Mixed'}</td></tr>`);
- }
- if(!rows.length)return `<div class="notice warn">No exercise matches the selected Goal, Workout Type, Client data and Default Resistance.</div>`;
- const title=window.WORKOUT_TYPES?.[ctx.type]?.label||ctx.type.toUpperCase();
- return `<div class="notice" style="margin:8px 0"><b>${title}</b><br><span class="muted">Goal: <b>${ctx.goal}</b> • Client level: <b>${ctx.level}</b> • Default Resistance: <b>${ctx.res}</b> • Phase: <b>${ctx.phase.phase}</b></span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Estimated Starting Load (kg)</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
-}
-function buildUniqueSessionDay(st,month,weekIndex,sessionIndex){return fjV8BuildSession(st,Math.max(1,Number(month)||1),Math.max(0,Number(weekIndex)||0),Math.max(0,Number(sessionIndex)||0));}
-
-function showProgramSession(month,weekIndex,sessionIndex){
- const st=window.__FJAdvancedState;
- if(!st)return;
- const detail=document.getElementById(`program-session-detail-${month}-${weekIndex}`);
- if(!detail)return;
- const safeMonth=Math.max(1,Number(month)||1), safeWeek=Math.max(0,Number(weekIndex)||0), safeSession=Math.max(0,Number(sessionIndex)||0);
- const key=`${safeMonth}-${safeWeek}-${safeSession}`;
- if(detail.dataset.sessionKey===key && detail.innerHTML.trim())return;
- const panel=document.getElementById(`program-week-panel-${safeMonth}`);
- panel?.querySelectorAll('.program-session-tab').forEach((b,i)=>b.classList.toggle('active',i===safeSession));
- const phase=safeMonth<=Math.ceil(st.months*.25)?'FOUNDATION':safeMonth<=Math.ceil(st.months*.55)?'BUILD':safeMonth<=Math.ceil(st.months*.85)?'PROGRESS':'CONSOLIDATE / REASSESS';
- const focus=['Technique & baseline','Volume / skill build','Overload / density','Consolidate + recovery'][safeWeek]||'Progression';
- const progression=safeWeek===0?'Establish baseline: RPE 6–7, 3–4 RIR.':safeWeek===1?'Build volume: add 1–2 reps before load when technique is stable.':safeWeek===2?'Overload: add 2.5–5% only when reps, technique and recovery are adequate.':'Deload/reassess: reduce volume and do not force load increases.';
- const label=String.fromCharCode(65+safeSession);
- const reps=st.g==='Strength'&&phase==='PROGRESS'?'3–5':st.g==='Hypertrophy'&&phase==='PROGRESS'?'6–10':st.cfg[2];
- const phaseBase=phase==='FOUNDATION'?0:phase==='BUILD'?8:phase==='PROGRESS'?16:0;
- const DURATION_BY_TYPE={zone2:'25–45 min',recovery:'20–40 min',mobilityflow:'20–35 min',prehab:'25–40 min',tabata:'25–40 min',hiit:'30–45 min',emom:'25–40 min',amrap:'25–40 min',fortime:'25–40 min',circuit:'35–50 min',corebalance:'25–35 min',rehab:'30–45 min',metcon:'45–60 min',hyrox:'50–70 min'};
- const duration=DURATION_BY_TYPE[st.wtype]||'60–75 min',rest=st.cfg?.[3]||'60–120s',rpe=st.cfg?.[4]||'RPE 6–8';
- window.__FJSessionSeed=(safeWeek*17)+safeSession;
- window.__FJProgramContext={month:safeMonth,weekIndex:safeWeek,sessionIndex:safeSession,totalMonths:Number(st.months)||12,goal:st.g,age:st.age||0,e1rm:st.e1rm||null,weight:st.weight||0};
- let details='';
- try{
-   // Use the dedicated one-session renderer first. It is synchronous and isolated,
-   // so a session click never depends on the legacy multi-session generators.
-   details=buildUniqueSessionDay(st,safeMonth,safeWeek,safeSession);
- }catch(err){
-   console.error('Session renderer failed; using safe fallback',err);
-   try{details=buildPatternTable(safeMonth,st.level,st.weight,st.res,phaseBase,reps,st.cfg,safeSession,st.months,st.g,st.age,st.e1rm,safeWeek)}catch(err2){
-     console.error('Fallback renderer failed',err2);
-     details=`<div class="notice warn"><b>Program sementara tidak dapat dirender.</b><br>Silakan klik session kembali. Error telah ditangani tanpa menghentikan aplikasi.</div>`;
-   }
- }
- detail.innerHTML=`<div class="program-session-detail"><div class="program-session-heading"><div><strong>SESSION ${label} — DAY ${safeSession+1}</strong><span>${focus} • ${phase} • Month ${safeMonth} • Week ${safeWeek+1}</span></div><div class="program-session-meta"><span>Duration: ${duration}</span><span>Rest: ${rest}</span><span>RPE: ${rpe}</span></div></div><div class="program-session-exercise">${details}</div><div class="program-session-progression"><b>Progression:</b> ${progression} ${safeMonth>1?`Month ${safeMonth} memakai exercise/load context berbeda untuk menjaga progresi.`:''}</div></div>`;
- detail.dataset.sessionKey=key;
-}
-
-
+function patternEnglish(p){return ({lower:'Lower Body',upperPush:'Upper Push',upperPull:'Upper Pull',hinge:'Hinge / Posterior Chain',core:'Core / Trunk',conditioning:'Conditioning',arms:'Arms',mobility:'Mobility'})[p]||'Movement'}
+window.showProgramSession=function(month,weekIndex,sessionIndex){const target=document.getElementById(`program-session-detail-${month}-${weekIndex}`);if(!target)return;document.querySelectorAll(`#program-week-detail-${month} .program-session-tab`).forEach((b,i)=>b.classList.toggle('active',i===Number(sessionIndex)));const st=window.__FJAdvancedState;if(!st){target.innerHTML='<div class="notice warn">Program state is not available.</div>';return}window.__FJProgramContext={month:Number(month)||1,weekIndex:Number(weekIndex)||0,sessionIndex:Number(sessionIndex)||0,totalMonths:st.months,goal:st.g,age:st.age||0,weight:st.weight||0,e1rm:st.e1rm||null};target.innerHTML=buildUniqueSessionDay(st,month,weekIndex,sessionIndex)};
 function fjBuildAllTrainingHTML(st,period=null){
   const months=Math.max(1,Number(st?.months)||1), freq=Math.max(1,Number(st?.freq)||3);
   const totalDays=months*4*freq;

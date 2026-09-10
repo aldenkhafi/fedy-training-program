@@ -2695,8 +2695,58 @@ async function getSbConfig(){
 }
 function saveSupabaseConfig(){const url=document.getElementById('sbUrl').value.trim().replace(/\/$/,'');const key=document.getElementById('sbKey').value.trim();if(!/^https:\/\/[^ ]+\.supabase\.co$/.test(url)||!key){showAuth('Project URL atau Anon/Publishable Key belum benar.','warn');return}localStorage.setItem('fjSupabaseConfig',JSON.stringify({url,key}));location.reload()}
 function showAuth(msg='',kind=''){const el=document.getElementById('authMsg');if(!el)return;el.textContent=msg;el.style.display=msg?'block':'none';el.className='notice '+(kind==='warn'?'warn':'')}
-async function initSupabase(){const c=await getSbConfig();if(!c){document.getElementById('supabaseSetup').style.display='block';document.getElementById('authLogin').style.display='none';document.getElementById('auth').style.display='flex';showAuth('Vercel belum menyediakan konfigurasi Supabase. Pastikan NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY sudah ada di Environment Variables, lalu Redeploy.','warn');return false}try{sb=window.supabase.createClient(c.url,c.key);const {data,error}=await sb.auth.getSession();if(error)throw error;await handleSession(data.session);sb.auth.onAuthStateChange((_e,session)=>{setTimeout(()=>handleSession(session),0)});return true}catch(e){document.getElementById('supabaseSetup').style.display='block';document.getElementById('authLogin').style.display='none';document.getElementById('auth').style.display='flex';showAuth('Supabase belum dapat dihubungkan: '+e.message,'warn');return false}}
-async function signInGoogle(){if(!sb){showAuth('Hubungkan Supabase terlebih dahulu.','warn');return}showAuth('Membuka Google...');const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)showAuth(error.message,'warn')}
+async function initSupabase(){
+ const c=await getSbConfig();
+ const auth=document.getElementById('auth'), login=document.getElementById('authLogin'), setup=document.getElementById('supabaseSetup');
+ if(!c){if(setup)setup.style.display='block';if(login)login.style.display='none';if(auth)auth.style.display='flex';showAuth('Supabase configuration tidak ditemukan.','warn');return false}
+ try{
+  if(!window.supabase||typeof window.supabase.createClient!=='function') throw new Error('Library Supabase belum termuat. Periksa koneksi internet lalu refresh.');
+  sb=window.supabase.createClient(c.url,c.key);
+  window.sb=sb;
+  // Jangan menyembunyikan tombol Login hanya karena getSession gagal.
+  // Selama client Supabase berhasil dibuat, Google Login tetap harus tersedia.
+  if(login)login.style.display='block';
+  if(setup)setup.style.display='none';
+  if(auth)auth.style.display='flex';
+  try{
+   const {data,error}=await sb.auth.getSession();
+   if(error) throw error;
+   await handleSession(data.session);
+  }catch(sessionErr){
+   console.warn('Supabase getSession:',sessionErr);
+   if(auth)auth.style.display='flex';
+   if(login)login.style.display='block';
+   showAuth('Siap login. Jika Google belum terbuka, periksa konfigurasi Google OAuth di Supabase.','warn');
+  }
+  sb.auth.onAuthStateChange((_e,session)=>{setTimeout(()=>handleSession(session),0)});
+  return true;
+ }catch(e){
+  if(setup)setup.style.display='none';
+  if(login)login.style.display='block';
+  if(auth)auth.style.display='flex';
+  showAuth('Supabase belum dapat dihubungkan: '+(e.message||e),'warn');
+  return false;
+ }
+}
+function fjOAuthRedirect(){
+ const u=new URL(window.location.href);
+ u.hash='';
+ u.search='';
+ return u.toString();
+}
+async function signInGoogle(){
+ if(!sb){showAuth('Supabase belum siap. Refresh halaman dan coba lagi.','warn');return}
+ try{
+  showAuth('Membuka Google...');
+  const redirectTo=fjOAuthRedirect();
+  const {data,error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{access_type:'offline',prompt:'select_account'}}});
+  if(error) throw error;
+  if(data?.url) window.location.assign(data.url);
+ }catch(e){
+  console.error('Google Login:',e);
+  showAuth('Login Google gagal: '+(e.message||e),'warn');
+ }
+}
 function fjAccessMeta(){
   try{return JSON.parse(localStorage.getItem('fjUserRoles')||'{}')}catch(e){return {}}
 }

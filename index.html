@@ -4405,3 +4405,37 @@ html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden!important}
   }
 }
 </style>
+
+<script id="fj-v37-button-fix">
+(function(){
+  function bindTrainingButtons(){
+    var gen=document.getElementById('btnGenerateTraining');
+    if(gen){
+      gen.type='button';
+      gen.onclick=function(e){
+        e.preventDefault(); e.stopPropagation();
+        try{
+          if(typeof window.generateProgram==='function'){ window.generateProgram(); }
+          else if(typeof generateProgram==='function'){ generateProgram(); }
+          else { throw new Error('generateProgram function tidak ditemukan'); }
+        }catch(err){
+          console.error('Generate Training Program error:',err);
+          alert('Generate Training Program gagal: '+(err&&err.message?err.message:err));
+        }
+        return false;
+      };
+    }
+    var reset=document.getElementById('btnResetTraining');
+    if(reset){ reset.type='button'; reset.onclick=function(e){e.preventDefault(); var p=document.getElementById('training'); if(typeof fjReset==='function') fjReset(p); return false;}; }
+    var save=document.getElementById('btnSaveTraining');
+    if(save){ save.type='button'; save.onclick=function(e){e.preventDefault(); if(typeof saveFullTrainingProgram==='function') saveFullTrainingProgram(); return false;}; }
+    var load=document.getElementById('btnLoadTraining');
+    if(load){ load.type='button'; load.onclick=function(e){e.preventDefault(); if(typeof loadFullTrainingProgram==='function') loadFullTrainingProgram(); return false;}; }
+    var pdf=document.getElementById('saveFullProgramPdfBtn');
+    if(pdf){ pdf.type='button'; pdf.onclick=function(e){e.preventDefault(); if(typeof window.saveFullTrainingProgramPDF==='function') window.saveFullTrainingProgramPDF(); return false;}; }
+    var print=document.getElementById('btnPrintTraining');
+    if(print){ print.type='button'; print.onclick=function(e){e.preventDefault(); if(typeof window.printTrainingProgram==='function') window.printTrainingProgram(); else window.print(); return false;}; }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bindTrainingButtons); else bindTrainingButtons();
+})();
+</script>

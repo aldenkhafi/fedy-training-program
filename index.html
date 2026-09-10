@@ -1128,7 +1128,7 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 </style>
 </head><body>
-<div id="auth" class="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" rows="3" placeholder="eyJ..."></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan & Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" onclick="signInGoogle()">G Masuk dengan Google</button></div><div id="authMsg" class="notice" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
+<div id="auth" class="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" rows="3" placeholder="eyJ..."></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan & Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div id="authMsg" class="notice" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
   <div class="brand">FITNESS JOURNEY<small>TRAINING PROGRAM</small></div>
   <div class="navgroup">PROGRAM</div>
@@ -2514,8 +2514,64 @@ async function getSbConfig(){
 }
 function saveSupabaseConfig(){const url=document.getElementById('sbUrl').value.trim().replace(/\/$/,'');const key=document.getElementById('sbKey').value.trim();if(!/^https:\/\/[^ ]+\.supabase\.co$/.test(url)||!key){showAuth('Project URL atau Anon/Publishable Key belum benar.','warn');return}localStorage.setItem('fjSupabaseConfig',JSON.stringify({url,key}));location.reload()}
 function showAuth(msg='',kind=''){const el=document.getElementById('authMsg');if(!el)return;el.textContent=msg;el.style.display=msg?'block':'none';el.className='notice '+(kind==='warn'?'warn':'')}
-async function initSupabase(){const c=await getSbConfig();if(!c){document.getElementById('supabaseSetup').style.display='block';document.getElementById('authLogin').style.display='none';document.getElementById('auth').style.display='flex';showAuth('Vercel belum menyediakan konfigurasi Supabase. Pastikan NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY sudah ada di Environment Variables, lalu Redeploy.','warn');return false}try{sb=window.supabase.createClient(c.url,c.key);const {data,error}=await sb.auth.getSession();if(error)throw error;await handleSession(data.session);sb.auth.onAuthStateChange((_e,session)=>{setTimeout(()=>handleSession(session),0)});return true}catch(e){document.getElementById('supabaseSetup').style.display='block';document.getElementById('authLogin').style.display='none';document.getElementById('auth').style.display='flex';showAuth('Supabase belum dapat dihubungkan: '+e.message,'warn');return false}}
-async function signInGoogle(){if(!sb){showAuth('Hubungkan Supabase terlebih dahulu.','warn');return}showAuth('Membuka Google...');const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});if(error)showAuth(error.message,'warn')}
+async function initSupabase(){
+ const c=await getSbConfig();
+ const auth=document.getElementById('auth'), login=document.getElementById('authLogin'), setup=document.getElementById('supabaseSetup');
+ if(!c){if(setup)setup.style.display='block';if(login)login.style.display='none';if(auth)auth.style.display='flex';showAuth('Konfigurasi Supabase belum tersedia.','warn');return false}
+ try{
+   if(!window.supabase || typeof window.supabase.createClient!=='function') throw new Error('Library Supabase belum termuat. Coba refresh halaman.');
+   sb=window.supabase.createClient(c.url,c.key); window.sb=sb;
+   // Jangan menyembunyikan tombol Google hanya karena getSession gagal.
+   try{
+     const {data,error}=await sb.auth.getSession();
+     if(error) throw error;
+     await handleSession(data.session);
+   }catch(sessionErr){
+     if(auth)auth.style.display='flex';
+     if(login)login.style.display='block';
+     showAuth('Supabase session error: '+(sessionErr.message||sessionErr),'warn');
+   }
+   sb.auth.onAuthStateChange((_e,session)=>{setTimeout(()=>handleSession(session),0)});
+   return true;
+ }catch(e){
+   if(auth)auth.style.display='flex';
+   if(login)login.style.display='block';
+   if(setup)setup.style.display='none';
+   showAuth('Supabase belum dapat dihubungkan: '+(e.message||e),'warn');
+   return false;
+ }
+}
+function fjOAuthRedirect(){
+ const u=new URL(window.location.href);
+ u.hash='';u.search='';
+ return u.toString();
+}
+async function signInGoogle(){
+ try{
+  const auth=document.getElementById('auth'), login=document.getElementById('authLogin');
+  if(auth)auth.style.pointerEvents='auto';
+  if(login)login.style.pointerEvents='auto';
+  showAuth('Membuka Google...');
+  if(!sb){
+   await initSupabase();
+  }
+  if(!sb)throw new Error('Supabase belum siap. Coba refresh halaman.');
+  const redirectTo=fjOAuthRedirect();
+  const {data,error}=await sb.auth.signInWithOAuth({
+   provider:'google',
+   options:{redirectTo,queryParams:{prompt:'select_account'}}
+  });
+  if(error)throw error;
+  if(data?.url){
+   window.location.href=data.url;
+   return;
+  }
+  throw new Error('URL Google OAuth tidak dikembalikan oleh Supabase.');
+ }catch(e){
+  console.error('Google Login:',e);
+  showAuth('Login Google gagal: '+(e.message||e),'warn');
+ }
+}
 function fjAccessMeta(){
   try{return JSON.parse(localStorage.getItem('fjUserRoles')||'{}')}catch(e){return {}}
 }
@@ -3192,6 +3248,21 @@ try{
    applySgDefaultDuration();
  }
 }catch(e){console.warn('SMART GOAL day setup init failed',e)}
+
+(function(){
+ const fix=()=>{const a=document.getElementById('auth'),l=document.getElementById('authLogin');if(a){a.style.zIndex='99999';a.style.pointerEvents='auto'}if(l){l.style.display='block';l.style.pointerEvents='auto'}};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix,{once:true});else fix();
+})();
+(function(){
+ const bind=()=>{
+  const b=document.getElementById('btnGoogleLogin');
+  if(!b||b.dataset.fjGoogleBound==='1')return;
+  b.dataset.fjGoogleBound='1';
+  b.type='button';
+  b.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();signInGoogle();});
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
 initSupabase();
 </script><script>
 function toggleManagerApproval(){

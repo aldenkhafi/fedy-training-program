@@ -1857,7 +1857,7 @@ function showProgramWeek(month,weekIndex){
  const sessionTabs=Array.from({length:st.freq},(_,i)=>{
   const label=String.fromCharCode(65+i);
   const names=['Foundation • Full Body','Strength • Skill','Conditioning • Capacity','Performance • Finisher','Accessory • Core','Recovery • Engine'];
-  return `<button type="button" class="program-session-tab${i===0?' active':''}" data-session="${i}" onclick="showProgramSession(${month},${weekIndex},${i})"><span>SESSION ${label}</span><small>${names[i]||'Training Session'}</small></button>`;
+  return `<button type="button" class="program-session-tab${i===0?' active':''}" data-session="${i}" onclick="showProgramSession(${month},${weekIndex},${i})"><span>SESSION ${label}</span></button>`;
  }).join('');
  target.innerHTML=`<div class="program-session-tabs">${sessionTabs}</div><div id="program-session-detail-${month}-${weekIndex}"></div>`;
  showProgramSession(month,weekIndex,0);
@@ -4714,11 +4714,71 @@ function cleanEngine(st,m,w,d){
 }
 function buildUniqueSessionDay(st,m,w,d){
  const out=cleanEngine(st,m,w,d), p=out.profile, pr=out.pr;
- const profileLine=`Goal: <b>${p.goal}</b> • Level: <b>${p.level}</b> • Client: <b>${p.age||'—'} yrs</b> • ${p.gender||'Gender not specified'} • ${p.weight||'—'} kg • ${p.height||'—'} cm`;
- const safety=p.lowImpact?'Low-impact / readiness safeguards active.':'Standard impact selection for the client profile.';
- return `<div class="notice" style="margin:8px 0"><b>${out.title}</b><br><span class="muted">${profileLine}</span><br><span class="muted">Phase: <b>${pr.phase}</b> • ${safety}</span></div>${finishNotice(out.protocol)}<div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Recommended Load</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${out.body}</tbody></table></div><div class="notice" style="margin-top:8px"><b>Progression:</b> ${out.protocol} Exercise variation changes by client, phase, week and session while preserving the defining rules of the selected workout type.</div>`;
+ return `<div class="notice" style="margin:8px 0"><b>${out.title}</b></div>${finishNotice(out.protocol)}<div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Recommended Load</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${out.body}</tbody></table></div>`;
 }
 window.__FJCleanWorkoutEngineVersion=CLEAN_ENGINE_VERSION;
 window.buildUniqueSessionDay=buildUniqueSessionDay;
 })();
-</script></body></html>
+</script>\n<style id="fj-v50-session-final-compact">
+/* V50: final session-only layout cleanup. */
+#trainingResult .program-session-tabs{
+  width:100%!important; max-width:100%!important; min-width:0!important;
+  box-sizing:border-box!important; grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:6px!important; overflow:hidden!important;
+}
+#trainingResult .program-session-tab{
+  min-width:0!important; width:100%!important; max-width:100%!important;
+  padding:7px 5px!important; gap:0!important; font-size:11px!important;
+  line-height:1.1!important; overflow:hidden!important; box-sizing:border-box!important;
+}
+#trainingResult .program-session-tab span{display:block!important; margin:0!important; padding:0!important; white-space:nowrap!important; overflow:hidden!important; text-overflow:ellipsis!important; font-size:11px!important;}
+#trainingResult .program-session-tab small{display:none!important;}
+#trainingResult .program-session-progression{display:none!important;}
+#trainingResult .program-session-detail .program-session-heading>div>span{display:none!important;}
+#trainingResult .fj-table-scroll{
+  width:100%!important; max-width:100%!important; min-width:0!important;
+  overflow-x:hidden!important; box-sizing:border-box!important;
+}
+#trainingResult .fj-table-scroll .program-day-table{
+  width:100%!important; min-width:0!important; max-width:100%!important;
+  table-layout:fixed!important; box-sizing:border-box!important;
+}
+#trainingResult .fj-table-scroll .program-day-table th,
+#trainingResult .fj-table-scroll .program-day-table td{
+  min-width:0!important; width:auto!important; padding:7px 6px!important;
+  font-size:10px!important; line-height:1.25!important; overflow-wrap:anywhere!important;
+  word-break:break-word!important; white-space:normal!important;
+}
+/* Keep the exercise information readable while bringing Rest / Next Target closer. */
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(1),#trainingResult .fj-table-scroll .program-day-table td:nth-child(1){width:8%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(2),#trainingResult .fj-table-scroll .program-day-table td:nth-child(2){width:17%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(3),#trainingResult .fj-table-scroll .program-day-table td:nth-child(3){width:9%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(4),#trainingResult .fj-table-scroll .program-day-table td:nth-child(4){width:10%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(5),#trainingResult .fj-table-scroll .program-day-table td:nth-child(5){width:12%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(6),#trainingResult .fj-table-scroll .program-day-table td:nth-child(6){width:7%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(7),#trainingResult .fj-table-scroll .program-day-table td:nth-child(7){width:7%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(8),#trainingResult .fj-table-scroll .program-day-table td:nth-child(8){width:9%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(9),#trainingResult .fj-table-scroll .program-day-table td:nth-child(9){width:10%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(10),#trainingResult .fj-table-scroll .program-day-table td:nth-child(10){width:7%!important}
+#trainingResult .fj-table-scroll .program-day-table th:nth-child(11),#trainingResult .fj-table-scroll .program-day-table td:nth-child(11){width:4%!important}
+@media(max-width:760px){
+  #trainingResult{width:100%!important;max-width:100%!important;overflow-x:hidden!important;}
+  #trainingResult>.grid{width:100%!important;min-width:0!important;max-width:100%!important;grid-template-columns:1fr!important;}
+  #trainingResult .card{min-width:0!important;width:100%!important;max-width:100%!important;}
+  #trainingResult .program-session-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;min-width:0!important;gap:4px!important;}
+  #trainingResult .program-session-tab{padding:6px 4px!important;font-size:10px!important;}
+  #trainingResult .program-session-tab span{font-size:10px!important;}
+  #trainingResult .program-session-exercise,
+  #trainingResult .program-session-exercise>*{min-width:0!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;}
+  #trainingResult .fj-table-scroll{overflow-x:hidden!important;}
+  #trainingResult .fj-table-scroll .program-day-table th,
+  #trainingResult .fj-table-scroll .program-day-table td{padding:4px 2px!important;font-size:8.5px!important;}
+}
+@media(max-width:380px){
+  #trainingResult .program-session-tab{padding:5px 3px!important;}
+  #trainingResult .program-session-tab span{font-size:9px!important;}
+  #trainingResult .fj-table-scroll .program-day-table th,
+  #trainingResult .fj-table-scroll .program-day-table td{font-size:7.8px!important;padding:3px 2px!important;}
+}
+</style>
+</body></html>

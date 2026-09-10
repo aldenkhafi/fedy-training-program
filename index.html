@@ -4507,219 +4507,67 @@ html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden!important}
   }
 }
 </style>
-<script id="fj-v47-clean-workout-engine">(function(){
+<script id="fj-v52-exercise-engine">
+(function(){
 'use strict';
-const CLEAN_ENGINE_VERSION='V47_CLEAN_WORKOUT_TYPE_ENGINE';
-const CORE_CLEAN=(EXO_POOL.core||[]).filter(e=>!/conditioning finisher/i.test(e.name));
-const RUN_POOL=[
- {name:'Run — Treadmill / Track',muscle:'Cardiorespiratory',equip:'Treadmill/Track'},
- {name:'Incline Run / Jog',muscle:'Cardiorespiratory',equip:'Treadmill'},
- {name:'Run Intervals',muscle:'Cardiorespiratory',equip:'Treadmill/Track'}
-];
-const HYROX_STATIONS=[
- {name:'SkiErg',muscle:'Full Body • Cardiorespiratory',equip:'SkiErg',unit:'1,000 m'},
- {name:'Sled Push',muscle:'Legs • Full Body',equip:'Sled',unit:'50 m'},
- {name:'Sled Pull',muscle:'Posterior Chain • Grip',equip:'Sled',unit:'50 m'},
- {name:'Burpee Broad Jumps',muscle:'Full Body • Cardiorespiratory',equip:'Bodyweight',unit:'80 m'},
- {name:'Rowing Erg',muscle:'Full Body • Cardiorespiratory',equip:'Rower',unit:'1,000 m'},
- {name:"Farmer's Carry",muscle:'Grip • Core • Legs',equip:'Dumbbells/Kettlebells',unit:'200 m'},
- {name:'Sandbag Lunges',muscle:'Legs • Glutes • Core',equip:'Sandbag',unit:'100 m'},
- {name:'Wall Balls',muscle:'Legs • Shoulders • Core',equip:'Medicine Ball',unit:'100 reps'}
-];
-const LOW_IMPACT_NAMES=/box jump|burpee|jump rope|plyo|devil press|man maker|thruster|jump squat|broad jump/i;
-const CLEAN_RULES={
- standard:{label:'Standard',kind:'strength'}, fullbody:{label:'Full Body',kind:'fullbody'}, totalbody:{label:'Total Body Conditioning',kind:'hybrid'}, functional:{label:'Functional Fitness',kind:'functional'},
- lowimpact:{label:'Low-Impact Conditioning',kind:'lowimpact'}, strengthpower:{label:'Strength & Power',kind:'strengthpower'}, hypertrophy:{label:'Hypertrophy',kind:'hypertrophy'}, upperlower:{label:'Upper / Lower Split',kind:'upperlower'}, ppl:{label:'Push / Pull / Legs',kind:'ppl'}, bro:{label:'Body-Part Split',kind:'bro'},
- superset:{label:'Superset',kind:'superset'}, giantset:{label:'Giant Set',kind:'giantset'}, cluster:{label:'Cluster Sets',kind:'cluster'}, density:{label:'Density Training',kind:'density'}, tempo:{label:'Tempo Training',kind:'tempo'}, contrast:{label:'Contrast / Complex',kind:'contrast'}, hybrid:{label:'Hybrid Training',kind:'hybrid'}, hyrox:{label:'HYROX Style',kind:'hyrox'}, metcon:{label:'METCON',kind:'metcon'}, circuit:{label:'Circuit Training',kind:'circuit'}, hiit:{label:'HIIT',kind:'hiit'}, zone2:{label:'Zone 2',kind:'zone2'}, engine:{label:'Engine Builder',kind:'engine'}, runlift:{label:'Run + Lift',kind:'runlift'}, ocr:{label:'OCR / Obstacle Conditioning',kind:'ocr'}, tabata:{label:'TABATA',kind:'tabata'}, emom:{label:'EMOM',kind:'emom'}, amrap:{label:'AMRAP',kind:'amrap'}, fortime:{label:'FOR TIME',kind:'fortime'}, ladder:{label:'Ladder / Pyramid',kind:'ladder'}, rehab:{label:'Rehabilitation / Corrective',kind:'rehab'}, corebalance:{label:'Core & Balance',kind:'corebalance'}, mobilityflow:{label:'Mobility Flow',kind:'mobilityflow'}, prehab:{label:'Prehabilitation',kind:'prehab'}, recovery:{label:'Active Recovery',kind:'recovery'}, auto:{label:'Goal-Based Adaptive',kind:'auto'}
+const V='V52_EXERCISE_ENGINE';
+const IMPACT=/box jump|burpee|jump rope|plyo|devil press|man maker|thruster|jump squat|broad jump|pistol squat/i;
+const CORE=(EXO_POOL.core||[]).filter(e=>!/conditioning finisher|turkish get-up/i.test(e.name));
+const TYPE_LABEL={standard:'Standard',fullbody:'Full Body',totalbody:'Total Body Conditioning',functional:'Functional Fitness',lowimpact:'Low-Impact Conditioning',strengthpower:'Strength & Power',hypertrophy:'Hypertrophy',upperlower:'Upper / Lower Split',ppl:'Push / Pull / Legs',bro:'Body-Part Split',superset:'Superset',giantset:'Giant Set',cluster:'Cluster Sets',density:'Density Training',tempo:'Tempo Training',contrast:'Contrast / Complex',hybrid:'Hybrid Training',hyrox:'HYROX',metcon:'METCON',circuit:'Circuit Training',hiit:'HIIT',zone2:'Zone 2',engine:'Engine Builder',runlift:'Run + Lift',ocr:'OCR / Obstacle Conditioning',tabata:'TABATA',emom:'EMOM',amrap:'AMRAP',fortime:'FOR TIME',ladder:'Ladder / Pyramid',rehab:'Rehabilitation',corebalance:'Core & Balance',mobilityflow:'Mobility Flow',prehab:'Prehabilitation',recovery:'Active Recovery',auto:'Goal-Based Adaptive'};
+const GOAL_TYPES={
+ 'strength endurance':['strengthpower','cluster','tempo','upperlower','ppl','superset','giantset','density','fullbody'],
+ 'aerobic endurance':['zone2','engine','circuit'],
+ 'core stability':['corebalance','functional','mobilityflow'],
+ 'speed & agility':['contrast','hybrid','runlift','ocr','strengthpower'],
+ 'rehabilitation':['rehab','mobilityflow','lowimpact','recovery'],
+ 'hypertrophy':['hypertrophy','upperlower','ppl','bro','superset','giantset','tempo'],
+ 'fat loss':['fullbody','circuit','hiit','emom','amrap','fortime','metcon','zone2'],
+ 'strength':['strengthpower','cluster','contrast','tempo','upperlower','ppl','superset'],
+ 'power':['strengthpower','contrast','hybrid','fullbody'],
+ 'mobility':['mobilityflow','recovery','corebalance','prehab'],
+ 'muscular endurance':['circuit','giantset','density','amrap','emom','fullbody']
 };
-function profile(st){
- const age=Number(st.age)||0, weight=Number(st.weight)||0, height=Number(st.height)||0;
- const level=resolveProgramLevel(st), goal=String(st.g||'General Fitness');
- const bmi=weight>0&&height>0?weight/((height/100)**2):0;
- const lowImpact=age>=55||level==='beginner'||/low-impact|recovery|rehab|rehabil|prehab|healthy aging|return to exercise|mobility/i.test(goal);
- const powerReady=level==='advanced'&&!lowImpact&&age<55;
- return {age,weight,height,bmi,level,goal,gender:String(st.gender||''),lowImpact,powerReady};
-}
-function seed(st,m,w,d,slot){return fjHash('V47',st.name,st.gender,st.age,st.weight,st.height,st.level,st.g,st.wtype,m,w,d,slot)}
-function choose(pool,st,m,w,d,slot,opts={}){
- let arr=(pool||[]).slice(); if(!arr.length)return null;
- const p=profile(st);
- if(p.lowImpact&&!opts.allowImpact)arr=arr.filter(e=>!LOW_IMPACT_NAMES.test(e.name));
- if(opts.exclude)arr=arr.filter(e=>!opts.exclude.test(e.name));
- if(opts.equip){const preferred=arr.filter(e=>opts.equip.includes(e.equip));if(preferred.length)arr=preferred;}
- if(opts.preferPower&&p.powerReady){const power=arr.filter(e=>/power|jump|swing|push press|slam|throw/i.test((e.name||'')+' '+(e.muscle||'')));if(power.length)arr=power;}
- return arr[seed(st,m,w,d,slot)%arr.length];
-}
-function phaseInfo(m,w,total){const pct=m/Math.max(1,total);let phase=pct<=.25?'FOUNDATION':pct<=.55?'BUILD':pct<=.85?'PROGRESS':'CONSOLIDATE';const cycle=w%4;return {phase,cycle};}
-function goalPrescription(st,m,w){
- const p=profile(st), g=p.goal.toLowerCase(), {phase}=phaseInfo(m,w,st.months);
- let sets=3,reps='8–12',rest='60–120s',rpe='RPE 7–8',rir='2 RIR';
- if(/strength/.test(g)){sets=phase==='PROGRESS'?4:3;reps='3–6';rest='150–240s';rpe='RPE 7–9';rir='1–3 RIR'}
- else if(/power|speed|agility/.test(g)){sets=3;reps='3–5';rest='120–180s';rpe='RPE 6–8';rir='2–3 RIR'}
- else if(/hypertrophy|muscle gain|recomposition/.test(g)){sets=phase==='PROGRESS'?4:3;reps='6–12';rest='60–120s';rpe='RPE 7–9';rir='1–3 RIR'}
- else if(/endurance|fat loss|weight management|work capacity|cardiorespiratory/.test(g)){sets=2;reps='10–15';rest='45–90s';rpe='RPE 6–8';rir='2–4 RIR'}
- else if(/mobility|recovery|rehab|prehab|injury/.test(g)){sets=2;reps='8–15';rest='45–90s';rpe='RPE 4–6';rir='3–5 RIR'}
- if(p.level==='beginner'){sets=Math.min(3,sets);rpe='RPE 6–7';rir='3 RIR'}
- if(p.age>=55){sets=Math.max(1,sets-1);rpe='RPE 6–7';}
- return {sets,reps,rest,rpe,rir,phase};
-}
-function load(st,pattern,m,w,reps){
- const p=profile(st), e1=st.e1rm&&Number(st.e1rm[pattern]), avg=parseFloat(String(reps).match(/[0-9]+/)?.[0]||8);
- let factor=/strength/i.test(p.goal)?0.80:/hypertrophy|muscle gain|recomposition/i.test(p.goal)?0.72:/power|speed/i.test(p.goal)?0.45:0.60;
- if(p.level==='beginner')factor*=.8; if(p.age>=55)factor*=.9;
- const prog=1+Math.min(.15,((m-1)*4+w)*0.01);
- if(e1&&e1>0){const kg=e1/(1+avg/30)*factor*prog;return `≈ ${roundLoad(kg*.95,'total')}–${roundLoad(kg*1.05,'total')} kg`}
- if(pattern==='core'||pattern==='conditioning'||pattern==='mobility'||pattern==='balance')return 'Bodyweight / light resistance; adjust by RPE';
- if(!p.weight)return 'Select load at target RPE';
- const pct={lower:.35,hinge:.35,upperPush:.20,upperPull:.18}[pattern]||.20;
- const kg=p.weight*pct*factor*prog; return `≈ ${roundLoad(Math.max(2.5,kg*.9),'total')}–${roundLoad(Math.max(5,kg*1.1),'total')} kg`;
-}
-function row(block,ex,sets,reps,st,m,w,opts={}){
- const pat=opts.pattern||'conditioning', l=opts.load||load(st,pat,m,w,reps);
- const next=opts.next||'Progress reps/time first; then add 2.5–5% load when technique and target RPE are maintained.';
- return `<tr><td><b>${block}</b></td><td><b>${ex.name}</b></td><td>${sets}</td><td>${reps}</td><td><b>${l}</b></td><td>${opts.rpe||'RPE 6–8'}</td><td>${opts.rir||'2–3 RIR'}</td><td>${opts.rest||'60–120s'}</td><td>${next}</td><td>${opts.focus||ex.muscle||ex.target||'Movement quality'}</td><td>${ex.equip||'Bodyweight'}</td></tr>`;
-}
-function coreRow(st,m,w,slot,sets,reps,opts={}){const ex=choose(CORE_CLEAN,st,m,w,slot,slot,{exclude:/conditioning finisher|turkish get-up/i});return ex?row(opts.block||'CORE / FINISHER',ex,sets,reps,st,m,w,{...opts,pattern:'core',focus:opts.focus||'Core — final block'}):''}
-function strengthRows(st,m,w,d,patterns,labels){const pr=goalPrescription(st,m,w), used=new Set(), rows=[];patterns.forEach((pat,i)=>{const ex=choose(EXO_POOL[pat],st,m,w,d,i);if(!ex||used.has(ex.name))return;used.add(ex.name);rows.push(row(labels?.[i]||`BLOCK ${i+1}`,ex,pr.sets,pr.reps,st,m,w,{pattern:pat,rest:pr.rest,rpe:pr.rpe,rir:pr.rir,focus:ex.muscle}));});return rows.join('')}
-function finishNotice(text){return `<div class="notice" style="margin:8px 0"><b>Workout Protocol</b><br><span class="muted">${text}</span></div>`}
-function cleanEngine(st,m,w,d){
- const type=st.wtype||'standard', rule=CLEAN_RULES[type]||CLEAN_RULES.standard, p=profile(st), pr=goalPrescription(st,m,w), freq=Math.max(1,Number(st.freq)||3), sess=d%freq;
- let body='', protocol='', title=rule.label;
- const next='Progress only when technique, recovery and target RPE are achieved; vary exercise selection across sessions while preserving the required workout format.';
- if(type==='ppl'){
-  const day=['Push','Pull','Legs'][sess%3];
-  if(day==='Push') body=strengthRows(st,m,w,d,['upperPush'],['PUSH'])+coreRow(st,m,w,20,2,'20–40 sec',{block:'FINISHER',focus:'Triceps / shoulder stability or core'});
-  if(day==='Pull') body=strengthRows(st,m,w,d,['upperPull'],['PULL'])+coreRow(st,m,w,21,2,'20–40 sec',{block:'FINISHER',focus:'Grip / trunk stability or core'});
-  if(day==='Legs') body=strengthRows(st,m,w,d,['lower','hinge'],['SQUAT / UNILATERAL','HINGE / POSTERIOR'])+coreRow(st,m,w,22,2,'20–40 sec',{block:'FINISHER',focus:'Core / carry'});
-  protocol=`Session ${day}: exercise selection is restricted to the required PPL region. Core/finisher is last.`;
- }
- else if(type==='upperlower'){
-  const upper=sess%2===0;
-  body=upper?strengthRows(st,m,w,d,['upperPush','upperPull'],['UPPER PUSH','UPPER PULL']):strengthRows(st,m,w,d,['lower','hinge'],['SQUAT / UNILATERAL','HINGE / POSTERIOR']);
-  body+=coreRow(st,m,w,30+sess,2,'20–40 sec',{block:'CORE / FINISHER'}); protocol=upper?'Upper day: push + pull only, then core.':'Lower day: squat/unilateral + hinge only, then core.';
- }
- else if(type==='bro'){
-  const days=['Chest','Back','Shoulders','Legs','Arms']; const day=days[sess%days.length];
-  const map={Chest:['upperPush'],Back:['upperPull'],Shoulders:['upperPush'],Legs:['lower','hinge'],Arms:['arms']};
-  if(day==='Arms'){const a=choose(ARM_POOL,st,m,w,d,1),b=choose(ARM_POOL,st,m,w,d,2,{exclude:new RegExp(a?.name||'x')});body=row('BICEPS',a,pr.sets,pr.reps,st,m,w,{pattern:'upperPush',focus:'Biceps',rest:pr.rest})+row('TRICEPS',b,pr.sets,pr.reps,st,m,w,{pattern:'upperPush',focus:'Triceps',rest:pr.rest});}
-  else body=strengthRows(st,m,w,d,map[day],[day.toUpperCase(),'SECONDARY']);
-  body+=coreRow(st,m,w,40+sess,2,'20–40 sec',{block:'CORE / FINISHER'});protocol=`Body-part day: ${day}. Exercises are restricted to the selected muscle group; core/finisher is last.`;
- }
- else if(['standard','fullbody'].includes(type)){
-  body=strengthRows(st,m,w,d,['lower','upperPush','upperPull','hinge'],['LOWER','PUSH','PULL','HINGE'])+coreRow(st,m,w,50+d,2,'20–45 sec',{block:'CORE / FINISHER'});
-  protocol='Full-body strength structure: squat/lower + push + pull + hinge, then core. Goal controls volume, intensity and progression.';
- }
- else if(type==='strengthpower'){
-  const primer=choose(EXO_POOL.lower,st,m,w,d,60,{preferPower:true,allowImpact:p.powerReady});
-  body=primer?row('POWER PRIMER',primer,3,'3–5 reps',st,m,w,{pattern:'lower',rpe:'RPE 6–7',rir:'3 RIR',rest:'120–180s',focus:'Explosive intent'}):'';
-  body+=strengthRows(st,m,w,d,['lower','upperPush','upperPull'],['PRIMARY STRENGTH','SECONDARY STRENGTH','UPPER PULL']);
-  body+=coreRow(st,m,w,61,2,'20–40 sec',{block:'CORE / FINISHER'});protocol='Power work is performed fresh, followed by heavier strength work with longer recovery.';
- }
- else if(type==='hypertrophy'){
-  const cycle=sess%3, patterns=cycle===0?['upperPush','upperPull','lower']:cycle===1?['lower','hinge','upperPush']:['upperPull','upperPush','hinge'];
-  body=strengthRows(st,m,w,d,patterns,['PRIMARY HYPERTROPHY','SECONDARY HYPERTROPHY','ACCESSORY']);body+=coreRow(st,m,w,70+d,2,'20–40 sec',{block:'CORE / FINISHER'});protocol='Hypertrophy: 3–4 resistance exercises with moderate-to-high volume, controlled reps and 1–3 RIR.';
- }
- else if(type==='superset'){
-  const pairs=sess%2===0?[['upperPush','upperPull'],['lower','hinge'],['upperPush','core']]:[['lower','upperPull'],['hinge','upperPush'],['upperPull','core']];
-  pairs.forEach((pair,i)=>{const ex1=pair[0]==='core'?choose(CORE_CLEAN,st,m,w,d,80+i):choose(EXO_POOL[pair[0]],st,m,w,d,80+i);const ex2=pair[1]==='core'?choose(CORE_CLEAN,st,m,w,d,90+i,{exclude:/conditioning finisher/i}):choose(EXO_POOL[pair[1]],st,m,w,d,90+i);if(ex1&&ex2){body+=row(`SUPERSET ${i+1} — A1`,ex1,pr.sets,pr.reps,st,m,w,{pattern:pair[0]==='core'?'core':pair[0],rest:'15–30s transition',focus:ex1.muscle})+row(`SUPERSET ${i+1} — A2`,ex2,pr.sets,pr.reps,st,m,w,{pattern:pair[1]==='core'?'core':pair[1],rest:'90–120s after A2',focus:ex2.muscle});}});protocol='Superset protocol: A1 → short transition → A2 → full rest. Repeat the pair for all prescribed sets before moving to the next pair.';
- }
- else if(type==='giantset'){
-  const group=sess%2===0?'upperPush':'lower', pool=group==='upperPush'?EXO_POOL.upperPush:[...EXO_POOL.lower,...EXO_POOL.hinge];
-  const chosen=[];for(let i=0;i<4;i++){const ex=choose(pool,st,m,w,d,100+i,{exclude:chosen.length?new RegExp(chosen.map(x=>x.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')):null});if(ex&&!chosen.some(x=>x.name===ex.name))chosen.push(ex)}
-  chosen.forEach((ex,i)=>body+=row(`GIANT SET ${i+1}`,ex,3,pr.reps,st,m,w,{pattern:group==='upperPush'?'upperPush':'lower',rest:i===3?'90–120s after full round':'15–30s transition',focus:group==='upperPush'?'Chest / shoulders / triceps':'Legs / glutes / posterior chain'}));
-  protocol='Giant set: 4 exercises performed consecutively with short transitions, then 90–120s recovery; repeat 3 rounds.';
- }
- else if(type==='cluster'){
-  const ex=choose(EXO_POOL[sess%2?'upperPush':'lower'],st,m,w,d,110);body=ex?row('CLUSTER SET',ex,3,'2+2+2 reps',st,m,w,{pattern:sess%2?'upperPush':'lower',rest:'20s intra-cluster; 2–3 min between sets',rpe:'RPE 7–8',rir:'2 RIR',focus:'High-quality strength reps'}):'';protocol='Cluster format: split each working set into mini-sets with brief intra-set rest to preserve technique and velocity.';
- }
- else if(type==='density'){
-  const pool=[choose(EXO_POOL.lower,st,m,w,d,120),choose(EXO_POOL.upperPush,st,m,w,d,121),choose(EXO_POOL.upperPull,st,m,w,d,122),choose(CORE_CLEAN,st,m,w,d,123)];pool.forEach((ex,i)=>{if(ex)body+=row(`DENSITY ${i+1}`,ex,1,'8–12 quality reps',st,m,w,{pattern:i===0?'lower':i===1?'upperPush':i===2?'upperPull':'core',rest:'Move continuously; self-regulate',focus:'Fixed-time density block'});});protocol='Density protocol: 12-minute quality block. Complete the circuit repeatedly with clean technique; record rounds + reps. Do not chase fatigue at the expense of form.';
- }
- else if(type==='tempo'){
-  body=strengthRows(st,m,w,d,['lower','upperPush','upperPull'],['TEMPO LOWER','TEMPO PUSH','TEMPO PULL']).replaceAll('60–120s','90–120s'); protocol='Tempo prescription: 3–1–1–0 (3s eccentric, 1s pause, controlled concentric, no pause). Keep load below normal if tempo cannot be maintained.';
- }
- else if(type==='contrast'){
-  const heavy=choose(EXO_POOL.lower,st,m,w,d,130), explosive=choose(EXO_POOL.lower,st,m,w,d,131,{preferPower:true,allowImpact:p.powerReady,exclude:new RegExp(heavy?.name||'x')});
-  body=row('CONTRAST A — HEAVY',heavy,3,'3–5 reps',st,m,w,{pattern:'lower',rest:'15–30s before explosive; 2–3 min after pair',focus:'Strength / force production'})+row('CONTRAST A — EXPLOSIVE',explosive,3,'3–5 reps',st,m,w,{pattern:'lower',rest:'2–3 min after pair',rpe:'RPE 6–7',focus:'Explosive movement'});protocol='Contrast: heavy strength movement immediately followed by a biomechanically related explosive movement. Advanced/technically ready clients only.';
- }
- else if(type==='hybrid'){
-  body=strengthRows(st,m,w,d,['lower','upperPush'],['STRENGTH BLOCK','SECOND STRENGTH BLOCK']);const cond=choose(CONDITIONING_POOL,st,m,w,d,140,{allowImpact:p.powerReady});if(cond)body+=row('CONDITIONING FINISHER',cond,3,'40s work / 20s recovery',st,m,w,{pattern:'conditioning',rest:'60s after round',rpe:'RPE 7–8',focus:'Aerobic / anaerobic capacity'});protocol='Hybrid order: strength first, conditioning second, with enough recovery to preserve quality and limit unnecessary interference.';
- }
- else if(type==='hyrox'){
-  HYROX_STATIONS.forEach((s,i)=>{const run={name:`Run ${i+1}`,muscle:'Cardiorespiratory',equip:'Treadmill/Track'};body+=row(`RUN ${i+1}`,run,1,'1 km',st,m,w,{pattern:'conditioning',load:'Bodyweight',rest:'Transition to station',rpe:'RPE 7–8',focus:'Race-specific running'});body+=row(`STATION ${i+1}`,s,1,s.unit,st,m,w,{pattern:'conditioning',load:'Use division-appropriate race load; scale to client level',rest:i===7?'Finish / recovery':'Transition to next 1 km run',rpe:'RPE 7–9',focus:'Official HYROX station'});});protocol='HYROX format: 1 km run + one station, repeated 8 times in the official sequence. Loads vary by division; use scaled race-appropriate resistance for the client.';
- }
- else if(type==='metcon'){
-  const skill=choose(EXO_POOL[sess%2?'upperPush':'lower'],st,m,w,d,150);if(skill)body+=row('SKILL / STRENGTH PRIMER',skill,3,pr.reps,st,m,w,{pattern:sess%2?'upperPush':'lower',rest:'90–150s',focus:'Technique / strength primer'});
-  const wod=[choose(CONDITIONING_POOL,st,m,w,d,151),choose(EXO_POOL.lower,st,m,w,d,152),choose(EXO_POOL.upperPull,st,m,w,d,153),choose(CORE_CLEAN,st,m,w,d,154,{exclude:/conditioning finisher/i})].filter(Boolean);
-  wod.forEach((ex,i)=>body+=row(`WOD ${i+1}`,ex,1,`${8+i*2} reps`,st,m,w,{pattern:i===1?'lower':i===2?'upperPull':i===3?'core':'conditioning',rest:'As prescribed by WOD',focus:'Metabolic conditioning'}));
-  protocol=`METCON: warm-up → skill/strength primer → complete WOD. Today’s WOD = AMRAP ${8+Math.min(10,m+w)} min, 4 movements, score = rounds + reps. Scale by level and RPE.`;
- }
- else if(type==='circuit'){
-  const pools=[EXO_POOL.lower,EXO_POOL.upperPush,EXO_POOL.upperPull,EXO_POOL.hinge,CONDITIONING_POOL,CORE_CLEAN];pools.forEach((pool,i)=>{const ex=choose(pool,st,m,w,d,160+i);if(ex)body+=row(`STATION ${i+1}`,ex,3,'40s work / 20s rest',st,m,w,{pattern:i===0?'lower':i===1?'upperPush':i===2?'upperPull':i===3?'hinge':i===5?'core':'conditioning',rest:'20s station transition',focus:'Whole-body circuit'});});protocol='Circuit: 6 stations × 40s work / 20s transition, 3 rounds, 60–90s recovery between rounds. Progress by quality, rounds or resistance.';
- }
- else if(type==='hiit'){
-  const items=[];for(let i=0;i<6;i++){const ex=choose(CONDITIONING_POOL,st,m,w,d,170+i,{allowImpact:p.powerReady});if(ex&&!items.some(x=>x.name===ex.name))items.push(ex)}
-  const work=phaseInfo(m,w,st.months).phase==='FOUNDATION'?'30s':'40s', rest=phaseInfo(m,w,st.months).phase==='PROGRESS'?'20s':'20s', rounds=phaseInfo(m,w,st.months).phase==='FOUNDATION'?4:5;
-  items.forEach((ex,i)=>body+=row(`HIIT ${i+1}`,ex,rounds,`${work} work / ${rest} recovery`,st,m,w,{pattern:'conditioning',rest:'60s after each full round',rpe:'RPE 8–9',focus:'High-intensity interval'}));protocol=`HIIT: ${items.length} exercises × ${work} work / ${rest} recovery × ${rounds} rounds. Warm-up 8–10 min, cooldown 5–8 min. Intensity is high but not all-out; scale impact and resistance to level.`;
- }
- else if(type==='zone2'){
-  const modalities=[{name:'Bike / Stationary Cycle',muscle:'Cardiorespiratory',equip:'Bike'},{name:'Incline Walk',muscle:'Cardiorespiratory',equip:'Treadmill'},{name:'Row Erg — steady aerobic',muscle:'Cardiorespiratory',equip:'Rower'}];const ex=modalities[sess%modalities.length];const mins=p.level==='beginner'?'25–30 min':p.level==='advanced'?'40–45 min':'30–40 min';body+=row('ZONE 2 — CONTINUOUS',ex,1,mins,st,m,w,{pattern:'conditioning',load:'Set pace/resistance to conversational effort',rpe:'RPE 5–6',rir:'—',rest:'Continuous',focus:'Aerobic base; conversational pace'});protocol='Zone 2 is continuous aerobic work, not a circuit: maintain conversational pace, steady breathing and RPE 5–6. Add duration before intensity.';
- }
- else if(type==='engine'){
-  const ex=choose([{name:'Bike Intervals',muscle:'Cardiorespiratory',equip:'Bike'},{name:'Row Intervals',muscle:'Cardiorespiratory',equip:'Rower'},{name:'Run Intervals',muscle:'Cardiorespiratory',equip:'Treadmill/Track'}],st,m,w,d,180);body+=row('ENGINE INTERVAL',ex,4,'4 min work / 2 min easy',st,m,w,{pattern:'conditioning',rest:'2 min easy between intervals',rpe:'RPE 7–8',focus:'Aerobic power / repeatability'});protocol='Engine builder: 4 × 4-minute work intervals separated by 2-minute easy recovery. Progress pace/distance before shortening recovery.';
- }
- else if(type==='runlift'){
-  const lifts=[choose(EXO_POOL.lower,st,m,w,d,190),choose(EXO_POOL.upperPush,st,m,w,d,191),choose(EXO_POOL.hinge,st,m,w,d,192),choose(CORE_CLEAN,st,m,w,d,193,{exclude:/conditioning finisher/i})];for(let i=0;i<4;i++){body+=row(`RUN ${i+1}`,{name:'Run',muscle:'Cardiorespiratory',equip:'Treadmill/Track'},1,p.level==='beginner'?'300 m':'400 m',st,m,w,{pattern:'conditioning',load:'Bodyweight',rest:'Transition',rpe:'RPE 7',focus:'Running segment'});if(lifts[i])body+=row(`LIFT ${i+1}`,lifts[i],2,i===3?'30–40 sec':pr.reps,st,m,w,{pattern:i===0?'lower':i===1?'upperPush':i===2?'hinge':'core',rest:'60–90s after lift',focus:'Strength station'});}protocol='Run + Lift: alternate a true running segment with a strength station for 4 rounds. Running distance progresses before increasing lift load.';
- }
- else if(type==='ocr'){
-  const items=[{name:'Run / Shuttle Run',muscle:'Cardiorespiratory',equip:'Track'},{name:'Farmer Carry',muscle:'Grip • Core',equip:'Dumbbells'},{name:'Bear Crawl',muscle:'Full Body • Core',equip:'Bodyweight'},{name:'Sandbag Carry',muscle:'Grip • Full Body',equip:'Sandbag'},{name:'Sled Pull',muscle:'Grip • Posterior Chain',equip:'Sled'},{name:'Dead Hang / Grip Hold',muscle:'Grip • Upper Body',equip:'Pull-Up Bar'}];items.forEach((ex,i)=>body+=row(`OCR STATION ${i+1}`,ex,3,i===0?'300–500 m':i===5?'20–40 sec':'30–60 m',st,m,w,{pattern:'conditioning',rest:'30–60s transition',rpe:'RPE 7–8',focus:'Running + grip + carry + crawl + obstacle capacity'}));protocol='OCR conditioning: running + grip + carry + crawl + obstacle-specific capacity. Progress one quality variable at a time.';
- }
- else if(type==='tabata'){
-  const items=[];for(let i=0;i<4;i++){const ex=choose(CONDITIONING_POOL,st,m,w,d,200+i,{allowImpact:p.powerReady});if(ex&&!items.some(x=>x.name===ex.name))items.push(ex)}items.forEach((ex,i)=>body+=row(`TABATA BLOCK ${i+1}`,ex,8,'20s work / 10s rest',st,m,w,{pattern:'conditioning',rest:'60s between 4-min blocks',rpe:'RPE 8–9',focus:'Tabata interval block'}));protocol='TABATA: 4 blocks. Each block = 20s work + 10s rest × 8 rounds = 4 minutes. Rest 60s between blocks. Total work = 16 minutes, plus warm-up/cooldown.';
- }
- else if(type==='emom'){
-  const items=[choose(CONDITIONING_POOL,st,m,w,d,210),choose(EXO_POOL.lower,st,m,w,d,211),choose(CORE_CLEAN,st,m,w,d,212,{exclude:/conditioning finisher/i})].filter(Boolean);const mins=p.level==='beginner'?12:16;for(let i=0;i<mins;i++){const ex=items[i%items.length];body+=row(`MINUTE ${i+1}`,ex,1,`Target reps completed within 40s`,st,m,w,{pattern:i%3===1?'lower':i%3===2?'core':'conditioning',rest:'Remaining time in the minute',rpe:'RPE 7–8',focus:'EMOM pacing'});}protocol=`EMOM ${mins}:00. Start the prescribed work at the top of every minute; remaining time is recovery. Choose reps that consistently finish in ≤40s. Score = completed minutes.`;
- }
- else if(type==='amrap'){
-  const items=[choose(EXO_POOL.lower,st,m,w,d,220),choose(EXO_POOL.upperPush,st,m,w,d,221),choose(EXO_POOL.upperPull,st,m,w,d,222),choose(CORE_CLEAN,st,m,w,d,223,{exclude:/conditioning finisher/i})].filter(Boolean);const cap=p.level==='beginner'?10:p.level==='advanced'?18:14;items.forEach((ex,i)=>body+=row(`AMRAP ${i+1}`,ex,1,`${8+i*2} reps`,st,m,w,{pattern:i===0?'lower':i===1?'upperPush':i===2?'upperPull':'core',rest:'Self-regulated; keep moving with quality',rpe:'RPE 7–8',focus:'AMRAP movement'}));protocol=`AMRAP ${cap} minutes: complete the sequence repeatedly for as many quality rounds + reps as possible. Score = rounds + reps. Stop/scale if technique deteriorates.`;
- }
- else if(type==='fortime'){
-  const items=[choose(EXO_POOL.lower,st,m,w,d,230),choose(CONDITIONING_POOL,st,m,w,d,231),choose(EXO_POOL.upperPull,st,m,w,d,232)].filter(Boolean);const repsScheme=p.level==='beginner'?'15–12–9':'21–15–9';items.forEach((ex,i)=>body+=row(`FOR TIME ${i+1}`,ex,1,repsScheme+' reps',st,m,w,{pattern:i===0?'lower':i===2?'upperPull':'conditioning',rest:'As needed without losing movement standard',rpe:'RPE 8–9',focus:'For-time pacing'}));protocol=`FOR TIME: ${repsScheme} across the prescribed movements. Time cap = ${p.level==='beginner'?10:p.level==='advanced'?18:15} minutes. Score = completion time; if cap is reached, record completed work.`;
- }
- else if(type==='ladder'){
-  const ex=choose(EXO_POOL.lower,st,m,w,d,240), ex2=choose(EXO_POOL.upperPush,st,m,w,d,241);body+=row('LADDER A',ex,1,'2–4–6–8–10 reps',st,m,w,{pattern:'lower',rest:'45–60s',focus:'Ascending reps'});body+=row('LADDER B',ex2,1,'10–8–6–4–2 reps',st,m,w,{pattern:'upperPush',rest:'45–60s',focus:'Descending reps'});protocol='Ladder: one ascending and one descending rep scheme. Progress by completing the same ladder faster or adding load only when all reps remain technically clean.';
- }
- else if(type==='corebalance'){
-  const c1=choose(CORE_CLEAN,st,m,w,d,250,{exclude:/conditioning finisher/i}), c2=choose(BALANCE_POOL,st,m,w,d,251);body+=c1?row('CORE — ANTI-EXTENSION / ROTATION',c1,3,'20–40 sec',st,m,w,{pattern:'core',rest:'30–45s',focus:'Core control'}):'';body+=c2?row('BALANCE',c2,3,'20–40 sec / side',st,m,w,{pattern:'core',rest:'30–45s',focus:'Balance / proprioception'}):'';protocol='Core & balance: anti-extension/anti-rotation plus unilateral balance. Progress control and time before external load.';
- }
- else if(['mobilityflow','recovery'].includes(type)){
-  const count=type==='recovery'?4:6;for(let i=0;i<count;i++){const ex=MOBILITY_POOL[(seed(st,m,w,d,260+i))%MOBILITY_POOL.length];body+=row(type==='recovery'?'RECOVERY MOBILITY':'MOBILITY FLOW',ex,1,'30–60 sec',st,m,w,{pattern:'mobility',load:'Bodyweight / light band only',rest:'15–30s transition',rpe:type==='recovery'?'RPE 3–4':'RPE 3–5',rir:'—',focus:ex.target});}if(type==='recovery'){const cardio={name:'Easy Bike / Walk',muscle:'Cardiorespiratory',equip:'Bike/Treadmill'};body+=row('EASY AEROBIC',cardio,1,'15–25 min',st,m,w,{pattern:'conditioning',load:'Easy conversational pace',rest:'Continuous',rpe:'RPE 3–4',rir:'—',focus:'Active recovery'});}protocol=type==='recovery'?'Active recovery: easy aerobic work + mobility + breathing; no hard intervals.':'Mobility flow: controlled active range, breathing and position quality; no fatigue chasing.';
- }
- else if(['rehab','prehab'].includes(type)){
-  const a=choose(BALANCE_POOL,st,m,w,d,270), b=choose(MOBILITY_POOL,st,m,w,d,271), c=choose(EXO_POOL.upperPull,st,m,w,d,272);if(a)body+=row('STABILITY / BALANCE',a,2,'8–12 / side',st,m,w,{pattern:'core',load:'Bodyweight / light resistance',rest:'45–60s',rpe:'RPE 4–6',focus:'Movement quality'});if(b)body+=row('MOBILITY',b,2,'30–45 sec',st,m,w,{pattern:'mobility',load:'Bodyweight / light band',rest:'30–45s',rpe:'RPE 3–5',focus:b.target});if(c)body+=row('CONTROLLED STRENGTH',c,2,'10–15 reps',st,m,w,{pattern:'upperPull',rest:'60–90s',rpe:'RPE 5–6',focus:'Pain-free strength capacity'});protocol='Use pain-free ranges and conservative effort. Diagnosed conditions require appropriate professional assessment; the engine does not diagnose or treat.';
- }
- else if(type==='lowimpact'){
-  const ex=choose([{name:'Bike',muscle:'Cardiorespiratory',equip:'Bike'},{name:'Elliptical',muscle:'Cardiorespiratory',equip:'Elliptical'},{name:'Incline Walk',muscle:'Cardiorespiratory',equip:'Treadmill'},{name:'Row Erg — easy/moderate',muscle:'Full Body • Cardiorespiratory',equip:'Rower'}],st,m,w,d,280);body+=row('LOW-IMPACT CARDIO',ex,1,p.level==='beginner'?'20–30 min':'30–40 min',st,m,w,{pattern:'conditioning',load:'Joint-friendly resistance',rest:'Continuous',rpe:'RPE 5–6',rir:'—',focus:'Aerobic conditioning without high impact'});body+=coreRow(st,m,w,281,2,'20–40 sec',{block:'CORE / FINISHER'});protocol='Low-impact conditioning: no jumps or high-impact drills. Progress duration and resistance gradually.';
- }
- else if(type==='functional'){
-  const items=[choose(EXO_POOL.lower,st,m,w,d,290),choose(EXO_POOL.hinge,st,m,w,d,291),choose(CONDITIONING_POOL,st,m,w,d,292,{allowImpact:p.powerReady}),choose(CORE_CLEAN,st,m,w,d,293,{exclude:/conditioning finisher/i})].filter(Boolean);items.forEach((ex,i)=>body+=row(['UNILATERAL / SQUAT','HINGE','CARRY / LOCOMOTION','TRUNK CONTROL'][i],ex,2,pr.reps,st,m,w,{pattern:i===0?'lower':i===1?'hinge':i===3?'core':'conditioning',rest:'60–90s',focus:'Real-world movement capacity'}));protocol='Functional fitness: multi-planar, unilateral, carry/locomotion and trunk-control patterns; exercise choice is driven by the client profile and goal.';
- }
- else if(type==='auto'){
-  const autoGoal=p.goal.toLowerCase(); if(/strength|muscle|hypertrophy/.test(autoGoal)) return cleanEngine({...st,wtype:'hypertrophy'},m,w,d); if(/mobility|recovery|rehab|prehab/.test(autoGoal)) return cleanEngine({...st,wtype:'mobilityflow'},m,w,d); if(/aerobic|cardio|endurance/.test(autoGoal)) return cleanEngine({...st,wtype:'zone2'},m,w,d); return cleanEngine({...st,wtype:'fullbody'},m,w,d);
- }
- else {
-  body=strengthRows(st,m,w,d,['lower','upperPush','upperPull','hinge'],['LOWER','PUSH','PULL','HINGE'])+coreRow(st,m,w,300+d,2,'20–45 sec',{block:'CORE / FINISHER'});protocol='Goal-based resistance session with movement quality, progressive overload and a dedicated final core/finisher block.';
- }
- return {title,body,protocol,profile:p,pr};
-}
-function buildUniqueSessionDay(st,m,w,d){
- const out=cleanEngine(st,m,w,d), p=out.profile, pr=out.pr;
- return `<div class="notice" style="margin:8px 0"><b>${out.title}</b></div>${finishNotice(out.protocol)}<div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Recommended Load</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${out.body}</tbody></table></div>`;
-}
-window.__FJCleanWorkoutEngineVersion=CLEAN_ENGINE_VERSION;
-window.buildUniqueSessionDay=buildUniqueSessionDay;
-})();
-</script>\n<style id="fj-v50-session-final-compact">
+function n(v){return Number(v)||0}
+function profile(st){const age=n(st.age),wt=n(st.weight),ht=n(st.height),bmi=wt&&ht?wt/((ht/100)**2):0;let level=String(resolveProgramLevel(st)||st.level||'intermediate').toLowerCase();if(level==='auto')level=age>=55||bmi>=30?'beginner':'intermediate';const goal=String(st.g||st.goal||'General Fitness'),sex=String(st.gender||'').toLowerCase();const conservative=age>=55||bmi>=30||level==='beginner'||/rehab|rehabil|prehab|recovery|mobility|return to exercise/i.test(goal);return{age,wt,ht,bmi,level,goal,sex,conservative,advanced:level==='advanced'&&!conservative}}
+function seed(st,m,w,d,k){return Math.abs(fjHash('V52',st.name,st.gender,st.age,st.weight,st.height,st.level,st.g,st.wtype,m,w,d,k))}
+function compatible(pool,p,opts={}){return(pool||[]).filter(e=>{if(!e)return false;if(!opts.allowImpact&&p.conservative&&IMPACT.test(e.name))return false;if(opts.exclude&&opts.exclude.test(e.name))return false;if(opts.must&&!opts.must.test((e.name||'')+' '+(e.muscle||'')))return false;return true})}
+function pick(pool,st,m,w,d,k,used=new Set(),opts={}){const p=profile(st);let a=compatible(pool,p,opts);if(!a.length)return null;let fresh=a.filter(e=>!used.has(e.name));if(fresh.length)a=fresh;const x=a[seed(st,m,w,d,k)%a.length];if(x)used.add(x.name);return x}
+function prep(st,m,w,d,type,focus){const special=/mobility|recovery|rehab|prehab/.test(type);const conditioning=/hiit|tabata|emom|amrap|fortime|metcon|circuit|hyrox|ocr|runlift/.test(type);const a=special?['Breathing + joint mobility','Controlled dynamic range','Specific movement preparation']:conditioning?['3–5 min easy aerobic warm-up','Dynamic movement preparation','Workout-specific rehearsal']:['3–5 min easy aerobic warm-up','Dynamic warm-up: hips, shoulders, trunk','Specific preparation: '+focus];return a.map((x,i)=>`<tr><td><b>PREP ${i+1}</b></td><td><b>${x}</b></td><td>1</td><td>${i===0?'3–5 min':'5–8 reps / side'}</td><td>Bodyweight</td><td>RPE 3–5</td><td>—</td><td>15–30s</td><td>Move smoothly; no fatigue.</td><td>${focus}</td><td>Bodyweight</td></tr>`).join('')}
+function prescription(st,m){const p=profile(st),g=p.goal.toLowerCase();let sets=3,reps='8–12',rest='90s',rpe='RPE 7–8',rir='2 RIR';if(/strength/.test(g)){sets=4;reps='3–6';rest='150–210s';rpe='RPE 7–9';rir='1–3 RIR'}else if(/power|speed|agility/.test(g)){sets=3;reps='3–5';rest='120–180s';rpe='RPE 6–8';rir='2–3 RIR'}else if(/hypertrophy|muscle|recomp/.test(g)){sets=m>=4?4:3;reps='6–12';rest='75–120s';rpe='RPE 7–9';rir='1–3 RIR'}else if(/mobility|rehab|prehab|recovery/.test(g)){sets=2;reps='8–15';rest='45–60s';rpe='RPE 4–6';rir='3–5 RIR'}else if(/endurance|fat loss|weight management/.test(g)){sets=3;reps='10–15';rest='45–75s';rpe='RPE 7–8';rir='2–3 RIR'}if(p.level==='beginner'){sets=Math.min(3,sets);rpe='RPE 6–7';rir='3 RIR'}if(p.age>=55){sets=Math.max(2,sets-1);rpe='RPE 6–7'}return{sets,reps,rest,rpe,rir}}
+function load(st,pattern,m,w,reps){const p=profile(st),r=parseFloat(String(reps).match(/\d+/)?.[0]||8),e1=st.e1rm&&n(st.e1rm[pattern]);let pct=/strength/.test(p.goal.toLowerCase())?.8:/hypertrophy|muscle|recomp/i.test(p.goal)?.72:/power|speed/i.test(p.goal)?.45:.60;if(p.level==='beginner')pct*=.78;if(p.age>=55)pct*=.9;if(p.sex==='female')pct*=.95;const phase=1+Math.min(.12,(m-1)*.008+w*.004);if(e1)return`≈ ${roundLoad(e1/(1+r/30)*pct*phase*.95,'total')}–${roundLoad(e1/(1+r/30)*pct*phase*1.05,'total')} kg`;if(/core|conditioning|mobility|balance/.test(pattern))return'Bodyweight / light resistance';if(!p.wt)return'Choose load at target RPE';const base={lower:.30,hinge:.30,upperPush:.16,upperPull:.15,arms:.08}[pattern]||.15;let kg=p.wt*base*pct*phase;if(p.bmi>=30)kg*=.9;return`≈ ${roundLoad(Math.max(2.5,kg*.9),'total')}–${roundLoad(Math.max(5,kg*1.1),'total')} kg`}
+function row(block,ex,sets,reps,st,m,w,o={}){return`<tr><td><b>${block}</b></td><td><b>${ex.name}</b></td><td>${sets}</td><td>${reps}</td><td><b>${o.load||load(st,o.pattern||'conditioning',m,w,reps)}</b></td><td>${o.rpe||'RPE 7–8'}</td><td>${o.rir||'2 RIR'}</td><td>${o.rest||'60–90s'}</td><td>${o.next||'Progress reps/time first; add load only when target RPE and technique are maintained.'}</td><td>${o.focus||ex.muscle||'Movement quality'}</td><td>${ex.equip||'Bodyweight'}</td></tr>`}
+function resistance(st,m,w,d,patterns,labels,count,opts={}){const pr=prescription(st,m),u=opts.used||new Set(),out=[];for(let i=0;i<count;i++){const pat=patterns[i%patterns.length],ex=pick(EXO_POOL[pat],st,m,w,d,100+i,u,opts);if(ex)out.push(row(labels[i]||`BLOCK ${i+1}`,ex,opts.sets||pr.sets,opts.reps||pr.reps,st,m,w,{pattern:pat,rest:opts.rest||pr.rest,rpe:opts.rpe||pr.rpe,rir:opts.rir||pr.rir,focus:ex.muscle,next:opts.next||'Add reps/time before increasing load.'}))}return out.join('')}
+function coreRows(st,m,w,d,block='CORE',count=2){const u=new Set(),out=[];for(let i=0;i<count;i++){const ex=pick(CORE,st,m,w,d,500+i,u);if(ex)out.push(row(block,ex,2,i?'8–15 reps':'20–40 sec / side',st,m,w,{pattern:'core',rest:'30–45s',rpe:'RPE 6–7',rir:'2–3 RIR',focus:'Trunk stability / control'}))}return out.join('')}
+function cardio(st,m,w,d,label,reps,focus){const p=profile(st),pool=[{name:'Bike',muscle:'Cardiorespiratory',equip:'Bike'},{name:'Treadmill Walk / Jog',muscle:'Cardiorespiratory',equip:'Treadmill'},{name:'Row Erg',muscle:'Cardiorespiratory',equip:'Rower'}];const ex=pick(pool,st,m,w,d,700,new Set());return row(label,ex,1,reps,st,m,w,{pattern:'conditioning',load:'Resistance matched to target RPE',rest:'Continuous',rpe:p.conservative?'RPE 5–6':'RPE 6–7',rir:'—',focus})}
+function engine(st,m,w,d){const t=String(st.wtype||'standard').toLowerCase(),p=profile(st),pr=prescription(st,m),u=new Set();let body='',protocol='';
+if(t==='standard'||t==='fullbody'||t==='totalbody'){body=prep(st,m,w,d,t,'full-body compound preparation')+resistance(st,m,w,d,['lower','upperPush','upperPull','hinge'],['MAIN LOWER','MAIN PUSH','MAIN PULL','MAIN HINGE'],4,{used:u})+coreRows(st,m,w,d,'CORE',2);protocol='Full Body: preparation → highest-demand compound work → complementary compound work → trunk work.'}
+else if(t==='hypertrophy'){body=prep(st,m,w,d,t,'target-muscle preparation')+resistance(st,m,w,d,['lower','upperPush','upperPull','hinge','upperPush'],['MAIN LOWER','MAIN PUSH','MAIN PULL','POSTERIOR CHAIN','SECONDARY PUSH'],5,{used:u,exclude:/kettlebell swing|conditioning finisher/i})+resistance(st,m,w,d,['arms'],['ACCESSORY'],1,{used:u,exclude:/diamond push-up/i,sets:3,reps:'10–15',rest:'60–90s'});protocol='Hypertrophy: preparation → large multi-joint work → secondary work → controlled local accessory work. Ballistic conditioning is excluded.'}
+else if(t==='strengthpower'){body=prep(st,m,w,d,t,'strength and power preparation');if(p.advanced){const ex=pick(CONDITIONING_POOL,st,m,w,d,610,u,{must:/box jump|jump|slam|throw|sprint/i});if(ex)body+=row('POWER PRIMER',ex,3,'3–5 reps',st,m,w,{pattern:'conditioning',rest:'120–180s',rpe:'RPE 6–7',rir:'—',focus:'Explosive intent'})}body+=resistance(st,m,w,d,['lower','upperPush','upperPull','hinge'],['PRIMARY LOWER','PRIMARY PUSH','PRIMARY PULL','POSTERIOR CHAIN'],4,{used:u});protocol='Strength & Power: dynamic preparation → optional explosive primer → heavy compound work. No fatigue finisher.'}
+else if(t==='upperlower'){const upper=d%2===0;body=prep(st,m,w,d,t,upper?'upper-body preparation':'lower-body preparation')+resistance(st,m,w,d,upper?['upperPush','upperPull','upperPush','upperPull']:['lower','hinge','lower','hinge'],upper?['COMPOUND PUSH','COMPOUND PULL','SECONDARY PUSH','SECONDARY PULL']:['COMPOUND SQUAT','COMPOUND HINGE','SECONDARY SQUAT','SECONDARY HINGE'],4,{used:u})+coreRows(st,m,w,d,'CORE',1);protocol=upper?'Upper day: push/pull balance with compound work first.':'Lower day: squat/unilateral + hinge balance with compound work first.'}
+else if(t==='ppl'){const day=['Push','Pull','Legs'][d%3];const pats=day==='Push'?['upperPush','upperPush','upperPush','upperPush']:day==='Pull'?['upperPull','upperPull','upperPull','upperPull']:['lower','hinge','lower','hinge'];body=prep(st,m,w,d,t,day+' preparation')+resistance(st,m,w,d,pats,[day.toUpperCase()+' MAIN 1',day.toUpperCase()+' MAIN 2',day.toUpperCase()+' SECONDARY 1',day.toUpperCase()+' SECONDARY 2'],4,{used:u});protocol=`PPL ${day}: only the target region/patterns for the day, with the most demanding movement first.`}
+else if(t==='bro'){const day=['Chest','Back','Shoulders','Arms','Legs'][d%5],pats=day==='Chest'?['upperPush','upperPush','upperPush','upperPush']:day==='Back'?['upperPull','upperPull','upperPull','upperPull']:day==='Shoulders'?['upperPush','upperPush','upperPush','upperPush']:day==='Arms'?['arms','arms','arms','arms']:['lower','lower','hinge','lower'];const opts=day==='Shoulders'?{must:/shoulder|overhead|landmine|pike|arnold/i}:{exclude:/kettlebell swing/i};body=prep(st,m,w,d,t,day+' preparation')+resistance(st,m,w,d,pats,[day.toUpperCase()+' 1',day.toUpperCase()+' 2',day.toUpperCase()+' 3',day.toUpperCase()+' 4'],4,{used:u,...opts});protocol=`Body-Part Split: ${day}-focused session; movements are selected for the target area rather than random full-body rotation.`}
+else if(t==='superset'){const pairs=[['upperPush','upperPull'],['lower','core'],['upperPush','arms'],['hinge','core']];const pair=pairs[d%pairs.length];body=prep(st,m,w,d,t,'paired movement preparation');for(let i=0;i<4;i++){const pat=pair[i%2],ex=pick(pat==='core'?CORE:EXO_POOL[pat],st,m,w,d,800+i,u);if(ex)body+=row(`SUPERSET ${Math.floor(i/2)+1} • ${i%2?'B':'A'}`,ex,3,pr.reps,st,m,w,{pattern:pat,rest:'0–20s between A/B; 60–90s after pair',rpe:pr.rpe,rir:pr.rir,focus:'Paired movement'})}protocol='Superset: A → B with minimal transition, then recover; pairing is complementary rather than random.'}
+else if(t==='giantset'){const patterns=d%2===0?['upperPush','upperPush','upperPull','arms']:['lower','hinge','lower','core'];body=prep(st,m,w,d,t,'multi-angle preparation')+resistance(st,m,w,d,patterns,['GIANT SET A','GIANT SET B','GIANT SET C','GIANT SET D'],4,{used:u,sets:3,reps:'10–15',rest:'15–20s transitions; 90s after round'});protocol='Giant Set: four compatible movements performed consecutively with short transitions, then recover.'}
+else if(t==='cluster'){body=prep(st,m,w,d,t,'heavy compound preparation')+resistance(st,m,w,d,['lower','upperPush','upperPull','hinge'],['CLUSTER LOWER','CLUSTER PUSH','CLUSTER PULL','CLUSTER HINGE'],4,{used:u,reps:'2+2+2 reps',rest:'15–20s intra-cluster; 2–3 min between sets'});protocol='Cluster Sets: small intra-set pauses preserve quality and force production; full recovery between sets.'}
+else if(t==='tempo'){body=prep(st,m,w,d,t,'controlled eccentric preparation')+resistance(st,m,w,d,['lower','upperPush','upperPull','hinge'],['TEMPO LOWER','TEMPO PUSH','TEMPO PULL','TEMPO HINGE'],4,{used:u,reps:'6–10 reps @ 3-1-1 tempo',rest:'90–120s'});protocol='Tempo: controlled eccentric phase, brief pause, then deliberate concentric phase.'}
+else if(t==='contrast'){body=prep(st,m,w,d,t,'strength and explosive preparation');const heavy=pick(EXO_POOL.lower,st,m,w,d,820,u,{});const explosive=p.advanced?pick(CONDITIONING_POOL,st,m,w,d,821,u,{must:/jump|box jump|slam/i}):null;if(heavy)body+=row('CONTRAST A • STRENGTH',heavy,3,'3–5 reps',st,m,w,{pattern:'lower',rest:'15–30s to B; 2–3 min after pair',rpe:'RPE 7–8',rir:'2 RIR',focus:'High-force movement'});if(explosive)body+=row('CONTRAST B • POWER',explosive,3,'3–5 reps',st,m,w,{pattern:'conditioning',load:'Explosive bodyweight / light implement',rest:'2–3 min',rpe:'RPE 6–7',rir:'—',focus:'Speed of movement'});body+=resistance(st,m,w,d,['upperPush','upperPull'],['UPPER STRENGTH','UPPER PULL'],2,{used:u});protocol='Contrast: heavy strength movement paired with a biomechanically related explosive movement when readiness allows.'}
+else if(t==='hybrid'){body=prep(st,m,w,d,t,'strength + conditioning preparation')+resistance(st,m,w,d,['lower','upperPush','hinge'],['STRENGTH LOWER','STRENGTH PUSH','STRENGTH HINGE'],3,{used:u})+cardio(st,m,w,d,'CONDITIONING','8–12 min','Aerobic / metabolic finish');protocol='Hybrid: strength quality first, then a controlled conditioning component.'}
+else if(t==='functional'){body=prep(st,m,w,d,t,'multi-planar movement preparation')+resistance(st,m,w,d,['lower','upperPush','upperPull','hinge'],['SQUAT','PUSH','PULL','HINGE'],4,{used:u})+coreRows(st,m,w,d,'CORE / CONTROL',2);protocol='Functional: squat, push, pull, hinge and trunk control with movement quality prioritized.'}
+else if(t==='corebalance'){body=prep(st,m,w,d,t,'trunk and balance preparation')+coreRows(st,m,w,d,'CORE',3)+resistance(st,m,w,d,['lower','upperPull'],['BALANCE','STABILITY'],2,{used:u,sets:2,reps:'8–12'});protocol='Core & Balance: trunk control and balance first; resistance is supportive and low complexity.'}
+else if(t==='lowimpact'){body=prep(st,m,w,d,t,'low-impact aerobic preparation')+cardio(st,m,w,d,'LOW-IMPACT AEROBIC','15–25 min','Cardiorespiratory conditioning')+resistance(st,m,w,d,['lower','upperPush','upperPull'],['LOW-IMPACT STRENGTH 1','LOW-IMPACT STRENGTH 2','LOW-IMPACT STRENGTH 3'],3,{used:u,reps:'10–15',sets:2,rest:'45–60s'});protocol='Low Impact: joint-friendly aerobic work plus simple resistance; no jumping or high-impact drills.'}
+else if(t==='circuit'||t==='metcon'||t==='hiit'||t==='emom'||t==='amrap'||t==='fortime'||t==='tabata'||t==='density'||t==='ladder'){body=prep(st,m,w,d,t,'metabolic preparation');const specs={circuit:['10–15 reps','40s work / 20s transition','3 rounds'],metcon:['8–15 reps','30–45s work / 15–30s transition','3 rounds'],hiit:['30–40s work','20s recovery','4 rounds'],emom:['Complete in ≤40s','remaining minute recovery','8–12 min'],amrap:['8–12 reps','self-regulated recovery','10–15 min'],fortime:['8–15 reps','transition as needed','time cap'],tabata:['20s work / 10s rest','10s transition','8 rounds'],density:['quality reps','self-regulated recovery','12 min'],ladder:['2–4–6–8–10 reps','45–60s','1–3 cycles']}[t];const pools=[CONDITIONING_POOL,EXO_POOL.lower,EXO_POOL.upperPush,EXO_POOL.upperPull,EXO_POOL.hinge,CORE],count=t==='tabata'?4:6;for(let i=0;i<count;i++){const pool=pools[i%pools.length],ex=pick(pool,st,m,w,d,900+i,u,{exclude:/conditioning finisher|turkish get-up/i});if(ex)body+=row(`${t.toUpperCase()} ${i+1}`,ex,specs[2],specs[0],st,m,w,{pattern:pool===CORE?'core':pool===CONDITIONING_POOL?'conditioning':pool===EXO_POOL.lower?'lower':pool===EXO_POOL.hinge?'hinge':pool===EXO_POOL.upperPull?'upperPull':'upperPush',rest:specs[1],rpe:t==='tabata'?'RPE 8–9':'RPE 7–8',rir:'—',focus:'Metabolic conditioning'});}protocol=t==='tabata'?'TABATA: 20s work / 10s rest × 8 rounds per movement.':t==='emom'?'EMOM: begin each movement at the top of the minute and finish inside the minute.':t==='amrap'?'AMRAP: repeat the prescribed work continuously for the time cap.':t==='fortime'?'FOR TIME: complete the prescribed sequence as quickly as safely possible.':t==='hiit'?'HIIT: work interval followed by planned recovery; quality remains higher priority than exhaustion.':t==='density'?'Density: accumulate quality work in a fixed time window.':t==='ladder'?'Ladder: controlled ascending/descending repetitions.':t==='metcon'?'METCON: mixed-modal conditioning with compatible movements.':'Circuit: move station-to-station with controlled transitions.'}
+else if(t==='zone2'||t==='engine'){body=prep(st,m,w,d,t,'aerobic preparation')+cardio(st,m,w,d,t==='zone2'?'ZONE 2':'ENGINE',t==='zone2'?'25–45 min':'4 × 4 min work / 2 min easy','Cardiorespiratory endurance')+cardio(st,m,w,d,'AUXILIARY AEROBIC','8–12 min','Easy aerobic capacity');protocol=t==='zone2'?'Continuous aerobic work at conversational RPE 5–6.':'4 × 4-minute aerobic intervals with 2-minute easy recovery, followed by easy aerobic work.'}
+else if(t==='runlift'){body=prep(st,m,w,d,t,'running preparation');for(let i=0;i<3;i++){body+=row(`RUN ${i+1}`,{name:'Run / Jog',muscle:'Cardiorespiratory',equip:'Track / Treadmill'},1,p.conservative?'300 m':'400 m',st,m,w,{pattern:'conditioning',load:'Bodyweight',rest:'Transition',rpe:'RPE 6–7',rir:'—',focus:'Running'});const pats=['lower','upperPush','hinge'];const ex=pick(EXO_POOL[pats[i]],st,m,w,d,1100+i,u);if(ex)body+=row(`LIFT ${i+1}`,ex,2,pr.reps,st,m,w,{pattern:pats[i],rest:'60–90s',rpe:pr.rpe,rir:pr.rir,focus:'Strength station'})}protocol='Run + Lift: run segment → strength station → transition, repeated with controlled volume.'}
+else if(t==='ocr'){body=prep(st,m,w,d,t,'running, grip and obstacle preparation');const items=[{name:'Run / Shuttle Run',muscle:'Cardiorespiratory',equip:'Track'},{name:"Farmer's Carry",muscle:'Grip • Core',equip:'Dumbbells'},{name:'Bear Crawl',muscle:'Full Body • Core',equip:'Bodyweight'},{name:'Sandbag Carry',muscle:'Grip • Full Body',equip:'Sandbag'},{name:'Sled Pull',muscle:'Grip • Posterior Chain',equip:'Sled'},{name:'Dead Hang / Grip Hold',muscle:'Grip • Upper Body',equip:'Pull-Up Bar'}];items.forEach((x,i)=>body+=row(`OCR ${i+1}`,x,3,i===0?'300–500 m':i===5?'20–40 sec':'30–60 m',st,m,w,{pattern:'conditioning',rest:'30–60s transition',rpe:'RPE 7–8',rir:'—',focus:'Run + grip + carry + crawl'}));protocol='OCR: running, grip, carries and crawling/obstacle capacity in a progressive sequence.'}
+else if(t==='hyrox'){body=prep(st,m,w,d,t,'running and station-specific preparation');const stations=[{name:'SkiErg',muscle:'Full Body • Cardiorespiratory',equip:'SkiErg',work:'1,000 m'},{name:'Sled Push',muscle:'Legs • Full Body',equip:'Sled',work:'50 m'},{name:'Sled Pull',muscle:'Posterior Chain • Grip',equip:'Sled',work:'50 m'},{name:'Burpee Broad Jumps',muscle:'Full Body',equip:'Bodyweight',work:'80 m'},{name:'Rowing Erg',muscle:'Full Body • Cardiorespiratory',equip:'Rower',work:'1,000 m'},{name:"Farmer's Carry",muscle:'Grip • Core • Legs',equip:'Dumbbells',work:'200 m'},{name:'Sandbag Lunges',muscle:'Legs • Glutes • Core',equip:'Sandbag',work:'100 m'},{name:'Wall Balls',muscle:'Legs • Shoulders • Core',equip:'Medicine Ball',work:'100 reps'}];stations.forEach((x,i)=>{if(x.name==='Burpee Broad Jumps'&&p.conservative)return;body+=row(`HYROX STATION ${i+1}`,x,1,x.work,st,m,w,{pattern:'conditioning',load:'Scale resistance to client level and target RPE',rest:'Transition',rpe:'RPE 7–8',rir:'—',focus:'HYROX station sequence'});});protocol='HYROX: 1 km run followed by each station in the official sequence; scale resistance and impact to client readiness.'}
+else if(t==='mobilityflow'||t==='recovery'||t==='rehab'||t==='prehab'){body=prep(st,m,w,d,t,'joint-specific preparation');const pool=MOBILITY_POOL||[],count=t==='recovery'?5:6;for(let i=0;i<count;i++){const ex=pool[seed(st,m,w,d,1200+i)%pool.length];if(ex)body+=row(t.toUpperCase(),ex,1,'30–60 sec',st,m,w,{pattern:'mobility',load:'Bodyweight / light band',rest:'15–30s',rpe:t==='recovery'?'RPE 3–4':'RPE 3–5',rir:'—',focus:'Controlled range of motion'})}if(t==='recovery')body+=cardio(st,m,w,d,'EASY AEROBIC','15–25 min','Recovery');protocol=t==='rehab'||t==='prehab'?'Pain-free, controlled movement only; clinical restrictions should override generic programming.':t==='recovery'?'Easy aerobic work + mobility; no hard intervals.':'Controlled mobility through useful ranges; no fatigue chasing.'}
+else {body=prep(st,m,w,d,t,'full-body preparation')+resistance(st,m,w,d,['lower','upperPush','upperPull','hinge'],['MAIN LOWER','MAIN PUSH','MAIN PULL','MAIN HINGE'],4,{used:u})+coreRows(st,m,w,d,'CORE',2);protocol='Structured full-body sequence.'}
+return{title:TYPE_LABEL[t]||'Workout',body,protocol,p,pr}}
+function buildUniqueSessionDay(st,m,w,d){const o=engine(st,m,w,d);return `<div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Recommended Load</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${o.body}</tbody></table></div>`}
+function updateWorkoutTypeOptions(){const g=(document.getElementById('programGoal')?.value||'').toLowerCase(),sel=document.getElementById('programWorkoutType');if(!sel)return;const key=Object.keys(GOAL_TYPES).sort((a,b)=>b.length-a.length).find(k=>g.includes(k));const allowed=key?GOAL_TYPES[key]:null;Array.from(sel.options).forEach(o=>{o.disabled=!!allowed&&!allowed.includes(o.value)&&o.value!=='auto'});if(allowed&&!allowed.includes(sel.value)&&sel.value!=='auto')sel.value=allowed[0];}
+const oldNote=window.updateWorkoutTypeNote;window.updateWorkoutTypeNote=function(){updateWorkoutTypeOptions();if(typeof oldNote==='function')try{oldNote()}catch(e){}};
+window.__FJCleanWorkoutEngineVersion=V;window.buildUniqueSessionDay=buildUniqueSessionDay;setTimeout(updateWorkoutTypeOptions,0);window.addEventListener('load',updateWorkoutTypeOptions);
+})();</script>\n<style id="fj-v50-session-final-compact">
 /* V50: final session-only layout cleanup. */
 #trainingResult .program-session-tabs{
   width:100%!important; max-width:100%!important; min-width:0!important;

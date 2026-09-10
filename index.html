@@ -1735,15 +1735,134 @@ showProgramWeek(1,0);
 function showProgramWeek(month,weekIndex){
  const st=window.__FJAdvancedState;if(!st)return;const target=document.getElementById('program-week-detail-'+month);if(!target)return;
  const panel=document.getElementById('program-week-panel-'+month);const tabs=panel?.parentElement?.querySelectorAll('.program-week-tabs .program-week-tab')||[];tabs.forEach((b,i)=>b.classList.toggle('active',i===weekIndex));
- const m=month, wi=weekIndex, phase=m<=Math.ceil(st.months*.25)?'FOUNDATION':m<=Math.ceil(st.months*.55)?'BUILD':m<=Math.ceil(st.months*.85)?'PROGRESS':'CONSOLIDATE / REASSESS';
- const reps=st.g==='Strength'&&m>Math.ceil(st.months*.55)?'3–5':st.g==='Hypertrophy'&&m>Math.ceil(st.months*.55)?'6–10':st.cfg[2];const phaseBoost=phase==='FOUNDATION'?0:phase==='BUILD'?8:phase==='PROGRESS'?16:22;
- const sessionTabs=Array.from({length:st.freq},(_,i)=>{
-  const label=String.fromCharCode(65+i);
-  return `<button type="button" class="program-session-tab${i===0?' active':''}" data-session="${i}" onclick="showProgramSession(${month},${weekIndex},${i})"><span>SESSION ${label}</span></button>`;
- }).join('');
+ const sessionTabs=Array.from({length:Math.max(1,Number(st.freq)||3)},(_,i)=>{const label=String.fromCharCode(65+i);return `<button type="button" class="program-session-tab${i===0?' active':''}" data-session="${i}" onclick="showProgramSession(${month},${weekIndex},${i})"><span>SESSION ${label}</span></button>`}).join('');
  target.innerHTML=`<div class="program-session-tabs">${sessionTabs}</div><div id="program-session-detail-${month}-${weekIndex}"></div>`;
  showProgramSession(month,weekIndex,0);
 }
+
+/* V30 presentation rule: every compact table value is limited to two visual lines. */
+(function(){const st=document.createElement('style');st.id='fj-v30-compact-table';st.textContent=`
+.program-day-table{table-layout:fixed;width:100%;min-width:1180px}
+.program-day-table th,.program-day-table td{vertical-align:top;line-height:1.25;overflow:hidden}
+.program-day-table th:nth-child(1){width:105px}.program-day-table th:nth-child(2){width:220px}.program-day-table th:nth-child(3){width:92px}.program-day-table th:nth-child(4){width:115px}.program-day-table th:nth-child(5){width:175px}.program-day-table th:nth-child(6){width:72px}.program-day-table th:nth-child(7){width:62px}.program-day-table th:nth-child(8){width:105px}.program-day-table th:nth-child(9){width:190px}.program-day-table th:nth-child(10){width:150px}.program-day-table th:nth-child(11){width:105px}
+.fj-cell2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;max-height:2.5em;overflow-wrap:anywhere;word-break:break-word}
+@media(max-width:700px){.program-day-table{min-width:1180px}.program-day-table th:nth-child(2){width:190px}.program-day-table th:nth-child(5){width:160px}.program-day-table th:nth-child(9){width:175px}}
+`;document.head.appendChild(st)})();
+
+/* ================= V30 CLEAN TRAINING PROGRAM ENGINE =================
+   Rebuilt from V22. No V24/V25/V26/V27/V28/V29 selector logic is used here.
+   Architecture: client profile -> safety/eligibility -> goal -> workout type ->
+   exact resistance -> program structure -> exercise selection -> prescription -> progression.
+*/
+const FJ30_GOAL={
+ Strength:{patterns:['lower','hinge','upperPush','upperPull'],style:'strength'},
+ Power:{patterns:['lower','hinge','upperPush','upperPull','conditioning'],style:'power'},
+ Hypertrophy:{patterns:['lower','upperPush','upperPull','hinge'],style:'hypertrophy'},
+ 'Muscle Gain':{patterns:['lower','upperPush','upperPull','hinge'],style:'hypertrophy'},
+ 'Body Recomposition':{patterns:['lower','upperPush','upperPull','hinge'],style:'hypertrophy'},
+ 'Fat Loss':{patterns:['lower','upperPush','upperPull','hinge','conditioning'],style:'fatloss'},
+ 'Healthy Weight Management':{patterns:['lower','upperPush','upperPull','hinge','conditioning'],style:'fatloss'},
+ 'Muscular Endurance':{patterns:['lower','upperPush','upperPull','hinge'],style:'endurance'},
+ 'Strength Endurance':{patterns:['lower','upperPush','upperPull','hinge'],style:'endurance'},
+ 'Aerobic Endurance':{patterns:['conditioning'],style:'aerobic'},
+ 'Cardiorespiratory Fitness':{patterns:['conditioning'],style:'aerobic'},
+ 'Work Capacity':{patterns:['lower','upperPush','upperPull','hinge','conditioning'],style:'work'},
+ 'General Fitness':{patterns:['lower','hinge','upperPush','upperPull'],style:'general'},
+ 'Functional Fitness':{patterns:['lower','hinge','upperPush','upperPull'],style:'functional'},
+ 'Healthy Aging':{patterns:['lower','hinge','upperPush','upperPull'],style:'aging'},
+ Longevity:{patterns:['lower','hinge','upperPush','upperPull'],style:'aging'},
+ 'Hybrid Athlete':{patterns:['lower','hinge','upperPush','upperPull','conditioning'],style:'hybrid'},
+ Performance:{patterns:['lower','hinge','upperPush','upperPull','conditioning'],style:'performance'},
+ 'Sport-Specific Performance':{patterns:['lower','hinge','upperPush','upperPull','conditioning'],style:'performance'},
+ 'Speed & Agility':{patterns:['lower','upperPush','upperPull','conditioning'],style:'power'},
+ 'Coordination & Balance':{patterns:['lower','upperPull','hinge','core'],style:'balance'},
+ 'Core Stability':{patterns:['core','lower','upperPull','hinge'],style:'core'},
+ 'Posture & Movement Quality':{patterns:['upperPull','hinge','lower','upperPush'],style:'movement'},
+ 'Injury Prevention':{patterns:['upperPull','lower','hinge','upperPush'],style:'corrective'},
+ Rehabilitation:{patterns:['upperPull','lower','hinge','upperPush'],style:'corrective'},
+ Prehabilitation:{patterns:['upperPull','lower','hinge','upperPush'],style:'corrective'},
+ 'Return to Exercise':{patterns:['lower','upperPull','upperPush','hinge'],style:'corrective'},
+ Mobility:{patterns:['lower','upperPull','hinge','upperPush'],style:'mobility'},
+ 'Recovery & Resilience':{patterns:['lower','upperPull','hinge'],style:'mobility'},
+ 'Low-Impact Fitness':{patterns:['lower','upperPush','upperPull','conditioning'],style:'lowimpact'}
+};
+function fj30Hash(v){let h=2166136261>>>0;for(const c of String(v??'')){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function fj30BMI(st){const h=Number(st.height)||0,w=Number(st.weight)||0;if(!h||!w)return null;const b=w/Math.pow(h/100,2);return {v:b,cat:b<18.5?'under':b<25?'normal':b<30?'over':'high'} }
+function fj30Profile(st){const bmi=fj30BMI(st),age=Number(st.age)||0,level=resolveProgramLevel(st),r=String(st.readiness||'').toLowerCase(),med=String(st.medical||'').toLowerCase();return {age,bmi,level,lowReadiness:/low|poor|very low|rendah|buruk|fatigue/.test(r),knee:/(knee|lutut|acl|meniscus|patella)/.test(med),back:/(back|lumbar|spine|disc|hernia|punggung|pinggang)/.test(med),shoulder:/(shoulder|rotator|bahu)/.test(med),impact:/(impact|ankle|shin|joint|pain|ache)/.test(med)} }
+function fj30Safe(ex,p){if(!ex)return false;const n=String(ex.name||'').toLowerCase();if((p.age>=65||p.lowReadiness||p.impact)&&/box jump|jump squat|plyo|burpee|double under|sprint|broad jump|depth jump/.test(n))return false;if(p.knee&&/jump|sprint|deep squat|pistol|walking lunge|split squat/.test(n))return false;if(p.back&&/deadlift|good morning|heavy swing|bent-over row/.test(n))return false;if(p.shoulder&&/overhead|shoulder press|snatch|push press|dip|bench press/.test(n))return false;return true}
+function fj30Exact(pool,res){const a=[...new Map((pool||[]).filter(Boolean).map(x=>[x.name,x])).values()];return !res||res==='Mixed'?a:a.filter(x=>String(x.equip||'').toLowerCase()===String(res).toLowerCase())}
+function fj30GoalScore(ex,st,pattern,slot,phase){const g=st.g||'General Fitness', fam=FJ30_GOAL[g]||FJ30_GOAL['General Fitness'],n=String(ex.name||'').toLowerCase(),m=String(ex.muscle||'').toLowerCase();let s=0;
+ if(fam.style==='strength'){if(slot===0&&/squat|deadlift|press|row|pull-up|pulldown/.test(n))s+=35;if(/barbell|machine/.test(ex.equip||''))s+=5}
+ if(fam.style==='power'){if(/jump|plyo|swing|push press|slam|sled/.test(n))s+=40;if(slot===0)s+=15}
+ if(fam.style==='hypertrophy'){if(/squat|lunge|press|row|pulldown|curl|extension|pushdown|hip thrust/.test(n))s+=25;if(/machine|cable|dumbbell|band/.test(ex.equip||''))s+=5}
+ if(fam.style==='endurance'){if(/band|cable|machine|bodyweight|carry/.test(ex.equip||''))s+=15}
+ if(fam.style==='fatloss'||fam.style==='work'){if(/squat|lunge|row|press|swing|carry|burpee|sled|rope|bike/.test(n))s+=25}
+ if(fam.style==='functional'||fam.style==='general'||fam.style==='hybrid'||fam.style==='performance'){if(/unilateral|lunge|step|carry|row|press|squat|hinge/.test(n))s+=12}
+ if(fam.style==='aging'||fam.style==='lowimpact'){if(/step|row|machine|cable|band|goblet|carry/.test(n))s+=15}
+ if(fam.style==='balance'){if(/balance|single|carry|plank/.test(n))s+=30}
+ if(fam.style==='core'){if(pattern==='core'||/carry|plank|pallof|anti|raise|woodchop/.test(n+' '+m))s+=35}
+ if(fam.style==='mobility'||fam.style==='corrective'||fam.style==='movement'){if(/pallof|face pull|bird dog|plank|balance|single|rotation/.test(n))s+=25}
+ if(pattern==='conditioning'&&fam.style!=='aerobic')s-=8;
+ if(p.level==='beginner'&&/pistol|plyo|turkish|renegade|deadlift|box jump/.test(n))s-=25;
+ if(phase==='PROGRESS'&&/barbell|machine|cable/.test(ex.equip||''))s+=3;
+ return s;
+}
+function fj30Pool(pattern){return pattern==='conditioning'?CONDITIONING_POOL:pattern==='arms'?ARM_POOL:pattern==='mobility'?MOBILITY_POOL:(EXO_POOL[pattern]||[])}
+function fj30Patterns(st,d){const g=FJ30_GOAL[st.g]||FJ30_GOAL['General Fitness'];const t=st.wtype||'standard';
+ if(t==='ppl'){const x=['upperPush','upperPull','lower'][d%3];return x==='lower'?['lower','hinge','lower','core']:[''+x,''+x,d%2?'upperPull':'upperPush',x==='upperPush'?'lower':'hinge']}
+ if(t==='upperlower')return d%2?['upperPush','upperPull','upperPush','upperPull']:['lower','hinge','lower','hinge'];
+ if(t==='bro'){const x=['upperPush','upperPull','lower','hinge','arms'][d%5];return x==='arms'?['arms','arms','upperPull','upperPush']:x==='lower'?['lower','hinge','lower','upperPull']:[x,x,d%2?'hinge':'lower',x];}
+ if(t==='zone2')return ['conditioning'];
+ if(t==='corebalance')return ['core','lower','upperPull','hinge'];
+ if(t==='mobilityflow'||t==='recovery')return ['lower','upperPull','hinge','upperPush'];
+ if(t==='rehab'||t==='prehab')return ['upperPull','lower','hinge','upperPush'];
+ if(t==='tabata'||t==='hiit'||t==='emom'||t==='amrap'||t==='fortime')return ['conditioning'];
+ if(t==='circuit')return g.style==='fatloss'||g.style==='work'?['lower','upperPush','upperPull','hinge','conditioning']:['lower','upperPush','upperPull','hinge'];
+ if(t==='metcon'||t==='hyrox'||t==='hybrid'||t==='totalbody'||t==='runlift'||t==='ocr')return g.patterns.filter(x=>x!=='core').slice(0,5);
+ if(t==='superset')return ['upperPush','upperPull','lower','hinge'];
+ if(t==='giantset')return ['lower','upperPush','upperPull','hinge'];
+ if(t==='strengthpower')return st.g==='Power'?['lower','hinge','upperPush','upperPull']:['lower','hinge','upperPush','upperPull'];
+ if(t==='hypertrophy')return ['lower','upperPush','upperPull','hinge'];
+ return g.patterns.filter(x=>x!=='core').slice(0,4);
+}
+function fj30Format(st,patterns){const t=st.wtype||'standard';if(t==='tabata')return {name:'TABATA',n:4,group:4};if(t==='emom')return {name:'EMOM',n:4,group:4};if(t==='amrap')return {name:'AMRAP',n:5,group:5};if(t==='fortime')return {name:'FOR TIME',n:4,group:4};if(t==='circuit')return {name:'CIRCUIT',n:6,group:6};if(t==='superset')return {name:'SUPERSET',n:6,group:2};if(t==='giantset')return {name:'GIANT SET',n:6,group:3};if(t==='zone2')return {name:'ZONE 2',n:1,group:1};if(t==='hiit')return {name:'HIIT',n:5,group:5};if(t==='metcon')return {name:'METCON',n:5,group:5};if(t==='hyrox')return {name:'HYROX',n:5,group:5};return {name:(window.WORKOUT_TYPES?.[t]?.label||t||'STANDARD').toUpperCase(),n:Math.max(4,patterns.length),group:Math.max(4,patterns.length)} }
+function fj30Prog(st,m,w){const total=Math.max(1,Number(st.months)||1),ratio=m/total;let phase=ratio<=.25?'FOUNDATION':ratio<=.55?'BUILD':ratio<=.85?'PROGRESS':'CONSOLIDATE';let week=w%4,level=resolveProgramLevel(st),sets=level==='beginner'?2:level==='advanced'?4:3,rpe=6,rir=3,reps='8–12',rest='60–120s';const style=(FJ30_GOAL[st.g]||FJ30_GOAL['General Fitness']).style;
+ if(style==='strength'||st.g==='Strength'){reps=phase==='PROGRESS'?'3–5':'4–6';rest='150–240s';rpe=phase==='PROGRESS'?8:7;rir=phase==='PROGRESS'?1:2}
+ else if(style==='power'){reps='3–5';rest='120–240s';rpe=7;rir=3}
+ else if(style==='hypertrophy'){reps=phase==='PROGRESS'?'6–10':'8–12';rest='60–120s';rpe=phase==='PROGRESS'?8:7;rir=phase==='PROGRESS'?1:2}
+ else if(style==='endurance'){reps='12–20';rest='45–90s';rpe=7;rir=2}
+ else if(style==='aerobic'){reps='20–45 min';rest='continuous';rpe=5;rir='—';sets=1}
+ else if(style==='mobility'){reps='30–60s';rest='30–60s';rpe=4;rir='—';sets=2}
+ else if(style==='corrective'||style==='aging'||style==='lowimpact'){reps='8–15';rest='60–120s';rpe=6;rir=3}
+ if(week===3){sets=Math.max(1,sets-1);rpe=Math.max(5,rpe-1)}
+ if(phase==='CONSOLIDATE'){sets=Math.max(1,sets-1);rpe=Math.max(5,rpe-1);rir=3}
+ return {phase,sets,rpe,rir,reps,rest,week};}
+function fj30Prescription(st,prog,pattern,index,fmt){const style=(FJ30_GOAL[st.g]||FJ30_GOAL['General Fitness']).style;let sets=prog.sets,reps=prog.reps,rest=prog.rest,rpe=prog.rpe,rir=prog.rir;
+ if(pattern==='conditioning'){sets=1;if(fmt==='standard'||fmt==='fullbody')reps='8–15 reps / 6–12 min';}
+ if(fmt==='tabata'){sets=8;reps='20s work / 10s rest';rest='10s';rpe=8;rir='—'}
+ if(fmt==='emom'){sets=1;reps='8–12 reps OR 30–40s';rest='remaining minute';rpe=7;rir='—'}
+ if(fmt==='amrap'){sets=1;reps='8–15 reps';rest='self-regulated';rpe=8;rir='—'}
+ if(fmt==='fortime'){sets=1;reps='prescribed reps';rest='as needed';rpe=8;rir='—'}
+ if(fmt==='circuit'){sets=prog.phase==='PROGRESS'?3:2;reps='8–15 reps OR 30–45s';rest='15–45s';rir='—'}
+ if(fmt==='superset'||fmt==='giantset'){sets=Math.max(2,prog.sets-1);rest='30–60s after block';}
+ if(style==='power'&&pattern!=='conditioning'){reps='3–5';sets=Math.max(2,prog.sets);rest='120–240s';}
+ if(style==='hypertrophy'&&index>1){reps=prog.phase==='PROGRESS'?'8–12':'10–15';sets=Math.max(2,prog.sets-1);rest='45–90s'}
+ return {sets,reps,rest,rpe,rir};}
+function fj30Load(ex,st,prog,m,w,d){try{return fjLoadV3(ex,st,'',prog,m,w,d)}catch(e){return {loadText:String(ex.equip||'Bodyweight')==='Bodyweight'?'Bodyweight / self-load':'Conservative starting load; confirm with RPE',nextText:'Increase 2.5–5% only after target reps are completed with stable technique'}}}
+function fj30Select(st,pattern,slot,prog,used,ord){const p=fj30Profile(st),pool=fj30Exact(fj30Pool(pattern),st.res||'Mixed').filter(x=>fj30Safe(x,p));if(!pool.length)return null;const unused=pool.filter(x=>!used.has(x.name));const c=unused.length?unused:pool;const identity=[st.name,st.age,st.gender,st.weight,st.height,st.activity,st.experience,st.readiness,st.medical,st.g,st.wtype,st.res,st.level,st.months,st.freq].join('|');const ranked=c.map((x,j)=>({x,score:fj30GoalScore(x,st,pattern,slot,prog.phase)+((fj30Hash(identity+'|'+pattern+'|'+ord+'|'+x.name)%101)/100)+j/10000})).sort((a,b)=>b.score-a.score);const start=fj30Hash(identity+'|ROTATE|'+pattern+'|'+Math.floor(ord/Math.max(1,st.freq||3)))%Math.max(1,ranked.length);return ranked[start]?.x||ranked[0]?.x||null}
+function fj30BlockName(type,i,total,pattern){if(type==='superset')return `SUPERSET ${Math.floor(i/2)+1} • ${i%2?'B':'A'}`;if(type==='giantset')return `GIANT SET ${Math.floor(i/3)+1} • ${String.fromCharCode(65+i%3)}`;if(type==='tabata')return `BLOCK ${Math.floor(i/4)+1}`;if(type==='circuit'||type==='emom'||type==='amrap'||type==='fortime'||type==='hiit')return `STATION ${i+1}`;if(type==='metcon'||type==='hyrox')return `BLOCK ${i+1}`;return ({lower:'SQUAT / LOWER',hinge:'HINGE / POSTERIOR',upperPush:'PUSH',upperPull:'PULL',arms:'ARMS',core:'CORE',conditioning:'CONDITIONING',mobility:'MOBILITY'})[pattern]||`BLOCK ${i+1}`}
+function fj30Build(st,m,w,d){const prog=fj30Prog(st,m,w),patterns=fj30Patterns(st,d),fmt=fj30Format(st,patterns),type=st.wtype||'standard',used=new Set(),items=[];let target=fmt.n;if(type==='zone2')target=1;
+ for(let i=0;i<target;i++){let pattern=patterns[i%patterns.length];if(fmt.name==='TABATA'||fmt.name==='EMOM'||fmt.name==='AMRAP'||fmt.name==='FOR TIME'||fmt.name==='HIIT')pattern='conditioning';let ex=fj30Select(st,pattern,i,prog,used,((m-1)*4+w)*Math.max(1,Number(st.freq)||3)+d);if(!ex){const remaining=[];patterns.forEach(pp=>fj30Exact(fj30Pool(pp),st.res||'Mixed').filter(x=>fj30Safe(x,fj30Profile(st))).forEach(x=>remaining.push(x)));const uniq=[...new Map(remaining.map(x=>[x.name,x])).values()].filter(x=>!used.has(x.name));if(uniq.length){uniq.sort((a,b)=>fj30GoalScore(b,st,pattern,i,prog.phase)-fj30GoalScore(a,st,pattern,i,prog.phase));ex=uniq[0]}}
+  if(ex){used.add(ex.name);items.push({ex,pattern})}}
+ const available=new Set();patterns.forEach(pp=>fj30Exact(fj30Pool(pp),st.res||'Mixed').filter(x=>fj30Safe(x,fj30Profile(st))).forEach(x=>available.add(x.name)));
+ if(items.length<target&&available.size<target)return `<div class="notice warn"><b>Program tidak dipaksakan.</b><br>Dengan client data + Goal + Workout Type + Default Resistance yang dipilih, hanya ${available.size} exercise yang aman/kompatibel tersedia. Engine tidak mengganti dengan resistance atau exercise yang salah.</div>`;
+ if(!items.length)return `<div class="notice warn"><b>Tidak ada exercise yang cocok.</b><br>Resistance yang dipilih tidak memiliki exercise yang sesuai dengan Goal dan Workout Type ini.</div>`;
+ let rows='';items.forEach((it,i)=>{const p=fj30Prescription(st,prog,it.pattern,i,type),load=fj30Load(it.ex,st,prog,m,w,d);let reps=p.reps,sets=p.sets;if(type==='tabata')reps='20s work / 10s rest';const cell=x=>`<span class="fj-cell2">${x}</span>`;rows+=`<tr><td>${cell(fj30BlockName(type,i,items.length,it.pattern))}</td><td><b>${cell(it.ex.name)}</b></td><td>${cell(sets)}</td><td>${cell(reps)}</td><td>${cell(load.loadText)}</td><td>${cell('RPE '+p.rpe)}</td><td>${cell(p.rir==='—'?'—':p.rir+' RIR')}</td><td>${cell(p.rest)}</td><td>${cell(load.nextText)}</td><td>${cell(it.ex.muscle||it.ex.target||'Movement')}</td><td>${cell(it.ex.equip||'Bodyweight')}</td></tr>`});
+ const profile=fj30Profile(st),bmi=profile.bmi?` • BMI ${profile.bmi.v.toFixed(1)} (${profile.bmi.cat})`:'';const progression=prog.week===3?'DELOAD / RECOVERY WEEK: reduce volume and keep technique quality.':prog.phase==='FOUNDATION'?'FOUNDATION: establish technique and repeatable working loads.':prog.phase==='BUILD'?'BUILD: add reps first; increase load only after target reps and technique are stable.':prog.phase==='PROGRESS'?'PROGRESS: increase load 2.5–5% or volume only when recovery and technique support it.':'CONSOLIDATE: reduce fatigue, retain quality and reassess before the next build.';
+ return `<div class="notice" style="margin:8px 0"><b>${fmt.name}</b><br><span class="muted">Goal: <b>${st.g||'General Fitness'}</b> • Age: <b>${st.age||'-'}</b> • Gender: <b>${st.gender||'-'}</b> • Weight: <b>${st.weight||'-'} kg</b>${bmi} • Level: <b>${resolveProgramLevel(st)}</b> • Resistance: <b>${st.res||'Mixed'}</b></span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Estimated Starting Load</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${rows}</tbody></table></div><div class="notice" style="margin-top:8px"><b>Progression:</b> ${progression} Selection is constrained by client profile, Goal, Workout Type and exact Default Resistance; no incompatible equipment is substituted.</div>`;
+}
+window.showProgramSession=function(month,weekIndex,sessionIndex){const target=document.getElementById(`program-session-detail-${month}-${weekIndex}`);if(!target)return;document.querySelectorAll(`#program-week-detail-${month} .program-session-tab`).forEach((b,i)=>b.classList.toggle('active',i===Number(sessionIndex)));const st=window.__FJAdvancedState;if(!st){target.innerHTML='<div class="notice warn">Program state is not available.</div>';return}window.__FJProgramContext={month:Number(month)||1,weekIndex:Number(weekIndex)||0,sessionIndex:Number(sessionIndex)||0,totalMonths:st.months,goal:st.g,age:st.age||0,weight:st.weight||0,e1rm:st.e1rm||null};target.innerHTML=fj30Build(st,Number(month)||1,Number(weekIndex)||0,Number(sessionIndex)||0)};
+
 const EXERCISE_LOAD_MAP={
  'Goblet Squat':{pattern:'lower',factor:.28,unit:'total'},'Front Squat':{pattern:'lower',factor:1,unit:'total'},
  'Bulgarian Split Squat':{pattern:'lower',factor:.2,unit:'perhand'},'Leg Press':{pattern:'lower',factor:1.35,unit:'total'},
@@ -2072,93 +2191,33 @@ function workoutTypeSpecificDay(st,m,w,d,phase,phaseNo,level){
   const title=(window.WORKOUT_TYPES?.[type]?.label)||type.toUpperCase();
   return `<div class="notice" style="margin:8px 0"><b>${title}</b><br><span class="muted">Selection is locked to Goal + Workout Type + Client data + Default Resistance. Progression changes by phase, week and session.</span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets/Rounds</th><th>Reps / Time</th><th>Estimated Load</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${body}</tbody></table></div><div class="notice" style="margin-top:8px"><b>Programming standard:</b> ACSM/NASM/WHO-aligned principles: individualization, movement quality, appropriate volume/intensity, progressive overload, recovery and aerobic/conditioning progression. These standards guide the engine; they do not prescribe one fixed exercise list.</div>`;
 }
-
-/* ================= CLEAN TRAINING PROGRAM ENGINE V29 =================
-   This is the only active session renderer. It is intentionally rebuilt from the
-   V22 base instead of stacking another selector on top of previous engines.
-   Rules: client data -> goal -> workout type -> resistance -> session template ->
-   exercise role -> progression. Exercise library is the only exercise source.
-*/
-const FJ29_GOAL_FAMILY={
-  strength:['Strength','Power','Performance','Sport-Specific Performance','Speed & Agility','Running Performance'],
-  hypertrophy:['Hypertrophy','Muscle Gain','Body Recomposition'],
-  endurance:['Muscular Endurance','Strength Endurance','Aerobic Endurance','Cardiorespiratory Fitness','Work Capacity'],
-  fatloss:['Fat Loss','Healthy Weight Management','Low-Impact Fitness'],
-  functional:['General Fitness','Functional Fitness','Healthy Aging','Longevity','Hybrid Athlete','Obstacle / Race Preparation'],
-  mobility:['Mobility','Posture & Movement Quality','Recovery & Resilience'],
-  corrective:['Rehabilitation','Prehabilitation','Injury Prevention','Return to Exercise'],
-  core:['Core Stability','Coordination & Balance']
-};
-const FJ29_GOAL_KEY={};Object.keys(FJ29_GOAL_FAMILY).forEach(k=>FJ29_GOAL_FAMILY[k].forEach(g=>FJ29_GOAL_KEY[g]=k));
-function fj29Hash(v){let h=2166136261>>>0;for(const c of String(v??'')){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
-function fj29Level(st){return resolveProgramLevel(st)}
-function fj29Phase(st,m,w){const total=Math.max(1,Number(st.months)||1),ratio=m/total;let phase=ratio<=.25?'FOUNDATION':ratio<=.55?'BUILD':ratio<=.85?'PROGRESS':'CONSOLIDATE';let week=w%4;let sets=fj29Level(st)==='beginner'?2:fj29Level(st)==='advanced'?4:3;let rpe=6,rir=3,reps='8–12',rest='90–120s';if(phase==='BUILD'){rpe=7;rir=2;sets+=0;reps='8–12'}if(phase==='PROGRESS'){rpe=8;rir=1;sets+=1;reps='6–10';rest='90–150s'}if(phase==='CONSOLIDATE'){rpe=6;rir=3;sets=Math.max(2,sets-1);reps='8–10';rest='60–120s'}if(week===3){rpe=Math.max(5,rpe-1);sets=Math.max(2,sets-1)}
-  const goal=st.g||'General Fitness';if(['Strength','Power'].includes(goal)){reps=phase==='PROGRESS'?'3–5':'4–8';rest='150–240s'}
-  if(['Muscular Endurance','Strength Endurance'].includes(goal)){reps='12–20';rest='45–90s'}
-  if(['Mobility','Recovery & Resilience'].includes(goal)){reps='30–60 sec';rest='30–60s';rpe=5;rir=4}
-  return {phase,week,sets,rpe,rir,reps,rest};
-}
-function fj29Risk(st){const t=[st.medical,st.readiness,st.experience].map(x=>String(x||'').toLowerCase()).join(' ');return {impact:/knee|joint|impact|pain|ache|older|low readiness|low/.test(t)||Number(st.age)>=65,back:/back|lumbar|spine/.test(t),shoulder:/shoulder|rotator|overhead pain/.test(t),low:/low readiness|poor readiness|fatigue|recovery/.test(t)} }
-function fj29Allowed(ex,st){if(!ex)return false;const n=String(ex.name||'').toLowerCase(),r=fj29Risk(st);if(r.impact&&/box jump|jump squat|plyo|burpee|double under/.test(n))return false;if(r.back&&/deadlift|good morning|heavy swing|bent-over row/.test(n))return false;if(r.shoulder&&/overhead|shoulder press|snatch|push press|dip|bench press/.test(n))return false;return true}
-function fj29Equip(pool,res){const a=(pool||[]).filter(Boolean);if(!res||res==='Mixed')return a;return a.filter(x=>String(x.equip||'').toLowerCase()===String(res).toLowerCase())}
-function fj29GoalScore(ex,goal,role,phase,level){const n=String(ex.name||'').toLowerCase(),mus=String(ex.muscle||'').toLowerCase();let s=0;const fam=FJ29_GOAL_KEY[goal]||'functional';
-  if(fam==='strength'){if(role==='primary')s+=/squat|deadlift|bench|row|press|pull-up|pulldown/.test(n)?35:0;if(phase==='PROGRESS'&&/barbell|machine/.test(ex.equip||''))s+=8;if(/jump|plyo|push press|swing/.test(n)&&goal==='Power')s+=28}
-  if(fam==='hypertrophy'){if(/bench|press|row|pulldown|squat|lunge|deadlift|rdl|hip thrust/.test(n))s+=22;if(role==='accessory')s+=10;if(/curl|extension|pushdown/.test(n))s+=18}
-  if(fam==='endurance'){if(/carry|swing|row|bike|rope|band/.test(n))s+=18;if(/machine|cable|band|bodyweight/.test(ex.equip||''))s+=6}
-  if(fam==='fatloss'){if(/swing|burpee|thruster|carry|row|bike|rope|sled|wall ball|mountain/.test(n))s+=28;if(/squat|lunge|row|press/.test(n))s+=12}
-  if(fam==='functional'){if(/unilateral|carry|step|lunge|row|press|squat|hinge/.test(n))s+=12;if(/balance|core/.test(mus))s+=4}
-  if(fam==='mobility'){s+=/mobility|stretch|switch|rotation/.test(n)?40:0}
-  if(fam==='corrective'){s+=/pallof|face pull|bird dog|plank|balance|single-leg/.test(n)?30:0;if(role==='primary'&&/deadlift|heavy|jump/.test(n))s-=25}
-  if(fam==='core'){s+=/core|plank|carry|anti-|woodchop|pallof|rollout|raise/.test(n+' '+mus)?30:0}
-  if(level==='beginner'&&/pistol|plyo|box jump|turkish|renegade|deadlift/.test(n))s-=12;
-  if(level==='advanced'&&/barbell|machine|cable/.test(ex.equip||''))s+=3;
-  if(role==='primary'&&/curl|pushdown|face pull/.test(n))s-=18;
-  if(role==='isolation'&&/squat|deadlift/.test(n))s-=8;
-  return s;
-}
-function fj29Candidates(pool,st,role,phase,used,goal){const res=st.res||'Mixed',level=fj29Level(st);let c=fj29Equip(pool,res).filter(x=>fj29Allowed(x,st)&&!used.has(x.name));if(!c.length)c=fj29Equip(pool,res).filter(x=>fj29Allowed(x,st));c.sort((a,b)=>{const sa=fj29GoalScore(a,goal,role,phase,level),sb=fj29GoalScore(b,goal,role,phase,level);return sb-sa});if(!c.length)return null;return c}
-function fj29Pick(pool,st,role,phase,used,slot,sessionOrdinal){const c=fj29Candidates(pool,st,role,phase,used,st.g||'General Fitness');if(!c?.length)return null;const identity=[st.name,st.age,st.gender,st.weight,st.height,st.activity,st.experience,st.readiness,st.medical,st.g,st.wtype,st.res,st.level,st.months,st.freq,phase,sessionOrdinal,slot].join('|');const top=Math.min(c.length,Math.max(3,Math.ceil(c.length*.55)));const idx=fj29Hash(identity)%top;return c[idx]}
-function fj29Prescribe(st,prog,role,fmt,idx){let sets=prog.sets,reps=prog.reps,rpe=prog.rpe,rir=prog.rir,rest=prog.rest;if(role==='primary'&&['Strength','Power'].includes(st.g)){sets=Math.max(2,sets);reps=prog.phase==='PROGRESS'?'3–5':'4–6';rest='150–240s'}if(role==='accessory'||role==='isolation'){sets=Math.max(2,sets-1);reps=prog.phase==='PROGRESS'?'8–12':'10–15';rest='45–90s'}if(['tabata'].includes(fmt)){sets=8;reps='20s work / 10s rest';rest='10s';rpe=8;rir='—'}if(fmt==='emom'){sets=1;reps='8–12 reps or 30–40s each minute';rest='remaining minute';rir='—'}if(fmt==='amrap'){sets=1;reps='8–15 reps';rest='self-regulated';rir='—'}if(fmt==='fortime'){sets=1;reps='8–15 reps';rest='as needed';rir='—'}if(fmt==='circuit'){sets=prog.phase==='PROGRESS'?3:2;reps='30–45s or 8–15 reps';rest='15–45s';rir='—'}if(fmt==='giantset'||fmt==='superset'){sets=Math.max(2,sets-1);rest='30–60s after each round';}return {sets,reps,rpe,rir,rest}}
-function fj29Load(ex,st,prog,m,w,d){try{return fjLoadV3(ex,st,'',prog,m,w,d)}catch(e){return {loadText:ex.equip==='Bodyweight'?'Bodyweight / self-load':'Use a conservative starting load and confirm by RPE',nextText:'Progress load 2.5–5% when target reps are achieved with stable technique'}}}
-function fj29Roles(st,m,w,d){const goal=st.g||'General Fitness',type=st.wtype||'standard',fam=FJ29_GOAL_KEY[goal]||'functional',freq=Math.max(1,Number(st.freq)||3),cycle=d%freq;
-  if(type==='ppl'){const day=['push','pull','legs'][d%3];return day==='push'?['upperPush','upperPush','upperPush','upperPush','upperPush']:day==='pull'?['upperPull','upperPull','upperPull','upperPull','upperPull']:['lower','hinge','lower','hinge','lower']}
-  if(type==='upperlower')return d%2===0?['lower','hinge','lower','hinge','lower']:['upperPush','upperPull','upperPush','upperPull','upperPush'];
-  if(type==='bro'){const p=['upperPush','upperPull','lower','hinge','upperPush'][d%5];return p==='upperPush'?[ 'upperPush','upperPush','upperPush','upperPush','upperPush']:p==='upperPull'?['upperPull','upperPull','upperPull','upperPull','upperPull']:['lower','hinge','lower','hinge','lower']}
-  if(type==='strengthpower'||fam==='strength')return goal==='Power'?['lower','hinge','upperPush','upperPull','lower']:['lower','hinge','upperPush','upperPull','hinge'];
-  if(type==='hypertrophy'||fam==='hypertrophy')return cycle%2===0?['lower','upperPush','upperPull','hinge','upperPush','upperPull']:['upperPull','upperPush','hinge','lower','upperPull','upperPush'];
-  if(fam==='mobility')return ['lower','upperPull','hinge','upperPush','lower'];
-  if(fam==='corrective')return ['upperPull','lower','upperPush','hinge','upperPull'];
-  if(fam==='core')return ['core','lower','upperPull','hinge','upperPush'];
-  if(type==='metcon'||type==='hybrid'||type==='hyrox'||type==='totalbody')return ['lower','upperPush','upperPull','hinge','conditioning'];
-  if(type==='tabata'||type==='hiit'||type==='amrap'||type==='emom'||type==='fortime'||type==='circuit'||type==='zone2')return ['conditioning','conditioning','conditioning','conditioning','conditioning'];
-  if(type==='superset')return ['upperPush','upperPull','lower','hinge','upperPush','upperPull'];
-  if(type==='giantset')return ['upperPush','upperPull','upperPush','lower','hinge','lower'];
-  return ['lower','upperPush','upperPull','hinge','upperPush'];
-}
-function fj29PoolForPattern(p){if(p==='conditioning')return CONDITIONING_POOL;if(p==='arms')return ARM_POOL;if(p==='mobility')return MOBILITY_POOL;return EXO_POOL[p]||[]}
-function fj29Format(st,roles){const t=st.wtype||'standard';if(t==='tabata')return {name:'TABATA',count:4,rowsPerBlock:4,sets:8};if(t==='emom')return {name:'EMOM',count:4,rowsPerBlock:4,sets:1};if(t==='amrap')return {name:'AMRAP',count:5,rowsPerBlock:5,sets:1};if(t==='fortime')return {name:'FOR TIME',count:5,rowsPerBlock:5,sets:1};if(t==='circuit')return {name:'CIRCUIT',count:6,rowsPerBlock:6,sets:3};if(t==='giantset')return {name:'GIANT SET / TRI-SET',count:6,rowsPerBlock:3,sets:3};if(t==='superset')return {name:'SUPER SET',count:6,rowsPerBlock:2,sets:3};if(t==='zone2')return {name:'ZONE 2',count:1,rowsPerBlock:1,sets:1};if(t==='hiit')return {name:'HIIT',count:5,rowsPerBlock:5,sets:1};if(t==='metcon')return {name:'METCON',count:5,rowsPerBlock:5,sets:3};if(t==='hyrox')return {name:'HYROX',count:5,rowsPerBlock:5,sets:3};if(t==='hybrid'||t==='totalbody')return {name:(window.WORKOUT_TYPES?.[t]?.label||t).toUpperCase(),count:5,rowsPerBlock:5,sets:3};return {name:(window.WORKOUT_TYPES?.[t]?.label||'STANDARD PROGRAM').toUpperCase(),count:roles.length,rowsPerBlock:roles.length,sets:3}}
 function buildUniqueSessionDay(st,month,weekIndex,sessionIndex){
-  const m=Math.max(1,Number(month)||1),w=Math.max(0,Number(weekIndex)||0),d=Math.max(0,Number(sessionIndex)||0);const prog=fj29Phase(st,m,w),roles=fj29Roles(st,m,w,d),fmt=fj29Format(st,roles),used=new Set(),rows=[];
-  const count=fmt.count;const picked=[];
-  for(let i=0;i<count;i++){
-    let pattern=roles[i%roles.length];if(pattern==='conditioning'&&['Mobility','Rehabilitation','Injury Prevention','Prehabilitation'].includes(st.g))pattern='core';
-    const pool=fj29PoolForPattern(pattern);let ex=fj29Pick(pool,st,i===0?'primary':i<2?'secondary':i===count-1?'accessory':'support',prog.phase,used,i,((m-1)*4+w)*Math.max(1,Number(st.freq)||3)+d);
-    if(!ex && pattern!=='core'){ex=fj29Pick(fj29PoolForPattern('core'),st,'support',prog.phase,used,100+i,((m-1)*4+w)*Math.max(1,Number(st.freq)||3)+d)}
-    if(ex){used.add(ex.name);picked.push({ex,pattern,index:i})}
+  const m=Math.max(1,Number(month)||1),w=Math.max(0,Number(weekIndex)||0),d=Math.max(0,Number(sessionIndex)||0);
+  const freq=Math.max(1,Number(st.freq)||3),totalMonths=Math.max(1,Number(st.months)||1);
+  const level=resolveProgramLevel(st),goal=st.g||'General Fitness',type=st.wtype||'standard',res=st.res||'Mixed';
+  const ord=((m-1)*4+w)*freq+d;
+  const prog=fjProgressionV3(m,w,totalMonths,level,goal);
+  const specialized=workoutTypeSpecificDay(st,m,w,d,prog.phase,prog.phase==='FOUNDATION'?1:prog.phase==='BUILD'?2:prog.phase==='PROGRESS'?3:4,level);
+  if(specialized)return specialized;
+  let patterns=fjGoalTypePatternsV3(st);
+  if(type==='ppl'){const cyc=['upperPush','upperPull','lower'];patterns=cyc[d%3]==='lower'?['lower','hinge','core']:[cyc[d%3],cyc[d%3], 'core'];}
+  if(type==='upperlower')patterns=d%2===0?['lower','hinge','core']:['upperPush','upperPull','core'];
+  if(type==='bro'){const cyc=['upperPush','upperPull','lower','hinge','upperPush'];patterns=[cyc[d%5], 'core', cyc[(d+1)%5]];}
+  if(type==='corebalance')patterns=['core','lower','upperPull','hinge'];
+  if(type==='mobilityflow'||type==='recovery'){patterns=['core','hinge','lower','upperPull'];}
+  if(type==='rehab'||type==='prehab'){patterns=['core','upperPull','lower','hinge'];}
+  patterns=patterns.filter((x,i,a)=>a.indexOf(x)===i).slice(0,5);
+  const body=fjBuildExerciseRowsV3(st,m,w,d,patterns,ord,prog);
+  let finisher='';
+  const conditioningTypes=['fullbody','functional','hybrid','totalbody','density','lowimpact','circuit'];
+  if(conditioningTypes.includes(type)||['Fat Loss','Cardiorespiratory Fitness','Aerobic Endurance','Work Capacity','Hybrid Athlete'].includes(goal)){
+    finisher=fjBuildConditioningV3(st,m,w,d,ord,prog);
   }
-  // Never silently output an undersized session. The only exception is a genuinely
-  // impossible hard-equipment constraint; in that case show the reason instead of bad exercise.
-  if(picked.length<count){const available=new Set();roles.forEach(p=>fj29Equip(fj29PoolForPattern(p),st.res||'Mixed').filter(x=>fj29Allowed(x,st)).forEach(x=>available.add(x.name)));if(available.size<count)return `<div class="notice warn"><b>Program cannot be safely completed with the current constraints.</b><br>Only ${available.size} compatible exercises exist for the selected client data, Goal, Workout Type and Default Resistance. No incompatible exercise has been substituted.</div>`}
-  if(!picked.length)return `<div class="notice warn"><b>No compatible exercise found.</b><br>Change the Default Resistance or Workout Type.</div>`;
-  const type=st.wtype||'standard';let html='';
-  if(['tabata','emom','amrap','fortime','circuit','giantset','superset'].includes(type)){
-    const groupSize=fmt.rowsPerBlock;for(let i=0;i<picked.length;i++){const x=picked[i],p=fj29Prescribe(st,prog,i===0?'primary':i<2?'secondary':'accessory',type,i);let block='';if(type==='giantset')block=`TRI-SET ${Math.floor(i/groupSize)+1} • ${String.fromCharCode(65+(i%groupSize))}`;else if(type==='superset')block=`SUPERSET ${Math.floor(i/groupSize)+1} • ${String.fromCharCode(65+(i%groupSize))}`;else if(type==='tabata')block=`BLOCK ${Math.floor(i/2)+1}`;else block=`STATION ${i+1}`;const load=fj29Load(x.ex,st,prog,m,w,d);let reps=p.reps;if(type==='tabata')reps='20s work / 10s rest';if(type==='emom')reps='8–12 reps or 30–40s at minute start';if(type==='amrap')reps='8–15 reps';if(type==='fortime')reps='8–15 reps';html+=`<tr><td><b>${block}</b></td><td><b>${x.ex.name}</b></td><td>${p.sets}</td><td>${reps}</td><td><b>${load.loadText}</b></td><td>RPE ${p.rpe}</td><td>${p.rir}</td><td>${p.rest}</td><td>${load.nextText}</td><td>${patternEnglish(x.pattern)}</td><td>${x.ex.equip||'Bodyweight'}</td></tr>`}
-  } else {picked.forEach((x,i)=>{const role=i===0?'primary':i<2?'secondary':i===picked.length-1?'accessory':'support',p=fj29Prescribe(st,prog,role,type,i),load=fj29Load(x.ex,st,prog,m,w,d);html+=`<tr><td><b>${role.toUpperCase()}</b></td><td><b>${x.ex.name}</b></td><td>${p.sets}</td><td>${p.reps}</td><td><b>${load.loadText}</b></td><td>RPE ${p.rpe}</td><td>${p.rir} RIR</td><td>${p.rest}</td><td>${load.nextText}</td><td>${patternEnglish(x.pattern)}</td><td>${x.ex.equip||'Bodyweight'}</td></tr>`})}
-  const progression=`<div class="notice" style="margin-top:8px"><b>Progression:</b> ${prog.phase} • Week ${w+1} • Target effort RPE ${prog.rpe} • ${prog.rir} RIR. Progress load 2.5–5% when the target is achieved with stable technique; otherwise keep or reduce load. Exercise selection changes by client data, goal, workout type, resistance, phase and session demand.</div>`;
-  return `<div class="notice" style="margin:8px 0"><b>${fmt.name}</b><br><span class="muted">Goal: <b>${st.g||'General Fitness'}</b> • Client level: <b>${fj29Level(st)}</b> • Default Resistance: <b>${st.res||'Mixed'}</b> • Phase: <b>${prog.phase}</b></span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Estimated Starting Load (kg)</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${html}</tbody></table></div>${progression}`;
+  if(!body&&!finisher)return `<div class="notice warn">No exercise matches all selected constraints. Please choose another Default Resistance or Workout Type.</div>`;
+  const bodyRows=(body||'')+(finisher||'');
+  return `<div class="notice" style="margin:8px 0"><b>${type==='standard'?'STANDARD PROGRAM':(window.WORKOUT_TYPES?.[type]?.label||type.toUpperCase())}</b><br><span class="muted">Goal: <b>${goal}</b> • Client level: <b>${level}</b> • Default Resistance: <b>${res}</b> • Phase: <b>${prog.phase}</b></span></div><div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Estimated Starting Load (kg)</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${bodyRows}</tbody></table></div><div class="notice" style="margin-top:8px"><b>Progression & variation:</b> Exercise selection is deterministic from the complete client/program identity and session ordinal. Volume, intensity, recovery and movement difficulty progress by phase/week. The engine avoids repeating the same exercise within a session and rotates through the compatible library before reuse is unavoidable due to library size.</div>`;
 }
-function patternEnglish(p){return ({lower:'Lower Body',upperPush:'Upper Push',upperPull:'Upper Pull',hinge:'Hinge / Posterior Chain',core:'Core / Trunk',conditioning:'Conditioning',arms:'Arms',mobility:'Mobility'})[p]||'Movement'}
-window.showProgramSession=function(month,weekIndex,sessionIndex){const target=document.getElementById(`program-session-detail-${month}-${weekIndex}`);if(!target)return;document.querySelectorAll(`#program-week-detail-${month} .program-session-tab`).forEach((b,i)=>b.classList.toggle('active',i===Number(sessionIndex)));const st=window.__FJAdvancedState;if(!st){target.innerHTML='<div class="notice warn">Program state is not available.</div>';return}window.__FJProgramContext={month:Number(month)||1,weekIndex:Number(weekIndex)||0,sessionIndex:Number(sessionIndex)||0,totalMonths:st.months,goal:st.g,age:st.age||0,weight:st.weight||0,e1rm:st.e1rm||null};target.innerHTML=buildUniqueSessionDay(st,month,weekIndex,sessionIndex)};
+
 function fjBuildAllTrainingHTML(st,period=null){
   const months=Math.max(1,Number(st?.months)||1), freq=Math.max(1,Number(st?.freq)||3);
   const totalDays=months*4*freq;

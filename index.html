@@ -1250,6 +1250,11 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 </style>
 
+<style id="fj-training-pro-visibility-final-v3">
+/* FINAL V3: override the existing scoped rule that hides every panel except master/admin. */
+body #trainingPro.active:not(#training):not(#adminAccess){display:block!important;visibility:visible!important;opacity:1!important;}
+body #trainingPro:not(#training):not(#adminAccess){min-width:0!important;width:100%!important;max-width:100%!important;}
+</style>
 </head><body>
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">

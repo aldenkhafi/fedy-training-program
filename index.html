@@ -4666,6 +4666,11 @@ window.__FJCleanWorkoutEngineVersion=V;window.buildUniqueSessionDay=buildUniqueS
   body>*:not(#fjProPrintRoot){display:none!important}
 }
 </style>
+<style id="fj-training-pro-visibility-fix">
+/* FIX: later standalone CSS intentionally hides non-master panels; PRO must be visible when selected. */
+#trainingPro{display:none!important;min-width:0!important;width:100%!important;max-width:100%!important;}
+#trainingPro.active{display:block!important;}
+</style>
 <script id="fj-training-pro-v1-runtime">
 (function(){
 'use strict';

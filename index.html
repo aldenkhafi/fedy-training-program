@@ -1323,6 +1323,16 @@ body #trainingPro:not(#training):not(#adminAccess){min-width:0!important;width:1
   #adminNav{font-size:11px !important;padding-left:8px !important;padding-right:6px !important;}
 }
 </style>
+
+<style id="fj-v5-nav-panel-colors">
+/* V5: distinct navigation colors for the three requested panels only. */
+button.navbtn[data-tab="training"].active{background:#1976d2!important;color:#fff!important;box-shadow:0 6px 16px rgba(25,118,210,.24)!important}
+#trainingProNav.active{background:#16a085!important;color:#fff!important;box-shadow:0 6px 16px rgba(22,160,133,.24)!important}
+#adminNav.active{background:#d59a20!important;color:#fff!important;box-shadow:0 6px 16px rgba(213,154,32,.24)!important}
+button.navbtn[data-tab="training"]:hover{background:rgba(25,118,210,.16)!important}
+#trainingProNav:hover{background:rgba(22,160,133,.16)!important}
+#adminNav:hover{background:rgba(213,154,32,.16)!important}
+</style>
 </head><body>
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
@@ -4892,9 +4902,52 @@ function patternForExercise(name){
  if((CONDITIONING_POOL||[]).some(x=>x.name===n))return 'conditioning';
  return 'core';
 }
+const PRO_WORKOUT_PATTERNS={
+ standard:['lower','upperPush','upperPull','hinge','core'], fullbody:['lower','upperPush','upperPull','hinge','core'], totalbody:['lower','upperPush','upperPull','hinge','core','conditioning'], functional:['lower','upperPush','upperPull','hinge','core','conditioning'], lowimpact:['lower','upperPush','upperPull','hinge','core'], strengthpower:['lower','upperPush','upperPull','hinge','conditioning'], hypertrophy:['lower','upperPush','upperPull','hinge','arms','core'], upperlower:['lower','upperPush','upperPull','hinge','core'], ppl:['upperPush','upperPull','lower','hinge','core'], bro:['lower','upperPush','upperPull','hinge','arms','core'], superset:['lower','upperPush','upperPull','hinge','core'], giantset:['lower','upperPush','upperPull','hinge','core'], cluster:['lower','upperPush','upperPull','hinge','conditioning'], density:['lower','upperPush','upperPull','hinge','core','conditioning'], tempo:['lower','upperPush','upperPull','hinge','core'], contrast:['lower','upperPush','upperPull','hinge','conditioning'], hybrid:['lower','upperPush','upperPull','hinge','core','conditioning'], hyrox:['lower','hinge','upperPull','upperPush','conditioning','core'], metcon:['lower','upperPush','upperPull','hinge','core','conditioning'], circuit:['lower','upperPush','upperPull','hinge','core','conditioning'], hiit:['lower','upperPush','upperPull','hinge','core','conditioning'], zone2:['conditioning'], engine:['conditioning'], runlift:['lower','hinge','upperPull','upperPush','conditioning'], ocr:['lower','hinge','upperPull','conditioning','core'], tabata:['lower','upperPush','upperPull','hinge','core','conditioning'], emom:['lower','upperPush','upperPull','hinge','core','conditioning'], amrap:['lower','upperPush','upperPull','hinge','core','conditioning'], fortime:['lower','upperPush','upperPull','hinge','core','conditioning'], ladder:['lower','upperPush','upperPull','hinge','core'], rehab:['lower','upperPush','upperPull','hinge','core'], corebalance:['core','lower'], mobilityflow:['core','lower'], prehab:['core','lower','upperPush','upperPull'], recovery:['core','conditioning']
+};
 function compatibleExercises(pattern,st){
  let pool=pattern==='conditioning'?(CONDITIONING_POOL||[]):(EXO_POOL[pattern]||[]);
  return fjRotationPoolV3(pool,st,'Mixed');
+}
+function proWorkoutPatterns(st){
+ const t=String(st?.wtype||'standard').toLowerCase();
+ return PRO_WORKOUT_PATTERNS[t]||['lower','upperPush','upperPull','hinge','core'];
+}
+function allProExercisesForWorkout(st,excludeNames=new Set()){
+ const seen=new Set(),out=[];
+ for(const pat of proWorkoutPatterns(st)){
+   for(const ex of compatibleExercises(pat,st)){
+     if(!ex||seen.has(ex.name)||excludeNames.has(ex.name))continue;
+     seen.add(ex.name);out.push({...ex,__pattern:pat});
+   }
+ }
+ return out;
+}
+const PRO_PREP_POOLS={
+ default:['Easy walk / bike','Arm circles','Hip hinge drill','Bodyweight squat','Reverse lunge','Scapular wall slide','Dead bug'],
+ strengthpower:['Easy bike / row','Bodyweight squat','Hip hinge drill','Glute bridge','Scapular push-up','Band row','Pogo / low-amplitude jump'],
+ hypertrophy:['Easy bike / treadmill','Bodyweight squat','Glute bridge','Band pull-apart','Scapular push-up','Reverse lunge','Dead bug'],
+ upperlower:['Easy bike / row','Bodyweight squat','Hip hinge drill','Band pull-apart','Scapular push-up','Reverse lunge','Dead bug'],
+ ppl:['Easy bike / row','Arm circles','Band pull-apart','Scapular push-up','Light bodyweight squat','Hip hinge drill','Dead bug'],
+ conditioning:['Easy aerobic warm-up','Dynamic marching','Walking lunge','Bodyweight squat','Inchworm','Bear crawl rehearsal','Light step-up'],
+ mobilityflow:['Easy walk','Controlled joint circles','Cat-cow','World's greatest stretch','90/90 hip rotation','Thoracic rotation','Deep squat hold'],
+ rehab:['Easy walk / bike','Controlled joint circles','Supported squat','Glute bridge','Wall push-up','Band row','Dead bug'],
+ prehab:['Easy walk / bike','Controlled joint circles','Glute bridge','Scapular wall slide','Band row','Step-up rehearsal','Dead bug'],
+ recovery:['Easy walk / bike','Breathing reset','Gentle joint circles','Cat-cow','90/90 hip rotation','Supported squat','Easy carry']
+};
+function prepOptionsForType(st){
+ const t=String(st?.wtype||'standard').toLowerCase();
+ let a=PRO_PREP_POOLS.default;
+ if(t==='strengthpower')a=PRO_PREP_POOLS.strengthpower;
+ else if(t==='hypertrophy')a=PRO_PREP_POOLS.hypertrophy;
+ else if(t==='upperlower')a=PRO_PREP_POOLS.upperlower;
+ else if(t==='ppl')a=PRO_PREP_POOLS.ppl;
+ else if(['hybrid','hyrox','metcon','circuit','hiit','tabata','emom','amrap','fortime','ocr','runlift','ladder'].includes(t))a=PRO_PREP_POOLS.conditioning;
+ else if(t==='mobilityflow')a=PRO_PREP_POOLS.mobilityflow;
+ else if(t==='rehab')a=PRO_PREP_POOLS.rehab;
+ else if(t==='prehab')a=PRO_PREP_POOLS.prehab;
+ else if(t==='recovery')a=PRO_PREP_POOLS.recovery;
+ return a;
 }
 function valueOptions(current,arr){
  const vals=Array.from(new Set([String(current||''),...arr.map(String).filter(Boolean)]));
@@ -4935,7 +4988,9 @@ function getRows(m,w,d){
  return proEdits[key];
 }
 function renderRow(row,i,key){
- const pool=compatibleExercises(row.pattern||patternForExercise(row.exercise),proState);
+ const isPrep=/^PREP\s*\d+/i.test(String(row.block||''));
+ const isAdded=/^ADDED$/i.test(String(row.block||''));
+ const pool=isPrep?prepOptionsForType(proState).map(name=>({name,equip:'Bodyweight',muscle:'Preparation'})):isAdded?allProExercisesForWorkout(proState):compatibleExercises(row.pattern||patternForExercise(row.exercise),proState);
  let opts=pool.map(x=>'<option value="'+esc(x.name)+'" '+(x.name===row.exercise?'selected':'')+'>'+esc(x.name)+'</option>').join('');
  if(!pool.some(x=>x.name===row.exercise))opts='<option selected value="'+esc(row.exercise)+'">'+esc(row.exercise)+'</option>'+opts;
  return '<tr>'+
@@ -4987,7 +5042,11 @@ function bindEditor(key){
  const box=$('trainingProResult');if(!box)return;
  box.querySelectorAll('select[data-field],select.fj-pro-ex').forEach(el=>el.onchange=function(){
   const i=+this.dataset.i,rows=findEdits(key),r=rows[i];if(!r)return;
-  if(this.classList.contains('fj-pro-ex')){r.exercise=this.value;r.pattern=patternForExercise(this.value);const x=(EXO_POOL[r.pattern]||[]).find(q=>q.name===r.exercise)||(CONDITIONING_POOL||[]).find(q=>q.name===r.exercise);if(x){r.equipment=x.equip;r.focus=x.muscle||r.focus}}
+  if(this.classList.contains('fj-pro-ex')){
+    r.exercise=this.value;
+    if(/^PREP\s*\d+/i.test(String(r.block||''))){r.pattern='prep';r.equipment='Bodyweight';r.focus='Preparation';}
+    else {r.pattern=patternForExercise(this.value);const x=(EXO_POOL[r.pattern]||[]).find(q=>q.name===r.exercise)||(CONDITIONING_POOL||[]).find(q=>q.name===r.exercise);if(x){r.equipment=x.equip;r.focus=x.muscle||r.focus}}
+  }
   else {
     let v=this.value;
     if(v==='__CUSTOM__'){
@@ -5002,10 +5061,10 @@ function bindEditor(key){
  });
  box.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{const i=+b.dataset.delete;findEdits(key).splice(i,1);renderSession()});
  const add=$('btnAddProExercise');if(add)add.onclick=()=>{
-  const rows=findEdits(key), used=new Set(rows.map(r=>r.exercise)), patterns=['lower','upperPush','upperPull','hinge','core'];
-  let pool=[];for(const p of patterns){pool=pool.concat(compatibleExercises(p,proState).filter(x=>!used.has(x.name)))}
-  const x=pool[0];if(!x){alert('No compatible unused exercise is available for this session.');return}
-  rows.push({block:'ADDED',exercise:x.name,sets:'3',reps:'8–12',load:x.equip==='Bodyweight'?'Bodyweight / self-load':'',rpe:'RPE 7',rir:'2–3 RIR',rest:'60–90s',next:'Progress when technique and recovery are adequate',focus:x.muscle||'Movement quality',equipment:x.equip||'Bodyweight',pattern:patternForExercise(x.name)});
+  const rows=findEdits(key), used=new Set(rows.map(r=>r.exercise));
+  const pool=allProExercisesForWorkout(proState,used);
+  const x=pool[0];if(!x){alert('No compatible unused exercise is available for this workout type.');return}
+  rows.push({block:'ADDED',exercise:x.name,sets:'3',reps:'8–12',load:x.equip==='Bodyweight'?'Bodyweight / self-load':'',rpe:'RPE 7',rir:'2–3 RIR',rest:'60–90s',next:'Progress when technique and recovery are adequate',focus:x.muscle||'Movement quality',equipment:x.equip||'Bodyweight',pattern:x.__pattern||patternForExercise(x.name)});
   renderSession();
  };
 }

@@ -1255,6 +1255,74 @@ html,body{max-width:100%;overflow-x:hidden}
 body #trainingPro.active:not(#training):not(#adminAccess){display:block!important;visibility:visible!important;opacity:1!important;}
 body #trainingPro:not(#training):not(#adminAccess){min-width:0!important;width:100%!important;max-width:100%!important;}
 </style>
+
+<style id="fj-v2-requested-ui-polish">
+/* REQUESTED ONLY — distinguish unavailable choices, keep Admin nav label on one line,
+   and give Training / PRO / Admin panels distinct visual identities. */
+
+/* Incompatible native-select choices: visibly muted wherever the browser exposes
+   disabled options. This does not change which options are selectable. */
+#training select option:disabled,
+#trainingPro select option:disabled{
+  color:#9aa7b2 !important;
+  background:#eef1f4 !important;
+}
+#training select optgroup:disabled,
+#trainingPro select optgroup:disabled{
+  color:#9aa7b2 !important;
+}
+
+/* Admin Access Approval navigation: prevent the word "Approval" from wrapping
+   into a separate box/line on the sidebar. */
+#adminNav{
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  line-height:1.15 !important;
+  font-size:12px !important;
+  padding-left:10px !important;
+  padding-right:8px !important;
+}
+
+/* Distinct panel backgrounds — scoped only to these three panels. */
+#training{
+  background:linear-gradient(180deg,#f4f9fd 0%,#edf6fb 100%) !important;
+  border:1px solid #c9dfed !important;
+  border-top:4px solid #1687c9 !important;
+  border-radius:14px !important;
+  padding:18px !important;
+}
+#trainingPro{
+  background:linear-gradient(180deg,#f2fbfa 0%,#eaf7f5 100%) !important;
+  border:1px solid #bfe0da !important;
+  border-top:4px solid #168b91 !important;
+  border-radius:14px !important;
+  padding:18px !important;
+}
+#adminAccess{
+  background:linear-gradient(180deg,#fffaf0 0%,#fff4dc 100%) !important;
+  border:1px solid #ead7a6 !important;
+  border-top:4px solid #c58a18 !important;
+  border-radius:14px !important;
+  padding:18px !important;
+}
+
+/* Keep the existing cards/forms readable over the new panel backgrounds. */
+#training > .grid,
+#training > .actions,
+#training > .result,
+#trainingPro > .grid,
+#trainingPro > .actions,
+#trainingPro > .result,
+#adminAccess > .report{
+  position:relative;
+}
+
+@media(max-width:700px){
+  #training,#trainingPro,#adminAccess{padding:12px !important;border-radius:12px !important;}
+  #adminNav{font-size:11px !important;padding-left:8px !important;padding-right:6px !important;}
+}
+</style>
 </head><body>
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
@@ -4569,8 +4637,12 @@ else if(t==='mobilityflow'||t==='recovery'||t==='rehab'||t==='prehab'){body=prep
 else {body=prep(st,m,w,d,t,'full-body preparation')+resistance(st,m,w,d,['lower','upperPush','upperPull','hinge'],['MAIN LOWER','MAIN PUSH','MAIN PULL','MAIN HINGE'],4,{used:u})+coreRows(st,m,w,d,'CORE',2);protocol='Structured full-body sequence.'}
 return{title:TYPE_LABEL[t]||'Workout',body,protocol,p,pr}}
 function buildUniqueSessionDay(st,m,w,d){const o=engine(st,m,w,d);return `<div class="fj-table-scroll"><table class="program-day-table"><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Recommended Load</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th></tr></thead><tbody>${o.body}</tbody></table></div>`}
-function updateWorkoutTypeOptions(){const g=(document.getElementById('programGoal')?.value||'').toLowerCase(),sel=document.getElementById('programWorkoutType');if(!sel)return;const key=Object.keys(GOAL_TYPES).sort((a,b)=>b.length-a.length).find(k=>g.includes(k));const allowed=key?GOAL_TYPES[key]:null;Array.from(sel.options).forEach(o=>{o.disabled=!!allowed&&!allowed.includes(o.value)&&o.value!=='auto'});if(allowed&&!allowed.includes(sel.value)&&sel.value!=='auto')sel.value=allowed[0];}
-const oldNote=window.updateWorkoutTypeNote;window.updateWorkoutTypeNote=function(){updateWorkoutTypeOptions();if(typeof oldNote==='function')try{oldNote()}catch(e){}};
+function updateWorkoutTypeOptions(){
+  /* Use the exact same Goal → Workout Type filtering as the master Training Program.
+     Do not merely disable incompatible options: hidden options must not appear in the
+     native mobile dropdown at all. */
+  if(typeof filterWorkoutTypesByGoal==='function'){try{filterWorkoutTypesByGoal();return;}catch(e){}}
+}
 window.__FJCleanWorkoutEngineVersion=V;window.buildUniqueSessionDay=buildUniqueSessionDay;setTimeout(updateWorkoutTypeOptions,0);window.addEventListener('load',updateWorkoutTypeOptions);
 })();</script>\n<style id="fj-v50-session-final-compact">
 /* V50: final session-only layout cleanup. */
@@ -4666,9 +4738,18 @@ window.__FJCleanWorkoutEngineVersion=V;window.buildUniqueSessionDay=buildUniqueS
   #trainingPro .field label{font-size:10px!important}
   #trainingPro .field input,#trainingPro .field select{font-size:12px!important;padding:8px!important}
 }
+@media screen{
+  #fjProPrintRoot{display:none!important}
+}
 @media print{
-  #trainingPro{display:block!important}
   body>*:not(#fjProPrintRoot){display:none!important}
+  #fjProPrintRoot{display:block!important;width:100%!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important;font-family:Arial,Helvetica,sans-serif}
+  #fjProPrintRoot .fj-pro-print-page{padding:12px!important}
+  #fjProPrintRoot h1{font-size:20px!important;margin:0 0 8px!important}
+  #fjProPrintRoot h2{font-size:14px!important;margin:14px 0 6px!important;page-break-before:always}
+  #fjProPrintRoot h2:first-of-type{page-break-before:auto}
+  #fjProPrintRoot table{width:100%!important;border-collapse:collapse!important;font-size:8px!important;table-layout:fixed!important}
+  #fjProPrintRoot th,#fjProPrintRoot td{border:1px solid #bbb!important;padding:3px!important;text-align:left!important;vertical-align:top!important;overflow-wrap:anywhere!important}
 }
 </style>
 <style id="fj-training-pro-compact-session-fix">
@@ -4749,7 +4830,7 @@ function buildPanel(){
  const panel=document.createElement('section');panel.className='panel';panel.id='trainingPro';
  const goal=selectFrom('programGoal',PFX.goal), wt=selectFrom('programWorkoutType',PFX.wtype);
  panel.innerHTML=
- '<div class="fj-pro-head"><div><h2>Training Program PRO</h2><p>Same Training Program engine, with session-level manual controls.</p></div><div class="fj-pro-badge">PRO • Editable Session Program</div></div>'+
+ '<div class="fj-pro-head"><div><h2>Training Program PRO</h2></div></div>'+
  '<div class="grid grid4">'+
  '<div class="field"><label>Client Name</label>'+inputFrom('clientName',PFX.client,'text')+'</div>'+
  '<div class="field"><label>Duration</label>'+selectFrom('programMonths',PFX.months)+'</div>'+
@@ -4878,8 +4959,7 @@ function renderSession(){
  '<div class="fj-pro-session-title"><b>'+title+'</b><span style="display:block;color:#5d788a;font-size:11px;margin-top:3px">'+esc(phase)+' • '+esc((window.WORKOUT_TYPES?.[proState.wtype]?.label)||proState.wtype)+'</span></div>'+
  '<div class="fj-pro-editor"><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load (kg)</th><th>RPE</th><th>RIR</th><th>Rest</th><th>Next Target</th><th>Target / Focus</th><th>Equipment</th><th></th></tr></thead><tbody>'+
  rows.map((r,i)=>renderRow(r,i,key)).join('')+'</tbody></table></div>'+
- '<button type="button" class="btn fj-pro-add" id="btnAddProExercise">＋ Add Exercise</button>'+
-
+ '<button type="button" class="btn fj-pro-add" id="btnAddProExercise">＋ Add Exercise</button>';
  bindEditor(key);
 }
 function renderTabs(){
@@ -4891,7 +4971,7 @@ function renderTabs(){
   for(let w=0;w<4;w++)weeks+='<button type="button" class="fj-pro-week-tab '+(m===1&&w===0?'active':'')+'" data-m="'+m+'" data-w="'+w+'">WEEK '+(((m-1)*4)+w+1)+'</button>';
   weeks+='</div></div>';
  }
- out.innerHTML='<div class="fj-pro-note"><b>'+esc(proState.name)+'</b> • '+proState.months+' months • '+proState.freq+'×/week • '+esc(proState.g)+'</div>'+weeks+'<div id="fjProSessionArea"></div>';
+ out.innerHTML=weeks+'<div id="fjProSessionArea"></div>';
  out.querySelectorAll('.fj-pro-week-tab').forEach(b=>b.onclick=()=>{proCurrent.m=+b.dataset.m;proCurrent.w=+b.dataset.w;proCurrent.d=0;out.querySelectorAll('.fj-pro-week-tab').forEach(x=>x.classList.toggle('active',x===b));renderSessionArea()});
  renderSessionArea();
 }
@@ -4932,12 +5012,22 @@ function bindEditor(key){
 function filterProWorkoutTypesByGoal(){
  const goal=$(PFX.goal)?.value||'';
  const sel=$(PFX.wtype);if(!sel)return;
- const key=Object.keys(GOAL_TYPES||{}).sort((a,b)=>b.length-a.length).find(k=>goal.toLowerCase().includes(k.toLowerCase()));
- const allowed=key?(GOAL_TYPES[key]||[]):null;
- Array.from(sel.options).forEach(opt=>{opt.disabled=!!allowed&&!allowed.includes(opt.value)&&opt.value!=='auto'});
- if(allowed&&!allowed.includes(sel.value)&&sel.value!=='auto'){
-  const first=Array.from(sel.options).find(o=>!o.disabled&&o.value!=='auto');
-  if(first)sel.value=first.value;
+ /* PRO must follow the master Training Program's exact Goal → Workout Type rules. */
+ const allowed=new Set(typeof allowedWorkoutTypesForGoal==='function' ? allowedWorkoutTypesForGoal(goal) : []);
+ let currentStillValid=false;
+ Array.from(sel.options).forEach(opt=>{
+   const ok=allowed.has(opt.value);
+   opt.hidden=!ok;
+   opt.disabled=!ok;
+   if(ok&&opt.value===sel.value)currentStillValid=true;
+ });
+ Array.from(sel.querySelectorAll('optgroup')).forEach(og=>{
+   const hasVisible=Array.from(og.querySelectorAll('option')).some(o=>!o.hidden);
+   og.hidden=!hasVisible;
+ });
+ if(!currentStillValid){
+   const firstAllowed=Array.from(sel.options).find(o=>!o.hidden&&o.value!=='auto');
+   sel.value=firstAllowed?firstAllowed.value:'auto';
  }
  const info=window.WORKOUT_TYPES?.[sel.value]||window.WORKOUT_TYPES?.standard;
  const note=document.getElementById('proWtypeNote');if(note)note.textContent=info?.desc||'';
@@ -4967,18 +5057,19 @@ function load(){
 }
 function printPro(){
  if(!proState){alert('Generate Training Program PRO terlebih dahulu.');return}
+ const oldRoot=document.getElementById('fjProPrintRoot');if(oldRoot)oldRoot.remove();
  const root=document.createElement('div');root.id='fjProPrintRoot';
- const old=document.body.innerHTML;
- // Use a clean temporary print window in the same document without changing the saved program.
- let html='<div style="font-family:Arial,sans-serif;padding:20px"><h1>FITNESS JOURNEY — TRAINING PROGRAM PRO</h1><p><b>Client:</b> '+esc(proState.name)+' • <b>Goal:</b> '+esc(proState.g)+' • <b>Workout:</b> '+esc(proState.wtype)+'</p>';
+ let html='<div class="fj-pro-print-page"><h1>FITNESS JOURNEY — TRAINING PROGRAM PRO</h1><p><b>Client:</b> '+esc(proState.name)+' • <b>Goal:</b> '+esc(proState.g)+' • <b>Workout:</b> '+esc(proState.wtype)+'</p>';
  for(let m=1;m<=proState.months;m++)for(let w=0;w<4;w++)for(let d=0;d<proState.freq;d++){
-  const rows=getRows(m,w,d);html+='<h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table style="width:100%;border-collapse:collapse;font-size:10px"><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr>';
+  const rows=getRows(m,w,d);html+='<h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr>';
   rows.forEach(r=>html+='<tr><td>'+esc(r.block)+'</td><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe)+'</td><td>'+esc(r.rir)+'</td><td>'+esc(r.rest)+'</td></tr>');
   html+='</table>';
  }
- html+='</div>';
- const w=window.open('','_blank','noopener');if(!w){alert('Popup diblokir browser. Izinkan popup untuk Print/PDF.');return}
- w.document.write('<html><head><title>Training Program PRO</title><style>body{font-family:Arial;margin:20px}table{border-collapse:collapse;margin-bottom:16px}th,td{border:1px solid #bbb;padding:5px;text-align:left}h2{page-break-before:always}</style></head><body>'+html+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),300);
+ html+='</div>';root.innerHTML=html;document.body.appendChild(root);
+ const oldTitle=document.title;document.title='Training Program PRO';let cleaned=false;
+ function cleanup(){if(cleaned)return;cleaned=true;const r=document.getElementById('fjProPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',cleanup)}
+ window.addEventListener('afterprint',cleanup);
+ setTimeout(function(){window.print();setTimeout(cleanup,1800)},120);
 }
 function init(){
  buildPanel();

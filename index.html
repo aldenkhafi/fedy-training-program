@@ -4541,6 +4541,20 @@ html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden!important}
         activate(this.dataset.tab,true);
       },true);
     });
+      /* Dynamic navigation bridge: Training Program PRO is created after the base SPA nav initializes.
+       Use delegated capture so the dynamically-created PRO button is always recognized. */
+    if(!document.documentElement.dataset.fjDynamicNavBound){
+      document.documentElement.dataset.fjDynamicNavBound='1';
+      document.addEventListener('click',function(ev){
+        const b=ev.target && ev.target.closest ? ev.target.closest('.navbtn[data-tab]') : null;
+        if(!b || b.dataset.tab!=='trainingPro') return;
+        const p=document.getElementById('trainingPro');
+        if(!p) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        activate('trainingPro',true);
+      },true);
+    }
     window.addEventListener('popstate',function(ev){
       const st=ev.state;
       if(st&&st.fjApp){
@@ -4838,7 +4852,7 @@ function buildPanel(){
  const navGroup=document.createElement('div');navGroup.className='navgroup';navGroup.textContent='PROGRAM';
  const btn=document.createElement('button');btn.className='navbtn';btn.type='button';btn.dataset.tab='trainingPro';btn.id='trainingProNav';btn.textContent='▣ Training Program PRO';
  const adminGroup=$('adminGroup');side.insertBefore(navGroup,adminGroup||null);side.insertBefore(btn,adminGroup||null);
- const panel=document.createElement('section');panel.className='panel';panel.id='trainingPro';
+ const panel=document.createElement('section');panel.className='panel';panel.id='trainingPro';panel.hidden=false;panel.setAttribute('aria-hidden','true');
  const goal=selectFrom('programGoal',PFX.goal), wt=selectFrom('programWorkoutType',PFX.wtype);
  panel.innerHTML=
  '<div class="fj-pro-head"><div><h2>Training Program PRO</h2></div></div>'+
@@ -4866,15 +4880,11 @@ function buildPanel(){
  '<div class="actions"><button class="btn" type="button" id="btnGenerateTrainingPro">Generate Training Program PRO</button><button class="btn alt" type="button" id="btnResetTrainingPro">Reset PRO</button><button class="btn alt" type="button" id="btnSaveTrainingPro">💾 Save PRO</button><button class="btn alt" type="button" id="btnLoadTrainingPro">📂 Load PRO</button><button class="btn alt" type="button" id="btnPrintTrainingPro">▣ Print / Save PDF</button></div>'+
  '<div id="trainingProResult" class="result"></div>';
  main.insertBefore(panel,$('adminAccess')||null);
- btn.addEventListener('click',()=>{
+ btn.addEventListener('click',function(ev){
+  ev.preventDefault();
+  ev.stopPropagation();
   activate();
   try{ localStorage.setItem('fj_active_panel_v20','trainingPro'); }catch(e){}
-});
-/* PRO is created dynamically, after the app's main navigation guard initializes.
-   Re-register it with the SPA navigation and keep the panel visible/active when selected. */
-btn.addEventListener('click',function(){
-  document.querySelectorAll('.navbtn[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab==='trainingPro'));
-  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='trainingPro'));
 });
 }
 

@@ -1326,10 +1326,10 @@ body #trainingPro:not(#training):not(#adminAccess){min-width:0!important;width:1
 
 <style id="fj-v5-nav-panel-colors">
 /* V5: distinct navigation colors for the three requested panels only. */
-button.navbtn[data-tab="training"].active{background:#1976d2!important;color:#fff!important;box-shadow:0 6px 16px rgba(25,118,210,.24)!important}
+button.navbtn[data-tab="training"].active{background:#7e57c2!important;color:#fff!important;box-shadow:0 6px 16px rgba(126,87,194,.28)!important}
 #trainingProNav.active{background:#16a085!important;color:#fff!important;box-shadow:0 6px 16px rgba(22,160,133,.24)!important}
 #adminNav.active{background:#d59a20!important;color:#fff!important;box-shadow:0 6px 16px rgba(213,154,32,.24)!important}
-button.navbtn[data-tab="training"]:hover{background:rgba(25,118,210,.16)!important}
+button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!important}
 #trainingProNav:hover{background:rgba(22,160,133,.16)!important}
 #adminNav:hover{background:rgba(213,154,32,.16)!important}
 </style>
@@ -4669,7 +4669,7 @@ function updateWorkoutTypeOptions(){
   if(typeof filterWorkoutTypesByGoal==='function'){try{filterWorkoutTypesByGoal();return;}catch(e){}}
 }
 window.__FJCleanWorkoutEngineVersion=V;window.buildUniqueSessionDay=buildUniqueSessionDay;setTimeout(updateWorkoutTypeOptions,0);window.addEventListener('load',updateWorkoutTypeOptions);
-})();</script>\n<style id="fj-v50-session-final-compact">
+})();</script><style id="fj-v50-session-final-compact">
 /* V50: final session-only layout cleanup. */
 #trainingResult .program-session-tabs{
   width:100%!important; max-width:100%!important; min-width:0!important;
@@ -5248,8 +5248,111 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   #fjProPrintRoot .fj-pro-client-grid span{margin-top:2px!important}
 }
 /* Active dashboard navigation: selected panel stays highlighted until another is clicked. */
-.navbtn[data-tab="training"].active{background:#1976d2!important;color:#fff!important;box-shadow:0 6px 16px rgba(25,118,210,.28)!important}
+.navbtn[data-tab="training"].active{background:#7e57c2!important;color:#fff!important;box-shadow:0 6px 16px rgba(126,87,194,.30)!important}
 #trainingProNav.active{background:#16a085!important;color:#fff!important;box-shadow:0 6px 16px rgba(22,160,133,.30)!important}
 .navbtn[data-tab="adminAccess"].active{background:#d79a2b!important;color:#fff!important;box-shadow:0 6px 16px rgba(215,154,43,.30)!important}
 </style>
+
+<!-- V12 PDF-ONLY FIX: robust same-document print, isolated from all legacy print CSS/runtime. -->
+<style id="fj-v12-pdf-only-fix">
+@media print{
+  html.fj-v12-printing, html.fj-v12-printing body{width:100%!important;height:auto!important;min-height:0!important;overflow:visible!important;background:#fff!important}
+  html.fj-v12-printing body> *:not(#fj-v13-print-root):not(#fjProPrintRoot){display:none!important;visibility:hidden!important}
+  html.fj-v12-printing #fj-v13-print-root,
+  html.fj-v12-printing #fjProPrintRoot{display:block!important;visibility:visible!important;position:static!important;float:none!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important;color:#111!important;opacity:1!important}
+  html.fj-v12-printing #fj-v13-print-root *,
+  html.fj-v12-printing #fjProPrintRoot *{visibility:visible!important;opacity:1!important;box-sizing:border-box!important}
+  html.fj-v12-printing #fj-v13-print-root .v13-print-client-page-break{break-after:page!important;page-break-after:always!important;height:0!important;margin:0!important;padding:0!important}
+  html.fj-v12-printing #fj-v13-print-root .v13-print-result{break-before:page!important;page-break-before:always!important}
+  html.fj-v12-printing #fj-v13-print-root .fj-all-session,
+  html.fj-v12-printing #fj-v13-print-root .fj-all-month{break-inside:avoid!important;page-break-inside:avoid!important}
+  html.fj-v12-printing #fj-v13-print-root table{break-inside:avoid!important;page-break-inside:avoid!important;width:100%!important;max-width:100%!important}
+  html.fj-v12-printing #fjProPrintRoot .fj-pro-client-cover{break-after:page!important;page-break-after:always!important;min-height:0!important;height:auto!important}
+  html.fj-v12-printing #fjProPrintRoot .fj-pro-program-start{display:none!important;height:0!important}
+  html.fj-v12-printing #fjProPrintRoot .fj-pro-print-session{break-inside:avoid!important;page-break-inside:avoid!important}
+  html.fj-v12-printing #fjProPrintRoot .fj-pro-print-session table{break-inside:avoid!important;page-break-inside:avoid!important;width:100%!important;max-width:100%!important}
+}
+</style>
+<script id="fj-v12-pdf-only-runtime">
+(function(){
+  'use strict';
+  function byId(id){return document.getElementById(id)}
+  function startPrint(root,oldTitle){
+    if(!root)return false;
+    document.documentElement.classList.add('fj-v12-printing');
+    document.body.classList.add('fj-v12-printing');
+    root.style.setProperty('display','block','important');
+    root.style.setProperty('visibility','visible','important');
+    root.style.setProperty('position','static','important');
+    root.style.setProperty('width','100%','important');
+    root.style.setProperty('max-width','none','important');
+    root.style.setProperty('height','auto','important');
+    root.style.setProperty('overflow','visible','important');
+    root.setAttribute('aria-hidden','false');
+    var cleaned=false;
+    function cleanup(){
+      if(cleaned)return; cleaned=true;
+      document.documentElement.classList.remove('fj-v12-printing');
+      document.body.classList.remove('fj-v12-printing');
+      var r=byId(root.id); if(r)r.remove();
+      if(oldTitle!=null)document.title=oldTitle;
+      window.removeEventListener('afterprint',cleanup);
+    }
+    window.addEventListener('afterprint',cleanup,{once:true});
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      setTimeout(function(){
+        try{window.print()}catch(e){console.error(e);cleanup();alert('PDF gagal dibuka.')} 
+        setTimeout(cleanup,5000);
+      },250);
+    })});
+    return true;
+  }
+  function openMaster(){
+    if(!window.__FJAdvancedState){alert('Generate Training Program first.');return false}
+    var old=byId('fj-v13-print-root');if(old)old.remove();
+    var root=document.createElement('div');root.id='fj-v13-print-root';
+    var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+    var val=function(id,f){var e=byId(id),v=e?String(e.value||'').trim():'';return v||f||''};
+    var rows=[['Client Name',val('clientName','—')],['Age',val('programAge','—')+' years'],['Gender',val('programGender','—')],['Body Weight',val('programWeight','—')+' kg'],['Height',val('programHeight','—')+' cm'],['Goal',val('programGoal','—')],['Fitness Level',val('programLevel','AUTO')],['Workout Type',val('programWorkoutType','—')],['Duration',val('programMonths','—')+' months'],['Frequency',val('programFreq','—')+' / week']];
+    var h='<div class="v13-print-head"><strong>Training Program</strong></div><div class="v13-print-client"><div class="v13-client-grid">';
+    rows.forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});
+    h+='</div></div><div class="v13-print-client-page-break"></div><div class="v13-print-result">';
+    try{if(typeof window.fjBuildAllTrainingHTML==='function')h+=window.fjBuildAllTrainingHTML(window.__FJAdvancedState)}catch(e){console.error('PDF build error',e)}
+    if(!/<div[^>]+class=["']fj-all-month/.test(h)){
+      var r=byId('trainingResult');h+=(r&&r.innerHTML.trim())?r.innerHTML:'<p>No generated training program.</p>';
+    }
+    h+='</div>';root.innerHTML=h;document.body.appendChild(root);
+    var oldTitle=document.title;document.title='Training Program - '+val('clientName','Client');
+    return startPrint(root,oldTitle);
+  }
+  function openPro(){
+    if(!window.proState){alert('Generate Training Program PRO terlebih dahulu.');return false}
+    var old=byId('fjProPrintRoot');if(old)old.remove();
+    var root=document.createElement('div');root.id='fjProPrintRoot';
+    var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+    var snap=function(id,f){var e=byId(id);return e?String(e.value||'').trim()||f:f};
+    var p=window.proState,client=[['Client Name',p.name||snap('clientName','—')],['Age',snap('programAge','—')+' years'],['Gender',snap('programGender','—')],['Body Weight',snap('programWeight','—')+' kg'],['Height',snap('programHeight','—')+' cm'],['Goal',p.g||snap('programGoal','—')],['Fitness Level',snap('programLevel','AUTO')],['Workout Type',p.wtype||snap('programWorkoutType','—')],['Duration',String(p.months||snap('programMonths','—'))+' months'],['Frequency',String(p.freq||snap('programFreq','—'))+' / week']];
+    var h='<div class="fj-pro-print-page"><section class="fj-pro-client-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj-pro-client-grid">';
+    client.forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});
+    h+='</div></section><div class="fj-pro-program-start"></div><h1>TRAINING PROGRAM PRO</h1>';
+    for(var m=1;m<=p.months;m++)for(var w=0;w<4;w++)for(var d=0;d<p.freq;d++){
+      var rows=getRows(m,w,d);h+='<section class="fj-pro-print-session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
+      rows.forEach(function(r){h+='<tr><td>'+esc(r.block)+'</td><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe)+'</td><td>'+esc(r.rir)+'</td><td>'+esc(r.rest)+'</td></tr>'});
+      h+='</tbody></table></section>';
+    }
+    h+='</div>';root.innerHTML=h;document.body.appendChild(root);
+    var oldTitle=document.title;document.title='Training Program PRO';
+    return startPrint(root,oldTitle);
+  }
+  function bind(){
+    var pdf=byId('saveFullProgramPdfBtn');if(pdf)pdf.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();return openMaster()};
+    var pr=byId('btnPrintTraining');if(pr)pr.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();return openMaster()};
+    var pp=byId('btnPrintTrainingPro');if(pp)pp.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();return openPro()};
+  }
+  window.fjV12OpenTrainingPrint=openMaster;
+  window.fjV12OpenTrainingProPrint=openPro;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.addEventListener('load',bind);
+})();
+</script>
 </body></html>

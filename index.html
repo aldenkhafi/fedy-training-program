@@ -1333,6 +1333,25 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #trainingProNav:hover{background:rgba(22,160,133,.16)!important}
 #adminNav:hover{background:rgba(213,154,32,.16)!important}
 </style>
+
+<style id="fj-v14-pdf-client-data-size-fix">
+/* V14: PDF ONLY — enlarge client-data cover for readable printing. */
+@media print{
+  #fj-v13-print-root .v13-print-head{margin-bottom:12px!important;padding-bottom:8px!important}
+  #fj-v13-print-root .v13-print-head strong{font-size:26px!important;line-height:1.15!important}
+  #fj-v13-print-root .v13-print-client{padding:14px!important;margin-bottom:12px!important;border-radius:6px!important}
+  #fj-v13-print-root .v13-client-grid{gap:10px 24px!important}
+  #fj-v13-print-root .v13-client-grid b{font-size:10px!important;line-height:1.2!important}
+  #fj-v13-print-root .v13-client-grid span{font-size:14px!important;line-height:1.35!important;font-weight:700!important}
+
+  #fjProPrintRoot .fj-pro-client-cover{padding:14mm 8mm!important}
+  #fjProPrintRoot .fj-pro-client-cover h1{font-size:26px!important;line-height:1.15!important;margin:0 0 14px!important}
+  #fjProPrintRoot .fj-pro-client-grid{gap:10px 24px!important;margin-top:14px!important}
+  #fjProPrintRoot .fj-pro-client-grid>div{padding:12px!important;border-radius:6px!important}
+  #fjProPrintRoot .fj-pro-client-grid b{font-size:10px!important;line-height:1.2!important}
+  #fjProPrintRoot .fj-pro-client-grid span{font-size:14px!important;line-height:1.35!important;font-weight:700!important}
+}
+</style>
 </head><body>
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">

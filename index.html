@@ -5063,6 +5063,7 @@ function getRows(m,w,d){
  if(!proEdits[key])proEdits[key]=baseRows(m,w,d);
  return proEdits[key];
 }
+window.fjGetTrainingProRows=function(m,w,d){return getRows(m,w,d)};
 function renderRow(row,i,key){
  const isPrep=/^PREP\s*\d+/i.test(String(row.block||''));
  const isAdded=/^ADDED$/i.test(String(row.block||''));
@@ -5835,3 +5836,147 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
 })();
 </script>
 
+
+
+<!-- V23 TARGETED REPAIR: print single-flow + editable client calendar + PRO import/move + dashboard scroll. -->
+<style id="fj-v23-targeted-repair-css">
+@media (min-width:701px){
+  .side{height:100vh!important;max-height:100vh!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:stable!important;}
+  .main{min-width:0!important;max-width:none!important;overflow-x:auto!important;overflow-y:visible!important;}
+  .main > .panel{min-width:0!important;max-width:none!important;}
+}
+/* Single-document print: no popup, no about:blank, no duplicate print windows. */
+@media print{
+  html.fj-v23-printing,html.fj-v23-printing body{background:#fff!important;width:100%!important;min-height:0!important;overflow:visible!important;}
+  html.fj-v23-printing body>*:not(#fjV23PrintRoot){display:none!important;visibility:hidden!important;}
+  html.fj-v23-printing #fjV23PrintRoot{display:block!important;visibility:visible!important;position:static!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important;overflow:visible!important;}
+  #fjV23PrintRoot .fj-v23-cover{min-height:245mm;box-sizing:border-box;padding:8mm 4mm;break-after:page;page-break-after:always;}
+  #fjV23PrintRoot .fj-v23-cover h1{font-size:24px;margin:0 0 14px;}
+  #fjV23PrintRoot .fj-v23-client-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;border:1px solid #bfc9d1;padding:12px;border-radius:6px;}
+  #fjV23PrintRoot .fj-v23-client-grid>div{border:1px solid #d0d7dc;padding:10px;border-radius:5px;}
+  #fjV23PrintRoot .fj-v23-client-grid b{display:block;font-size:11px;text-transform:uppercase;line-height:1.2;}
+  #fjV23PrintRoot .fj-v23-client-grid span{display:block;margin-top:4px;font-size:16px;font-weight:700;line-height:1.35;}
+  #fjV23PrintRoot .fj-v23-program h1{font-size:22px;margin:0 0 10px;}
+  #fjV23PrintRoot .fj-v23-session{break-inside:avoid!important;page-break-inside:avoid!important;margin:0 0 7mm;}
+  #fjV23PrintRoot .fj-v23-session h2{font-size:14px;margin:0 0 6px;break-after:avoid!important;page-break-after:avoid!important;}
+  #fjV23PrintRoot table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px;break-inside:avoid!important;page-break-inside:avoid!important;}
+  #fjV23PrintRoot thead{display:table-header-group;}
+  #fjV23PrintRoot tr{break-inside:avoid!important;page-break-inside:avoid!important;}
+  #fjV23PrintRoot th,#fjV23PrintRoot td{border:1px solid #999;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere;}
+  #fjV23PrintRoot th{font-weight:700;background:#f3f3f3;}
+}
+/* Editable client data in Client Calendar. */
+#trainingClientCalendar .fj-v23-client-editor{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+#trainingClientCalendar .fj-v23-client-editor .field{min-width:0;}
+#trainingClientCalendar .fj-v23-client-editor input,#trainingClientCalendar .fj-v23-client-editor select{width:100%;box-sizing:border-box;}
+#trainingClientCalendar .fj-v23-client-editor .wide{grid-column:span 2;}
+#trainingClientCalendar .fj-v23-import-pro{margin-left:auto;}
+@media(max-width:900px){#trainingClientCalendar .fj-v23-client-editor{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:700px){#trainingClientCalendar .fj-v23-client-editor{grid-template-columns:1fr;}#trainingClientCalendar .fj-v23-client-editor .wide{grid-column:span 1;}}
+#trainingClientCalendar .fj-cc-event{cursor:grab;}
+#trainingClientCalendar .fj-cc-event:active{cursor:grabbing;}
+</style>
+<script id="fj-v23-targeted-repair-runtime">
+(function(){
+'use strict';
+var q=function(id){return document.getElementById(id)};
+var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+function val(id,fb){var e=q(id);return e?String(e.value||'').trim()||fb:fb}
+function masterClient(){
+ return {name:val('clientName',''),age:val('programAge',''),gender:val('programGender','male'),weight:val('programWeight',''),height:val('programHeight',''),goal:val('programGoal','General Fitness'),level:val('programLevel','auto'),wtype:val('programWorkoutType','standard'),duration:val('programMonths','3'),freq:val('programFreq','2')};
+}
+function state(){try{return window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null}catch(e){return null}}
+function syncCalendarClientToMaster(){
+ var ids={ccvClientName:'clientName',ccvAge:'programAge',ccvGender:'programGender',ccvWeight:'programWeight',ccvHeight:'programHeight',ccvGoal:'programGoal',ccvLevel:'programLevel',ccvWtype:'programWorkoutType',ccvDuration:'programMonths',ccvFreq:'programFreq'};
+ Object.keys(ids).forEach(function(cid){var ce=q(cid),me=q(ids[cid]);if(ce&&me&&ce.value!==me.value){me.value=ce.value;}});
+}
+function renderEditableClient(){
+ var out=q('ccClientData');if(!out)return;
+ if(out.dataset.fjV23Rendered==='1')return;
+ out.dataset.fjV23Rendered='1';
+ var c=masterClient();
+ var opts=function(id,current){var m=q(id);if(!m)return '';return Array.from(m.options||[]).map(function(o){return '<option value="'+esc(o.value)+'" '+(o.value===current?'selected':'')+'>'+esc(o.textContent)+'</option>'}).join('')};
+ out.className='fj-v23-client-editor';
+ out.innerHTML='<div class="field wide"><label>Client Name</label><input id="ccvClientName" type="text" value="'+esc(c.name)+'" placeholder="Client Name"></div>'+
+ '<div class="field"><label>Age (years)</label><input id="ccvAge" type="number" value="'+esc(c.age)+'" placeholder="Age"></div>'+
+ '<div class="field"><label>Gender</label><select id="ccvGender">'+opts('programGender',c.gender)+'</select></div>'+
+ '<div class="field"><label>Body Weight (kg)</label><input id="ccvWeight" type="number" value="'+esc(c.weight)+'" placeholder="Weight"></div>'+
+ '<div class="field"><label>Height (cm)</label><input id="ccvHeight" type="number" value="'+esc(c.height)+'" placeholder="Height"></div>'+
+ '<div class="field"><label>Goal</label><select id="ccvGoal">'+opts('programGoal',c.goal)+'</select></div>'+
+ '<div class="field"><label>Fitness Level</label><select id="ccvLevel">'+opts('programLevel',c.level)+'</select></div>'+
+ '<div class="field"><label>Workout Type</label><select id="ccvWtype">'+opts('programWorkoutType',c.wtype)+'</select></div>'+
+ '<div class="field"><label>Duration (months)</label><select id="ccvDuration">'+opts('programMonths',c.duration)+'</select></div>'+
+ '<div class="field"><label>Frequency</label><select id="ccvFreq">'+opts('programFreq',c.freq)+'</select></div>';
+ Object.keys({ccvClientName:1,ccvAge:1,ccvGender:1,ccvWeight:1,ccvHeight:1,ccvGoal:1,ccvLevel:1,ccvWtype:1,ccvDuration:1,ccvFreq:1}).forEach(function(id){var e=q(id);if(!e||e.dataset.fjV23Bound)return;e.dataset.fjV23Bound='1';e.addEventListener('input',syncCalendarClientToMaster);e.addEventListener('change',syncCalendarClientToMaster)});
+}
+function ensureCalendarToolbar(){
+ var tb=q('ccPrintBtn')&&q('ccPrintBtn').parentElement;if(!tb)return;
+ if(!q('ccImportProBtn')){var b=document.createElement('button');b.type='button';b.className='btn alt fj-v23-import-pro';b.id='ccImportProBtn';b.textContent='↳ Import Training Program PRO';tb.appendChild(b);b.addEventListener('click',importPro)}
+}
+function ensureCalendarLoad(){var b=q('ccLoadBtn');if(!b||b.dataset.fjV23LoadBound)return;var c=b.cloneNode(true);b.parentNode.replaceChild(c,b);c.dataset.fjV23LoadBound='1';c.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);input.onchange=function(){var f=input.files&&input.files[0];input.remove();if(!f)return;var rd=new FileReader();rd.onload=function(){try{var p=JSON.parse(rd.result);if(!p||!p.calendar||!p.calendar.events)throw Error('bad');var cc=p.calendar;var cl=p.client||{};var map={name:'clientName',age:'programAge',gender:'programGender',weight:'programWeight',height:'programHeight',goal:'programGoal',level:'programLevel',wtype:'programWorkoutType',duration:'programMonths',freq:'programFreq'};Object.keys(map).forEach(function(k){var el=q(map[k]);if(el&&cl[k]!=null)el.value=cl[k]});var live=state();if(live){live.year=Number(cc.year)||live.year;live.month=Number(cc.month)||live.month;live.events=cc.events||{};if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render();var o=q('ccClientData');if(o)o.dataset.fjV23Rendered='';renderEditableClient();setTimeout(patchCalendarEvents,0)} }catch(err){alert('Invalid Client Calendar file.')}};rd.readAsText(f)};input.click()},true)}
+function rowsFromHtml(html){var wrap=document.createElement('div');wrap.innerHTML=html||'';var out=[];wrap.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=2)out.push({exercise:(td[1].textContent||'').trim(),sets:(td[2]?.textContent||'').trim(),reps:(td[3]?.textContent||'').trim(),load:(td[4]?.textContent||'').trim(),rest:(td[7]?.textContent||'60–90s').trim()})});return out}
+function autoRows(m,w,d){
+ var p=window.proState||window.__FJAdvancedState;if(!p||typeof window.buildUniqueSessionDay!=='function')return [];
+ try{if(window.fjGetTrainingProRows){var pr=window.fjGetTrainingProRows(m,w,d);if(Array.isArray(pr)&&pr.length)return pr.map(function(r){return {exercise:r.exercise,sets:r.sets,reps:r.reps,load:r.load,rest:r.rest}})}if(typeof window.buildUniqueSessionDay==='function')return rowsFromHtml(window.buildUniqueSessionDay(p,m,w,d))}catch(e){console.error('Client Calendar auto program failed',e)}return []
+}
+function importPro(){
+ var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return}
+ var st=state();if(!st||!st.events)return;
+ var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
+ var start=new Date();
+ /* Import the complete PRO schedule beginning on the current calendar month. */
+ var idx=0,added=0;
+ for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+   var dt=new Date(start.getFullYear(),start.getMonth(),start.getDate()+idx*2);var date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+   var key=date+'T'+String(8+(idx%8)).padStart(2,'0')+':00';var rows=autoRows(m,w,d);if(rows.length){st.events[key]={title:'Month '+m+' • Week '+(w+1)+' • Session '+String.fromCharCode(65+d),notes:'Imported from Training Program PRO',exercises:rows};added++}idx++;
+ }
+ try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}
+ alert(added+' PRO session(s) imported to Client Calendar. You can move each session by dragging it to another day/time.');
+}
+function patchCalendarEvents(){
+ var st=state();if(!st||!st.events)return;
+ document.querySelectorAll('#ccCalendar [data-cc-key]').forEach(function(cell){
+   var k=cell.getAttribute('data-cc-key');var ev=st.events[k];
+   if(!ev)return;
+   var card=cell.querySelector('.fj-cc-event');if(!card||card.dataset.fjV23Drag)return;
+   card.dataset.fjV23Drag='1';card.draggable=true;
+   card.addEventListener('dragstart',function(e){try{e.dataTransfer.setData('text/plain',k)}catch(_){}window.__fjV23DragKey=k});
+ });
+ document.querySelectorAll('#ccCalendar [data-cc-key]').forEach(function(cell){if(cell.dataset.fjV23Drop)return;cell.dataset.fjV23Drop='1';cell.addEventListener('dragover',function(e){e.preventDefault()});cell.addEventListener('drop',function(e){e.preventDefault();var from=(e.dataTransfer&&e.dataTransfer.getData('text/plain'))||window.__fjV23DragKey;if(!from||from===this.dataset.ccKey)return;var s=state();if(!s||!s.events||!s.events[from])return;var ev=s.events[from];delete s.events[from];s.events[this.dataset.ccKey]=ev;try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(_){}setTimeout(patchCalendarEvents,0)})});
+}
+function enhanceCalendar(){
+ renderEditableClient();ensureCalendarToolbar();ensureCalendarLoad();patchCalendarEvents();
+}
+function printRoot(title,bodyHtml){
+ var old=q('fjV23PrintRoot');if(old)old.remove();
+ var root=document.createElement('div');root.id='fjV23PrintRoot';root.innerHTML=bodyHtml;document.body.appendChild(root);
+ var oldTitle=document.title;document.title=title;var cleaned=false;
+ function cleanup(){if(cleaned)return;cleaned=true;document.documentElement.classList.remove('fj-v23-printing');var r=q('fjV23PrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',cleanup)}
+ window.addEventListener('afterprint',cleanup,{once:true});
+ requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){document.documentElement.classList.add('fj-v23-printing');setTimeout(function(){try{window.print()}catch(e){console.error(e);cleanup();alert('PDF gagal dibuka.')}},180)},80)})});
+ return true;
+}
+function clientRows(p){return [['Client Name',p.name||val('clientName','—')],['Age',val('programAge',p.age||'—')+' years'],['Gender',val('programGender','—')],['Body Weight',val('programWeight',p.weight||'—')+' kg'],['Height',val('programHeight',p.height||'—')+' cm'],['Goal',p.g||val('programGoal','—')],['Fitness Level',p.level||val('programLevel','AUTO')],['Workout Type',p.wtype||val('programWorkoutType','—')],['Duration',String(p.months||val('programMonths','—'))+' months'],['Frequency',String(p.freq||val('programFreq','—'))+' / week']]}
+function buildProPrintBody(p){
+ var h='<section class="fj-v23-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj-v23-client-grid">';clientRows(p).forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section><section class="fj-v23-program"><h1>TRAINING PROGRAM PRO</h1>';
+ var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
+ for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+  var rows=[];try{if(typeof window.buildUniqueSessionDay==='function')rows=rowsFromHtml(window.buildUniqueSessionDay(p,m,w,d))}catch(e){}
+  if(!rows.length)rows=[{exercise:'No exercise data available',sets:'—',reps:'—',load:'—',rest:'—'}];
+  h+='<section class="fj-v23-session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
+  rows.forEach(function(r){h+='<tr><td>PROGRAM</td><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>—</td><td>—</td><td>'+esc(r.rest)+'</td></tr>'});h+='</tbody></table></section>';
+ }
+ return h+'</section>';
+}
+function proPrint(e){if(e){e.preventDefault();e.stopImmediatePropagation()}var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return false}return printRoot('Training Program PRO',buildProPrintBody(p))}
+function masterPrint(e){if(e){e.preventDefault();e.stopImmediatePropagation()}var p=window.__FJAdvancedState;if(!p){alert('Generate Training Program first.');return false}var rows=clientRows(p),h='<section class="fj-v23-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj-v23-client-grid">';rows.forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section><section class="fj-v23-program"><h1>TRAINING PROGRAM</h1>';try{h+=window.fjBuildAllTrainingHTML?window.fjBuildAllTrainingHTML(p):(q('trainingResult')?q('trainingResult').innerHTML:'')}catch(e2){h+=q('trainingResult')?q('trainingResult').innerHTML:''}return printRoot('Training Program',h+'</section>')}
+function replacePrintButton(id,fn){var b=q(id);if(!b||b.dataset.fjV23Bound)return;if(b.dataset.fjV23Cloned!=='1'){var c=b.cloneNode(true);c.dataset.fjV23Cloned='1';b.parentNode.replaceChild(c,b);b=c}b.dataset.fjV23Bound='1';b.addEventListener('click',fn,true)}
+function bind(){replacePrintButton('saveFullProgramPdfBtn',masterPrint);replacePrintButton('btnPrintTraining',masterPrint);replacePrintButton('btnPrintTrainingPro',proPrint);enhanceCalendar()}
+['clientName','programAge','programGender','programWeight','programHeight','programGoal','programLevel','programWorkoutType','programMonths','programFreq'].forEach(function(id){var e=q(id);if(e&&!e.dataset.fjV23CalendarRefresh){e.dataset.fjV23CalendarRefresh='1';e.addEventListener('input',function(){var o=q('ccClientData');if(o)o.dataset.fjV23Rendered='';renderEditableClient()});e.addEventListener('change',function(){var o=q('ccClientData');if(o)o.dataset.fjV23Rendered='';renderEditableClient()})}});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,120)},{once:true});else setTimeout(bind,120);
+window.addEventListener('load',function(){setTimeout(bind,180)});
+var mo=new MutationObserver(function(){replacePrintButton('saveFullProgramPdfBtn',masterPrint);replacePrintButton('btnPrintTraining',masterPrint);replacePrintButton('btnPrintTrainingPro',proPrint);if(q('ccCalendar'))setTimeout(patchCalendarEvents,0)});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>
+
+</body></html>

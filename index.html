@@ -5646,7 +5646,7 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
 }
 </style>
 
-</body></html>
+
 
 <style id="fj-v20-pro-pdf-final">
 @media print{
@@ -5685,7 +5685,7 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
       rows.forEach(function(r){html+='<tr><td>'+esc(r.block||'')+'</td><td>'+esc(r.exercise||'')+'</td><td>'+esc(r.sets||'')+'</td><td>'+esc(r.reps||'')+'</td><td>'+esc(r.load||'')+'</td><td>'+esc(r.rpe||'')+'</td><td>'+esc(r.rir||'')+'</td><td>'+esc(r.rest||'')+'</td></tr>'});
       html+='</tbody></table></section>';
     }
-    return html+'</body></html>';
+    return html+'';
   }
   function printPro(e){
     if(e){e.preventDefault();e.stopImmediatePropagation();}
@@ -5711,7 +5711,7 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
   window.fjV20OpenTrainingProPrint=printPro;
 })();
 </script>
-</body></html>
+
 
 <!-- V22 TARGETED REPAIR: dashboard scroll + PRO PDF + Client Calendar only. -->
 <style id="fj-v22-targeted-repair-css">
@@ -5782,7 +5782,7 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
     try{w=window.open('', 'fjTrainingProgramPrintV22', 'width=1100,height=900,resizable=yes,scrollbars=yes');}catch(e){console.error(e)}
     if(!w){alert('PDF gagal dibuka. Izinkan pop-up untuk situs ini lalu coba lagi.');return false}
     var css='@page{size:A4 portrait;margin:10mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}body{font-size:10px}.cover{min-height:245mm;box-sizing:border-box;padding:10mm;break-after:page;page-break-after:always}.cover h1{font-size:26px;margin:0 0 16px}.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}.client-grid>div{border:1px solid #bfc9d1;padding:12px;border-radius:6px}.client-grid b{display:block;font-size:11px;text-transform:uppercase}.client-grid span{display:block;font-size:15px;font-weight:700;margin-top:4px}.program h1{font-size:22px;margin:0 0 10px}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session h2{font-size:14px;margin:0 0 6px;break-after:avoid;page-break-after:avoid}.session table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px;break-inside:avoid;page-break-inside:avoid}.session th,.session td{border:1px solid #aaa;padding:3px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.session thead{display:table-header-group}.session tr{break-inside:avoid;page-break-inside:avoid}';
-    var doc='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+css+'</style></head><body>'+bodyHtml+'</body></html>';
+    var doc='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+css+'</style></head><body>'+bodyHtml+'';
     try{
       w.document.open();w.document.write(doc);w.document.close();
       var printed=false;
@@ -6030,4 +6030,120 @@ function init(){bindExports();var b=q('trainingProNav');if(b){b.style.whiteSpace
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,150)},{once:true});else setTimeout(init,150);window.addEventListener('load',function(){setTimeout(init,250)});var mo=new MutationObserver(function(){bindExports();var b=q('trainingProNav');if(b){b.style.whiteSpace='nowrap';b.style.overflow='hidden';b.style.textOverflow='clip'}});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
 })();
 </script>
+
+<style id="fj-v26-print-calendar-final">
+@media print{
+  html.fj-v26-printing body>*:not(#fjV26PrintRoot){display:none!important;visibility:hidden!important}
+  html.fj-v26-printing #fjV26PrintRoot{display:block!important;visibility:visible!important;position:static!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important;overflow:visible!important;font-family:Arial,Helvetica,sans-serif}
+  #fjV26PrintRoot *{box-sizing:border-box!important;max-width:100%!important;overflow:visible!important}
+  #fjV26PrintRoot .fj26-cover{min-height:245mm!important;padding:10mm 6mm!important;break-after:page!important;page-break-after:always!important}
+  #fjV26PrintRoot .fj26-cover h1{font-size:24px!important;margin:0 0 16px!important}
+  #fjV26PrintRoot .fj26-client-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px 18px!important;border:1px solid #bfc9d1!important;padding:12px!important}
+  #fjV26PrintRoot .fj26-client-grid>div{border:1px solid #d0d7dc!important;padding:11px!important}
+  #fjV26PrintRoot .fj26-client-grid b{display:block!important;font-size:11px!important;text-transform:uppercase!important}
+  #fjV26PrintRoot .fj26-client-grid span{display:block!important;margin-top:4px!important;font-size:17px!important;font-weight:700!important}
+  #fjV26PrintRoot .fj26-program{display:block!important;visibility:visible!important}
+  #fjV26PrintRoot .fj26-session{display:block!important;visibility:visible!important;margin:0 0 7mm!important;break-inside:avoid!important;page-break-inside:avoid!important}
+  #fjV26PrintRoot .fj26-session h2{font-size:14px!important;margin:0 0 6px!important;break-after:avoid!important;page-break-after:avoid!important}
+  #fjV26PrintRoot table{display:table!important;width:100%!important;min-width:0!important;border-collapse:collapse!important;table-layout:fixed!important;font-size:8px!important;border:1px solid #777!important;break-inside:avoid!important;page-break-inside:avoid!important}
+  #fjV26PrintRoot thead{display:table-header-group!important}
+  #fjV26PrintRoot tbody{display:table-row-group!important}
+  #fjV26PrintRoot tr{display:table-row!important;break-inside:avoid!important;page-break-inside:avoid!important}
+  #fjV26PrintRoot th,#fjV26PrintRoot td{display:table-cell!important;border:1px solid #777!important;padding:4px!important;text-align:left!important;vertical-align:top!important;overflow-wrap:anywhere!important}
+  #fjV26PrintRoot th{font-weight:700!important;background:#f3f3f3!important}
+}
+</style>
+<script id="fj-v26-targeted-final-fixes">
+(function(){
+'use strict';
+var q=function(id){return document.getElementById(id)};
+var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+function val(id,fb){var e=q(id);return e?String(e.value||'').trim()||fb:fb}
+function rowsFromMaster(m,w,d,p){
+  var raw='';try{raw=typeof window.buildUniqueSessionDay==='function'?window.buildUniqueSessionDay(p,m,w,d):''}catch(e){raw=''}
+  var wrap=document.createElement('div');wrap.innerHTML=raw||'';var out=[];
+  var table=wrap.querySelector('table');if(!table)return out;
+  table.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=8)out.push({block:(td[0].textContent||'').trim(),exercise:(td[1].textContent||'').trim(),sets:(td[2].textContent||'').trim(),reps:(td[3].textContent||'').trim(),load:(td[4].textContent||'').trim(),rpe:(td[5].textContent||'').trim(),rir:(td[6].textContent||'').trim(),rest:(td[7].textContent||'').trim()})});
+  return out;
+}
+function clientRows(p){return [['Client Name',p&&p.name||val('clientName','—')],['Age',val('programAge',p&&p.age||'—')+' years'],['Gender',val('programGender','—')],['Body Weight',val('programWeight',p&&p.weight||'—')+' kg'],['Height',val('programHeight',p&&p.height||'—')+' cm'],['Goal',p&&p.g||val('programGoal','—')],['Fitness Level',p&&p.level||val('programLevel','AUTO')],['Workout Type',p&&p.wtype||val('programWorkoutType','—')],['Duration',String(p&&p.months||val('programMonths','—'))+' months'],['Frequency',String(p&&p.freq||val('programFreq','—'))+' / week']]}
+function buildMasterPrint(p){
+ var h='<section class="fj26-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj26-client-grid">';clientRows(p).forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section><section class="fj26-program"><h1>TRAINING PROGRAM</h1>';
+ var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
+ for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+   var rows=rowsFromMaster(m,w,d,p);if(!rows.length)continue;
+   h+='<section class="fj26-session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets / Rounds</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
+   rows.forEach(function(r){h+='<tr><td>'+esc(r.block)+'</td><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe)+'</td><td>'+esc(r.rir)+'</td><td>'+esc(r.rest)+'</td></tr>'});
+   h+='</tbody></table></section>';
+ }
+ return h+'</section>';
+}
+function buildProPrint(p){
+ var h='<section class="fj26-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj26-client-grid">';clientRows(p).forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section><section class="fj26-program"><h1>TRAINING PROGRAM PRO</h1>';
+ var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
+ for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+   var rows=[];try{if(typeof window.fjGetTrainingProRows==='function')rows=window.fjGetTrainingProRows(m,w,d)||[]}catch(e){};
+   if(!Array.isArray(rows)||!rows.length){try{rows=rowsFromMaster(m,w,d,p)}catch(e){rows=[]}}
+   if(!rows.length)continue;
+   h+='<section class="fj26-session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
+   rows.forEach(function(r){h+='<tr><td>'+esc(r.block||'PROGRAM')+'</td><td>'+esc(r.exercise||r.name||'')+'</td><td>'+esc(r.sets||'')+'</td><td>'+esc(r.reps||'')+'</td><td>'+esc(r.load||'')+'</td><td>'+esc(r.rpe||'')+'</td><td>'+esc(r.rir||'')+'</td><td>'+esc(r.rest||'')+'</td></tr>'});h+='</tbody></table></section>';
+ }
+ return h+'</section>';
+}
+var printBusy=false;
+function printOne(title,body){
+ if(printBusy)return false;printBusy=true;
+ var old=q('fjV26PrintRoot');if(old)old.remove();
+ var root=document.createElement('div');root.id='fjV26PrintRoot';root.innerHTML=body;document.body.appendChild(root);
+ var oldTitle=document.title;document.title=title;var cleaned=false;
+ function clean(){if(cleaned)return;cleaned=true;document.documentElement.classList.remove('fj-v26-printing');var r=q('fjV26PrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean);printBusy=false}
+ window.addEventListener('afterprint',clean);
+ document.documentElement.classList.add('fj-v26-printing');
+ requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){try{window.print()}catch(e){clean();alert('Print PDF gagal: '+e.message)}},120)})});
+ return true;
+}
+function bindPrintButton(oldId,newId,fn){
+ var b=q(oldId);if(!b||b.dataset.fjV26Replaced)return;
+ var c=b.cloneNode(true);c.id=newId;c.removeAttribute('data-fj-v23-bound');c.removeAttribute('data-fj-v22-print');c.removeAttribute('data-fj-v23-cloned');c.dataset.fjV26Replaced='1';
+ b.parentNode.replaceChild(c,b);c.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();fn(e)},false);
+}
+function doMaster(e){var p=window.__FJAdvancedState;if(!p){alert('Generate Training Program first.');return false}return printOne('Training Program',buildMasterPrint(p))}
+function doPro(e){var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return false}return printOne('Training Program PRO',buildProPrint(p))}
+function getCalendar(){return window.fjClientCalendar&&typeof window.fjClientCalendar.state==='function'?window.fjClientCalendar.state():null}
+function renderCalendar(){try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.render==='function')window.fjClientCalendar.render()}catch(e){console.error(e)}}
+function sourceRows(p,label,m,w,d){
+ if(label==='Training Program PRO'){
+   try{if(typeof window.fjGetTrainingProRows==='function'){var r=window.fjGetTrainingProRows(m,w,d);if(Array.isArray(r)&&r.length)return r.map(function(x){return {exercise:x.exercise||x.name||'',sets:x.sets||'',reps:x.reps||'',load:x.load||'',rest:x.rest||''}})}}catch(e){}
+ }
+ return rowsFromMaster(m,w,d,p).map(function(x){return {exercise:x.exercise,sets:x.sets,reps:x.reps,load:x.load,rest:x.rest}});
+}
+function exportCalendar(p,label){
+ var cal=getCalendar();if(!cal||!cal.events){alert('Client Calendar belum siap. Buka Client Calendar terlebih dahulu.');return false}
+ var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1),base=new Date(cal.year,cal.month,1),idx=0,added=0;
+ for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+   var rows=sourceRows(p,label,m,w,d);if(!rows.length){idx++;continue}
+   var dt=new Date(base.getFullYear(),base.getMonth(),1+idx*2),date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'),hour=8+(idx%10),key=date+'T'+String(hour).padStart(2,'0')+':00';
+   while(cal.events[key]){hour++;if(hour>23){idx++;dt=new Date(base.getFullYear(),base.getMonth(),1+idx*2);date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');hour=8;key=date+'T08:00'}else key=date+'T'+String(hour).padStart(2,'0')+':00'}
+   cal.events[key]={title:'Month '+m+' • Week '+(w+1)+' • Session '+String.fromCharCode(65+d),notes:'Exported from '+label,exercises:rows};added++;idx++;
+ }
+ renderCalendar();setTimeout(function(){if(typeof window.__fjV26PatchCalendar==='function')window.__fjV26PatchCalendar()},50);alert(added+' session(s) exported to Client Calendar.');return true;
+}
+function replaceExport(id,label){var b=q(id);if(!b||b.dataset.fjV26Export)return;var c=b.cloneNode(true);c.dataset.fjV26Export='1';b.parentNode.replaceChild(c,b);c.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var p=label==='Training Program PRO'?window.proState:window.__FJAdvancedState;if(!p){alert(label==='Training Program PRO'?'Generate Training Program PRO terlebih dahulu.':'Generate Training Program first.');return}exportCalendar(p,label)},false)}
+function autoEditor(k){
+ var cal=getCalendar();if(!cal)return;
+ var ev=cal.events[k],p=window.proState||window.__FJAdvancedState;if(!ev){ev={title:'Training',notes:'',exercises:[]};if(p&&typeof window.buildUniqueSessionDay==='function'){var m=1,w=0,d=0;try{var parts=k.split('T')[0].split('-');var clicked=new Date(Number(parts[0]),Number(parts[1])-1,Number(parts[2]));var base=new Date(cal.year,cal.month,1);var diff=Math.round((clicked-base)/86400000);m=Math.floor(Math.max(0,diff)/(4*Math.max(1,Number(p.freq)||1)))+1;w=Math.floor((Math.max(0,diff)%(4*Math.max(1,Number(p.freq)||1)))/Math.max(1,Number(p.freq)||1));d=Math.max(0,diff%(Math.max(1,Number(p.freq)||1)))}catch(e){}var rows=sourceRows(p,window.proState?'Training Program PRO':'Training Program',m,w,d);if(rows.length)ev.exercises=rows}}
+ if(!ev.exercises.length)ev.exercises=[{exercise:'',sets:'3',reps:'8–12',load:'',rest:'60–90s'}];
+ q('ccEditKey').value=k;q('ccEditTitle').value=ev.title||'Training';q('ccEditNotes').value=ev.notes||'';
+ var out=q('ccExercises');if(!out)return;var pool=[];try{var type=String(q('programWorkoutType')?.value||'standard').toLowerCase(),pats=({standard:['lower','upperPush','upperPull','hinge','core'],fullbody:['lower','upperPush','upperPull','hinge','core'],totalbody:['lower','upperPush','upperPull','hinge','core','conditioning'],functional:['lower','upperPush','upperPull','hinge','core','conditioning'],hypertrophy:['lower','upperPush','upperPull','hinge','arms','core'],upperlower:['lower','upperPush','upperPull','hinge','core'],ppl:['upperPush','upperPull','lower','hinge','core'],bro:['lower','upperPush','upperPull','hinge','arms','core'],superset:['lower','upperPush','upperPull','hinge','core'],giantset:['lower','upperPush','upperPull','hinge','core'],metcon:['lower','upperPush','upperPull','hinge','core','conditioning'],tabata:['lower','upperPush','upperPull','hinge','core','conditioning'],emom:['lower','upperPush','upperPull','hinge','core','conditioning'],amrap:['lower','upperPush','upperPull','hinge','core','conditioning'],fortime:['lower','upperPush','upperPull','hinge','core','conditioning'],hiit:['lower','upperPush','upperPull','hinge','core','conditioning'],zone2:['conditioning'],engine:['conditioning'],recovery:['core','conditioning']})[type]||['lower','upperPush','upperPull','hinge','core'];var seen={};pats.forEach(function(pt){(window.EXO_POOL&&window.EXO_POOL[pt]||[]).forEach(function(x){if(x&&x.name&&!seen[x.name]){seen[x.name]=1;pool.push(x.name)}})})}catch(e){}
+ function opts(sel){return pool.map(function(n){return '<option value="'+esc(n)+'" '+(n===sel?'selected':'')+'>'+esc(n)+'</option>'}).join('')}
+ out.innerHTML=ev.exercises.map(function(r,i){return '<div class="fj-cc-ex-row" data-row="'+i+'"><select data-cc-field="exercise">'+(r.exercise&&!pool.includes(r.exercise)?'<option selected>'+esc(r.exercise)+'</option>':'')+opts(r.exercise)+'</select><input data-cc-field="sets" value="'+esc(r.sets||'')+'" placeholder="Sets"><input data-cc-field="reps" value="'+esc(r.reps||'')+'" placeholder="Reps / Time"><input data-cc-field="load" value="'+esc(r.load||'')+'" placeholder="Load"><button type="button" class="btn alt" data-cc-remove="1">×</button></div>'}).join('');out.querySelectorAll('[data-cc-remove]').forEach(function(b){b.onclick=function(){b.closest('.fj-cc-ex-row').remove()}});q('ccModal').classList.add('open');q('ccEditTitle').focus();
+}
+function patchCalendar(){var cal=getCalendar();if(!cal)return;document.querySelectorAll('#ccCalendar [data-cc-key]').forEach(function(cell){cell.onclick=function(e){e.preventDefault();e.stopPropagation();autoEditor(cell.dataset.ccKey)}})}
+window.__fjV26PatchCalendar=patchCalendar;
+function bind(){bindPrintButton('saveFullProgramPdfBtn','fjV26MasterPdf',doMaster);bindPrintButton('btnPrintTraining','fjV26MasterPrint',doMaster);bindPrintButton('btnPrintTrainingPro','fjV26ProPrint',doPro);replaceExport('btnExportTrainingToCalendar','Training Program');replaceExport('btnExportTrainingProToCalendar','Training Program PRO');patchCalendar()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,500)},{once:true});else setTimeout(bind,500);window.addEventListener('load',function(){setTimeout(bind,500)});
+var mo=new MutationObserver(function(){setTimeout(bind,30)});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>
+
 </body></html>

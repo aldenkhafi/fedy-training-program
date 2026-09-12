@@ -4561,17 +4561,18 @@ html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden!important}
       },true);
     });
       /* Dynamic navigation bridge: Training Program PRO is created after the base SPA nav initializes.
-       Use delegated capture so the dynamically-created PRO button is always recognized. */
+       Use delegated capture so dynamically-created PRO and Client Calendar buttons are always recognized. */
     if(!document.documentElement.dataset.fjDynamicNavBound){
       document.documentElement.dataset.fjDynamicNavBound='1';
       document.addEventListener('click',function(ev){
         const b=ev.target && ev.target.closest ? ev.target.closest('.navbtn[data-tab]') : null;
-        if(!b || b.dataset.tab!=='trainingPro') return;
-        const p=document.getElementById('trainingPro');
+        if(!b || (b.dataset.tab!=='trainingPro' && b.dataset.tab!=='trainingClientCalendar')) return;
+        const target=b.dataset.tab;
+        const p=document.getElementById(target);
         if(!p) return;
         ev.preventDefault();
         ev.stopPropagation();
-        activate('trainingPro',true);
+        activate(target,true);
       },true);
     }
     window.addEventListener('popstate',function(ev){
@@ -5527,7 +5528,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <style id="fj-v17-client-calendar">
 /* V17 — CLIENT CALENDAR: new feature only. Existing panels and logic are untouched. */
 #trainingClientCalendar{display:none!important}
-#trainingClientCalendar.active{display:block!important;visibility:visible!important;opacity:1!important}
+#trainingClientCalendar.active,#trainingClientCalendar.panel.active,#trainingClientCalendar.panel:not(#training):not(#adminAccess).active{display:block!important;visibility:visible!important;opacity:1!important}
 .navbtn[data-tab="clientCalendar"].active{background:#8e44ad!important;color:#fff!important;box-shadow:0 6px 16px rgba(142,68,173,.28)!important}
 #trainingClientCalendar .fj-cc-client-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
 #trainingClientCalendar .fj-cc-client-item{border:1px solid #d4dfe6;border-radius:8px;padding:9px;background:#fff}
@@ -5710,3 +5711,127 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
 })();
 </script>
 </body></html>
+
+<!-- V22 TARGETED REPAIR: dashboard scroll + PRO PDF + Client Calendar only. -->
+<style id="fj-v22-targeted-repair-css">
+/* Restore dashboard sidebar scrolling without changing its layout. */
+@media (min-width:701px){
+  .side{overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:stable!important;}
+  .main{overflow-x:auto!important;overflow-y:visible!important;}
+}
+/* Client Calendar must remain a normal dashboard panel and be visible when selected. */
+#trainingClientCalendar{display:none!important;visibility:hidden!important;opacity:0!important;}
+#trainingClientCalendar.fj-v22-force-active{display:block!important;visibility:visible!important;opacity:1!important;}
+#trainingClientCalendar.fj-v22-force-active *{visibility:visible;}
+@media (max-width:700px){
+  .main{overflow-x:hidden!important;}
+  #trainingClientCalendar{width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important;}
+}
+</style>
+<script id="fj-v22-targeted-repair-runtime">
+(function(){
+  'use strict';
+  function q(id){return document.getElementById(id)}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function snap(id,f){var e=q(id);return e?String(e.value||'').trim()||f:f}
+
+  /* ---- Client Calendar: force-create/show/render without altering its existing engine. ---- */
+  function ensureCalendarPanel(){
+    var panel=q('trainingClientCalendar');
+    if(!panel && window.fjClientCalendar){
+      /* The original Client Calendar runtime creates the panel during startup. */
+      return null;
+    }
+    return panel;
+  }
+  function activateCalendar(ev){
+    if(ev){ev.preventDefault();ev.stopImmediatePropagation();}
+    var panel=ensureCalendarPanel();
+    if(!panel)return false;
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');p.classList.remove('fj-v22-force-active')});
+    document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.classList.toggle('active',b.dataset.tab==='trainingClientCalendar')});
+    panel.classList.add('active','fj-v22-force-active');
+    panel.style.setProperty('display','block','important');
+    panel.style.setProperty('visibility','visible','important');
+    panel.style.setProperty('opacity','1','important');
+    try{localStorage.setItem('fj_active_panel_v20','trainingClientCalendar')}catch(e){}
+    try{history.pushState({fjApp:true,fjPanel:'trainingClientCalendar'},'',location.href)}catch(e){}
+    requestAnimationFrame(function(){
+      try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.render==='function')window.fjClientCalendar.render()}catch(e){console.error('Client Calendar render failed',e)}
+    });
+    return false;
+  }
+  function bindCalendarNav(){
+    var n=q('clientCalendarNav');
+    if(!n)return false;
+    /* Clone only this navigation button so old conflicting listeners cannot override it. */
+    if(n.dataset.fjV22Cloned!=='1'){
+      var c=n.cloneNode(true);c.dataset.fjV22Cloned='1';c.className=n.className;n.parentNode.replaceChild(c,n);n=c;
+    }
+    if(n.dataset.fjV22Bound!=='1'){
+      n.dataset.fjV22Bound='1';
+      n.addEventListener('click',activateCalendar,true);
+    }
+    return true;
+  }
+
+  /* ---- Print: replace only the two dashboard print buttons with one direct, standalone print flow. ---- */
+  function standalonePrint(title,bodyHtml){
+    var w=null;
+    try{w=window.open('', 'fjTrainingProgramPrintV22', 'width=1100,height=900,resizable=yes,scrollbars=yes');}catch(e){console.error(e)}
+    if(!w){alert('PDF gagal dibuka. Izinkan pop-up untuk situs ini lalu coba lagi.');return false}
+    var css='@page{size:A4 portrait;margin:10mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}body{font-size:10px}.cover{min-height:245mm;box-sizing:border-box;padding:10mm;break-after:page;page-break-after:always}.cover h1{font-size:26px;margin:0 0 16px}.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}.client-grid>div{border:1px solid #bfc9d1;padding:12px;border-radius:6px}.client-grid b{display:block;font-size:11px;text-transform:uppercase}.client-grid span{display:block;font-size:15px;font-weight:700;margin-top:4px}.program h1{font-size:22px;margin:0 0 10px}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session h2{font-size:14px;margin:0 0 6px;break-after:avoid;page-break-after:avoid}.session table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px;break-inside:avoid;page-break-inside:avoid}.session th,.session td{border:1px solid #aaa;padding:3px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.session thead{display:table-header-group}.session tr{break-inside:avoid;page-break-inside:avoid}';
+    var doc='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+css+'</style></head><body>'+bodyHtml+'</body></html>';
+    try{
+      w.document.open();w.document.write(doc);w.document.close();
+      var printed=false;
+      function go(){if(printed)return;printed=true;try{w.focus();w.print()}catch(e){console.error('V22 print failed',e);try{w.close()}catch(_){}}}
+      if(w.document.readyState==='complete')setTimeout(go,350);else w.addEventListener('load',function(){setTimeout(go,350)},{once:true});
+      return true;
+    }catch(e){console.error('V22 print document failed',e);try{w.close()}catch(_){}alert('PDF gagal dibuat.');return false}
+  }
+  function masterPrint(){
+    if(!window.__FJAdvancedState){alert('Generate Training Program first.');return false}
+    var esc2=esc,val=function(id,f){return snap(id,f)};
+    var rows=[['Client Name',val('clientName','—')],['Age',val('programAge','—')+' years'],['Gender',val('programGender','—')],['Body Weight',val('programWeight','—')+' kg'],['Height',val('programHeight','—')+' cm'],['Goal',val('programGoal','—')],['Fitness Level',val('programLevel','AUTO')],['Workout Type',val('programWorkoutType','—')],['Duration',val('programMonths','—')+' months'],['Frequency',val('programFreq','—')+' / week']];
+    var h='<section class="cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="client-grid">';rows.forEach(function(r){h+='<div><b>'+esc2(r[0])+'</b><span>'+esc2(r[1])+'</span></div>'});h+='</div></section><section class="program"><h1>TRAINING PROGRAM</h1>';
+    try{if(typeof window.fjBuildAllTrainingHTML==='function')h+=window.fjBuildAllTrainingHTML(window.__FJAdvancedState)}catch(e){console.error(e)}
+    if(h.indexOf('fj-all-month')<0){var r=q('trainingResult');if(r)h+=r.innerHTML||''}
+    h+='</section>';return standalonePrint('Training Program - '+val('clientName','Client'),h);
+  }
+  function getProRows(p,m,w,d){
+    try{if(typeof window.getRows==='function'){var a=window.getRows(m,w,d);if(Array.isArray(a)&&a.length)return a}}catch(e){console.error(e)}
+    try{if(typeof window.buildUniqueSessionDay==='function'){var x=document.createElement('div');x.innerHTML=window.buildUniqueSessionDay(p,m,w,d)||'';var o=[];x.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=2)o.push({block:td[0].textContent.trim(),exercise:td[1].textContent.trim(),sets:td[2]?.textContent.trim()||'—',reps:td[3]?.textContent.trim()||'—',load:td[4]?.textContent.trim()||'—',rpe:td[5]?.textContent.trim()||'—',rir:td[6]?.textContent.trim()||'—',rest:td[7]?.textContent.trim()||'—'})});if(o.length)return o}}catch(e){console.error(e)}
+    return [{block:'PROGRAM',exercise:'No exercise data available',sets:'—',reps:'—',load:'—',rpe:'—',rir:'—',rest:'—'}];
+  }
+  function proPrint(){
+    var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return false}
+    var rows=[['Client Name',p.name||snap('clientName','—')],['Age',snap('programAge','—')+' years'],['Gender',snap('programGender','—')],['Body Weight',snap('programWeight','—')+' kg'],['Height',snap('programHeight','—')+' cm'],['Goal',p.g||snap('programGoal','—')],['Fitness Level',snap('programLevel','AUTO')],['Workout Type',p.wtype||snap('programWorkoutType','—')],['Duration',String(p.months||snap('programMonths','—'))+' months'],['Frequency',String(p.freq||snap('programFreq','—'))+' / week']];
+    var h='<section class="cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="client-grid">';rows.forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section><section class="program"><h1>TRAINING PROGRAM PRO</h1>';
+    var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
+    for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+      var rr=getProRows(p,m,w,d);h+='<section class="session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
+      rr.forEach(function(r){h+='<tr><td>'+esc(r.block)+'</td><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe)+'</td><td>'+esc(r.rir)+'</td><td>'+esc(r.rest)+'</td></tr>'});h+='</tbody></table></section>';
+    }
+    h+='</section>';return standalonePrint('Training Program PRO',h);
+  }
+  function replaceButton(id,fn){var b=q(id);if(!b)return false;var c=b.cloneNode(true);c.dataset.fjV22Print='1';b.parentNode.replaceChild(c,b);c.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();fn()},true);return true}
+  function install(){
+    bindCalendarNav();
+    replaceButton('saveFullProgramPdfBtn',masterPrint);
+    replaceButton('btnPrintTraining',masterPrint);
+    replaceButton('btnPrintTrainingPro',proPrint);
+    var cal=q('trainingClientCalendar');if(cal && cal.classList.contains('active')){cal.classList.add('fj-v22-force-active')}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(install,80)},{once:true});else setTimeout(install,80);
+  window.addEventListener('load',function(){setTimeout(install,100)});
+  var mo=new MutationObserver(function(){
+    if(q('clientCalendarNav'))bindCalendarNav();
+    if(q('btnPrintTrainingPro')&&!q('btnPrintTrainingPro').dataset.fjV22Print)replaceButton('btnPrintTrainingPro',proPrint);
+    if(q('saveFullProgramPdfBtn')&&!q('saveFullProgramPdfBtn').dataset.fjV22Print)replaceButton('saveFullProgramPdfBtn',masterPrint);
+    if(q('btnPrintTraining')&&!q('btnPrintTraining').dataset.fjV22Print)replaceButton('btnPrintTraining',masterPrint);
+  });
+  try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>
+

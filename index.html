@@ -1352,7 +1352,7 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
   #fjProPrintRoot .fj-pro-client-grid span{font-size:14px!important;line-height:1.35!important;font-weight:700!important}
 }
 </style>
-<style id="fj-v28-remove-master-undo">#fjV28MasterUndo,#fjV28MasterRedo{display:none!important}</style></head><body>
+</head><body>
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
 <div class="brand">FITNESS JOURNEY<small>TRAINING PROGRAM</small></div>
@@ -5573,60 +5573,106 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){
 'use strict';
 var PANEL_ID='trainingClientCalendar',NAV_ID='clientCalendarNav',STORE='fj_client_calendar_v1';
-var ccState={year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};
-var ccUndo=[],ccRedo=[];
+var ccState={year:new Date().getFullYear(),month:new Date().getMonth(),events:{},clients:{}};
+var ccUndo=[],ccRedo=[],ccFilter='ALL CLIENTS';
 function $(id){return document.getElementById(id)}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function val(id,fb){var e=$(id);return e?String(e.value||'').trim()||fb||'':fb||''}
 function client(){
  var wt=val('programWorkoutType','standard');
  var wl=(window.WORKOUT_TYPES&&window.WORKOUT_TYPES[wt]&&window.WORKOUT_TYPES[wt].label)||wt;
- return {name:val('clientName','—'),age:val('programAge','—'),gender:val('programGender','—'),weight:val('programWeight','—'),height:val('programHeight','—'),goal:val('programGoal','—'),level:val('programLevel','AUTO'),wtype:wl,duration:val('programMonths','—'),freq:val('programFreq','—')};
+ return {name:val('clientName',''),age:val('programAge',''),gender:val('programGender','male'),weight:val('programWeight',''),height:val('programHeight',''),goal:val('programGoal','General Fitness'),level:val('programLevel','auto'),wtype:wl,duration:val('programMonths','3'),freq:val('programFreq','2')};
 }
-function clientKey(c){return JSON.stringify(c)}
-function patterns(type){return ({standard:['lower','upperPush','upperPull','hinge','core'],fullbody:['lower','upperPush','upperPull','hinge','core'],totalbody:['lower','upperPush','upperPull','hinge','core','conditioning'],functional:['lower','upperPush','upperPull','hinge','core','conditioning'],lowimpact:['lower','upperPush','upperPull','hinge','core'],strengthpower:['lower','upperPush','upperPull','hinge','conditioning'],hypertrophy:['lower','upperPush','upperPull','hinge','arms','core'],upperlower:['lower','upperPush','upperPull','hinge','core'],ppl:['upperPush','upperPull','lower','hinge','core'],bro:['lower','upperPush','upperPull','hinge','arms','core'],superset:['lower','upperPush','upperPull','hinge','core'],giantset:['lower','upperPush','upperPull','hinge','core'],cluster:['lower','upperPush','upperPull','hinge','conditioning'],density:['lower','upperPush','upperPull','hinge','core','conditioning'],tempo:['lower','upperPush','upperPull','hinge','core'],contrast:['lower','upperPush','upperPull','hinge','conditioning'],hybrid:['lower','upperPush','upperPull','hinge','core','conditioning'],hyrox:['lower','hinge','upperPull','upperPush','conditioning','core'],metcon:['lower','upperPush','upperPull','hinge','core','conditioning'],circuit:['lower','upperPush','upperPull','hinge','core','conditioning'],hiit:['lower','upperPush','upperPull','hinge','core','conditioning'],zone2:['conditioning'],engine:['conditioning'],runlift:['lower','hinge','upperPull','upperPush','conditioning'],ocr:['lower','hinge','upperPull','conditioning','core'],tabata:['lower','upperPush','upperPull','hinge','core','conditioning'],emom:['lower','upperPush','upperPull','hinge','core','conditioning'],amrap:['lower','upperPush','upperPull','hinge','core','conditioning'],fortime:['lower','upperPush','upperPull','hinge','core','conditioning'],ladder:['lower','upperPush','upperPull','hinge','core'],rehab:['lower','upperPush','upperPull','hinge','core'],corebalance:['core','lower'],mobilityflow:['core','lower'],prehab:['core','lower','upperPush','upperPull'],recovery:['core','conditioning']})[type]||['lower','upperPush','upperPull','hinge','core'];
-}
-function exercisePool(){
- var c=client(),type=String($("programWorkoutType")?.value||'standard').toLowerCase(),pats=patterns(type),out=[],seen=new Set();
- pats.forEach(function(p){(EXO_POOL&&EXO_POOL[p]||[]).forEach(function(x){if(!x||!x.name||seen.has(x.name))return;seen.add(x.name);out.push({name:x.name,equip:x.equip||'Bodyweight',muscle:x.muscle||p,pattern:p})})});
- if(type==='zone2'||type==='engine'||type==='recovery'){(CONDITIONING_POOL||[]).forEach(function(x){if(x&&x.name&&!seen.has(x.name)){seen.add(x.name);out.push({name:x.name,equip:x.equip||'Cardio',muscle:x.muscle||'Conditioning',pattern:'conditioning'})}})}
- return out;
-}
-function exOptions(selected){var pool=exercisePool();if(selected&&!pool.some(x=>x.name===selected))pool.unshift({name:selected,equip:'',muscle:'',pattern:'custom'});return pool.map(function(x){return '<option value="'+esc(x.name)+'" '+(x.name===selected?'selected':'')+'>'+esc(x.name)+'</option>'}).join('')}
-function daysInMonth(y,m){return new Date(y,m+1,0).getDate()}
-function key(date,h){return date+'T'+String(h).padStart(2,'0')+':00'}
+function clientKey(c){return String(c&&c.name||'').trim().toLowerCase().replace(/\s+/g,' ')||'__unnamed__'}
 function clone(o){return JSON.parse(JSON.stringify(o))}
 function snapshot(){return clone(ccState)}
+function updateHistory(){var u=$('ccUndoBtn'),r=$('ccRedoBtn');if(u)u.disabled=!ccUndo.length;if(r)r.disabled=!ccRedo.length}
 function pushHistory(){ccUndo.push(snapshot());if(ccUndo.length>50)ccUndo.shift();ccRedo=[];updateHistory()}
-function restore(s){ccState=clone(s);renderCalendar();updateHistory()}
+function restore(s){ccState=clone(s);ccFilter=ccState.filter||'ALL CLIENTS';applySelectedClient(false);renderClient();renderCalendar();updateHistory()}
 function undo(){if(!ccUndo.length)return;ccRedo.push(snapshot());restore(ccUndo.pop())}
 function redo(){if(!ccRedo.length)return;ccUndo.push(snapshot());restore(ccRedo.pop())}
-function updateHistory(){var u=$('ccUndoBtn'),r=$('ccRedoBtn');if(u)u.disabled=!ccUndo.length;if(r)r.disabled=!ccRedo.length}
-function renderClient(){var c=client(),out=$('ccClientData');if(!out)return;var rows=[['Client Name','clientName','text'],['Age','programAge','number'],['Gender','programGender','text'],['Body Weight','programWeight','number'],['Height','programHeight','number'],['Goal','programGoal','text'],['Fitness Level','programLevel','text'],['Workout Type','programWorkoutType','text'],['Duration','programMonths','number'],['Frequency','programFreq','number']];out.innerHTML=rows.map(function(r){var v=$(r[1])?.value||'';return '<div class="fj-cc-client-item"><b>'+esc(r[0])+'</b><input data-cc-client-field="'+esc(r[1])+'" type="'+r[2]+'" value="'+esc(String(v))+'"></div>'}).join('');out.querySelectorAll('[data-cc-client-field]').forEach(function(inp){inp.addEventListener('input',function(){var id=this.dataset.ccClientField,src=$(id);if(src&&src.value!==this.value)src.value=this.value})})}
-function renderCalendar(){var out=$('ccCalendar');if(!out)return;var y=ccState.year,m=ccState.month,days=daysInMonth(y,m);out.style.setProperty('--cc-days',days);var html='<div class="fj-cc-calendar">';html+='<div class="fj-cc-head" style="position:sticky;left:0;z-index:7">TIME</div>';var dnames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];for(var d=1;d<=days;d++){var dt=new Date(y,m,d),dow=dnames[dt.getDay()];html+='<div class="fj-cc-head"><span class="daynum">'+d+'</span><span class="dow">'+dow+'</span></div>'}for(var h=0;h<24;h++){html+='<div class="fj-cc-time">'+String(h).padStart(2,'0')+':00</div>';for(d=1;d<=days;d++){var date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),k=key(date,h),ev=ccState.events[k],today=(new Date().getFullYear()===y&&new Date().getMonth()===m&&new Date().getDate()===d);html+='<div class="fj-cc-cell '+(today?'today':'')+'" data-cc-key="'+k+'">'+(ev?'<div class="fj-cc-event"><strong>'+esc(ev.title||'Training')+'</strong><small>'+esc((ev.exercises||[]).map(function(x){return x.exercise}).join(' • '))+'</small></div>':'')+'</div>'}}html+='</div>';out.innerHTML=html;out.querySelectorAll('[data-cc-key]').forEach(function(cell){cell.onclick=function(){openEditor(this.dataset.ccKey)}});var title=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});var t=$('ccMonthTitle');if(t)t.textContent=title}
-function openEditor(k){var ev=ccState.events[k]||{title:'Training',notes:'',exercises:[{exercise:exercisePool()[0]?.name||'',sets:'3',reps:'8–12',load:'',rest:'60–90s'}]};$('ccEditKey').value=k;$('ccEditTitle').value=ev.title||'Training';$('ccEditNotes').value=ev.notes||'';renderEditorExercises(ev.exercises||[]);$('ccModal').classList.add('open');$('ccEditTitle').focus()}
+function currentClientFromState(){var k=ccFilter==='ALL CLIENTS'?clientKey(client()):ccFilter;return ccState.clients&&ccState.clients[k]?ccState.clients[k]:client()}
+function syncMaster(c){var map={name:'clientName',age:'programAge',gender:'programGender',weight:'programWeight',height:'programHeight',goal:'programGoal',level:'programLevel',wtype:'programWorkoutType',duration:'programMonths',freq:'programFreq'};Object.keys(map).forEach(function(k){var e=$(map[k]);if(!e||c[k]==null)return;if(k==='wtype'){var sel=e,match=Array.from(sel.options||[]).find(function(o){return o.value===c[k]||o.textContent===c[k]});if(match)sel.value=match.value;else sel.value=c[k]}else e.value=c[k]})}
+function readCalendarClient(){
+ var map={ccvClientName:'name',ccvAge:'age',ccvGender:'gender',ccvWeight:'weight',ccvHeight:'height',ccvGoal:'goal',ccvLevel:'level',ccvWtype:'wtype',ccvDuration:'duration',ccvFreq:'freq'};var c=currentClientFromState();
+ Object.keys(map).forEach(function(id){var e=$(id);if(e)c[map[id]]=String(e.value||'').trim()});
+ return c;
+}
+function syncClientEdits(redraw){
+ var c=readCalendarClient(),oldKey=ccFilter==='ALL CLIENTS'?clientKey(c):ccFilter,newKey=clientKey(c);
+ if(ccFilter!=='ALL CLIENTS'&&oldKey!==newKey){Object.keys(ccState.events||{}).forEach(function(k){var e=ccState.events[k];if(e&&e.clientKey===oldKey)e.clientKey=newKey});delete ccState.clients[oldKey]}
+ ccState.clients=ccState.clients||{};ccState.clients[newKey]=c;ccFilter=newKey;ccState.filter=ccFilter;syncMaster(c);if(redraw){renderClient();renderCalendar()}updateHistory();
+}
+function options(id,current){var m=$(id);if(!m)return '';return Array.from(m.options||[]).map(function(o){return '<option value="'+esc(o.value)+'" '+(String(o.value)===String(current)?'selected':'')+'>'+esc(o.textContent)+'</option>'}).join('')}
+function renderClient(){
+ var out=$('ccClientData');if(!out)return;var c=currentClientFromState();out.className='fj-v23-client-editor';
+ out.innerHTML='<div class="field wide"><label>Client Name</label><input id="ccvClientName" type="text" value="'+esc(c.name)+'" placeholder="Client Name"></div>'+ 
+ '<div class="field"><label>Age (years)</label><input id="ccvAge" type="number" value="'+esc(c.age)+'" placeholder="Age"></div>'+ 
+ '<div class="field"><label>Gender</label><select id="ccvGender">'+options('programGender',c.gender)+'</select></div>'+ 
+ '<div class="field"><label>Body Weight (kg)</label><input id="ccvWeight" type="number" value="'+esc(c.weight)+'" placeholder="Weight"></div>'+ 
+ '<div class="field"><label>Height (cm)</label><input id="ccvHeight" type="number" value="'+esc(c.height)+'" placeholder="Height"></div>'+ 
+ '<div class="field"><label>Goal</label><select id="ccvGoal">'+options('programGoal',c.goal)+'</select></div>'+ 
+ '<div class="field"><label>Fitness Level</label><select id="ccvLevel">'+options('programLevel',c.level)+'</select></div>'+ 
+ '<div class="field"><label>Workout Type</label><select id="ccvWtype">'+options('programWorkoutType',c.wtype)+'</select></div>'+ 
+ '<div class="field"><label>Duration (months)</label><select id="ccvDuration">'+options('programMonths',c.duration)+'</select></div>'+ 
+ '<div class="field"><label>Frequency</label><select id="ccvFreq">'+options('programFreq',c.freq)+'</select></div>';
+ Object.keys({ccvClientName:1,ccvAge:1,ccvGender:1,ccvWeight:1,ccvHeight:1,ccvGoal:1,ccvLevel:1,ccvWtype:1,ccvDuration:1,ccvFreq:1}).forEach(function(id){var e=$(id);if(!e)return;e.addEventListener('focus',function(){e.__ccBefore=snapshot()});e.addEventListener('input',function(){syncClientEdits(false)});e.addEventListener('change',function(){syncClientEdits(true);if(e.__ccBefore){ccUndo.push(e.__ccBefore);if(ccUndo.length>50)ccUndo.shift();ccRedo=[];e.__ccBefore=null;updateHistory()}})});
+}
+function importPro(){
+ var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return}
+ var api=window.fjClientCalendar,st=api&&api.state?api.state():null;if(!st||!st.events)return;
+ var c=client(),name=String(c.name||'').trim();if(!name){alert('Client Name belum diisi.');return}
+ var ck=api.clientKey?api.clientKey(c):clientKey(c);var progress=null;try{progress=JSON.parse(localStorage.getItem('fj_v27_before_after')||'null')}catch(e){}st.clients=st.clients||{};st.clients[ck]=c;st.clientProgress=progress;st.filter=ck;
+ Object.keys(st.events).forEach(function(k){var e=st.events[k];if(e&&e.clientKey===ck)delete st.events[k]});
+ var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1),start=new Date(st.year,st.month,1),idx=0,added=0;
+ for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+  var rows=[];try{if(window.fjGetTrainingProRows)rows=window.fjGetTrainingProRows(m,w,d)||[]}catch(e){}if(!rows.length){try{var raw=window.buildUniqueSessionDay?window.buildUniqueSessionDay(p,m,w,d):'';var wrap=document.createElement('div');wrap.innerHTML=raw;var t=wrap.querySelector('table');if(t)t.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=8)rows.push({exercise:td[1].textContent.trim(),sets:td[2].textContent.trim(),reps:td[3].textContent.trim(),load:td[4].textContent.trim(),rest:td[7].textContent.trim()})})}catch(e){}}if(!rows.length){idx++;continue}
+  var dt=new Date(start.getFullYear(),start.getMonth(),start.getDate()+idx*2),hour=8+(idx%8),k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')+'T'+String(hour).padStart(2,'0')+':00';
+  while(st.events[k]&&st.events[k].clientKey!==ck){dt=new Date(dt.getTime()+3600000);k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')+'T'+String(dt.getHours()).padStart(2,'0')+':00'}
+  st.events[k]={title:name+' • Training Program PRO • M'+m+' W'+(w+1)+' S'+String.fromCharCode(65+d),notes:'Imported from Training Program PRO',clientKey:ck,exercises:rows.map(function(r){return {exercise:r.exercise||r.name||'',sets:r.sets||'',reps:r.reps||'',load:r.load||'',rest:r.rest||''}})};added++;idx++;
+ }
+ if(api&&api.render)api.render();alert(added+' PRO session(s) imported to Client Calendar.');
+}
+function ensureClient(c){c=c||client();ccState.clients=ccState.clients||{};var k=clientKey(c);ccState.clients[k]=clone(c);return k}
+function applySelectedClient(record){
+ if(ccFilter==='ALL CLIENTS'){syncMaster(client());return}
+ var c=ccState.clients&&ccState.clients[ccFilter];if(c)syncMaster(c);
+}
+function filterOptions(){
+ var sel=$('ccClientFilter');if(!sel)return;var names={};Object.keys(ccState.clients||{}).forEach(function(k){var c=ccState.clients[k];if(c&&c.name)names[k]=c.name});Object.keys(ccState.events||{}).forEach(function(k){var e=ccState.events[k];if(!e)return;var ck=e.clientKey||clientKey(e.client||{});if(e.client&&e.client.name)names[ck]=e.client.name});var keys=Object.keys(names).sort(function(a,b){return names[a].localeCompare(names[b])});sel.innerHTML='<option value="ALL CLIENTS">ALL CLIENTS</option>'+keys.map(function(k){return '<option value="'+esc(k)+'">'+esc(names[k])+'</option>'}).join('');sel.value=ccFilter==='ALL CLIENTS'?'ALL CLIENTS':(names[ccFilter]?ccFilter:'ALL CLIENTS');}
+function key(date,h){return date+'T'+String(h).padStart(2,'0')+':00'}
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate()}
+function visibleEvent(ev){if(ccFilter==='ALL CLIENTS')return true;return ((ev&&ev.clientKey)||clientKey(ev&&ev.client||{}))===ccFilter}
+function renderCalendar(){
+ var out=$('ccCalendar');if(!out)return;filterOptions();var y=ccState.year,m=ccState.month,days=daysInMonth(y,m);out.style.setProperty('--cc-days',days);var html='<div class="fj-cc-calendar"><div class="fj-cc-head" style="position:sticky;left:0;z-index:7">TIME</div>';var dnames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+ for(var d=1;d<=days;d++){var dt=new Date(y,m,d),dow=dnames[dt.getDay()];html+='<div class="fj-cc-head"><span class="daynum">'+d+'</span><span class="dow">'+dow+'</span></div>'}
+ for(var h=0;h<24;h++){html+='<div class="fj-cc-time">'+String(h).padStart(2,'0')+':00</div>';for(d=1;d<=days;d++){var date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),k=key(date,h),ev=ccState.events[k],today=(new Date().getFullYear()===y&&new Date().getMonth()===m&&new Date().getDate()===d);var show=ev&&visibleEvent(ev);html+='<div class="fj-cc-cell '+(today?'today':'')+'" data-cc-key="'+k+'">'+(show?'<div class="fj-cc-event"><strong>'+esc(ev.title||'Training')+'</strong><small>'+esc((ev.exercises||[]).map(function(x){return x.exercise}).join(' • '))+'</small></div>':'')+'</div>'}}
+ html+='</div>';out.innerHTML=html;var dragKey=null;out.querySelectorAll('[data-cc-key]').forEach(function(cell){cell.onclick=function(){openEditor(this.dataset.ccKey)};cell.addEventListener('dragover',function(e){e.preventDefault()});cell.addEventListener('drop',function(e){e.preventDefault();var from=(e.dataTransfer&&e.dataTransfer.getData('text/plain'))||dragKey,to=this.dataset.ccKey;if(!from||from===to||!ccState.events[from])return;pushHistory();ccState.events[to]=ccState.events[from];delete ccState.events[from];renderCalendar()})});out.querySelectorAll('.fj-cc-event').forEach(function(card){card.draggable=true;card.addEventListener('dragstart',function(e){var cell=card.closest('[data-cc-key]');dragKey=cell&&cell.dataset.ccKey;try{e.dataTransfer.setData('text/plain',dragKey||'')}catch(_){} })});var title=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});var t=$('ccMonthTitle');if(t)t.textContent=title;updateHistory();
+}
+function openEditor(k){var ev=ccState.events[k]||{title:'Training',notes:'',exercises:[{exercise:exercisePool()[0]?.name||'',sets:'3',reps:'8–12',load:'',rest:'60–90s'}],clientKey:ccFilter==='ALL CLIENTS'?ensureClient(client()):ccFilter};$('ccEditKey').value=k;$('ccEditTitle').value=ev.title||'Training';$('ccEditNotes').value=ev.notes||'';renderEditorExercises(ev.exercises||[]);$('ccModal').classList.add('open');$('ccEditTitle').focus()}
 function renderEditorExercises(rows){var out=$('ccExercises');if(!out)return;if(!rows.length)rows=[{exercise:exercisePool()[0]?.name||'',sets:'3',reps:'8–12',load:'',rest:'60–90s'}];out.innerHTML=rows.map(function(r,i){return '<div class="fj-cc-ex-row" data-row="'+i+'"><select data-cc-field="exercise">'+exOptions(r.exercise)+'</select><input data-cc-field="sets" value="'+esc(r.sets||'')+'" placeholder="Sets"><input data-cc-field="reps" value="'+esc(r.reps||'')+'" placeholder="Reps / Time"><input data-cc-field="load" value="'+esc(r.load||'')+'" placeholder="Load"><button type="button" class="btn alt" data-cc-remove="1">×</button></div>'}).join('');out.querySelectorAll('[data-cc-remove]').forEach(function(b){b.onclick=function(){b.closest('.fj-cc-ex-row').remove()}})}
 function addExerciseRow(){var rows=[];document.querySelectorAll('#ccExercises .fj-cc-ex-row').forEach(function(row){rows.push({exercise:row.querySelector('[data-cc-field="exercise"]').value,sets:row.querySelector('[data-cc-field="sets"]').value,reps:row.querySelector('[data-cc-field="reps"]').value,load:row.querySelector('[data-cc-field="load"]').value})});rows.push({exercise:exercisePool()[0]?.name||'',sets:'3',reps:'8–12',load:'',rest:'60–90s'});renderEditorExercises(rows)}
-function saveEditor(){var k=$('ccEditKey').value,title=$('ccEditTitle').value.trim()||'Training',notes=$('ccEditNotes').value.trim(),rows=[];document.querySelectorAll('#ccExercises .fj-cc-ex-row').forEach(function(row){rows.push({exercise:row.querySelector('[data-cc-field="exercise"]').value,sets:row.querySelector('[data-cc-field="sets"]').value.trim(),reps:row.querySelector('[data-cc-field="reps"]').value.trim(),load:row.querySelector('[data-cc-field="load"]').value.trim(),rest:'60–90s'})});if(!rows.length){delete ccState.events[k]}else{pushHistory();ccState.events[k]={title:title,notes:notes,exercises:rows}}$('ccModal').classList.remove('open');renderCalendar();updateHistory()}
+function saveEditor(){var k=$('ccEditKey').value,title=$('ccEditTitle').value.trim()||'Training',notes=$('ccEditNotes').value.trim(),rows=[];document.querySelectorAll('#ccExercises .fj-cc-ex-row').forEach(function(row){rows.push({exercise:row.querySelector('[data-cc-field="exercise"]').value,sets:row.querySelector('[data-cc-field="sets"]').value.trim(),reps:row.querySelector('[data-cc-field="reps"]').value.trim(),load:row.querySelector('[data-cc-field="load"]').value.trim(),rest:'60–90s'})});pushHistory();if(!rows.length){delete ccState.events[k]}else{var old=ccState.events[k]||{};ccState.events[k]={title:title,notes:notes,clientKey:old.clientKey||(ccFilter==='ALL CLIENTS'?ensureClient(client()):ccFilter),exercises:rows}}$('ccModal').classList.remove('open');renderCalendar()}
 function deleteEvent(){var k=$('ccEditKey').value;if(ccState.events[k]){pushHistory();delete ccState.events[k]}$('ccModal').classList.remove('open');renderCalendar()}
-function syncClientChange(){renderClient()}
 function prevMonth(){ccState.month--;if(ccState.month<0){ccState.month=11;ccState.year--}renderCalendar()}
 function nextMonth(){ccState.month++;if(ccState.month>11){ccState.month=0;ccState.year++}renderCalendar()}
-function save(){var payload={version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:client(),calendar:ccState};localStorage.setItem(STORE,JSON.stringify(payload));var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FitnessJourney_ClientCalendar.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000)}
-function load(){var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);input.onchange=function(){var f=input.files&&input.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var p=JSON.parse(rd.result);if(!p||!p.calendar||!p.calendar.events)throw Error('bad');pushHistory();ccState=p.calendar;renderCalendar();renderClient()}catch(e){alert('Invalid Client Calendar file.')}};rd.readAsText(f)};input.click()}
-function print(){var c=client(),old=document.getElementById('fjClientCalendarPrintRoot');if(old)old.remove();var root=document.createElement('div');root.id='fjClientCalendarPrintRoot';var month=new Date(ccState.year,ccState.month,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});var h='<section class="cc-print-cover"><h1>CLIENT CALENDAR</h1><div class="cc-print-client">';[['Client Name',c.name],['Age',c.age+' years'],['Gender',c.gender],['Body Weight',c.weight+' kg'],['Height',c.height+' cm'],['Goal',c.goal],['Fitness Level',c.level],['Workout Type',c.wtype],['Duration',c.duration+' months'],['Frequency',c.freq]].forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section>';var bz=null;try{bz=JSON.parse(localStorage.getItem('fj_v27_before_after')||'null')}catch(e){}bz=bz&&bz.before&&bz.after?bz:{before:{},after:{}};function bp(side,title){var p=bz[side]||{},img=p.image?'<img src="'+esc(p.image)+'" alt="'+title+'">':'<div class="cc-progress-empty">No photo</div>',vals=[['Weight',p.weight],['Height',p.height],['BMI',p.bmi],['Skeletal Muscle',p.skeletalMuscle],['Body Fat',p.bodyFat],['WHR',p.whr],['Visceral Fat',p.visceralFat],['BMR',p.bmr],['Notes',p.notes]];var x='<div class="cc-progress-card"><h2>'+title+'</h2><div class="cc-progress-photo">'+img+'</div><div class="cc-progress-fields">';vals.forEach(function(v){x+='<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'});return x+'</div></div>'}h+='<section class="cc-print-progress"><h1>BEFORE / AFTER PROGRESS</h1><div class="cc-progress-grid">'+bp('before','BEFORE')+bp('after','AFTER')+'</div></section><h1>CLIENT CALENDAR — '+esc(month)+'</h1>';Object.keys(ccState.events).sort().forEach(function(k){if(k.indexOf(ccState.year+'-'+String(ccState.month+1).padStart(2,'0'))!==0)return;var e=ccState.events[k];h+='<section class="cc-print-event"><h2>'+esc(k.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th></tr></thead><tbody>';e.exercises.forEach(function(x){h+='<tr><td>'+esc(x.exercise)+'</td><td>'+esc(x.sets)+'</td><td>'+esc(x.reps)+'</td><td>'+esc(x.load)+'</td></tr>'});h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'')+'</section>'});root.innerHTML=h;document.body.appendChild(root);var oldTitle=document.title;document.title='Client Calendar';document.documentElement.classList.add('fj-v17-cc-printing');function clean(){document.documentElement.classList.remove('fj-v17-cc-printing');var r=document.getElementById('fjClientCalendarPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}window.addEventListener('afterprint',clean,{once:true});requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){window.print();setTimeout(clean,5000)},200)})})}
+function compactCalendarState(){var out={year:ccState.year,month:ccState.month,filter:ccFilter,clients:clone(ccState.clients||{}),clientProgress:clone(ccState.clientProgress||null),events:{}};Object.keys(ccState.events||{}).forEach(function(k){var e=ccState.events[k];if(!e)return;out.events[k]={title:e.title||'Training',notes:e.notes||'',clientKey:e.clientKey||clientKey(e.client||{}),exercises:clone(e.exercises||[])} });return out}
+function save(){var payload={version:'CLIENT_CALENDAR_V3',savedAt:new Date().toISOString(),client:currentClientFromState(),calendar:compactCalendarState()};try{localStorage.setItem(STORE,JSON.stringify(payload));var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FitnessJourney_ClientCalendar.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);alert('Client Calendar tersimpan.')}catch(e){console.error(e);alert('Client Calendar gagal disimpan: '+(e&&e.message?e.message:'Storage error'))}}
+function normalizeLoadedCalendar(cc,cl){cc=cc||{};var events=cc.events||{},clients=cc.clients||{};Object.keys(events).forEach(function(k){var e=events[k];if(!e)return;var ck=e.clientKey||clientKey(e.client||cl||{});e.clientKey=ck;delete e.clientProgress;delete e.client; if(!clients[ck]&&cl&&cl.name)clients[ck]=clone(cl)});cc.events=events;cc.clients=clients;cc.filter=cc.filter||'ALL CLIENTS';return cc}
+function load(){var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);input.onchange=function(){var f=input.files&&input.files[0];input.remove();if(!f)return;var rd=new FileReader();rd.onload=function(){try{var p=JSON.parse(rd.result);if(!p||!p.calendar||!p.calendar.events)throw Error('bad');pushHistory();ccState=normalizeLoadedCalendar(p.calendar,p.client||{});if(p.clientProgress)ccState.clientProgress=p.clientProgress;ccFilter=ccState.filter||'ALL CLIENTS';applySelectedClient(false);renderClient();renderCalendar();updateHistory()}catch(e){alert('Invalid Client Calendar file.')}};rd.readAsText(f)};input.click()}
+function print(){var c=currentClientFromState(),old=document.getElementById('fjClientCalendarPrintRoot');if(old)old.remove();var root=document.createElement('div');root.id='fjClientCalendarPrintRoot';var month=new Date(ccState.year,ccState.month,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});var h='<section class="cc-print-cover"><h1>CLIENT CALENDAR</h1><div class="cc-print-client">';[['Client Name',c.name],['Age',c.age+' years'],['Gender',c.gender],['Body Weight',c.weight+' kg'],['Height',c.height+' cm'],['Goal',c.goal],['Fitness Level',c.level],['Workout Type',c.wtype],['Duration',c.duration+' months'],['Frequency',c.freq]].forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section>';var bz=ccState.clientProgress||null;if(!bz){try{bz=JSON.parse(localStorage.getItem('fj_v27_before_after')||'null')}catch(e){}}bz=bz&&bz.before&&bz.after?bz:{before:{},after:{}};function bp(side,title){var p=bz[side]||{},img=p.image?'<img src="'+esc(p.image)+'" alt="'+title+'">':'<div class="cc-progress-empty">No photo</div>',vals=[['Weight',p.weight],['Height',p.height],['BMI',p.bmi],['Skeletal Muscle',p.skeletalMuscle],['Body Fat',p.bodyFat],['WHR',p.whr],['Visceral Fat',p.visceralFat],['BMR',p.bmr],['Notes',p.notes]];var x='<div class="cc-progress-card"><h2>'+title+'</h2><div class="cc-progress-photo">'+img+'</div><div class="cc-progress-fields">';vals.forEach(function(v){x+='<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'});return x+'</div></div>'}h+='<section class="cc-print-progress"><h1>BEFORE / AFTER PROGRESS</h1><div class="cc-progress-grid">'+bp('before','BEFORE')+bp('after','AFTER')+'</div></section><div class="cc-print-start"></div><h1>CLIENT CALENDAR — '+esc(month)+'</h1>';Object.keys(ccState.events).sort().forEach(function(k){if(k.indexOf(ccState.year+'-'+String(ccState.month+1).padStart(2,'0'))!==0)return;var e=ccState.events[k];if(!visibleEvent(e))return;h+='<section class="cc-print-event"><h2>'+esc(k.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th></tr></thead><tbody>';e.exercises.forEach(function(x){h+='<tr><td>'+esc(x.exercise)+'</td><td>'+esc(x.sets)+'</td><td>'+esc(x.reps)+'</td><td>'+esc(x.load)+'</td></tr>'});h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'')+'</section>'});root.innerHTML=h;document.body.appendChild(root);var oldTitle=document.title;document.title='Client Calendar';document.documentElement.classList.add('fj-v17-cc-printing');function clean(){document.documentElement.classList.remove('fj-v17-cc-printing');var r=document.getElementById('fjClientCalendarPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}window.addEventListener('afterprint',clean,{once:true});requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){window.print();setTimeout(clean,5000)},200)})})}
 function install(){
  var side=document.querySelector('.side');if(!side)return;
  if(!$(NAV_ID)){var n=document.createElement('button');n.className='navbtn';n.id=NAV_ID;n.dataset.tab=PANEL_ID;n.textContent='▣ Client Calendar';var pro=document.getElementById('trainingProNav');if(pro&&pro.parentNode)pro.parentNode.insertBefore(n,pro.nextSibling);else{var t=side.querySelector('.navbtn[data-tab="training"]');t&&t.parentNode.insertBefore(n,t.nextSibling)}}
  var nav=$(NAV_ID);if(nav&&!nav.dataset.ccNavBound){nav.dataset.ccNavBound='1';nav.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.classList.toggle('active',b===nav)});document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id===PANEL_ID)});try{localStorage.setItem('fj_active_panel_v20',PANEL_ID);history.pushState({fjApp:true,fjPanel:PANEL_ID},'',location.href)}catch(e){}} ,true)}
  var main=document.querySelector('main.main')||document.querySelector('.main');if(!main)return;
- if(!$(PANEL_ID)){var panel=document.createElement('section');panel.className='panel';panel.id=PANEL_ID;panel.innerHTML='<div class="top"><div><h1>Client Calendar</h1><p>Monthly client training calendar — 24-hour schedule</p></div></div><div id="ccClientData" class="fj-cc-client-grid"></div><div class="fj-cc-toolbar"><button class="btn" id="ccPrev">← Previous</button><div class="fj-cc-month-title" id="ccMonthTitle"></div><button class="btn" id="ccNext">Next →</button><button class="btn alt" id="ccUndoBtn" disabled>↶ Undo</button><button class="btn alt" id="ccRedoBtn" disabled>↷ Redo</button><button class="btn alt" id="ccSaveBtn">💾 Save</button><button class="btn alt" id="ccLoadBtn">📂 Load</button><button class="btn alt" id="ccPrintBtn">▣ Print / Save PDF</button></div><div class="fj-cc-calendar-scroll"><div id="ccCalendar"></div></div><div class="fj-cc-modal" id="ccModal"><div class="fj-cc-dialog"><h3 id="ccEditHeading">Training</h3><input type="hidden" id="ccEditKey"><div class="fj-cc-form-grid"><div class="field span2"><label>Training Title</label><input id="ccEditTitle" placeholder="e.g. Strength Session"></div><div class="field span2"><label>Notes</label><input id="ccEditNotes" placeholder="Optional notes"></div></div><div class="fj-cc-exercises" id="ccExercises"></div><div class="fj-cc-dialog-actions"><button type="button" class="btn alt" id="ccAddExercise">＋ Add Exercise</button><button type="button" class="btn alt" id="ccDeleteEvent">Delete</button><button type="button" class="btn alt" id="ccCancel">Cancel</button><button type="button" class="btn" id="ccSaveEvent">Save Training</button></div></div></div>';var admin=$( 'adminAccess');if(admin&&admin.parentNode)admin.parentNode.insertBefore(panel,admin);else main.appendChild(panel)}
+ if(!$(PANEL_ID)){var panel=document.createElement('section');panel.className='panel';panel.id=PANEL_ID;panel.innerHTML='<div class="top"><div><h1>Client Calendar</h1><p>Monthly client training calendar — 24-hour schedule</p></div></div><div id="ccClientData" class="fj-cc-client-grid"></div><div class="fj-cc-toolbar"><label style="font-weight:800;color:#284a60">Client Filter</label><select id="ccClientFilter" class="btn alt" style="min-width:170px"><option value="ALL CLIENTS">ALL CLIENTS</option></select><button class="btn alt" id="ccImportProBtn">↳ Import Training Program PRO</button><button class="btn" id="ccPrev">← Previous</button><div class="fj-cc-month-title" id="ccMonthTitle"></div><button class="btn" id="ccNext">Next →</button><button class="btn alt" id="ccUndoBtn" disabled>↶ Undo</button><button class="btn alt" id="ccRedoBtn" disabled>↷ Redo</button><button class="btn alt" id="ccSaveBtn">💾 Save</button><button class="btn alt" id="ccLoadBtn">📂 Load</button><button class="btn alt" id="ccPrintBtn">▣ Print / Save PDF</button></div><div class="fj-cc-calendar-scroll"><div id="ccCalendar"></div></div><div class="fj-cc-modal" id="ccModal"><div class="fj-cc-dialog"><h3 id="ccEditHeading">Training</h3><input type="hidden" id="ccEditKey"><div class="fj-cc-form-grid"><div class="field span2"><label>Training Title</label><input id="ccEditTitle" placeholder="e.g. Strength Session"></div><div class="field span2"><label>Notes</label><input id="ccEditNotes" placeholder="Optional notes"></div></div><div class="fj-cc-exercises" id="ccExercises"></div><div class="fj-cc-dialog-actions"><button type="button" class="btn alt" id="ccAddExercise">＋ Add Exercise</button><button type="button" class="btn alt" id="ccDeleteEvent">Delete</button><button type="button" class="btn alt" id="ccCancel">Cancel</button><button type="button" class="btn" id="ccSaveEvent">Save Training</button></div></div></div>';var admin=$( 'adminAccess');if(admin&&admin.parentNode)admin.parentNode.insertBefore(panel,admin);else main.appendChild(panel)}
  $('ccPrev').onclick=prevMonth;$('ccNext').onclick=nextMonth;$('ccUndoBtn').onclick=undo;$('ccRedoBtn').onclick=redo;$('ccSaveBtn').onclick=save;$('ccLoadBtn').onclick=load;$('ccPrintBtn').onclick=print;$('ccAddExercise').onclick=addExerciseRow;$('ccDeleteEvent').onclick=deleteEvent;$('ccCancel').onclick=function(){$('ccModal').classList.remove('open')};$('ccSaveEvent').onclick=saveEditor;
- ['clientName','programAge','programGender','programWeight','programHeight','programGoal','programLevel','programWorkoutType','programMonths','programFreq'].forEach(function(id){var e=$(id);if(e&&!e.dataset.ccBound){e.dataset.ccBound='1';e.addEventListener('input',syncClientChange);e.addEventListener('change',syncClientChange)}});
- renderClient();renderCalendar();updateHistory();
+ $('ccClientFilter').onchange=function(){ccFilter=this.value;ccState.filter=ccFilter;applySelectedClient(true);renderClient();renderCalendar()};$('ccImportProBtn').onclick=importPro;
+ ccState.clients=ccState.clients||{};var ck=clientKey(client());if(!ccState.clients[ck]&&client().name)ccState.clients[ck]=client();applySelectedClient(false);renderClient();renderCalendar();updateHistory();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-window.fjClientCalendar={state:function(){return ccState},render:renderCalendar};
+window.fjClientCalendar={state:function(){ccState.filter=ccFilter;return ccState},render:function(){renderClient();renderCalendar()},setClient:function(c){c=c||{};ccState.clients=ccState.clients||{};var k=clientKey(c);ccState.clients[k]=clone(c);ccFilter=k;ccState.filter=k;syncMaster(c);renderClient();renderCalendar();return k},clientKey:clientKey};
 })();
 </script>
 <style id="fj-v17-client-calendar-print">
@@ -5639,7 +5685,7 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
  html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-client>div{border:1px solid #aebdc6;padding:11px;border-radius:5px}
  html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-client b{display:block;font-size:10px;text-transform:uppercase}
  html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-client span{display:block;margin-top:4px;font-size:17px;font-weight:700}
- html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-start{display:none!important;break-after:auto!important;page-break-after:auto!important;height:0!important}
+ html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-start{break-after:page;page-break-after:always;height:1px}
  html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-event{break-inside:avoid;page-break-inside:avoid;margin-bottom:7mm}
  html.fj-v17-cc-printing #fjClientCalendarPrintRoot table{width:100%;border-collapse:collapse;break-inside:avoid;page-break-inside:avoid}
  html.fj-v17-cc-printing #fjClientCalendarPrintRoot th,html.fj-v17-cc-printing #fjClientCalendarPrintRoot td{border:1px solid #aaa;padding:4px;text-align:left;font-size:9px}
@@ -5877,106 +5923,7 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
 #trainingClientCalendar .fj-cc-event:active{cursor:grabbing;}
 </style>
 <script id="fj-v23-targeted-repair-runtime">
-(function(){
-'use strict';
-var q=function(id){return document.getElementById(id)};
-var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
-function val(id,fb){var e=q(id);return e?String(e.value||'').trim()||fb:fb}
-function masterClient(){
- return {name:val('clientName',''),age:val('programAge',''),gender:val('programGender','male'),weight:val('programWeight',''),height:val('programHeight',''),goal:val('programGoal','General Fitness'),level:val('programLevel','auto'),wtype:val('programWorkoutType','standard'),duration:val('programMonths','3'),freq:val('programFreq','2')};
-}
-function state(){try{return window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null}catch(e){return null}}
-function syncCalendarClientToMaster(){
- var ids={ccvClientName:'clientName',ccvAge:'programAge',ccvGender:'programGender',ccvWeight:'programWeight',ccvHeight:'programHeight',ccvGoal:'programGoal',ccvLevel:'programLevel',ccvWtype:'programWorkoutType',ccvDuration:'programMonths',ccvFreq:'programFreq'};
- Object.keys(ids).forEach(function(cid){var ce=q(cid),me=q(ids[cid]);if(ce&&me&&ce.value!==me.value){me.value=ce.value;}});
-}
-function renderEditableClient(){
- var out=q('ccClientData');if(!out)return;
- if(out.dataset.fjV23Rendered==='1')return;
- out.dataset.fjV23Rendered='1';
- var c=masterClient();
- var opts=function(id,current){var m=q(id);if(!m)return '';return Array.from(m.options||[]).map(function(o){return '<option value="'+esc(o.value)+'" '+(o.value===current?'selected':'')+'>'+esc(o.textContent)+'</option>'}).join('')};
- out.className='fj-v23-client-editor';
- out.innerHTML='<div class="field wide"><label>Client Name</label><input id="ccvClientName" type="text" value="'+esc(c.name)+'" placeholder="Client Name"></div>'+
- '<div class="field"><label>Age (years)</label><input id="ccvAge" type="number" value="'+esc(c.age)+'" placeholder="Age"></div>'+
- '<div class="field"><label>Gender</label><select id="ccvGender">'+opts('programGender',c.gender)+'</select></div>'+
- '<div class="field"><label>Body Weight (kg)</label><input id="ccvWeight" type="number" value="'+esc(c.weight)+'" placeholder="Weight"></div>'+
- '<div class="field"><label>Height (cm)</label><input id="ccvHeight" type="number" value="'+esc(c.height)+'" placeholder="Height"></div>'+
- '<div class="field"><label>Goal</label><select id="ccvGoal">'+opts('programGoal',c.goal)+'</select></div>'+
- '<div class="field"><label>Fitness Level</label><select id="ccvLevel">'+opts('programLevel',c.level)+'</select></div>'+
- '<div class="field"><label>Workout Type</label><select id="ccvWtype">'+opts('programWorkoutType',c.wtype)+'</select></div>'+
- '<div class="field"><label>Duration (months)</label><select id="ccvDuration">'+opts('programMonths',c.duration)+'</select></div>'+
- '<div class="field"><label>Frequency</label><select id="ccvFreq">'+opts('programFreq',c.freq)+'</select></div>';
- Object.keys({ccvClientName:1,ccvAge:1,ccvGender:1,ccvWeight:1,ccvHeight:1,ccvGoal:1,ccvLevel:1,ccvWtype:1,ccvDuration:1,ccvFreq:1}).forEach(function(id){var e=q(id);if(!e||e.dataset.fjV23Bound)return;e.dataset.fjV23Bound='1';e.addEventListener('input',syncCalendarClientToMaster);e.addEventListener('change',syncCalendarClientToMaster)});
-}
-function ensureCalendarToolbar(){
- var tb=q('ccPrintBtn')&&q('ccPrintBtn').parentElement;if(!tb)return;
- if(!q('ccImportProBtn')){var b=document.createElement('button');b.type='button';b.className='btn alt fj-v23-import-pro';b.id='ccImportProBtn';b.textContent='↳ Import Training Program PRO';tb.appendChild(b);b.addEventListener('click',importPro)}
-}
-function ensureCalendarLoad(){var b=q('ccLoadBtn');if(!b||b.dataset.fjV23LoadBound)return;var c=b.cloneNode(true);b.parentNode.replaceChild(c,b);c.dataset.fjV23LoadBound='1';c.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);input.onchange=function(){var f=input.files&&input.files[0];input.remove();if(!f)return;var rd=new FileReader();rd.onload=function(){try{var p=JSON.parse(rd.result);if(!p||!p.calendar||!p.calendar.events)throw Error('bad');var cc=p.calendar;var cl=p.client||{};var map={name:'clientName',age:'programAge',gender:'programGender',weight:'programWeight',height:'programHeight',goal:'programGoal',level:'programLevel',wtype:'programWorkoutType',duration:'programMonths',freq:'programFreq'};Object.keys(map).forEach(function(k){var el=q(map[k]);if(el&&cl[k]!=null)el.value=cl[k]});var live=state();if(live){live.year=Number(cc.year)||live.year;live.month=Number(cc.month)||live.month;live.events=cc.events||{};if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render();var o=q('ccClientData');if(o)o.dataset.fjV23Rendered='';renderEditableClient();setTimeout(patchCalendarEvents,0)} }catch(err){alert('Invalid Client Calendar file.')}};rd.readAsText(f)};input.click()},true)}
-function rowsFromHtml(html){var wrap=document.createElement('div');wrap.innerHTML=html||'';var out=[];wrap.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=2)out.push({exercise:(td[1].textContent||'').trim(),sets:(td[2]?.textContent||'').trim(),reps:(td[3]?.textContent||'').trim(),load:(td[4]?.textContent||'').trim(),rest:(td[7]?.textContent||'60–90s').trim()})});return out}
-function autoRows(m,w,d){
- var p=window.proState||window.__FJAdvancedState;if(!p||typeof window.buildUniqueSessionDay!=='function')return [];
- try{if(window.fjGetTrainingProRows){var pr=window.fjGetTrainingProRows(m,w,d);if(Array.isArray(pr)&&pr.length)return pr.map(function(r){return {exercise:r.exercise,sets:r.sets,reps:r.reps,load:r.load,rest:r.rest}})}if(typeof window.buildUniqueSessionDay==='function')return rowsFromHtml(window.buildUniqueSessionDay(p,m,w,d))}catch(e){console.error('Client Calendar auto program failed',e)}return []
-}
-function importPro(){
- var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return}
- var st=state();if(!st||!st.events)return;
- var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
- var start=new Date();
- /* Import the complete PRO schedule beginning on the current calendar month. */
- var idx=0,added=0;
- for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
-   var dt=new Date(start.getFullYear(),start.getMonth(),start.getDate()+idx*2);var date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
-   var key=date+'T'+String(8+(idx%8)).padStart(2,'0')+':00';var rows=autoRows(m,w,d);if(rows.length){st.events[key]={title:'Month '+m+' • Week '+(w+1)+' • Session '+String.fromCharCode(65+d),notes:'Imported from Training Program PRO',exercises:rows};added++}idx++;
- }
- try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}
- alert(added+' PRO session(s) imported to Client Calendar. You can move each session by dragging it to another day/time.');
-}
-function patchCalendarEvents(){
- var st=state();if(!st||!st.events)return;
- document.querySelectorAll('#ccCalendar [data-cc-key]').forEach(function(cell){
-   var k=cell.getAttribute('data-cc-key');var ev=st.events[k];
-   if(!ev)return;
-   var card=cell.querySelector('.fj-cc-event');if(!card||card.dataset.fjV23Drag)return;
-   card.dataset.fjV23Drag='1';card.draggable=true;
-   card.addEventListener('dragstart',function(e){try{e.dataTransfer.setData('text/plain',k)}catch(_){}window.__fjV23DragKey=k});
- });
- document.querySelectorAll('#ccCalendar [data-cc-key]').forEach(function(cell){if(cell.dataset.fjV23Drop)return;cell.dataset.fjV23Drop='1';cell.addEventListener('dragover',function(e){e.preventDefault()});cell.addEventListener('drop',function(e){e.preventDefault();var from=(e.dataTransfer&&e.dataTransfer.getData('text/plain'))||window.__fjV23DragKey;if(!from||from===this.dataset.ccKey)return;var s=state();if(!s||!s.events||!s.events[from])return;var ev=s.events[from];delete s.events[from];s.events[this.dataset.ccKey]=ev;try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(_){}setTimeout(patchCalendarEvents,0)})});
-}
-function enhanceCalendar(){
- renderEditableClient();ensureCalendarToolbar();ensureCalendarLoad();patchCalendarEvents();
-}
-function printRoot(title,bodyHtml){
- var old=q('fjV23PrintRoot');if(old)old.remove();
- var root=document.createElement('div');root.id='fjV23PrintRoot';root.innerHTML=bodyHtml;document.body.appendChild(root);
- var oldTitle=document.title;document.title=title;var cleaned=false;
- function cleanup(){if(cleaned)return;cleaned=true;document.documentElement.classList.remove('fj-v23-printing');var r=q('fjV23PrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',cleanup)}
- window.addEventListener('afterprint',cleanup,{once:true});
- requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){document.documentElement.classList.add('fj-v23-printing');setTimeout(function(){try{window.print()}catch(e){console.error(e);cleanup();alert('PDF gagal dibuka.')}},180)},80)})});
- return true;
-}
-function clientRows(p){return [['Client Name',p.name||val('clientName','—')],['Age',val('programAge',p.age||'—')+' years'],['Gender',val('programGender','—')],['Body Weight',val('programWeight',p.weight||'—')+' kg'],['Height',val('programHeight',p.height||'—')+' cm'],['Goal',p.g||val('programGoal','—')],['Fitness Level',p.level||val('programLevel','AUTO')],['Workout Type',p.wtype||val('programWorkoutType','—')],['Duration',String(p.months||val('programMonths','—'))+' months'],['Frequency',String(p.freq||val('programFreq','—'))+' / week']]}
-function buildProPrintBody(p){
- var h='<section class="fj-v23-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj-v23-client-grid">';clientRows(p).forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section><section class="fj-v23-program"><h1>TRAINING PROGRAM PRO</h1>';
- var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
- for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
-  var rows=[];try{if(typeof window.buildUniqueSessionDay==='function')rows=rowsFromHtml(window.buildUniqueSessionDay(p,m,w,d))}catch(e){}
-  if(!rows.length)rows=[{exercise:'No exercise data available',sets:'—',reps:'—',load:'—',rest:'—'}];
-  h+='<section class="fj-v23-session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
-  rows.forEach(function(r){h+='<tr><td>PROGRAM</td><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>—</td><td>—</td><td>'+esc(r.rest)+'</td></tr>'});h+='</tbody></table></section>';
- }
- return h+'</section>';
-}
-function proPrint(e){if(e){e.preventDefault();e.stopImmediatePropagation()}var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return false}return printRoot('Training Program PRO',buildProPrintBody(p))}
-function masterPrint(e){if(e){e.preventDefault();e.stopImmediatePropagation()}var p=window.__FJAdvancedState;if(!p){alert('Generate Training Program first.');return false}var rows=clientRows(p),h='<section class="fj-v23-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj-v23-client-grid">';rows.forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});h+='</div></section><section class="fj-v23-program"><h1>TRAINING PROGRAM</h1>';try{h+=window.fjBuildAllTrainingHTML?window.fjBuildAllTrainingHTML(p):(q('trainingResult')?q('trainingResult').innerHTML:'')}catch(e2){h+=q('trainingResult')?q('trainingResult').innerHTML:''}return printRoot('Training Program',h+'</section>')}
-function replacePrintButton(id,fn){var b=q(id);if(!b||b.dataset.fjV23Bound)return;if(b.dataset.fjV23Cloned!=='1'){var c=b.cloneNode(true);c.dataset.fjV23Cloned='1';b.parentNode.replaceChild(c,b);b=c}b.dataset.fjV23Bound='1';b.addEventListener('click',fn,true)}
-function bind(){replacePrintButton('saveFullProgramPdfBtn',masterPrint);replacePrintButton('btnPrintTraining',masterPrint);replacePrintButton('btnPrintTrainingPro',proPrint);enhanceCalendar()}
-['clientName','programAge','programGender','programWeight','programHeight','programGoal','programLevel','programWorkoutType','programMonths','programFreq'].forEach(function(id){var e=q(id);if(e&&!e.dataset.fjV23CalendarRefresh){e.dataset.fjV23CalendarRefresh='1';e.addEventListener('input',function(){var o=q('ccClientData');if(o)o.dataset.fjV23Rendered='';renderEditableClient()});e.addEventListener('change',function(){var o=q('ccClientData');if(o)o.dataset.fjV23Rendered='';renderEditableClient()})}});
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,120)},{once:true});else setTimeout(bind,120);
-window.addEventListener('load',function(){setTimeout(bind,180)});
-var mo=new MutationObserver(function(){replacePrintButton('saveFullProgramPdfBtn',masterPrint);replacePrintButton('btnPrintTraining',masterPrint);replacePrintButton('btnPrintTrainingPro',proPrint);if(q('ccCalendar'))setTimeout(patchCalendarEvents,0)});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
-})();
+/* V23 calendar repair runtime intentionally retired. Client Calendar is now owned by the single V17 runtime above. */
 </script>
 
 
@@ -6021,7 +5968,7 @@ function masterPrint(e){if(e){e.preventDefault();e.stopImmediatePropagation()}va
 function proPrint(e){if(e){e.preventDefault();e.stopImmediatePropagation()}var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return}printOnce('Training Program PRO',buildProBody(p))}
 function capturePrint(e){var t=e.target&&e.target.closest?e.target.closest('#saveFullProgramPdfBtn,#btnPrintTraining,#btnPrintTrainingPro'):null;if(!t)return;e.preventDefault();e.stopImmediatePropagation();if(t.id==='btnPrintTrainingPro')proPrint(e);else masterPrint(e)}
 document.addEventListener('click',capturePrint,true);
-function addExportButton(parent,id,text,fn){if(!parent||q(id))return;var b=document.createElement('button');b.type='button';b.className='btn alt';b.id=id;b.textContent=text;b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();fn()});parent.appendChild(b)}
+function addExportButton(parent,id,text,fn){if(!parent||q(id))return;var b=document.createElement('button');b.type='button';b.className='btn alt';b.id=id;b.textContent=text;parent.appendChild(b)}
 function getCal(){try{return window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null}catch(e){return null}}
 function renderCal(){try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.render==='function')window.fjClientCalendar.render()}catch(e){}}
 function exportToCalendar(p,label){var st=getCal();if(!st||!st.events){alert('Client Calendar belum siap. Buka Client Calendar terlebih dahulu.');return}var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1),start=new Date(),idx=0,added=0;for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){var rows=getProRows(p,m,w,d);if(!rows.length)continue;var dt=new Date(start.getFullYear(),start.getMonth(),start.getDate()+idx*2),date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'),key=date+'T'+String(8+(idx%8)).padStart(2,'0')+':00';st.events[key]={title:'Month '+m+' • Week '+(w+1)+' • Session '+String.fromCharCode(65+d),notes:'Exported from '+label,exercises:rows.map(function(r){return {exercise:r.exercise||r.name||'',sets:r.sets||'',reps:r.reps||'',load:r.load||'',rest:r.rest||''}})};added++;idx++}renderCal();alert(added+' session(s) exported to Client Calendar. You can move each session to another day/time.')}
@@ -6188,249 +6135,7 @@ var mo=new MutationObserver(function(){setTimeout(bind,30)});try{mo.observe(docu
  html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-progress-fields span{display:block!important;font-size:10px!important;margin-top:1mm!important}
  html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-progress-fields>div:last-child{grid-column:1/-1!important;min-height:18mm!important}
 }
-</style><style id="fj-v27M-export-calendar-print-fix">
-/* V27M: strictly scoped export + Client Calendar PDF fix. */
-@media print{
- html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-start{display:none!important;height:0!important;break-after:auto!important;page-break-after:auto!important}
-}
-</style>
-
-<style id="fj-v28-client-filter-ui">
-#trainingClientCalendar .fj-v28-client-filter{display:flex;align-items:center;gap:8px;margin:10px 0 12px;padding:9px 11px;border:1px solid #d7e0e7;border-radius:8px;background:#f8fafb}
-#trainingClientCalendar .fj-v28-client-filter label{font-weight:700;font-size:12px;white-space:nowrap}
-#trainingClientCalendar #fjV28ClientFilter{min-width:220px;max-width:360px;width:100%;height:34px;padding:5px 8px;border:1px solid #bfcbd4;border-radius:6px;background:#fff}
-@media(max-width:600px){#trainingClientCalendar .fj-v28-client-filter{align-items:stretch;flex-direction:column}#trainingClientCalendar #fjV28ClientFilter{max-width:none}}
-</style>
-<script id="fj-v28-strict-fixes">
-(function(){
-'use strict';
-var $=function(id){return document.getElementById(id)};
-var DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-var CALSTORE='fj_client_calendar_v1',SCHEDSTORE='fj_v27_session_schedule';
-
-/* =========================================================
-   1) TRAINING PROGRAM PRO -> CLIENT CALENDAR
-   PRO does not render .program-session-detail, so the old
-   DOM-count export could produce zero sessions. Export directly
-   from the PRO state/edited rows instead.
-   ========================================================= */
-function proClientData(p){
-  var ids=['clientName','programAge','programGender','programWeight','programHeight','programGoal','programLevel','programWorkoutType','programMonths','programFreq'];
-  var o={};
-  ids.forEach(function(id){var e=$(id);o[id]=e?String(e.value||'').trim():''});
-  var fb={
-    clientName:p&&((p.clientName||p.name)||''),
-    programAge:p&&p.age,
-    programGender:p&&p.gender,
-    programWeight:p&&p.weight,
-    programHeight:p&&p.height,
-    programGoal:p&&(p.goal||p.g),
-    programLevel:p&&p.level,
-    programWorkoutType:p&&(p.workoutType||p.wtype),
-    programMonths:p&&p.months,
-    programFreq:p&&p.freq
-  };
-  Object.keys(fb).forEach(function(k){if(!o[k]&&fb[k]!=null)o[k]=String(fb[k])});
-  return o;
-}
-function progressData(){try{var x=JSON.parse(localStorage.getItem('fj_v27_before_after')||'null');return x&&x.before&&x.after?JSON.parse(JSON.stringify(x)):null}catch(e){return null}}
-function readSchedules(){try{return JSON.parse(localStorage.getItem(SCHEDSTORE)||'{}')||{}}catch(e){return {}}}
-function proRows(p,m,w,d){try{if(typeof window.fjGetTrainingProRows==='function')return window.fjGetTrainingProRows(m,w,d)||[]}catch(e){}return []}
-function rowMap(rows){return (rows||[]).map(function(r){return {exercise:r.exercise||r.name||'',sets:r.sets||'',reps:r.reps||'',load:r.load||'',rest:r.rest||''}}).filter(function(r){return r.exercise})}
-function eventClientName(ev){
-  if(!ev)return '';
-  if(ev.clientData&&ev.clientData.clientName)return String(ev.clientData.clientName).trim();
-  if(ev.client&&ev.client.name)return String(ev.client.name).trim();
-  if(ev.clientName)return String(ev.clientName).trim();
-  var t=String(ev.title||'');
-  return t.split(/\s+•\s+/)[0].trim();
-}
-function saveCalendarState(st){
-  try{localStorage.setItem(CALSTORE,JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:st.clientSnapshot||null,calendar:st}))}catch(e){}
-}
-function dateFor(day,base,weekOffset){
-  var d=new Date(base.getFullYear(),base.getMonth(),base.getDate()),target=DAYS.indexOf(day),cur=(d.getDay()+6)%7;
-  d.setDate(d.getDate()+((target-cur+7)%7)+weekOffset*7);return d;
-}
-function exportPRO(){
-  var p=window.proState;
-  var cal=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;
-  if(!p){alert('Generate Training Program PRO terlebih dahulu.');return}
-  if(!cal||!cal.events){alert('Client Calendar belum siap. Buka Client Calendar terlebih dahulu.');return}
-  var c=proClientData(p),name=c.clientName||'Client',prog=progressData(),sched=readSchedules();
-  /* Replace the same client's previously exported training, but keep other clients. */
-  Object.keys(cal.events).forEach(function(k){if(eventClientName(cal.events[k])===name)delete cal.events[k]});
-  var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1),base=new Date(cal.year,cal.month,1),added=0;
-  for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
-    var rows=rowMap(proRows(p,m,w,d));if(!rows.length)continue;
-    var sk='m'+m+'w'+w+'d'+d,sc=sched[sk]||{day:DAYS[d%7],time:String(8+(d%9)).padStart(2,'0')+':00'};
-    var dt=dateFor(sc.day,base,(m-1)*4+w),date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'),key=date+'T'+sc.time;
-    cal.events[key]={title:name+' • Training Program PRO • M'+m+' W'+(w+1)+' S'+String.fromCharCode(65+d),notes:'Exported from Training Program PRO',day:sc.day,time:sc.time,clientData:JSON.parse(JSON.stringify(c)),client:JSON.parse(JSON.stringify({name:c.clientName,age:c.programAge,gender:c.programGender,weight:c.programWeight,height:c.programHeight,goal:c.programGoal,level:c.programLevel,wtype:c.programWorkoutType,duration:c.programMonths,freq:c.programFreq})),clientProgress:prog,exercises:rows};
-    added++;
-  }
-  /* PRO EXPORT: copy the same client data into the editable Client Calendar fields above. */
-  var fieldMap={clientName:'clientName',programAge:'programAge',programGender:'programGender',programWeight:'programWeight',programHeight:'programHeight',programGoal:'programGoal',programLevel:'programLevel',programWorkoutType:'programWorkoutType',programMonths:'programMonths',programFreq:'programFreq'};
-  Object.keys(fieldMap).forEach(function(id){var el=document.getElementById(id),v=c[fieldMap[id]];if(el&&v!=null&&String(v)!=='')el.value=String(v)});
-  cal.clientSnapshot={name:c.clientName,age:c.programAge,gender:c.programGender,weight:c.programWeight,height:c.programHeight,goal:c.programGoal,level:c.programLevel,wtype:c.programWorkoutType,duration:c.programMonths,freq:c.programFreq};
-  cal.clientProgress=prog;
-  saveCalendarState(cal);
-  if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render();
-  updateClientFilter();
-  alert(added+' session(s) exported from Training Program PRO to Client Calendar. Client data, Before/After and edited PRO program are included.');
-}
-
-/* Intercept only the PRO export button so legacy export handlers cannot win. */
-document.addEventListener('click',function(e){
-  var b=e.target&&e.target.closest?e.target.closest('#btnExportTrainingProToCalendar'):null;
-  if(!b)return;
-  e.preventDefault();e.stopImmediatePropagation();exportPRO();
-},true);
-
-/* =========================================================
-   2) CLIENT FILTER
-   Every exported event carries clientData/client, and its title
-   starts with the client name. Filter hides only other clients.
-   ========================================================= */
-function getCal(){try{return window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null}catch(e){return null}}
-function ensureFilter(){
-  var panel=$('trainingClientCalendar'),bar=panel&&panel.querySelector('.fj-cc-toolbar');if(!bar)return;
-  var old=$('fjV28ClientFilterWrap');if(old)return;
-  var wrap=document.createElement('div');wrap.id='fjV28ClientFilterWrap';wrap.className='fj-v28-client-filter';
-  wrap.innerHTML='<label for="fjV28ClientFilter">Show Client:</label><select id="fjV28ClientFilter"><option value="__ALL__">ALL CLIENTS</option></select>';
-  if(bar.parentNode)bar.parentNode.insertBefore(wrap,bar.nextSibling);
-  var sel=$('fjV28ClientFilter');if(sel)sel.addEventListener('change',function(){applyClientFilter();showSelectedClientData(this.value)});
-}
-function updateClientFilter(){
-  ensureFilter();var sel=$('fjV28ClientFilter'),cal=getCal();if(!sel||!cal)return;
-  var names={};Object.keys(cal.events||{}).forEach(function(k){var n=eventClientName(cal.events[k]);if(n)names[n]=1});
-  var current=sel.value||'__ALL__';sel.innerHTML='<option value="__ALL__">ALL CLIENTS</option>'+Object.keys(names).sort(function(a,b){return a.localeCompare(b)}).map(function(n){return '<option value="'+String(n).replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+String(n).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</option>'}).join('');
-  if(current==='__ALL__'||names[current])sel.value=current;else sel.value='__ALL__';
-  applyClientFilter();
-}
-function applyClientFilter(){
-  var sel=$('fjV28ClientFilter'),cal=getCal();if(!sel||!cal)return;var chosen=sel.value||'__ALL__';
-  document.querySelectorAll('#trainingClientCalendar [data-cc-key]').forEach(function(cell){
-    var ev=cal.events[cell.getAttribute('data-cc-key')],ok=chosen==='__ALL__'||eventClientName(ev)===chosen;
-    var box=cell.querySelector('.fj-cc-event');if(box)box.style.display=ok?'':'none';
-  });
-}
-function showSelectedClientData(name){
-  if(!name||name==='__ALL__')return;
-  var cal=getCal();if(!cal)return;var found=null;Object.keys(cal.events||{}).some(function(k){var ev=cal.events[k];if(eventClientName(ev)===name){found=ev;return true}return false});
-  if(!found)return;
-  var c=found.clientData||found.client||null;if(!c)return;
-  var map={clientName:c.clientName||c.name,programAge:c.programAge||c.age,programGender:c.programGender||c.gender,programWeight:c.programWeight||c.weight,programHeight:c.programHeight||c.height,programGoal:c.programGoal||c.goal,programLevel:c.programLevel||c.level,programWorkoutType:c.programWorkoutType||c.wtype,programMonths:c.programMonths||c.duration,programFreq:c.programFreq||c.freq};
-  Object.keys(map).forEach(function(id){var e=$(id);if(e&&map[id]!=null)e.value=map[id]});
-}
-function patchCalendarRender(){
-  var api=window.fjClientCalendar;if(!api||api.__fjV28)return;
-  var old=api.render;if(typeof old!=='function')return;
-  api.render=function(){var r=old.apply(this,arguments);setTimeout(function(){ensureFilter();updateClientFilter()},0);return r};api.__fjV28=true;
-}
-
-/* =========================================================
-   3) TRAINING PROGRAM UNDO / REDO
-   Scoped only to Training Program form/state + its session
-   schedule. No PRO/Calendar history is touched.
-   ========================================================= */
-var masterUndoStack=[],masterRedoStack=[],masterBusy=false,masterPreChange=null;
-function clone(x){try{return JSON.parse(JSON.stringify(x))}catch(e){return x}}
-function readMaster(){
-  var ids=['clientName','programAge','programGender','programWeight','programHeight','programGoal','programLevel','programWorkoutType','programMonths','programFreq','rmLowerW','rmLowerR','rmPushW','rmPushR','rmPullW','rmPullR','rmHingeW','rmHingeR'];
-  var form={};ids.forEach(function(id){var e=$(id);if(e)form[id]=e.value});
-  return {form:form,state:clone(window.__FJAdvancedState||null),schedules:(function(){try{return JSON.parse(localStorage.getItem(SCHEDSTORE)||'{}')||{}}catch(e){return {}}})()};
-}
-function same(a,b){try{return JSON.stringify(a)===JSON.stringify(b)}catch(e){return false}}
-function pushMasterSnapshot(s){if(!s)return;masterUndoStack.push(clone(s));if(masterUndoStack.length>50)masterUndoStack.shift();masterRedoStack=[];updateMasterHistory()}
-function updateMasterHistory(){var u=$('fjV28MasterUndo'),r=$('fjV28MasterRedo');if(u)u.disabled=!masterUndoStack.length;if(r)r.disabled=!masterRedoStack.length}
-function restoreMaster(s){
-  if(!s)return;masterBusy=true;
-  Object.keys(s.form||{}).forEach(function(id){var e=$(id);if(e)e.value=s.form[id]});
-  try{localStorage.setItem(SCHEDSTORE,JSON.stringify(s.schedules||{}))}catch(e){}
-  if(s.state){window.__FJAdvancedState=clone(s.state);if(typeof window.generateProgram==='function'){try{window.generateProgram()}catch(e){}}}
-  else {var rr=$('trainingResult');if(rr)rr.innerHTML=''}
-  masterBusy=false;updateMasterHistory();
-}
-function masterUndo(){if(!masterUndoStack.length)return;masterRedoStack.push(readMaster());restoreMaster(masterUndoStack.pop())}
-function masterRedoFn(){if(!masterRedoStack.length)return;masterUndoStack.push(readMaster());restoreMaster(masterRedoStack.pop())}
-function ensureMasterButtons(){
-  var g=$('btnGenerateTraining'),actions=g&&g.parentElement;if(!actions||$('fjV28MasterUndo'))return;
-  var u=document.createElement('button');u.type='button';u.className='btn alt';u.id='fjV28MasterUndo';u.textContent='↶ Undo';
-  var r=document.createElement('button');r.type='button';r.className='btn alt';r.id='fjV28MasterRedo';r.textContent='↷ Redo';
-  actions.insertBefore(u,g.nextSibling);actions.insertBefore(r,u.nextSibling);u.onclick=masterUndo;r.onclick=masterRedoFn;updateMasterHistory();
-}
-document.addEventListener('click',function(e){
-  var g=e.target&&e.target.closest?e.target.closest('#btnGenerateTraining'):null;if(g&&!masterBusy){pushMasterSnapshot(readMaster());}
-  var rs=e.target&&e.target.closest?e.target.closest('#btnResetTraining'):null;if(rs&&!masterBusy){pushMasterSnapshot(readMaster());}
-  var ld=e.target&&e.target.closest?e.target.closest('#btnLoadTraining'):null;if(ld&&!masterBusy){pushMasterSnapshot(readMaster());}
-},true);
-document.addEventListener('focusin',function(e){
-  var t=e.target;if(t&&t.matches&&t.matches('#trainingResult [data-fj27-day],#trainingResult [data-fj27-time]'))masterPreChange=readMaster();
-},true);
-document.addEventListener('change',function(e){
-  var t=e.target;if(!t||!t.matches)return;
-  if(t.matches('#trainingResult [data-fj27-day],#trainingResult [data-fj27-time]')&&!masterBusy){var pre=masterPreChange||readMaster();setTimeout(function(){if(!same(pre,readMaster()))pushMasterSnapshot(pre)},0);masterPreChange=null}
-},true);
-
-function run(){ensureMasterButtons();patchCalendarRender();ensureFilter();updateClientFilter();updateMasterHistory()}
-run();setInterval(run,700);
-})();
-</script>
-<script id="fj-v29-calendar-undo-redo-fix">
-(function(){
-  'use strict';
-  var MAX=50, ready=false, undo=[], redo=[], busy=false, last='';
-  function api(){return window.fjClientCalendar}
-  function st(){var a=api();return a&&a.state?a.state():null}
-  function snap(){var x=st();try{return JSON.stringify({year:x.year,month:x.month,events:x.events||{}})}catch(e){return '{}'}}
-  function refresh(){var u=document.getElementById('ccUndoBtn'),r=document.getElementById('ccRedoBtn');if(u)u.disabled=!undo.length;if(r)r.disabled=!redo.length}
-  function remember(){if(busy)return;var now=snap();if(!last){last=now;refresh();return}if(now===last){refresh();return}undo.push(last);if(undo.length>MAX)undo.shift();last=now;redo=[];refresh()}
-  function render(){var a=api();if(a&&a.render)a.render()}
-  function restore(raw){if(!raw)return;busy=true;try{var x=JSON.parse(raw),q=st();if(q){q.year=x.year;q.month=x.month;q.events=x.events||{};localStorage.setItem('fj_client_calendar_v1',JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:q.clientSnapshot||null,calendar:q}));render();}}catch(e){console.error('Calendar restore failed',e)}finally{busy=false}}
-  function undoNow(){if(!undo.length)return;var cur=snap();redo.push(cur);var target=undo.pop();restore(target);last=target;refresh()}
-  function redoNow(){if(!redo.length)return;var cur=snap();undo.push(cur);var target=redo.pop();restore(target);last=target;refresh()}
-  function saveNow(){
-    var x=st();if(!x)return;
-    try{
-      var payload={version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:x.clientSnapshot||null,calendar:x};
-      localStorage.setItem('fj_client_calendar_v1',JSON.stringify(payload));
-      var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-      a.href=url;a.download='FitnessJourney_ClientCalendar.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);
-      last=snap();refresh();
-    }catch(e){alert('Client Calendar save failed: '+e.message)}
-  }
-  function bind(){
-    var U=document.getElementById('ccUndoBtn'),R=document.getElementById('ccRedoBtn'),S=document.getElementById('ccSaveBtn');
-    if(!U||!R||!S||!api())return false;
-    if(ready)return true;ready=true;last=snap();refresh();
-    U.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();undoNow()};
-    R.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();redoNow()};
-    S.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();saveNow()};
-    // Record the state immediately before calendar mutations.
-    document.addEventListener('click',function(e){
-      if(busy)return;
-      var t=e.target&&e.target.closest?e.target.closest('#ccSaveEvent,#ccDeleteEvent'):null;
-      if(t){remember()}
-    },true);
-    document.addEventListener('change',function(e){
-      if(busy)return;
-      var t=e.target;
-      if(t&&t.matches&&t.matches('#ccExercises [data-cc-field],#ccEditTitle,#ccEditNotes')){remember()}
-    },true);
-    document.addEventListener('dragstart',function(e){
-      if(busy)return;
-      var t=e.target&&e.target.closest?e.target.closest('.fj-cc-event'):null;if(t)remember();
-    },true);
-    return true;
-  }
-  var tries=0,tm=setInterval(function(){if(bind()||++tries>100)clearInterval(tm)},100);
-})();
-</script>
-<style id="fj-v29-calendar-client-fields-final">
-#trainingClientCalendar #ccClientData input[data-cc-client-field]{position:relative!important;z-index:20!important;pointer-events:auto!important;cursor:text!important;box-sizing:border-box!important;}
-#trainingClientCalendar #ccClientData .fj-cc-client-item{position:relative!important;z-index:10!important;}
-</style>
-</body></html>
+</style></body></html>
 
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -6463,8 +6168,8 @@ function enhanceSessions(rootId){var root=$(rootId);if(!root)return;var sessions
 function sessionMeta(rootId){var root=$(rootId),a=[];if(!root)return a;root.querySelectorAll('.program-session-detail').forEach(function(s,i){var d=s.querySelector('[data-fj27-day="'+i+'"]'),t=s.querySelector('[data-fj27-time="'+i+'"]');a.push({day:d?d.value:DAYS[i%7],time:t?t.value:'08:00'})});return a}
 function getRowsForExport(p,isPro,i){var rows=[];try{if(isPro&&typeof window.fjGetTrainingProRows==='function'){var m=Math.floor(i/12)+1,w=Math.floor((i%12)/3),d=i%3;rows=window.fjGetTrainingProRows(m,w,d)||[]}}catch(e){}if(!rows.length){try{var m2=Math.floor(i/12)+1,w2=Math.floor((i%12)/3),d2=i%3;var raw=typeof window.buildUniqueSessionDay==='function'?window.buildUniqueSessionDay(p,m2,w2,d2):'';var wrap=document.createElement('div');wrap.innerHTML=raw;var table=wrap.querySelector('table');if(table)table.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=8)rows.push({block:td[0].textContent.trim(),exercise:td[1].textContent.trim(),sets:td[2].textContent.trim(),reps:td[3].textContent.trim(),load:td[4].textContent.trim(),rest:td[7].textContent.trim()})})}catch(e){}}return rows}
 function nextDateForDay(dayName,base){var target=DAYS.indexOf(dayName),d=new Date(base.getFullYear(),base.getMonth(),base.getDate());var cur=(d.getDay()+6)%7;var add=(target-cur+7)%7;d.setDate(d.getDate()+add);return d}
-function exportSpecific(p,label,isPro){var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(!st||!st.events){alert('Client Calendar belum siap.');return}var root=$(isPro?'trainingProResult':'trainingResult');var meta=sessionMeta(isPro?'trainingProResult':'trainingResult');var sessions=root?root.querySelectorAll('.program-session-detail'):[];if(!sessions.length){alert('Generate program terlebih dahulu.');return}var clientForm={};var clientFields=['clientName','programAge','programGender','programWeight','programHeight','programGoal','programLevel','programWorkoutType','programMonths','programFreq'];clientFields.forEach(function(id){var el=$(id);if(el)clientForm[id]=el.value||''});if(isPro&&p){var fallback={clientName:p.clientName||p.name,programAge:p.age,programGender:p.gender,programWeight:p.weight,programHeight:p.height,programGoal:p.goal||p.g,programLevel:p.level,programWorkoutType:p.workoutType||p.wtype,programMonths:p.months,programFreq:p.freq};Object.keys(fallback).forEach(function(id){if(!clientForm[id]&&fallback[id]!=null)clientForm[id]=fallback[id]})}clientFields.forEach(function(id){var el=$(id),v=clientForm[id];if(el&&v!=null&&String(el.value||'')!==String(v))el.value=v});try{localStorage.setItem('fj_cc_export_client_data',JSON.stringify(clientForm))}catch(e){}var base=new Date(st.year,st.month,1),added=0;for(var i=0;i<sessions.length;i++){var rows=getRowsForExport(p,isPro,i);if(!rows.length)continue;var md=meta[i]||{day:DAYS[i%7],time:'08:00'},dt=nextDateForDay(md.day,base);dt.setDate(dt.getDate()+Math.floor(i/7)*7);var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')+'T'+md.time;st.events[key]={title:(clientForm.clientName||p.name||p.clientName||'Client')+' • '+label+' • Session '+(i+1),notes:'Exported from '+label,day:md.day,time:md.time,clientData:JSON.parse(JSON.stringify(clientForm)),exercises:rows.map(function(r){return {exercise:r.exercise||r.name||'',sets:r.sets||'',reps:r.reps||'',load:r.load||'',rest:r.rest||''}})};added++}if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render();alert(added+' session(s) exported to Client Calendar with selected day/time and client data.');}
-function patchExportButtons(){var b=$('btnExportTrainingToCalendar');if(b&&!b.dataset.fj27){b.dataset.fj27='1';b.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();var p=window.__FJAdvancedState;if(!p){alert('Generate Training Program first.');return}exportSpecific(p,'Training Program',false)}}var p=$('btnExportTrainingProToCalendar');if(p&&!p.dataset.fj27){p.dataset.fj27='1';p.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();var st=window.proState;if(!st){alert('Generate Training Program PRO terlebih dahulu.');return}exportSpecific(st,'Training Program PRO',true)}}}
+function exportSpecific(p,label,isPro){var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(!st||!st.events){alert('Client Calendar belum siap.');return}var root=$(isPro?'trainingProResult':'trainingResult');var meta=sessionMeta(isPro?'trainingProResult':'trainingResult');var sessions=root?root.querySelectorAll('.program-session-detail'):[];if(!sessions.length){alert('Generate program terlebih dahulu.');return}var base=new Date(st.year,st.month,1),added=0;for(var i=0;i<sessions.length;i++){var rows=getRowsForExport(p,isPro,i);if(!rows.length)continue;var md=meta[i]||{day:DAYS[i%7],time:'08:00'},dt=nextDateForDay(md.day,base);dt.setDate(dt.getDate()+Math.floor(i/7)*7);var key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')+'T'+md.time;st.events[key]={title:(p.name||p.clientName||$('clientName')?.value||'Client')+' • '+label+' • Session '+(i+1),notes:'Exported from '+label,day:md.day,time:md.time,client:JSON.parse(JSON.stringify(prog)),exercises:rows.map(function(r){return {exercise:r.exercise||r.name||'',sets:r.sets||'',reps:r.reps||'',load:r.load||'',rest:r.rest||''}})};added++}renderAllProgress();if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render();alert(added+' session(s) exported to Client Calendar with selected day/time and client data.');}
+function patchExportButtons(){}
 function patchSaveLoad(){['btnSaveTraining','saveFullProgramPdfBtn','btnSaveTrainingPro'].forEach(function(id){var b=$(id);if(b&&!b.dataset.fj27save){b.dataset.fj27save='1';b.addEventListener('click',sync,true)}});['btnLoadTraining','btnLoadTrainingPro'].forEach(function(id){var b=$(id);if(b&&!b.dataset.fj27load){b.dataset.fj27load='1';b.addEventListener('click',function(){setTimeout(renderAllProgress,350)},true)}})}
 function run(){ensureProgress();enhanceSessions('trainingResult');enhanceSessions('trainingProResult');patchExportButtons();patchSaveLoad()}
 run();setInterval(run,700);
@@ -6491,12 +6196,25 @@ function currentProgress(){try{var raw=JSON.parse(localStorage.getItem('fj_v27_b
 function syncCalendarPayload(){try{var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(st){st.clientProgress=currentProgress();st.clientSnapshot=clientSnapshot()}}catch(e){}}
 function exportRows(p,isPro,i){var rows=[];try{if(isPro&&typeof window.fjGetTrainingProRows==='function'){rows=window.fjGetTrainingProRows(Math.floor(i/12)+1,Math.floor((i%12)/3),i%3)||[]}}catch(e){}if(!rows.length){try{var m=Math.floor(i/12)+1,w=Math.floor((i%12)/3),d=i%3,raw=typeof window.buildUniqueSessionDay==='function'?window.buildUniqueSessionDay(p,m,w,d):'';var wrap=document.createElement('div');wrap.innerHTML=raw;var t=wrap.querySelector('table');if(t)t.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=8)rows.push({exercise:td[1].textContent.trim(),sets:td[2].textContent.trim(),reps:td[3].textContent.trim(),load:td[4].textContent.trim(),rest:td[7].textContent.trim()})})}catch(e){}}return rows}
 function dayDate(day,base,offsetWeeks){var d=new Date(base.getFullYear(),base.getMonth(),base.getDate()),target=DAYS.indexOf(day);var cur=(d.getDay()+6)%7;d.setDate(d.getDate()+((target-cur+7)%7)+offsetWeeks*7);return d}
-function applyExportedClientToCalendar(){try{var c=clientSnapshot(),map={name:'ccvClientName',age:'ccvAge',gender:'ccvGender',weight:'ccvWeight',height:'ccvHeight',goal:'ccvGoal',level:'ccvLevel',wtype:'ccvWtype',duration:'ccvDuration',freq:'ccvFreq'};Object.keys(map).forEach(function(k){var e=$(map[k]);if(e)e.value=c[k]||''});var o=$('ccClientData');if(o){o.dataset.fjV23Rendered='1';o.dataset.fjV27ExportedClient='1'} }catch(e){console.error(e)}}
-function doExport(p,label,isPro){var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(!st||!st.events){alert('Client Calendar belum siap.');return}syncCalendarPayload();applyExportedClientToCalendar();var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1),base=new Date(st.year,st.month,1),n=0;for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){var idx=(m-1)*12+w*freq+d,sk='m'+m+'w'+w+'d'+d,sc=schedules[sk]||{day:DAYS[d%7],time:String(8+(d%9)).padStart(2,'0')+':00'},rows=exportRows(p,isPro,idx);if(!rows.length)continue;var dt=dayDate(sc.day,base,(m-1)*4+w);var date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'),k=date+'T'+sc.time;st.events[k]={title:(p.name||p.clientName||clientSnapshot().name||'Client')+' • '+label+' • M'+m+' W'+(w+1)+' S'+String.fromCharCode(65+d),notes:'Exported from '+label,day:sc.day,time:sc.time,client:clientSnapshot(),clientProgress:currentProgress(),exercises:rows.map(function(r){return {exercise:r.exercise||r.name||'',sets:r.sets||'',reps:r.reps||'',load:r.load||'',rest:r.rest||''}})};n++}if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render();alert(n+' session(s) exported to Client Calendar with selected day/time and client data.');}
+function doExport(p,label,isPro){
+ var api=window.fjClientCalendar,st=api&&api.state?api.state():null;if(!st||!st.events){alert('Client Calendar belum siap.');return}
+ var c=clientSnapshot(),name=String(c.name||'').trim();if(!name){alert('Client Name belum diisi.');return}
+ var ck=api.clientKey?api.clientKey(c):name.toLowerCase().replace(/\s+/g,' ');
+ st.clients=st.clients||{};st.clients[ck]=c;st.clientProgress=currentProgress();st.filter=ck;
+ /* Replace only the same client's previous exported sessions. Other clients remain untouched. */
+ Object.keys(st.events).forEach(function(k){var e=st.events[k];if(e&&((e.clientKey&&e.clientKey===ck)||(e.client&&String(e.client.name||'').trim().toLowerCase().replace(/\s+/g,' ')===ck))){delete st.events[k]}});
+ syncCalendarPayload();
+ var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1),base=new Date(st.year,st.month,1),n=0;
+ for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+  var idx=(m-1)*12+w*freq+d,sk='m'+m+'w'+w+'d'+d,sc=schedules[sk]||{day:DAYS[d%7],time:String(8+(d%9)).padStart(2,'0')+':00'},rows=exportRows(p,isPro,idx);if(!rows.length)continue;
+  var dt=dayDate(sc.day,base,(m-1)*4+w),date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'),k=date+'T'+sc.time;while(st.events[k]&&st.events[k].clientKey!==ck){dt=new Date(dt.getTime()+3600000);k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')+'T'+String(dt.getHours()).padStart(2,'0')+':00'}
+  st.events[k]={title:name+' • '+label+' • M'+m+' W'+(w+1)+' S'+String.fromCharCode(65+d),notes:'Exported from '+label,day:sc.day,time:sc.time,clientKey:ck,exercises:rows.map(function(r){return {exercise:r.exercise||r.name||'',sets:r.sets||'',reps:r.reps||'',load:r.load||'',rest:r.rest||''}})};n++
+ }
+ if(api&&api.render)api.render();alert(n+' session(s) exported to Client Calendar. Previous sessions for '+name+' were replaced; other clients were preserved.');
+}
 function patchExports(){var b=$('btnExportTrainingToCalendar');if(b){b.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();var p=window.__FJAdvancedState;if(!p){alert('Generate Training Program first.');return}doExport(p,'Training Program',false)}}var p=$('btnExportTrainingProToCalendar');if(p){p.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();var st=window.proState;if(!st){alert('Generate Training Program PRO terlebih dahulu.');return}doExport(st,'Training Program PRO',true)}}}
 function syncProgressFromCalendar(){try{var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(st&&st.clientProgress){localStorage.setItem('fj_v27_before_after',JSON.stringify(st.clientProgress));}}catch(e){}}
-function bindCalendarSave(){var b=$('ccSaveBtn');if(b&&!b.dataset.fj27b){b.dataset.fj27b='1';b.addEventListener('click',syncCalendarPayload,true)}}
-function run(){enhanceMaster();enhancePro();patchExports();bindCalendarSave();syncProgressFromCalendar();syncCalendarPayload()}
+function run(){enhanceMaster();enhancePro();patchExports();syncProgressFromCalendar();syncCalendarPayload()}
 run();setInterval(run,500);
 })();
 </script>
@@ -6544,10 +6262,4 @@ fix();setInterval(fix,300)})();
  #fjV26PrintRoot .fj-v27-progress-field span{display:block!important;font-size:10px!important;margin-top:1mm!important;overflow-wrap:anywhere!important}
  #fjV26PrintRoot .fj-v27-progress-notes{grid-column:1/-1!important;min-height:18mm!important}
 }
-</style>
-
-<style id="fj-v27M-final-targeted">
-#trainingClientCalendar #ccClientData .fj-cc-client-item{min-width:0!important;box-sizing:border-box!important}
-#trainingClientCalendar #ccClientData .fj-cc-client-item input{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;margin-top:5px!important;height:32px!important;padding:5px 7px!important;pointer-events:auto!important;user-select:text!important;cursor:text!important}
-@media(max-width:600px){#trainingClientCalendar #ccClientData .fj-cc-client-item input{height:34px!important;font-size:12px!important}}
 </style>

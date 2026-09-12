@@ -1352,7 +1352,7 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
   #fjProPrintRoot .fj-pro-client-grid span{font-size:14px!important;line-height:1.35!important;font-weight:700!important}
 }
 </style>
-</head><body>
+<style id="fj-v28-remove-master-undo">#fjV28MasterUndo,#fjV28MasterRedo{display:none!important}</style></head><body>
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
 <div class="brand">FITNESS JOURNEY<small>TRAINING PROGRAM</small></div>
@@ -6268,6 +6268,9 @@ function exportPRO(){
     cal.events[key]={title:name+' • Training Program PRO • M'+m+' W'+(w+1)+' S'+String.fromCharCode(65+d),notes:'Exported from Training Program PRO',day:sc.day,time:sc.time,clientData:JSON.parse(JSON.stringify(c)),client:JSON.parse(JSON.stringify({name:c.clientName,age:c.programAge,gender:c.programGender,weight:c.programWeight,height:c.programHeight,goal:c.programGoal,level:c.programLevel,wtype:c.programWorkoutType,duration:c.programMonths,freq:c.programFreq})),clientProgress:prog,exercises:rows};
     added++;
   }
+  /* PRO EXPORT: copy the same client data into the editable Client Calendar fields above. */
+  var fieldMap={clientName:'clientName',programAge:'programAge',programGender:'programGender',programWeight:'programWeight',programHeight:'programHeight',programGoal:'programGoal',programLevel:'programLevel',programWorkoutType:'programWorkoutType',programMonths:'programMonths',programFreq:'programFreq'};
+  Object.keys(fieldMap).forEach(function(id){var el=document.getElementById(id),v=c[fieldMap[id]];if(el&&v!=null&&String(v)!=='')el.value=String(v)});
   cal.clientSnapshot={name:c.clientName,age:c.programAge,gender:c.programGender,weight:c.programWeight,height:c.programHeight,goal:c.programGoal,level:c.programLevel,wtype:c.programWorkoutType,duration:c.programMonths,freq:c.programFreq};
   cal.clientProgress=prog;
   saveCalendarState(cal);
@@ -6373,6 +6376,60 @@ function run(){ensureMasterButtons();patchCalendarRender();ensureFilter();update
 run();setInterval(run,700);
 })();
 </script>
+<script id="fj-v29-calendar-undo-redo-fix">
+(function(){
+  'use strict';
+  var MAX=50, ready=false, undo=[], redo=[], busy=false, last='';
+  function api(){return window.fjClientCalendar}
+  function st(){var a=api();return a&&a.state?a.state():null}
+  function snap(){var x=st();try{return JSON.stringify({year:x.year,month:x.month,events:x.events||{}})}catch(e){return '{}'}}
+  function refresh(){var u=document.getElementById('ccUndoBtn'),r=document.getElementById('ccRedoBtn');if(u)u.disabled=!undo.length;if(r)r.disabled=!redo.length}
+  function remember(){if(busy)return;var now=snap();if(!last){last=now;refresh();return}if(now===last){refresh();return}undo.push(last);if(undo.length>MAX)undo.shift();last=now;redo=[];refresh()}
+  function render(){var a=api();if(a&&a.render)a.render()}
+  function restore(raw){if(!raw)return;busy=true;try{var x=JSON.parse(raw),q=st();if(q){q.year=x.year;q.month=x.month;q.events=x.events||{};localStorage.setItem('fj_client_calendar_v1',JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:q.clientSnapshot||null,calendar:q}));render();}}catch(e){console.error('Calendar restore failed',e)}finally{busy=false}}
+  function undoNow(){if(!undo.length)return;var cur=snap();redo.push(cur);var target=undo.pop();restore(target);last=target;refresh()}
+  function redoNow(){if(!redo.length)return;var cur=snap();undo.push(cur);var target=redo.pop();restore(target);last=target;refresh()}
+  function saveNow(){
+    var x=st();if(!x)return;
+    try{
+      var payload={version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:x.clientSnapshot||null,calendar:x};
+      localStorage.setItem('fj_client_calendar_v1',JSON.stringify(payload));
+      var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=url;a.download='FitnessJourney_ClientCalendar.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);
+      last=snap();refresh();
+    }catch(e){alert('Client Calendar save failed: '+e.message)}
+  }
+  function bind(){
+    var U=document.getElementById('ccUndoBtn'),R=document.getElementById('ccRedoBtn'),S=document.getElementById('ccSaveBtn');
+    if(!U||!R||!S||!api())return false;
+    if(ready)return true;ready=true;last=snap();refresh();
+    U.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();undoNow()};
+    R.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();redoNow()};
+    S.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();saveNow()};
+    // Record the state immediately before calendar mutations.
+    document.addEventListener('click',function(e){
+      if(busy)return;
+      var t=e.target&&e.target.closest?e.target.closest('#ccSaveEvent,#ccDeleteEvent'):null;
+      if(t){remember()}
+    },true);
+    document.addEventListener('change',function(e){
+      if(busy)return;
+      var t=e.target;
+      if(t&&t.matches&&t.matches('#ccExercises [data-cc-field],#ccEditTitle,#ccEditNotes')){remember()}
+    },true);
+    document.addEventListener('dragstart',function(e){
+      if(busy)return;
+      var t=e.target&&e.target.closest?e.target.closest('.fj-cc-event'):null;if(t)remember();
+    },true);
+    return true;
+  }
+  var tries=0,tm=setInterval(function(){if(bind()||++tries>100)clearInterval(tm)},100);
+})();
+</script>
+<style id="fj-v29-calendar-client-fields-final">
+#trainingClientCalendar #ccClientData input[data-cc-client-field]{position:relative!important;z-index:20!important;pointer-events:auto!important;cursor:text!important;box-sizing:border-box!important;}
+#trainingClientCalendar #ccClientData .fj-cc-client-item{position:relative!important;z-index:10!important;}
+</style>
 </body></html>
 
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->

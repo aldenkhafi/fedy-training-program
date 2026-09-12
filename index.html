@@ -6355,6 +6355,206 @@ var mo=new MutationObserver(function(){setTimeout(bind,30)});try{mo.observe(docu
 })();
 </script>
 
+
+<style id="fj-v27g-targeted-style">
+/* V27G — BEFORE/AFTER ONLY */
+#trainingClientCalendar #ccClientData.fj-v23-client-editor{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:10px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  margin-bottom:14px!important;
+  position:relative!important;
+}
+#trainingClientCalendar #ccClientData.fj-v23-client-editor .field{
+  min-width:0!important;
+}
+#trainingClientCalendar #ccClientData.fj-v23-client-editor input,
+#trainingClientCalendar #ccClientData.fj-v23-client-editor select{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+#trainingClientCalendar #fjV27CalendarProgress{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  clear:both!important;
+  margin:18px 0 20px!important;
+  box-sizing:border-box!important;
+  position:relative!important;
+}
+
+/* Larger PHOTO area, moderate input area */
+.fj-v27-progress{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:18px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+.fj-v27-box{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  padding:14px!important;
+  border-radius:12px!important;
+}
+.fj-v27-box h4{
+  font-size:13px!important;
+  margin:0 0 10px!important;
+}
+.fj-v27-body{
+  display:grid!important;
+  grid-template-columns:150px minmax(0,1fr)!important;
+  gap:14px!important;
+  align-items:start!important;
+  min-width:0!important;
+}
+.fj-v27-photo{
+  position:relative!important;
+  width:150px!important;
+  height:185px!important;
+  min-width:150px!important;
+  box-sizing:border-box!important;
+  border-radius:10px!important;
+}
+.fj-v27-fields{
+  min-width:0!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:6px 8px!important;
+}
+.fj-v27-field{
+  min-width:0!important;
+}
+.fj-v27-field label{
+  flex:0 0 auto!important;
+  font-size:9px!important;
+}
+.fj-v27-field input{
+  min-width:0!important;
+  width:100%!important;
+  height:29px!important;
+  box-sizing:border-box!important;
+  font-size:11px!important;
+  padding:5px 7px!important;
+}
+.fj-v27-notes input{width:100%!important}
+
+/* Never force number fields to use spinner arrows */
+.fj-v27-field input[type="number"]::-webkit-inner-spin-button,
+.fj-v27-field input[type="number"]::-webkit-outer-spin-button{
+  -webkit-appearance:none!important;
+  margin:0!important;
+}
+.fj-v27-field input[type="number"]{
+  -moz-appearance:textfield!important;
+  appearance:textfield!important;
+}
+
+/* X is invisible until cursor enters the photo frame */
+.fj-v27-remove-photo{
+  opacity:0!important;
+  visibility:hidden!important;
+  transition:opacity .12s ease,visibility .12s ease!important;
+}
+.fj-v27-photo:hover .fj-v27-remove-photo,
+.fj-v27-photo:focus-within .fj-v27-remove-photo{
+  opacity:1!important;
+  visibility:visible!important;
+}
+.fj-v27-remove-photo:hover{
+  opacity:1!important;
+}
+
+/* Keep calendar progress below client-data grid */
+#trainingClientCalendar #ccClientData + #fjV27CalendarProgress{
+  display:block!important;
+  clear:both!important;
+}
+
+/* Phone: keep PHOTO and FIELDS side-by-side */
+@media(max-width:900px){
+  #trainingClientCalendar #ccClientData.fj-v23-client-editor{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .fj-v27-progress{
+    grid-template-columns:1fr!important;
+    gap:16px!important;
+  }
+  .fj-v27-body{
+    grid-template-columns:120px minmax(0,1fr)!important;
+    gap:12px!important;
+  }
+  .fj-v27-photo{
+    width:120px!important;
+    min-width:120px!important;
+    height:155px!important;
+  }
+}
+@media(max-width:600px){
+  #trainingClientCalendar #ccClientData.fj-v23-client-editor{
+    grid-template-columns:1fr!important;
+  }
+  .fj-v27-box{
+    padding:11px!important;
+  }
+  .fj-v27-body{
+    grid-template-columns:105px minmax(0,1fr)!important;
+    gap:10px!important;
+  }
+  .fj-v27-photo{
+    width:105px!important;
+    min-width:105px!important;
+    height:140px!important;
+  }
+  .fj-v27-fields{
+    grid-template-columns:1fr 1fr!important;
+    gap:5px!important;
+  }
+  .fj-v27-field{
+    display:block!important;
+  }
+  .fj-v27-field label{
+    display:block!important;
+    margin-bottom:2px!important;
+    font-size:8px!important;
+    white-space:normal!important;
+    line-height:1.15!important;
+  }
+  .fj-v27-field input{
+    height:28px!important;
+    font-size:10px!important;
+    padding:4px 5px!important;
+  }
+  .fj-v27-notes{
+    grid-column:1/-1!important;
+  }
+}
+</style>
+<script id="fj-v27g-calendar-position-fix">
+(function(){
+'use strict';
+function fix(){
+  var c=document.getElementById('ccClientData');
+  var x=document.getElementById('fjV27CalendarProgress');
+  if(!c||!x)return;
+  /* Client Data keeps its original grid; progress is its next block, never inside the grid. */
+  if(x.parentNode!==c.parentNode || x.previousElementSibling!==c){
+    c.parentNode.insertBefore(x,c.nextSibling);
+  }
+  c.classList.remove('fj-v27-calendar-one-row');
+}
+function run(){fix()}
+setTimeout(run,100);setTimeout(run,500);setTimeout(run,1200);
+setInterval(run,1500);
+})();
+</script>
 </body></html>
 
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->

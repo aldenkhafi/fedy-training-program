@@ -5181,11 +5181,11 @@ function syncProGoalFromMaster(){
  pro.value=master.value;filterProWorkoutTypesByGoal();
 }
 function generate(){
- proState=makeState();proEdits={};proCurrent={m:1,w:0,d:0};resetProHistory();renderTabs();
+ proState=makeState();window.proState=proState;proEdits={};proCurrent={m:1,w:0,d:0};resetProHistory();renderTabs();
  activate();
 }
 function reset(){
- proState=null;proEdits={};proCurrent={m:1,w:0,d:0};resetProHistory();const r=$('trainingProResult');if(r)r.innerHTML='';
+ proState=null;window.proState=null;proEdits={};proCurrent={m:1,w:0,d:0};resetProHistory();const r=$('trainingProResult');if(r)r.innerHTML='';
 }
 function save(){
  if(!proState){alert('Generate Training Program PRO terlebih dahulu.');return}
@@ -5196,7 +5196,7 @@ function save(){
 }
 function load(){
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);
- input.onchange=async()=>{const f=input.files?.[0];input.remove();if(!f)return;try{const p=JSON.parse(await f.text());if(!p?.program)throw Error('invalid');restoreForm(p.form||{});proState=p.program;proEdits=p.edits||{};proCurrent={m:1,w:0,d:0};resetProHistory();renderTabs();activate()}catch(e){alert('File PRO tidak valid.')}};
+ input.onchange=async()=>{const f=input.files?.[0];input.remove();if(!f)return;try{const p=JSON.parse(await f.text());if(!p?.program)throw Error('invalid');restoreForm(p.form||{});proState=p.program;window.proState=proState;proEdits=p.edits||{};proCurrent={m:1,w:0,d:0};resetProHistory();renderTabs();activate()}catch(e){alert('File PRO tidak valid.')}};
  input.click();
 }
 function printPro(){

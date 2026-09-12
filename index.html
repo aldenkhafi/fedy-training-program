@@ -5449,40 +5449,81 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
 }
 </style>
-<script id="fj-v16-pro-pdf-runtime-fix">
+<script id="fj-v19-pro-pdf-runtime-fix">
 (function(){
   'use strict';
-  function openProPdfV16(){
-    var p=window.proState;
-    if(!p){alert('Generate Training Program PRO terlebih dahulu.');return false}
+  function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
+  function snap(id,f){var e=document.getElementById(id);return e?String(e.value||'').trim()||f:f}
+  function rowsFor(p,m,w,d){
+    try{
+      if(typeof getRows==='function'){var r=getRows(m,w,d);if(Array.isArray(r)&&r.length)return r;}
+    }catch(e){console.error('PRO PDF getRows failed',m,w,d,e)}
+    try{
+      if(typeof window.buildUniqueSessionDay==='function'){
+        var wrap=document.createElement('div');wrap.innerHTML=window.buildUniqueSessionDay(p,m,w,d)||'';
+        var trs=wrap.querySelectorAll('tbody tr'),out=[];
+        trs.forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=2)out.push({block:td[0].textContent.trim(),exercise:td[1].textContent.trim(),sets:td[2]?.textContent.trim()||'3',reps:td[3]?.textContent.trim()||'8–12',load:td[4]?.textContent.trim()||'',rpe:td[5]?.textContent.trim()||'',rir:td[6]?.textContent.trim()||'',rest:td[7]?.textContent.trim()||'60–120s'});});
+        if(out.length)return out;
+      }
+    }catch(e){console.error('PRO PDF fallback build failed',m,w,d,e)}
+    return [{block:'PROGRAM',exercise:'No exercise data available',sets:'—',reps:'—',load:'—',rpe:'—',rir:'—',rest:'—'}];
+  }
+  function openProPdfV19(){
+    var p=window.proState;if(!p){alert('Generate Training Program PRO terlebih dahulu.');return false}
     var old=document.getElementById('fjProPrintRoot');if(old)old.remove();
     var root=document.createElement('div');root.id='fjProPrintRoot';
-    var esc=function(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})};
-    var snap=function(id,f){var e=document.getElementById(id);return e?String(e.value||'').trim()||f:f};
-    var client=[['Client Name',p.name||snap('clientName','—')],['Age',snap('programAge','—')+' years'],['Gender',snap('programGender','—')],['Body Weight',snap('programWeight','—')+' kg'],['Height',snap('programHeight','—')+' cm'],['Goal',p.g||snap('programGoal','—')],['Fitness Level',snap('programLevel','AUTO')],['Workout Type',p.wtype||snap('programWorkoutType','—')],['Duration',String(p.months||snap('programMonths','—'))+' months'],['Frequency',String(p.freq||snap('programFreq','—'))+' / week']];
-    var h='<div class="fj-pro-print-page"><section class="fj-pro-client-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj-pro-client-grid">';
+    var client=[['Client Name',p.name||snap('clientName','—')],['Age',snap('programAge',p.age||'—')+' years'],['Gender',snap('programGender','—')],['Body Weight',snap('programWeight','—')+' kg'],['Height',snap('programHeight','—')+' cm'],['Goal',p.g||snap('programGoal','—')],['Fitness Level',p.level||snap('programLevel','AUTO')],['Workout Type',p.wtype||snap('programWorkoutType','—')],['Duration',String(p.months||snap('programMonths','—'))+' months'],['Frequency',String(p.freq||snap('programFreq','—'))+' / week']];
+    var h='<section class="fj-v19-pro-cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="fj-v19-client-grid">';
     client.forEach(function(r){h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});
-    h+='</div></section><h1>TRAINING PROGRAM PRO</h1>';
-    for(var m=1;m<=p.months;m++)for(var w=0;w<4;w++)for(var d=0;d<p.freq;d++){
-      var rows=getRows(m,w,d);h+='<section class="fj-pro-print-session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
+    h+='</div></section><div class="fj-v19-pro-break"></div><section class="fj-v19-pro-program"><h1>TRAINING PROGRAM PRO</h1>';
+    var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
+    for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+      var rows=rowsFor(p,m,w,d);
+      h+='<section class="fj-v19-pro-session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
       rows.forEach(function(r){h+='<tr><td>'+esc(r.block)+'</td><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe)+'</td><td>'+esc(r.rir)+'</td><td>'+esc(r.rest)+'</td></tr>'});
       h+='</tbody></table></section>';
     }
-    h+='</div>';root.innerHTML=h;document.body.appendChild(root);
+    h+='</section>';root.innerHTML=h;
+    document.body.appendChild(root);
     var oldTitle=document.title;document.title='Training Program PRO';
-    document.documentElement.classList.add('fj-v16-pro-printing');document.body.classList.add('fj-v16-pro-printing');
-    root.style.setProperty('display','block','important');root.style.setProperty('visibility','visible','important');root.style.setProperty('position','absolute','important');root.style.setProperty('top','0','important');root.style.setProperty('left','0','important');root.style.setProperty('width','100%','important');root.style.setProperty('height','auto','important');root.style.setProperty('overflow','visible','important');
-    var cleaned=false;function cleanup(){if(cleaned)return;cleaned=true;document.documentElement.classList.remove('fj-v16-pro-printing');document.body.classList.remove('fj-v16-pro-printing');var r=document.getElementById('fjProPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',cleanup)}
+    document.documentElement.classList.add('fj-v19-pro-printing');document.body.classList.add('fj-v19-pro-printing');
+    var cleaned=false;
+    function cleanup(){if(cleaned)return;cleaned=true;document.documentElement.classList.remove('fj-v19-pro-printing');document.body.classList.remove('fj-v19-pro-printing');var r=document.getElementById('fjProPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',cleanup)}
     window.addEventListener('afterprint',cleanup,{once:true});
-    requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){try{window.print()}catch(e){console.error(e);cleanup();alert('PDF gagal dibuka.')}setTimeout(cleanup,5000)},250)})});
+    requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){try{window.print()}catch(e){console.error('PRO PDF print failed',e);cleanup();alert('PDF gagal dibuka.')}setTimeout(cleanup,5000)},350)})});
     return true;
   }
-  window.fjV16OpenTrainingProPrint=openProPdfV16;
-  function bind(){var b=document.getElementById('btnPrintTrainingPro');if(b)b.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();return openProPdfV16()}}
+  window.fjV19OpenTrainingProPrint=openProPdfV19;
+  function bind(){var b=document.getElementById('btnPrintTrainingPro');if(b)b.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();return openProPdfV19()}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
   window.addEventListener('load',bind);
 })();
 </script>
+<style id="fj-v19-pro-pdf-final">
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  html.fj-v19-pro-printing,html.fj-v19-pro-printing body{display:block!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important;color:#111!important}
+  html.fj-v19-pro-printing body>*:not(#fjProPrintRoot){display:none!important;visibility:hidden!important}
+  html.fj-v19-pro-printing body>#fjProPrintRoot{display:block!important;visibility:visible!important;position:static!important;float:none!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important;color:#111!important;opacity:1!important;font-family:Arial,Helvetica,sans-serif!important}
+  html.fj-v19-pro-printing #fjProPrintRoot *{visibility:visible!important;opacity:1!important;color:#111!important;box-sizing:border-box!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-cover{display:block!important;min-height:245mm!important;padding:8mm!important;break-after:page!important;page-break-after:always!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-cover h1{display:block!important;font-size:26px!important;line-height:1.2!important;margin:0 0 14px!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-client-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px 24px!important;width:100%!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-client-grid>div{display:block!important;border:1px solid #bfc9d1!important;padding:12px!important;background:#fff!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-client-grid b{display:block!important;font-size:11px!important;line-height:1.25!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-client-grid span{display:block!important;font-size:15px!important;line-height:1.4!important;font-weight:700!important;margin-top:3px!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-break{display:none!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-program{display:block!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-program>h1{display:block!important;font-size:22px!important;line-height:1.2!important;margin:0 0 8px!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-session{display:block!important;break-inside:avoid!important;page-break-inside:avoid!important;margin:0 0 7mm!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-session h2{display:block!important;font-size:14px!important;line-height:1.2!important;margin:0 0 6px!important;break-after:avoid!important;page-break-after:avoid!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-session table{display:table!important;width:100%!important;border-collapse:collapse!important;table-layout:fixed!important;font-size:8px!important;break-inside:avoid!important;page-break-inside:avoid!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-session thead{display:table-header-group!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-session tbody{display:table-row-group!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-session tr{display:table-row!important;break-inside:avoid!important;page-break-inside:avoid!important}
+  html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-session th,html.fj-v19-pro-printing #fjProPrintRoot .fj-v19-pro-session td{display:table-cell!important;border:1px solid #aaa!important;padding:3px!important;text-align:left!important;vertical-align:top!important;overflow-wrap:anywhere!important}
+}
+</style>
 <style id="fj-v17-client-calendar">
 /* V17 — CLIENT CALENDAR: new feature only. Existing panels and logic are untouched. */
 #trainingClientCalendar{display:none!important}

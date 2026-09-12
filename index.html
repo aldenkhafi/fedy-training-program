@@ -5646,54 +5646,67 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar}
 
 </body></html>
 
-<style id="fj-v18-pro-pdf-iframe-style">
-/* V18: PRO PDF ONLY — isolated print document. */
-#fjProPdfFrame{position:fixed!important;left:-10000px!important;top:0!important;width:210mm!important;height:297mm!important;border:0!important;opacity:0!important;pointer-events:none!important;background:#fff!important}
+<style id="fj-v20-pro-pdf-final">
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+}
 </style>
-<script id="fj-v18-pro-pdf-iframe-runtime">
+<script id="fj-v20-pro-pdf-runtime">
 (function(){
   'use strict';
-  function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
   function snap(id,f){var e=document.getElementById(id);return e?String(e.value||'').trim()||f:f}
-  function printProIsolated(e){
+  function getRowsSafe(p,m,w,d){
+    try{
+      if(typeof getRows==='function'){
+        var a=getRows(m,w,d);if(Array.isArray(a)&&a.length)return a;
+      }
+    }catch(err){console.error('PRO PDF getRows failed',err)}
+    try{
+      if(typeof window.buildUniqueSessionDay==='function'){
+        var wrap=document.createElement('div');wrap.innerHTML=window.buildUniqueSessionDay(p,m,w,d)||'';
+        var out=[];wrap.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=2)out.push({block:td[0].textContent.trim(),exercise:td[1].textContent.trim(),sets:td[2]?.textContent.trim()||'3',reps:td[3]?.textContent.trim()||'8–12',load:td[4]?.textContent.trim()||'—',rpe:td[5]?.textContent.trim()||'—',rir:td[6]?.textContent.trim()||'—',rest:td[7]?.textContent.trim()||'60–120s'});});
+        if(out.length)return out;
+      }
+    }catch(err){console.error('PRO PDF fallback failed',err)}
+    return [{block:'PROGRAM',exercise:'No exercise data available',sets:'—',reps:'—',load:'—',rpe:'—',rir:'—',rest:'—'}];
+  }
+  function buildProHtml(p){
+    var client=[['Client Name',p.name||snap('clientName','—')],['Age',snap('programAge',p.age||'—')+' years'],['Gender',snap('programGender','—')],['Body Weight',snap('programWeight','—')+' kg'],['Height',snap('programHeight','—')+' cm'],['Goal',p.g||snap('programGoal','—')],['Fitness Level',p.level||snap('programLevel','AUTO')],['Workout Type',p.wtype||snap('programWorkoutType','—')],['Duration',String(p.months||snap('programMonths','—'))+' months'],['Frequency',String(p.freq||snap('programFreq','—'))+' / week']];
+    var html='<!doctype html><html><head><meta charset="utf-8"><title>Training Program PRO</title><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:10px}h1{font-size:24px;margin:0 0 12px;line-height:1.2}h2{font-size:14px;margin:0 0 6px;line-height:1.2}.cover{min-height:277mm;break-after:page;page-break-after:always;padding:4mm 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;border:1px solid #bfc9d1;padding:12px;border-radius:6px}.grid div{border:1px solid #d0d7dc;padding:10px;border-radius:5px}.grid b{display:block;font-size:10px;text-transform:uppercase;line-height:1.2}.grid span{display:block;margin-top:4px;font-size:16px;font-weight:700;line-height:1.35}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px;break-inside:avoid;page-break-inside:avoid}.session thead{display:table-header-group}.session tr{break-inside:avoid;page-break-inside:avoid}.session th,.session td{border:1px solid #999;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.session th{font-weight:700;background:#f3f3f3}</style></head><body><section class="cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="grid">';
+    client.forEach(function(r){html+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});
+    html+='</div></section><h1>TRAINING PROGRAM PRO</h1>';
+    var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
+    for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++){
+      var rows=getRowsSafe(p,m,w,d);
+      html+='<section class="session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
+      rows.forEach(function(r){html+='<tr><td>'+esc(r.block||'')+'</td><td>'+esc(r.exercise||'')+'</td><td>'+esc(r.sets||'')+'</td><td>'+esc(r.reps||'')+'</td><td>'+esc(r.load||'')+'</td><td>'+esc(r.rpe||'')+'</td><td>'+esc(r.rir||'')+'</td><td>'+esc(r.rest||'')+'</td></tr>'});
+      html+='</tbody></table></section>';
+    }
+    return html+'</body></html>';
+  }
+  function printPro(e){
     if(e){e.preventDefault();e.stopImmediatePropagation();}
     var p=window.proState;
     if(!p){alert('Generate Training Program PRO terlebih dahulu.');return false}
-    var old=document.getElementById('fjProPdfFrame');if(old)old.remove();
-    var client=[['Client Name',p.name||snap('clientName','—')],['Age',snap('programAge','—')+' years'],['Gender',snap('programGender','—')],['Body Weight',snap('programWeight','—')+' kg'],['Height',snap('programHeight','—')+' cm'],['Goal',p.g||snap('programGoal','—')],['Fitness Level',snap('programLevel','AUTO')],['Workout Type',p.wtype||snap('programWorkoutType','—')],['Duration',String(p.months||snap('programMonths','—'))+' months'],['Frequency',String(p.freq||snap('programFreq','—'))+' / week']];
-    var html='<!doctype html><html><head><meta charset="utf-8"><title>Training Program PRO</title><style>'+
-      '@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:10px}'+
-      'h1{font-size:24px;margin:0 0 12px;line-height:1.2}h2{font-size:14px;margin:0 0 6px;line-height:1.2}'+
-      '.cover{min-height:277mm;break-after:page;page-break-after:always;padding:4mm 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;border:1px solid #bfc9d1;padding:12px;border-radius:6px}.grid div{border:1px solid #d0d7dc;padding:10px;border-radius:5px}.grid b{display:block;font-size:10px;text-transform:uppercase;line-height:1.2}.grid span{display:block;margin-top:4px;font-size:16px;font-weight:700;line-height:1.35}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px;break-inside:avoid;page-break-inside:avoid}.session thead{display:table-header-group}.session tr{break-inside:avoid;page-break-inside:avoid}.session th,.session td{border:1px solid #999;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere;word-break:normal}.session th{font-weight:700;background:#f3f3f3}'+
-      '</style></head><body><section class="cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="grid">';
-    client.forEach(function(r){html+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});
-    html+='</div></section><h1>TRAINING PROGRAM PRO</h1>';
+    var html=buildProHtml(p), win=null;
+    try{win=window.open('', 'fjTrainingProgramProPrint', 'width=1100,height=800,noopener=false');}catch(err){console.error('PRO PDF popup error',err)}
+    if(!win){alert('PDF gagal dibuka. Izinkan pop-up untuk situs ini lalu coba lagi.');return false}
     try{
-      for(var m=1;m<=Number(p.months||0);m++)for(var w=0;w<4;w++)for(var d=0;d<Number(p.freq||0);d++){
-        var rows=typeof getRows==='function'?getRows(m,w,d):[];
-        html+='<section class="session"><h2>MONTH '+m+' — WEEK '+(w+1)+' — SESSION '+String.fromCharCode(65+d)+'</h2><table><thead><tr><th>Block</th><th>Exercise</th><th>Sets</th><th>Reps</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>';
-        rows.forEach(function(r){html+='<tr><td>'+esc(r.block)+'</td><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe)+'</td><td>'+esc(r.rir)+'</td><td>'+esc(r.rest)+'</td></tr>'});
-        html+='</tbody></table></section>';
-      }
-    }catch(err){console.error('PRO PDF build error',err);html+='<p>Unable to build Training Program PRO.</p>'}
-    html+='</body></html>';
-    var frame=document.createElement('iframe');frame.id='fjProPdfFrame';frame.setAttribute('aria-hidden','true');document.body.appendChild(frame);
-    var printed=false,cleaned=false,oldTitle=document.title;
-    function cleanup(){if(cleaned)return;cleaned=true;try{frame.remove()}catch(_){}document.title=oldTitle;window.removeEventListener('afterprint',cleanup)}
-    window.addEventListener('afterprint',cleanup,{once:true});
-    frame.onload=function(){
-      if(printed)return;printed=true;
-      try{frame.contentDocument.open();frame.contentDocument.write(html);frame.contentDocument.close()}catch(err){console.error(err)}
-      setTimeout(function(){try{frame.contentWindow.focus();frame.contentWindow.print()}catch(err){console.error(err);cleanup();alert('PDF gagal dibuka.')}setTimeout(cleanup,8000)},350);
-    };
-    document.title='Training Program PRO';
-    try{frame.contentDocument.open();frame.contentDocument.write(html);frame.contentDocument.close()}catch(err){console.error(err);cleanup();alert('PDF gagal dibuat.');return false}
-    setTimeout(function(){try{frame.contentWindow.focus();frame.contentWindow.print()}catch(err){console.error(err);cleanup();alert('PDF gagal dibuka.')}setTimeout(cleanup,8000)},450);
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+      win.document.title='Training Program PRO';
+      var printed=false;
+      function doPrint(){if(printed)return;printed=true;try{win.focus();win.print()}catch(err){console.error('PRO PDF print failed',err);alert('PDF gagal dibuka.')} }
+      if(win.document.readyState==='complete')setTimeout(doPrint,500);else win.addEventListener('load',function(){setTimeout(doPrint,300)},{once:true});
+    }catch(err){console.error('PRO PDF document error',err);try{win.close()}catch(_){}alert('PDF gagal dibuat.');return false}
     return true;
   }
-  function bind(){var b=document.getElementById('btnPrintTrainingPro');if(b){b.onclick=printProIsolated}}
+  function bind(){var b=document.getElementById('btnPrintTrainingPro');if(b){b.onclick=printPro}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
   window.addEventListener('load',bind);
-  window.fjV18OpenTrainingProPrint=printProIsolated;
+  window.fjV20OpenTrainingProPrint=printPro;
 })();
 </script>
+</body></html>

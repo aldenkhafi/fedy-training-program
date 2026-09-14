@@ -1,13 +1,15 @@
 {
-  "name": "Fitness Journey Training Program",
-  "short_name": "Training Program",
-  "description": "Fitness Journey Training Program with Admin Access Approval",
+  "name": "FITNESS JOURNEY — PT Management",
+  "short_name": "FITNESS JOURNEY",
+  "description": "FITNESS JOURNEY PT Management",
+  "lang": "id-ID",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone"],
   "orientation": "portrait",
-  "background_color": "#f4f8fb",
-  "theme_color": "#07577f",
+  "background_color": "#eef6f6",
+  "theme_color": "#102a43",
   "icons": [
     {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
     {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}

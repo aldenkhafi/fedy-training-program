@@ -3602,6 +3602,72 @@ if ('serviceWorker' in navigator) {
     const bell=document.getElementById('ptmAlertBell');
     if(bell){const old=bell.onclick;bell.onclick=function(e){if('Notification'in window&&Notification.permission!=='granted'){try{window.ptmRequestMbpNotifications&&window.ptmRequestMbpNotifications();}catch(_){} } if(old)old.call(this,e);};}
   }catch(e){}
+
+
+/* V31: Flexible printing for one selected client from the clicked training schedule. */
+function fjV30Esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}
+function fjV30ClientKey(c){return String((c&&c.name)||'').trim().toLowerCase()}
+function fjV31SelectedContext(){
+ var st=calendar(),key=($('ccEditKey')||{}).value,selected=st&&st.events&&st.events[key];
+ if(!st||!selected){alert('Pilih jadwal latihan client terlebih dahulu.');return null}
+ var client=selected.client||masterClient(),name=fjV30ClientKey(client);
+ if(!name){alert('Nama client belum tersedia pada jadwal ini.');return null}
+ var matches=Object.keys(st.events||{}).sort().filter(function(k){var e=st.events[k]||{};return fjV30ClientKey(e.client||{})===name});
+ if(!matches.length)matches=[key];
+ return {st:st,key:key,selected:selected,client:client,matches:matches};
+}
+function fjV31OpenPrintChooser(){
+ var ctx=fjV31SelectedContext();if(!ctx)return;
+ var old=document.getElementById('fjV31PrintChooser');if(old)old.remove();
+ var wrap=document.createElement('div');wrap.id='fjV31PrintChooser';wrap.innerHTML=''
+ +'<div class="fj-v31-backdrop"></div><div class="fj-v31-box" role="dialog" aria-modal="true">'
+ +'<button type="button" class="fj-v31-close" aria-label="Close">×</button>'
+ +'<h2>🖨 Print Program Client</h2><p class="fj-v31-client">'+fjV30Esc(ctx.client.name||'Client')+'</p>'
+ +'<label class="fj-v31-option"><input type="radio" name="fjV31PrintMode" value="session" checked><span><b>Session / Hari yang sedang dibuka</b><small>Hanya jadwal latihan yang sedang diklik.</small></span></label>'
+ +'<label class="fj-v31-option"><input type="radio" name="fjV31PrintMode" value="all"><span><b>Semua program client</b><small>Cetak seluruh '+ctx.matches.length+' jadwal latihan client.</small></span></label>'
+ +'<label class="fj-v31-option"><input type="radio" name="fjV31PrintMode" value="range"><span><b>Periode tanggal tertentu</b><small>Pilih jadwal dari tanggal berapa sampai tanggal berapa.</small></span></label>'
+ +'<div class="fj-v31-range" id="fjV31Range"><div><label>Dari tanggal</label><input type="date" id="fjV31From"></div><div><label>Sampai tanggal</label><input type="date" id="fjV31To"></div></div>'
+ +'<div class="fj-v31-actions"><button type="button" class="btn alt" id="fjV31Cancel">Cancel</button><button type="button" class="btn" id="fjV31PrintNow">🖨 Print Sekarang</button></div>'
+ +'</div>';
+ document.body.appendChild(wrap);
+ var dates=ctx.matches.map(function(k){return k.slice(0,10)}).sort();
+ var from=$('fjV31From'),to=$('fjV31To');if(from&&dates.length)from.value=dates[0];if(to&&dates.length)to.value=dates[dates.length-1];
+ function sync(){var mode=(wrap.querySelector('input[name="fjV31PrintMode"]:checked')||{}).value;var r=$('fjV31Range');if(r)r.classList.toggle('active',mode==='range')}
+ wrap.querySelectorAll('input[name="fjV31PrintMode"]').forEach(function(x){x.addEventListener('change',sync)});sync();
+ function close(){wrap.remove()}
+ wrap.querySelector('.fj-v31-close').onclick=close;$('fjV31Cancel').onclick=close;
+ wrap.querySelector('.fj-v31-backdrop').onclick=close;
+ $('fjV31PrintNow').onclick=function(){var mode=(wrap.querySelector('input[name="fjV31PrintMode"]:checked')||{}).value;var f=from&&from.value,t=to&&to.value;if(mode==='range'&&(!f||!t)){alert('Pilih tanggal Dari dan Sampai.');return}if(mode==='range'&&f>t){alert('Tanggal Dari tidak boleh lebih besar dari Sampai.');return}close();fjV31PrintSelectedClient(mode,f,t)};
+}
+function fjV31PrintSelectedClient(mode,fromDate,toDate){
+ var ctx=fjV31SelectedContext();if(!ctx)return;mode=mode||'all';
+ var matches=ctx.matches.slice();
+ if(mode==='session')matches=[ctx.key];
+ if(mode==='range')matches=matches.filter(function(k){var d=k.slice(0,10);return d>=fromDate&&d<=toDate});
+ if(!matches.length){alert('Tidak ada jadwal latihan client pada periode yang dipilih.');return}
+ var st=ctx.st,key=ctx.key,client=ctx.client;
+ var old=document.getElementById('fjClientCalendarPrintRoot');if(old)old.remove();
+ var root=document.createElement('div');root.id='fjClientCalendarPrintRoot';
+ var modeText=mode==='session'?'SESSION TERPILIH':mode==='range'?('PERIODE '+fromDate+' s/d '+toDate):'SEMUA PROGRAM CLIENT';
+ var h='<section class="cc-print-cover"><h1>CLIENT TRAINING PROGRAM</h1><h2>'+fjV30Esc(client.name||'Client')+'</h2><p style="margin-top:5mm;font-size:12px;font-weight:700">'+fjV30Esc(modeText)+'</p><div class="cc-print-client">';
+ [['Client Name',client.name],['Age',client.age?(client.age+' years'):'' ],['Gender',client.gender],['Body Weight',client.weight?(client.weight+' kg'):'' ],['Height',client.height?(client.height+' cm'):'' ],['Goal',client.goal],['Fitness Level',client.level],['Workout Type',client.wtype],['Duration',client.duration?(client.duration+' months'):'' ],['Frequency',client.freq?(client.freq+' x / week'):'' ]].forEach(function(r){h+='<div><b>'+fjV30Esc(r[0])+'</b><span>'+fjV30Esc(r[1]||'—')+'</span></div>'});
+ h+='</div><p style="margin-top:10mm;font-size:11px">Printed sessions: '+matches.length+'</p></section>';
+ matches.forEach(function(k,i){var e=st.events[k]||{},ba=e.beforeAfter||blankBA();h+='<section class="cc-print-event"><h1>SESSION '+(i+1)+'</h1><h2>'+fjV30Esc(k.replace('T',' '))+' — '+fjV30Esc(e.title||'Training')+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';
+ (e.exercises||[]).forEach(function(x){h+='<tr><td>'+fjV30Esc(x.exercise||x.name||'')+'</td><td>'+fjV30Esc(x.sets||'')+'</td><td>'+fjV30Esc(x.reps||'')+'</td><td>'+fjV30Esc(x.load||'')+'</td><td>'+fjV30Esc(x.rest||x.restTime||'—')+'</td></tr>'});
+ h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+fjV30Esc(e.notes)+'</p>':'');
+ var hasBA=['before','after'].some(function(side){var z=ba[side]||{};return Object.keys(z).some(function(q){return z[q]})});
+ if(hasBA){h+='<div class="cc-print-session-ba"><h3>BEFORE / AFTER — TRAINING DAY</h3><div class="cc-progress-grid">';['before','after'].forEach(function(side){var z=ba[side]||{},ttl=side.toUpperCase(),img=z.image?'<img src="'+fjV30Esc(z.image)+'" alt="'+ttl+'">':'<div class="cc-progress-empty">No photo</div>';h+='<div class="cc-progress-card"><h2>'+ttl+'</h2><div class="cc-progress-photo">'+img+'</div><div class="cc-progress-fields">';[['Weight',z.weight],['Height',z.height],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['Body Fat',z.bodyFat],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Notes',z.notes]].forEach(function(v){h+='<div><b>'+fjV30Esc(v[0])+'</b><span>'+fjV30Esc(v[1]||'—')+'</span></div>'});h+='</div></div>'});h+='</div></div>'}
+ h+='</section>';
+ });
+ root.innerHTML=h;document.body.appendChild(root);
+ var oldTitle=document.title;document.title='Client Training - '+(client.name||'Client');document.documentElement.classList.add('fj-v17-cc-printing');
+ function clean(){document.documentElement.classList.remove('fj-v17-cc-printing');var r=document.getElementById('fjClientCalendarPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}
+ window.addEventListener('afterprint',clean,{once:true});requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){window.print();setTimeout(clean,5000)},200)})})
+}
+function fjV30EnsurePrintButton(){var actions=document.querySelector('#ccModal .fj-cc-dialog-actions');if(!actions||$('ccPrintSelectedClient'))return;var b=document.createElement('button');b.type='button';b.className='btn alt';b.id='ccPrintSelectedClient';b.textContent='🖨 Print';b.title='Pilih session, semua program, atau periode tanggal untuk client yang sedang dibuka';b.addEventListener('click',function(e){e.preventDefault();fjV31OpenPrintChooser()});var save=$('ccSaveEvent');if(save&&save.parentNode===actions)actions.insertBefore(b,save);else actions.appendChild(b)}
+setInterval(fjV30EnsurePrintButton,500);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(fjV30EnsurePrintButton,300)});else setTimeout(fjV30EnsurePrintButton,300);
+
+var fjV31Style=document.createElement('style');fjV31Style.id='fj-v31-print-chooser-style';fjV31Style.textContent='#fjV31PrintChooser{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}.fj-v31-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.42)}.fj-v31-box{position:relative;width:min(520px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:20px;box-shadow:0 18px 55px rgba(0,0,0,.28);box-sizing:border-box}.fj-v31-box h2{margin:0 34px 4px 0}.fj-v31-client{margin:0 0 16px;font-weight:700}.fj-v31-close{position:absolute;right:14px;top:10px;border:0;background:transparent;font-size:30px;cursor:pointer}.fj-v31-option{display:flex;gap:10px;align-items:flex-start;border:1px solid #d7e0e5;border-radius:12px;padding:12px;margin:10px 0;cursor:pointer}.fj-v31-option input{margin-top:4px}.fj-v31-option b{display:block}.fj-v31-option small{display:block;margin-top:3px;color:#667}.fj-v31-range{display:none;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0 10px}.fj-v31-range.active{display:grid}.fj-v31-range label{display:block;font-size:12px;font-weight:700;margin-bottom:4px}.fj-v31-range input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccd7dd;border-radius:8px}.fj-v31-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}@media(max-width:480px){.fj-v31-box{padding:16px;border-radius:14px}.fj-v31-range.active{grid-template-columns:1fr}.fj-v31-actions{flex-direction:column-reverse}.fj-v31-actions button{width:100%}}';document.head.appendChild(fjV31Style);
 })();
 </script>
 <style id="fj-v20-ui-cleanup">.ptm-mbp-alarm button{display:none!important}.ptm-alarm-activation,.ptm-enable-alarm{display:none!important}</style>
@@ -6350,15 +6416,16 @@ function clientFromProgram(p){var m=masterClient();return {name:String((p&&(p.na
 function parseRows(html){var w=document.createElement('div');w.innerHTML=html||'';var a=[];w.querySelectorAll('tbody tr').forEach(function(tr){var td=tr.querySelectorAll('td');if(td.length>=2)a.push({block:(td[0].textContent||'').trim(),exercise:(td[1].textContent||'').trim(),sets:(td[2]?.textContent||'').trim(),reps:(td[3]?.textContent||'').trim(),load:(td[4]?.textContent||'').trim(),rpe:(td[5]?.textContent||'').trim(),rir:(td[6]?.textContent||'').trim(),rest:(td[7]?.textContent||'').trim()})});return a}
 function rowsFor(p,isPro,m,w,d){try{if(isPro&&typeof window.fjGetTrainingProRows==='function'){var r=window.fjGetTrainingProRows(m,w,d);if(Array.isArray(r)&&r.length)return r.map(function(x){return {block:x.block||'',exercise:x.exercise||x.name||'',sets:x.sets||'',reps:x.reps||'',load:x.load||'',rpe:x.rpe||'',rir:x.rir||'',rest:x.rest||''}})}}catch(e){}try{if(typeof window.buildUniqueSessionDay==='function')return parseRows(window.buildUniqueSessionDay(p,m,w,d)||'')}catch(e){}return []}
 function dateAdd(base,n){var x=new Date(base.getFullYear(),base.getMonth(),base.getDate());x.setDate(x.getDate()+n*2);return x}
-function exportReplace(p,label,isPro){var st=calendar();if(!st||!st.events){alert('Client Calendar belum siap. Buka Client Calendar terlebih dahulu.');return}var client=clientFromProgram(p),months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1),base=new Date(st.year,st.month,1),events={},idx=0,added=0,missing=0;
+function exportReplace(p,label,isPro){var st=calendar();if(!st||!st.events){alert('Client Calendar belum siap. Buka Client Calendar terlebih dahulu.');return}var client=clientFromProgram(p),months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1),base=new Date(st.year,st.month,1),events=st.events||{},idx=0,added=0,missing=0;
 for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++,idx++){
  var rows=rowsFor(p,isPro,m,w,d);if(!rows.length){missing++;continue}
  var dt=dateAdd(base,idx),date=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
  var ps=isPro&&typeof window.fjGetTrainingProSchedule==='function'?window.fjGetTrainingProSchedule(m,w,d):null;
- var time=(ps&&ps.time)||String(8+(d%8)).padStart(2,'0')+':00',key=date+'T'+time;while(events[key]){var hh=Number(time.slice(0,2))+1;time=String(hh%24).padStart(2,'0')+':00';key=date+'T'+time}
+ var time=(ps&&ps.time)||String(8+(d%8)).padStart(2,'0')+':00',key=date+'T'+time;
+ while(events[key]){var hh=Number(time.slice(0,2))+1;time=String(hh%24).padStart(2,'0')+':00';key=date+'T'+time}
  events[key]={title:client.name+' • '+label+' • M'+m+' W'+(w+1)+' S'+String.fromCharCode(65+d),notes:'Exported from '+label,day:(ps&&ps.day)||['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][d%7],time:time,source:label,sourceType:isPro?'PRO':'MASTER',client:clone(client),beforeAfter:clone(getBA()),exercises:rows};added++;
 }
-st.events=events;st.beforeAfter=clone(getBA());setClient(client);persistCalendar();try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}setTimeout(function(){var o=$('ccClientData');if(o)o.dataset.fjV23Rendered='';if(typeof window.renderEditableClient==='function')window.renderEditableClient()},50);alert(added+' session(s) berhasil diexport ke Client Calendar dan menggantikan data export sebelumnya.'+(missing?' '+missing+' session tidak memiliki exercise data.':''));}
+st.events=events;st.beforeAfter=clone(getBA());setClient(client);persistCalendar();try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}setTimeout(function(){var o=$('ccClientData');if(o)o.dataset.fjV23Rendered='';if(typeof window.renderEditableClient==='function')window.renderEditableClient()},50);alert(added+' session(s) berhasil ditambahkan ke Client Calendar.'+(missing?' '+missing+' session tidak memiliki exercise data.':''));}
 function bindExport(id,isPro){var b=$(id);if(!b||b.dataset.fjV28Bound==='1')return;var c=b.cloneNode(true);b.parentNode.replaceChild(c,b);c.dataset.fjV28Bound='1';c.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var p=isPro?(typeof window.fjGetTrainingProState==='function'?window.fjGetTrainingProState():window.proState):window.__FJAdvancedState;if(!p){alert(isPro?'Generate Training Program PRO terlebih dahulu.':'Generate Training Program first.');return}exportReplace(p,isPro?'Training Program PRO':'Training Program',isPro)},true)}
 function resetHooks(){document.addEventListener('click',function(e){var id=e.target&&e.target.id;if(id==='btnResetTraining'||id==='btnResetTrainingPro'){setTimeout(function(){clearBA();var st=calendar();if(st){st.beforeAfter=blankBA();persistCalendar()}},0)}if(id==='ccResetBtn'){setTimeout(function(){var st=calendar();if(st&&Object.keys(st.events||{}).length===0){clearBA();st.beforeAfter=blankBA();persistCalendar()}},0)}},true)}
 function baFields(side){var labels=[['weight','Weight','number'],['height','Height','number'],['bmi','BMI','text'],['skeletalMuscle','Skeletal Muscle','text'],['bodyFat','Body Fat','text'],['whr','WHR','text'],['visceralFat','Visceral Fat','text'],['bmr','BMR','text']];var h='';labels.forEach(function(x){h+='<div class="field"><label>'+x[1]+'</label><input data-v28-ba="'+side+'.'+x[0]+'" type="'+x[2]+'"></div>'});h+='<div class="field fj-v28-ba-notes"><label>Notes</label><input data-v28-ba="'+side+'.notes" type="text"></div><div class="fj-v28-ba-photo"><img data-v28-img="'+side+'"><input data-v28-file="'+side+'" type="file" accept="image/*"><button type="button" class="btn alt" data-v28-remove="'+side+'">Remove Photo</button></div>';return h}
@@ -6366,7 +6433,12 @@ function ensureSessionBA(){var ex=$('fjV28SessionBA');if(ex)return;var host=$('c
 function fillSessionBA(){ensureSessionBA();var wrap=$('fjV28SessionBA'),st=calendar(),k=($('ccEditKey')||{}).value,ba=(st&&st.events&&st.events[k]&&st.events[k].beforeAfter)||blankBA();if(!wrap)return;['before','after'].forEach(function(side){Object.keys(ba[side]||{}).forEach(function(key){var i=wrap.querySelector('[data-v28-ba="'+side+'.'+key+'"]');if(i)i.value=ba[side][key]||''});var im=wrap.querySelector('[data-v28-img="'+side+'"]');if(im){im.src=(ba[side]||{}).image||'';im.dataset.data=(ba[side]||{}).image||'';im.style.display=(ba[side]||{}).image?'block':'none'}})}
 function readSessionBA(){var wrap=$('fjV28SessionBA'),o=blankBA();if(!wrap)return o;['before','after'].forEach(function(side){wrap.querySelectorAll('[data-v28-ba^="'+side+'."]').forEach(function(i){o[side][i.dataset.v28Ba.split('.')[1]]=i.value||''});var im=wrap.querySelector('[data-v28-img="'+side+'"]');if(im)o[side].image=im.dataset.data||im.getAttribute('src')||''});return o}
 function hookModal(){var modal=$('ccModal');if(!modal||modal.dataset.v28Hooked==='1')return;modal.dataset.v28Hooked='1';var obs=new MutationObserver(function(){if(modal.classList.contains('open'))setTimeout(fillSessionBA,0)});obs.observe(modal,{attributes:true,attributeFilter:['class']});document.addEventListener('click',function(e){if(e.target&&e.target.id==='ccSaveEvent'){var k=($('ccEditKey')||{}).value,ba=readSessionBA();setTimeout(function(){var st=calendar();if(st&&st.events&&st.events[k]){st.events[k].beforeAfter=clone(ba);persistCalendar();try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(x){}}},0)}},true)}
-function run(){bindExport('btnExportTrainingToCalendar',false);bindExport('btnExportTrainingProToCalendar',true);ensureSessionBA();hookModal()}
+/* PRO client form -> main client form (the fields shown at the top of Training Program). */
+function syncProClientForm(){
+ var map={proClientName:'clientName',proProgramMonths:'programMonths',proProgramFreq:'programFreq',proProgramGoal:'programGoal',proProgramAge:'programAge',proProgramGender:'programGender',proProgramWeight:'programWeight',proProgramHeight:'programHeight',proProgramLevel:'programLevel',proProgramWorkoutType:'programWorkoutType'};
+ Object.keys(map).forEach(function(from){var src=$(from);if(!src||src.dataset.fjV29SyncBound==='1')return;src.dataset.fjV29SyncBound='1';var to=map[from];function mirror(){var dst=$(to);if(dst){dst.value=src.value;try{dst.dispatchEvent(new Event('input',{bubbles:true}));dst.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}}var out=$('ccClientData');if(out){out.dataset.fjV23Rendered='';try{if(typeof window.renderEditableClient==='function')window.renderEditableClient()}catch(e){}}}src.addEventListener('input',mirror);src.addEventListener('change',mirror);});
+}
+function run(){bindExport('btnExportTrainingToCalendar',false);bindExport('btnExportTrainingProToCalendar',true);ensureSessionBA();hookModal();syncProClientForm()}
 resetHooks();setInterval(run,500);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,500)});else setTimeout(run,500);
 })();
 </script>

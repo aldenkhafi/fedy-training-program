@@ -6857,3 +6857,71 @@ boot();if(document.readyState==='loading')document.addEventListener('DOMContentL
   #trainingClientCalendar .fj-cc-dialog-actions{position:sticky!important;bottom:0!important;background:#fff!important;padding-top:8px!important;padding-bottom:2px!important;z-index:2!important;}
 }
 </style>
+
+<!-- FJ V35: Calendar Event exercise display/save repair. Scoped only to Calendar Event. -->
+<style id="fj-v35-calendar-event-exercise-fix">
+#trainingClientCalendar .fj-cc-exercises{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;box-sizing:border-box!important}
+#trainingClientCalendar .fj-cc-ex-row{display:grid!important;grid-template-columns:minmax(220px,2fr) minmax(70px,1fr) minmax(90px,1fr) minmax(90px,1fr) 42px!important;align-items:center!important;gap:8px!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;margin:0 0 7px!important;padding:7px!important}
+#trainingClientCalendar .fj-cc-ex-row>*{min-width:0!important;box-sizing:border-box!important}
+#trainingClientCalendar .fj-cc-ex-row select,#trainingClientCalendar .fj-cc-ex-row input{width:100%!important;min-width:0!important;box-sizing:border-box!important}
+#trainingClientCalendar .fj-cc-ex-row select{grid-column:auto!important}
+@media(max-width:900px){
+ #trainingClientCalendar .fj-cc-dialog{width:min(96vw,760px)!important;max-width:96vw!important}
+ #trainingClientCalendar .fj-cc-ex-row{grid-template-columns:minmax(180px,2fr) repeat(3,minmax(65px,1fr)) 40px!important}
+}
+@media(max-width:700px){
+ #trainingClientCalendar .fj-cc-ex-row{grid-template-columns:minmax(0,1fr) minmax(70px,1fr)!important;gap:6px!important}
+ #trainingClientCalendar .fj-cc-ex-row select{grid-column:1 / -1!important}
+ #trainingClientCalendar .fj-cc-ex-row button{grid-column:auto!important;min-height:34px!important}
+}
+</style>
+<script id="fj-v35-calendar-event-exercise-fix">
+(function(){
+'use strict';
+function q(id){return document.getElementById(id)}
+function api(){return window.fjClientCalendar}
+function state(){var a=api();return a&&typeof a.state==='function'?a.state():null}
+function normalizeRows(rows){
+  if(Array.isArray(rows)) return rows.map(function(r){
+    if(typeof r==='string') return {exercise:r,sets:'',reps:'',load:'',rest:'60–90s'};
+    r=r||{};return {exercise:r.exercise||r.name||'',sets:r.sets==null?'':r.sets,reps:r.reps==null?'':r.reps,load:r.load==null?'':r.load,rest:r.rest||'60–90s'};
+  });
+  if(rows&&typeof rows==='object'){
+    if(Array.isArray(rows.rows)) return normalizeRows(rows.rows);
+    if(Array.isArray(rows.exercises)) return normalizeRows(rows.exercises);
+  }
+  return [];
+}
+function bindOpen(){
+  var cal=q('ccCalendar');if(!cal||cal.dataset.fj35Open)return;
+  cal.dataset.fj35Open='1';
+  cal.addEventListener('click',function(e){
+    var cell=e.target&&e.target.closest?e.target.closest('[data-cc-key]'):null;if(!cell)return;
+    var s=state();if(!s||!s.events)return;var k=cell.getAttribute('data-cc-key'),ev=s.events[k];if(!ev)return;
+    var rows=normalizeRows(ev.exercises);
+    if(rows.length){ev.exercises=rows;}
+    /* Let the original event editor open normally; this only repairs malformed exercise data before opening. */
+  },true);
+}
+function preserveClientFields(){
+  var save=q('ccSaveEvent');if(!save||save.dataset.fj35Preserve)return;
+  save.dataset.fj35Preserve='1';
+  save.addEventListener('click',function(){
+    var s=state(),k=q('ccEditKey')&&q('ccEditKey').value;if(!s||!s.events||!k)return;
+    var old=s.events[k],rows=[];
+    document.querySelectorAll('#ccExercises .fj-cc-ex-row').forEach(function(row){
+      var get=function(n){var x=row.querySelector('[data-cc-field="'+n+'"]');return x?x.value:''};
+      rows.push({exercise:get('exercise'),sets:get('sets'),reps:get('reps'),load:get('load'),rest:(old&&old.exercises&&old.exercises[rows.length]&&old.exercises[rows.length].rest)||'60–90s'});
+    });
+    if(s.events[k]){
+      s.events[k].exercises=rows;
+    }
+  },true);
+}
+function run(){bindOpen();preserveClientFields()}
+run();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
+window.addEventListener('load',run);
+setInterval(run,700);
+})();
+</script>

@@ -5743,11 +5743,11 @@ function daysInMonth(y,m){return new Date(y,m+1,0).getDate()}
 function key(date,h){return date+'T'+String(h).padStart(2,'0')+':00'}
 function clone(o){return JSON.parse(JSON.stringify(o))}
 function snapshot(){return clone(ccState)}
-function pushHistory(){var now=snapshot();var last=ccUndo.length?ccUndo[ccUndo.length-1]:null;if(last&&JSON.stringify(last)===JSON.stringify(now))return;ccUndo.push(now);if(ccUndo.length>50)ccUndo.shift();ccRedo=[];updateHistory()}
-function restore(s){ccState=clone(s);try{persistCalendar()}catch(e){}renderCalendar();renderClient();updateHistory()}
-function undo(){if(!ccUndo.length){updateHistory();return}ccRedo.push(snapshot());restore(ccUndo.pop())}
-function redo(){if(!ccRedo.length){updateHistory();return}ccUndo.push(snapshot());restore(ccRedo.pop())}
-function updateHistory(){var u=$('ccUndoBtn'),r=$('ccRedoBtn');if(u){u.disabled=ccUndo.length===0;u.setAttribute('aria-disabled',u.disabled?'true':'false')}if(r){r.disabled=ccRedo.length===0;r.setAttribute('aria-disabled',r.disabled?'true':'false')}}
+function pushHistory(){ccUndo.push(snapshot());if(ccUndo.length>50)ccUndo.shift();ccRedo=[];updateHistory()}
+function restore(s){ccState=clone(s);try{localStorage.setItem(STORE,JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:ccState}))}catch(e){}renderCalendar();updateHistory();try{renderClient()}catch(e){}}
+function undo(){if(!ccUndo.length)return;ccRedo.push(snapshot());restore(ccUndo.pop())}
+function redo(){if(!ccRedo.length)return;ccUndo.push(snapshot());restore(ccRedo.pop())}
+function updateHistory(){var u=$('ccUndoBtn'),r=$('ccRedoBtn');if(u)u.disabled=!ccUndo.length;if(r)r.disabled=!ccRedo.length}
 function renderClient(){var c=client(),out=$('ccClientData');if(!out)return;var rows=[['Client Name',c.name],['Age',c.age+' years'],['Gender',c.gender],['Body Weight',c.weight+' kg'],['Height',c.height+' cm'],['Goal',c.goal],['Fitness Level',c.level],['Workout Type',c.wtype],['Duration',c.duration+' months'],['Frequency',c.freq]];out.innerHTML=rows.map(function(r){return '<div class="fj-cc-client-item"><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'}).join('')}
 function renderCalendar(){var out=$('ccCalendar');if(!out)return;var y=ccState.year,m=ccState.month,days=daysInMonth(y,m);out.style.setProperty('--cc-days',days);var html='<div class="fj-cc-calendar">';html+='<div class="fj-cc-head" style="position:sticky;left:0;z-index:7">TIME</div>';var dnames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];for(var d=1;d<=days;d++){var dt=new Date(y,m,d),dow=dnames[dt.getDay()];html+='<div class="fj-cc-head"><span class="daynum">'+d+'</span><span class="dow">'+dow+'</span></div>'}for(var h=0;h<24;h++){html+='<div class="fj-cc-time">'+String(h).padStart(2,'0')+':00</div>';for(d=1;d<=days;d++){var date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),k=key(date,h),ev=ccState.events[k],today=(new Date().getFullYear()===y&&new Date().getMonth()===m&&new Date().getDate()===d);var owner=ev&&ev.client&&ev.client.name?String(ev.client.name):'';var meta=ev?((owner?owner+' • ':'')+(ev.client&&ev.client.goal?'Goal: '+ev.client.goal+' • ': '')+(ev.client&&ev.client.wtype?'Type: '+ev.client.wtype:'')):'';var ex=ev&&ev.exercises?ev.exercises.map(function(x){return x.exercise}).filter(Boolean).join(' • '):'';html+='<div class="fj-cc-cell '+(today?'today':'')+'" data-cc-key="'+k+'">'+(ev?'<div class="fj-cc-event"><strong>'+esc(ev.title||'Training')+'</strong><small>'+esc(meta)+'</small><small>'+esc(ex)+'</small></div>':'')+'</div>'}}html+='</div>';out.innerHTML=html;out.querySelectorAll('[data-cc-key]').forEach(function(cell){cell.onclick=function(e){if(e)e.preventDefault();openEditor(this.dataset.ccKey)}});var title=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});var t=$('ccMonthTitle');if(t)t.textContent=title}
 function calendarClientFromEvent(ev){var c=ev&&ev.client?ev.client:{};return {name:String(c.name||''),age:String(c.age||''),gender:String(c.gender||'male'),weight:String(c.weight||''),height:String(c.height||''),goal:String(c.goal||'General Fitness'),level:String(c.level||'auto'),wtype:String(c.wtype||'standard'),duration:String(c.duration||'3'),freq:String(c.freq||'3')}}
@@ -5861,8 +5861,8 @@ function refreshCalendarRecommendation(){var c=readModalClient();if(!c.goal||!c.
 function bindCalendarRecommendation(){['ccEditGoal','ccEditWtype'].forEach(function(id){var e=$(id);if(e&&!e.dataset.ccRecommend){e.dataset.ccRecommend='1';e.addEventListener('change',refreshCalendarRecommendation)}});['ccEditAge','ccEditGender','ccEditWeight','ccEditHeight','ccEditLevel'].forEach(function(id){var e=$(id);if(e&&!e.dataset.ccRecommendBlur){e.dataset.ccRecommendBlur='1';e.addEventListener('change',function(){if(readModalClient().goal&&readModalClient().wtype)refreshCalendarRecommendation()})}})}
 function addExerciseRow(){var p=$('ccAddExercisePanel');if(p){p.classList.toggle('open');var s=$('ccAddExerciseSelect');if(s)s.focus()}}
 function insertExerciseFromChoice(){editorCommitPending();var c=readModalClient(),mode=(($('ccAddExerciseSelect')||{}).value)||'recommended',rows=currentEditorRows(),pool=mode==='all'?allCalendarExercises():recommendedCalendarExercises(c);editorPushHistory();var x=pool[0];rows.push({exercise:x?x.name:'',sets:'3',reps:'8–12',load:'',rest:'60–90s',all:mode==='all'});renderEditorExercises(rows,c);var p=$('ccAddExercisePanel');if(p)p.classList.remove('open')}
-function saveEditor(){var k=$('ccEditKey').value,title=$('ccEditTitle').value.trim()||'Training',notes=$('ccEditNotes').value.trim(),c=readModalClient(),rows=currentEditorRows().filter(function(r){return r.exercise}),p=saveProfile();if(p)c=clone(p);if(!rows.length){if(ccState.events[k]){pushHistory();delete ccState.events[k]}}else{pushHistory();ccState.events[k]={title:title,notes:notes,day:(new Date(k.split('T')[0])).toLocaleDateString(undefined,{weekday:'long'}),time:k.split('T')[1]||'00:00',client:c,exercises:rows,beforeAfter:clone(c.beforeAfter||readModalBA())}}try{persistCalendar()}catch(e){}$('ccModal').classList.remove('open');renderCalendar();updateHistory();ccEditorUndo=[];ccEditorRedo=[];updateEditorHistory();ensureClientSelect()}
-function deleteEvent(){var k=$('ccEditKey').value;if(ccState.events[k]){pushHistory();delete ccState.events[k]}$('ccModal').classList.remove('open');renderCalendar()}
+function saveEditor(){var k=$('ccEditKey').value,title=$('ccEditTitle').value.trim()||'Training',notes=$('ccEditNotes').value.trim(),c=readModalClient(),rows=currentEditorRows().filter(function(r){return r.exercise}),p=saveProfile();if(p)c=clone(p);pushHistory();if(!rows.length){delete ccState.events[k]}else{ccState.events[k]={title:title,notes:notes,day:(new Date(k.split('T')[0])).toLocaleDateString(undefined,{weekday:'long'}),time:k.split('T')[1]||'00:00',client:c,exercises:rows,beforeAfter:clone(c.beforeAfter||readModalBA())}}try{persistCalendar()}catch(e){}$('ccModal').classList.remove('open');renderCalendar();updateHistory();ccEditorUndo=[];ccEditorRedo=[];updateEditorHistory();ensureClientSelect()}
+function deleteEvent(){var k=$('ccEditKey').value;if(ccState.events[k]){pushHistory();delete ccState.events[k];try{persistCalendar()}catch(e){}}$('ccModal').classList.remove('open');renderCalendar();updateHistory()}
 function syncClientChange(){renderClient()}
 function prevMonth(){ccState.month--;if(ccState.month<0){ccState.month=11;ccState.year--}renderCalendar()}
 function nextMonth(){ccState.month++;if(ccState.month>11){ccState.month=0;ccState.year++}renderCalendar()}
@@ -5904,7 +5904,7 @@ $('ccPrev').onclick=prevMonth;$('ccNext').onclick=nextMonth;$('ccUndoBtn').oncli
  renderClient();renderCalendar();updateHistory();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,__v9PushHistory:function(){pushHistory()},__v9Undo:function(){undo()},__v9Redo:function(){redo()},__v9History:function(){return {undo:ccUndo.length,redo:ccRedo.length}}};
+window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,__v9PushHistory:function(){pushHistory()}};
 })();
 </script>
 <style id="fj-v17-client-calendar-print">
@@ -6467,8 +6467,8 @@ function fixPeriod(){var p=(q('ccPrintPeriod')||{}).value||'1',to=new Date(),fro
 function enhancePrint(){var m=q('ccPrintModal');if(m&&!m.dataset.fjV8P){m.dataset.fjV8P='1';var mo=new MutationObserver(function(){var sel=q('ccPrintClient');if(!sel)return;var ps=profiles();Object.keys(ps).forEach(function(k){var n=ps[k]&&ps[k].name;if(n&&!Array.from(sel.options).some(function(o){return o.value===n})){var o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o)}})});mo.observe(m,{childList:true,subtree:true})}var p=q('ccPrintPeriod');if(p&&!p.dataset.fjV8Period){p.dataset.fjV8Period='1';p.onchange=fixPeriod;}}
 function enhanceAdd(){var b=q('ccInsertExercise');if(!b||b.dataset.fjV8Add)return;b.dataset.fjV8Add='1';b.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();var ch=q('ccAddExerciseChoice'),src=q('ccAddExerciseSelect');if(!ch||!ch.value){alert('Pilih exercise terlebih dahulu.');return}try{var rows=typeof currentEditorRows==='function'?currentEditorRows():[],c=client(),mode=src&&src.value==='all'?'all':'recommended';if(typeof editorCommitPending==='function')editorCommitPending();if(typeof editorPushHistory==='function')editorPushHistory();rows.push({exercise:ch.value,sets:'3',reps:'8–12',load:'',rest:'60–90s',all:mode==='all'});if(typeof renderEditorExercises==='function')renderEditorExercises(rows,c);var p=q('ccAddExercisePanel');if(p)p.classList.remove('open')}catch(err){console.error(err);alert('Exercise gagal ditambahkan.')}}}
 function resetCurrentFields(){var i=q('ccEditClientName');if(i)i.value='';var s=q('ccEditClientSelect');if(s)s.value='';var nw=q('ccNewClientNameWrap');if(nw)nw.style.display='none';['ccEditAge','ccEditWeight','ccEditHeight','ccEditDuration','ccEditFreq'].forEach(function(id){var e=q(id);if(e)e.value=''});['ccEditGender','ccEditGoal','ccEditLevel','ccEditWtype'].forEach(function(id){var e=q(id);if(e)e.selectedIndex=0});var t=q('ccEditTitle');if(t)t.value='';var n=q('ccEditNotes');if(n)n.value='';fillBA(blankBA())}
-var resetBAKeep=null;document.addEventListener('click',function(e){if(e.target&&e.target.id==='ccResetBtn'){try{resetBAKeep=JSON.parse(localStorage.getItem('fj_v27_before_after')||'null')}catch(_){resetBAKeep=null}setTimeout(function(){if(resetBAKeep&&resetBAKeep.before&&resetBAKeep.after){try{localStorage.setItem('fj_v27_before_after',JSON.stringify(resetBAKeep));if(window.fjSetBeforeAfterState)window.fjSetBeforeAfterState(clone(resetBAKeep))}catch(_){}}},180)}},true);
-function observe(){enhancePrint();enhanceAdd();var m=q('ccModal');if(m&&!m.dataset.fjV8M){m.dataset.fjV8M='1';new MutationObserver(function(){if(m.classList.contains('open'))setTimeout(function(){ensureClientSelect();ensureSource()},0)}).observe(m,{attributes:true,attributeFilter:['class']})}var save=q('ccSaveEvent');if(save&&!save.dataset.fjV8S){save.dataset.fjV8S='1';save.addEventListener('click',function(){setTimeout(saveToEvent,40)},true)}var reset=q('ccResetBtn');if(reset&&!reset.dataset.fjV8R){reset.dataset.fjV8R='1';reset.addEventListener('click',function(){setTimeout(resetCurrentFields,50),0},true)}if(m&&m.classList.contains('open')){ensureClientSelect();ensureSource()}}
+
+function observe(){enhancePrint();enhanceAdd();var m=q('ccModal');if(m&&!m.dataset.fjV8M){m.dataset.fjV8M='1';new MutationObserver(function(){if(m.classList.contains('open'))setTimeout(function(){ensureClientSelect();ensureSource()},0)}).observe(m,{attributes:true,attributeFilter:['class']})}var save=q('ccSaveEvent');if(save&&!save.dataset.fjV8S){save.dataset.fjV8S='1';save.addEventListener('click',function(){setTimeout(saveToEvent,40)},true)}if(m&&m.classList.contains('open')){ensureClientSelect();ensureSource()}}
 setInterval(observe,250);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe);else setTimeout(observe,100);
 })();
 
@@ -6609,42 +6609,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-\n<!-- V9 FINAL UNDO/REDO + RESET REPAIR: only Client Calendar. -->\n<script id="fj-v9-final-undo-reset-repair">
-(function(){
-  'use strict';
-  function q(id){return document.getElementById(id)}
-  function bindHistory(){
-    var u=q('ccUndoBtn'),r=q('ccRedoBtn');
-    if(u&&window.fjClientCalendar&&window.fjClientCalendar.__v9Undo){
-      if(u.dataset.fjFinalHistory!=='1'){
-        u.dataset.fjFinalHistory='1';
-        u.onclick=function(e){if(e){e.preventDefault();e.stopImmediatePropagation()}window.fjClientCalendar.__v9Undo()};
-      }
-    }
-    if(r&&window.fjClientCalendar&&window.fjClientCalendar.__v9Redo){
-      if(r.dataset.fjFinalHistory!=='1'){
-        r.dataset.fjFinalHistory='1';
-        r.onclick=function(e){if(e){e.preventDefault();e.stopImmediatePropagation()}window.fjClientCalendar.__v9Redo()};
-      }
-    }
-  }
-  function finalResetRepair(){
-    var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;
-    if(!st||Object.keys(st.events||{}).length) return;
-    var active=document.getElementById('ccEditClientSelect');
-    if(active)active.value='';
-    ['clientName','programAge','programWeight','programHeight','programMonths','programFreq'].forEach(function(id){var e=q(id);if(e)e.value=''});
-    ['programGender','programGoal','programLevel','programWorkoutType'].forEach(function(id){var e=q(id);if(e)e.selectedIndex=0});
-    try{localStorage.removeItem('fj_client_calendar_active_profile_v1');localStorage.setItem('fj_v27_before_after',JSON.stringify({before:{image:'',weight:'',height:'',bmi:'',skeletalMuscle:'',bodyFat:'',whr:'',visceralFat:'',bmr:'',notes:''},after:{image:'',weight:'',height:'',bmi:'',skeletalMuscle:'',bodyFat:'',whr:'',visceralFat:'',bmr:'',notes:''}}))}catch(e){}
-    var ba=document.getElementById('fjV28SessionBA');
-    if(ba){['before','after'].forEach(function(s){ba.querySelectorAll('[data-v28-ba^="'+s+'."]').forEach(function(i){i.value=''});var im=ba.querySelector('[data-v28-img="'+s+'"]');if(im){im.removeAttribute('src');im.dataset.data='';im.style.display='none'}var fi=ba.querySelector('[data-v28-file="'+s+'"]');if(fi)fi.value=''})}
-  }
-  function run(){bindHistory();}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,300)});else setTimeout(run,300);
-  setInterval(run,1000);
-  document.addEventListener('click',function(e){if(e.target&&e.target.id==='ccResetBtn'){setTimeout(finalResetRepair,250);setTimeout(finalResetRepair,600)}},true);
-})();
-</script>\n</body></html>
+</body></html>
 
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -6793,7 +6758,7 @@ for(var m=1;m<=months;m++)for(var w=0;w<4;w++)for(var d=0;d<freq;d++,idx++){
 }
 st.events=events;st.beforeAfter=clone(getBA());setClient(client);persistCalendar();try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}setTimeout(function(){var o=$('ccClientData');if(o)o.dataset.fjV23Rendered='';if(typeof window.renderEditableClient==='function')window.renderEditableClient()},50);alert(added+' session(s) berhasil ditambahkan ke Client Calendar.'+(missing?' '+missing+' session tidak memiliki exercise data.':''));}
 function bindExport(id,isPro){var b=$(id);if(!b||b.dataset.fjV28Bound==='1')return;var c=b.cloneNode(true);b.parentNode.replaceChild(c,b);c.dataset.fjV28Bound='1';c.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();var p=isPro?(typeof window.fjGetTrainingProState==='function'?window.fjGetTrainingProState():window.proState):window.__FJAdvancedState;if(!p){alert(isPro?'Generate Training Program PRO terlebih dahulu.':'Generate Training Program first.');return}exportReplace(p,isPro?'Training Program PRO':'Training Program',isPro)},true)}
-function resetHooks(){document.addEventListener('click',function(e){var id=e.target&&e.target.id;if(id==='btnResetTraining'||id==='btnResetTrainingPro'){setTimeout(function(){clearBA();var st=calendar();if(st){st.beforeAfter=blankBA();persistCalendar()}},0)}if(id==='ccResetBtn'){setTimeout(function(){var st=calendar();if(st&&Object.keys(st.events||{}).length===0){clearBA();st.beforeAfter=blankBA();persistCalendar()}},0)}},true)}
+function resetHooks(){document.addEventListener('click',function(e){var id=e.target&&e.target.id;if(id==='btnResetTraining'||id==='btnResetTrainingPro'){setTimeout(function(){clearBA();var st=calendar();if(st){st.beforeAfter=blankBA();persistCalendar()}},0)}},true)}
 function baFields(side){var labels=[['weight','Weight','number'],['height','Height','number'],['bmi','BMI','text'],['skeletalMuscle','Skeletal Muscle','text'],['bodyFat','Body Fat','text'],['whr','WHR','text'],['visceralFat','Visceral Fat','text'],['bmr','BMR','text']];var h='';labels.forEach(function(x){h+='<div class="field"><label>'+x[1]+'</label><input data-v28-ba="'+side+'.'+x[0]+'" type="'+x[2]+'"></div>'});h+='<div class="field fj-v28-ba-notes"><label>Notes</label><input data-v28-ba="'+side+'.notes" type="text"></div><div class="fj-v28-ba-photo"><img data-v28-img="'+side+'"><input data-v28-file="'+side+'" type="file" accept="image/*"><button type="button" class="btn alt" data-v28-remove="'+side+'">Remove Photo</button></div>';return h}
 function ensureSessionBA(){var ex=$('fjV28SessionBA');if(ex)return;var host=$('ccExercises');if(!host)return;var wrap=document.createElement('div');wrap.id='fjV28SessionBA';wrap.className='fj-v28-session-ba';wrap.innerHTML='<h4>Before / After — Training Day</h4><div class="fj-v28-ba-grid"><div class="fj-v28-ba-box"><h5>BEFORE</h5><div class="fj-v28-ba-fields">'+baFields('before')+'</div></div><div class="fj-v28-ba-box"><h5>AFTER</h5><div class="fj-v28-ba-fields">'+baFields('after')+'</div></div></div>';var hist=document.querySelector('#ccModal .fj-cc-editor-history'),dialog=document.querySelector('#ccModal .fj-cc-dialog'),scroll=host.closest('.fj-cc-exercise-scroll');if(hist&&hist.parentNode)hist.parentNode.insertBefore(wrap,hist.nextSibling);else if(dialog)dialog.appendChild(wrap);else if(scroll&&scroll.parentNode)scroll.parentNode.insertBefore(wrap,scroll.nextSibling);else if(host.parentNode)host.parentNode.appendChild(wrap);wrap.querySelectorAll('[data-v28-file]').forEach(function(inp){inp.addEventListener('change',function(){var f=this.files&&this.files[0],side=this.dataset.v28File;if(!f)return;var rd=new FileReader();rd.onload=function(){var im=wrap.querySelector('[data-v28-img="'+side+'"]');im.src=rd.result;im.style.display='block';im.dataset.data=rd.result};rd.readAsDataURL(f)})});wrap.querySelectorAll('[data-v28-remove]').forEach(function(btn){btn.addEventListener('click',function(){var side=this.dataset.v28Remove,im=wrap.querySelector('[data-v28-img="'+side+'"]'),fi=wrap.querySelector('[data-v28-file="'+side+'"]');im.removeAttribute('src');im.dataset.data='';im.style.display='none';if(fi)fi.value=''})})}
 function fillSessionBA(){ensureSessionBA();var wrap=$('fjV28SessionBA');if(wrap){var dialog=document.querySelector('#ccModal .fj-cc-dialog'),scroll=wrap.closest('.fj-cc-exercise-scroll');if(dialog&&scroll){var hist=document.querySelector('#ccModal .fj-cc-editor-history');if(hist&&hist.parentNode)hist.parentNode.insertBefore(wrap,hist.nextSibling);else dialog.appendChild(wrap)}}var st=calendar(),k=($('ccEditKey')||{}).value,ba=(st&&st.events&&st.events[k]&&st.events[k].beforeAfter)||blankBA();if(!wrap)return;['before','after'].forEach(function(side){Object.keys(ba[side]||{}).forEach(function(key){var i=wrap.querySelector('[data-v28-ba="'+side+'.'+key+'"]');if(i)i.value=ba[side][key]||''});var im=wrap.querySelector('[data-v28-img="'+side+'"]');if(im){im.src=(ba[side]||{}).image||'';im.dataset.data=(ba[side]||{}).image||'';im.style.display=(ba[side]||{}).image?'block':'none'}})}
@@ -6840,17 +6805,16 @@ function ensureProfileUI(){
 }
 function restoreActiveIntoNewWorkout(){var sel=q('ccEditClientSelect'),ps=profiles(),active=getActive();if(sel&&active&&ps[active]){sel.value=active;var inp=q('ccEditClientName');if(inp)inp.value=ps[active].name;applyProfile(ps[active]);}}
 function repairReset(){
- // FINAL V9 RESET REPAIR: do not restore the previously active client.
- // Registered profiles remain stored, but the current form/session becomes blank.
+ // Calendar reset is deliberately independent from PROFILE_KEY.
  refreshSelect();
- try{localStorage.removeItem(ACTIVE_KEY)}catch(e){}
- var sel=q('ccEditClientSelect');if(sel)sel.value='';
- var inp=q('ccEditClientName');if(inp)inp.value='';
- ['ccEditAge','ccEditWeight','ccEditHeight','ccEditDuration','ccEditFreq'].forEach(function(id){var e=q(id);if(e)e.value=''});
- ['ccEditGender','ccEditGoal','ccEditLevel','ccEditWtype'].forEach(function(id){var e=q(id);if(e)e.selectedIndex=0});
- var t=q('ccEditTitle');if(t)t.value='';var n=q('ccEditNotes');if(n)n.value='';
- fillModalBA(blankBA());
- try{localStorage.setItem('fj_v27_before_after',JSON.stringify(blankBA()))}catch(e){}
+ var ps=profiles(),active=getActive();
+ if(active&&ps[active]){
+  var inp=q('ccEditClientName');if(inp)inp.value=ps[active].name;
+  var sel=q('ccEditClientSelect');if(sel)sel.value=active;
+  fillModalBA(ps[active].beforeAfter||blankBA());
+ }
+ // Restore the standalone Client Calendar progress state from the registered profile.
+ try{var p=active&&ps[active]?ps[active]:null;if(p&&p.beforeAfter){localStorage.setItem('fj_v27_before_after',JSON.stringify(p.beforeAfter));var cal=q('fjV27CalendarProgress');if(cal)cal.dataset.fjV9Profile=active;}}catch(e){}
 }
 function bind(){
  ensureProfileUI();
@@ -6866,5 +6830,93 @@ function run(){bind();patchPrint()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,120)},{once:true});else setTimeout(run,120);
 window.addEventListener('load',function(){setTimeout(run,180)});
 setInterval(run,1000);
+})();
+</script>
+
+<script>
+/* FITNESS JOURNEY — CLIENT CALENDAR V9 FINAL CONSOLIDATED PATCH
+   Scope: Client Calendar only.
+   Removes conflicting V9 overlay behavior and provides one owner for:
+   - current-form reset vs calendar-event reset
+   - registered client profile persistence
+   - current Before/After clearing while preserving the UI frame
+   - device Backup: Merge / Overwrite / Replace All
+   Main Calendar Undo/Redo remains the native ccUndo/ccRedo runtime.
+*/
+(function(){'use strict';
+var PROFILE_KEY='fj_client_calendar_profiles_v1', BACKUP_VERSION='FITNESS_JOURNEY_CLIENT_CALENDAR_BACKUP_V9_FINAL';
+function q(id){return document.getElementById(id)}
+function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function blankBA(){return {before:{image:'',weight:'',height:'',bmi:'',skeletalMuscle:'',bodyFat:'',whr:'',visceralFat:'',bmr:'',notes:''},after:{image:'',weight:'',height:'',bmi:'',skeletalMuscle:'',bodyFat:'',whr:'',visceralFat:'',bmr:'',notes:''}}}
+function profiles(){try{var x=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return {}}}
+function saveProfiles(x){try{localStorage.setItem(PROFILE_KEY,JSON.stringify(x||{}))}catch(e){console.warn('Client Profile save failed',e)}}
+function key(n){return String(n||'').trim().toLowerCase()}
+function readBA(){var w=q('fjV28SessionBA'),o=blankBA();if(!w)return o;['before','after'].forEach(function(s){w.querySelectorAll('[data-v28-ba^="'+s+'."]').forEach(function(i){o[s][i.dataset.v28Ba.split('.')[1]]=i.value||''});var im=w.querySelector('[data-v28-img="'+s+'"]');if(im)o[s].image=im.dataset.data||im.getAttribute('src')||''});return o}
+function fillBA(ba){var w=q('fjV28SessionBA');if(!w)return;ba=ba||blankBA();['before','after'].forEach(function(s){var z=ba[s]||{};w.querySelectorAll('[data-v28-ba^="'+s+'."]').forEach(function(i){i.value=z[i.dataset.v28Ba.split('.')[1]]||''});var im=w.querySelector('[data-v28-img="'+s+'"]');if(im){var d=z.image||'';im.dataset.data=d;if(d){im.src=d;im.style.display='block'}else{im.removeAttribute('src');im.style.display='none'}}})}
+function clearGlobalBA(){try{localStorage.setItem('fj_v27_before_after',JSON.stringify(blankBA()))}catch(e){}try{if(window.fjSetBeforeAfterState)window.fjSetBeforeAfterState(blankBA())}catch(e){}try{document.querySelectorAll('[data-fj27-file],[data-v27-file],[data-fj28-file]').forEach(function(i){i.value=''})}catch(e){}}
+function clearFormFields(){
+ var ids=['clientName','programAge','programWeight','programHeight','programMonths','programFreq','ccEditClientName','ccEditAge','ccEditWeight','ccEditHeight','ccEditDuration','ccEditFreq','ccEditTitle','ccEditNotes'];
+ ids.forEach(function(id){var e=q(id);if(e)e.value=''});
+ ['programGender','programGoal','programLevel','programWorkoutType','ccEditGender','ccEditGoal','ccEditLevel','ccEditWtype'].forEach(function(id){var e=q(id);if(e&&e.options&&e.options.length)e.selectedIndex=0});
+ var sel=q('ccEditClientSelect');if(sel)sel.value='';var nw=q('ccNewClientNameWrap');if(nw)nw.style.display='none';var nn=q('ccNewClientName');if(nn)nn.value='';
+ fillBA(blankBA());clearGlobalBA();
+ try{if(typeof window.renderEditableClient==='function')window.renderEditableClient()}catch(e){};
+ try{if(typeof window.ensureClientSelect==='function')window.ensureClientSelect()}catch(e){}
+ try{if(typeof window.ensureSessionBA==='function')window.ensureSessionBA();if(typeof window.fillSessionBA==='function')window.fillSessionBA()}catch(e){}
+}
+function resetCalendarEvents(){
+ var cal=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;
+ if(!cal)return;
+ if(window.fjClientCalendar&&window.fjClientCalendar.__v9PushHistory)window.fjClientCalendar.__v9PushHistory();
+ cal.events={};
+ try{localStorage.removeItem('fj_client_calendar_v1')}catch(e){}
+ clearFormFields();
+ try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}
+ try{var u=q('ccUndoBtn'),r=q('ccRedoBtn');if(u)u.disabled=false;if(r)r.disabled=true}catch(e){}
+}
+function confirmReset(choice){
+ var text=choice==='form' ? 'Reset Form\n\nClient form dan Before / After yang sedang diisi akan dikosongkan.\n\nCalendar events dan Registered Client Profile TIDAK akan dihapus.' : 'Reset Form + Calendar Event\n\nClient form dan Before / After yang sedang diisi akan dikosongkan, dan SEMUA event/training di Client Calendar akan dihapus.\n\nRegistered Client Profile tetap aman.\n\nUndo dapat mengembalikan Calendar event setelah reset selama halaman ini belum ditutup.';
+ return window.confirm('⚠️ WARNING\n\n'+text+'\n\nLanjutkan?');
+}
+function openResetChoice(){
+ var old=q('fjV9ResetChoice');if(old){old.classList.add('open');return}
+ var m=document.createElement('div');m.id='fjV9ResetChoice';m.className='fj-v9-choice-modal';m.innerHTML='<div class="fj-v9-choice-dialog" role="dialog" aria-modal="true"><h3>Reset Client Calendar</h3><p>Pilih apa yang ingin di-reset.</p><div class="fj-v9-choice-actions"><button type="button" class="btn alt" id="fjV9ResetForm">↻ Reset Form Only</button><button type="button" class="btn alt danger" id="fjV9ResetFormCalendar">⚠ Reset Form + Calendar Events</button><button type="button" class="btn" id="fjV9ResetCancel">Cancel</button></div></div>';
+ document.body.appendChild(m);m.querySelector('#fjV9ResetCancel').onclick=function(){m.classList.remove('open')};
+ m.querySelector('#fjV9ResetForm').onclick=function(){if(confirmReset('form')){clearFormFields();m.classList.remove('open')}};
+ m.querySelector('#fjV9ResetFormCalendar').onclick=function(){if(confirmReset('all')){resetCalendarEvents();m.classList.remove('open')}};
+ m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open')});m.classList.add('open');
+}
+function makeBackup(){
+ var cal=window.fjClientCalendar&&window.fjClientCalendar.state?clone(window.fjClientCalendar.state()):{events:{}};
+ return {format:BACKUP_VERSION,version:9,savedAt:new Date().toISOString(),profiles:profiles(),calendar:cal,beforeAfter:readBA()};
+}
+function downloadBackup(){var p=makeBackup(),blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FitnessJourney_ClientCalendar_Backup_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000)}
+function validBackup(p){return p&&typeof p==='object'&&p.calendar&&typeof p.calendar==='object'&&p.calendar.events&&p.profiles&&typeof p.profiles==='object'}
+function applyBackup(p,mode){
+ if(!validBackup(p)){alert('Backup file tidak valid.');return}
+ var cur=profiles(),incoming=p.profiles||{};
+ if(mode==='merge'){Object.keys(incoming).forEach(function(k){if(!cur[k])cur[k]=incoming[k]});saveProfiles(cur)}
+ else if(mode==='overwrite'){Object.keys(incoming).forEach(function(k){cur[k]=incoming[k]});saveProfiles(cur)}
+ else if(mode==='replace'){saveProfiles(incoming);try{localStorage.removeItem('fj_client_calendar_v1')}catch(e){};var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(st){st.year=Number(p.calendar.year)||st.year;st.month=Number(p.calendar.month)||st.month;st.events=clone(p.calendar.events||{})}}
+ if(mode!=='replace'){var st2=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(st2){if(mode==='merge'){Object.keys(p.calendar.events||{}).forEach(function(k){if(!st2.events[k])st2.events[k]=clone(p.calendar.events[k])})}else{Object.keys(p.calendar.events||{}).forEach(function(k){st2.events[k]=clone(p.calendar.events[k])})}}}
+ try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}
+ try{if(typeof window.ensureClientSelect==='function')window.ensureClientSelect()}catch(e){}
+ alert('Backup berhasil diproses: '+(mode==='merge'?'MERGE':mode==='overwrite'?'OVERWRITE':'REPLACE ALL'));
+}
+function chooseBackup(mode){var i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.style.display='none';document.body.appendChild(i);i.onchange=function(){var f=i.files&&i.files[0];i.remove();if(!f)return;var r=new FileReader();r.onload=function(){try{applyBackup(JSON.parse(r.result),mode)}catch(e){alert('Backup tidak dapat dibaca.')}};r.readAsText(f)};i.click()}
+function ensureBackupUI(){
+ var tb=document.querySelector('#trainingClientCalendar .fj-cc-toolbar');if(!tb||q('fjV9BackupBtn'))return;
+ var b=document.createElement('button');b.type='button';b.className='btn alt';b.id='fjV9BackupBtn';b.textContent='💾 Backup / Restore';b.title='Save Backup, Merge, Overwrite, Replace All';b.onclick=function(){var m=q('fjV9BackupMenu');if(m)m.classList.toggle('open')};tb.appendChild(b);
+ var menu=document.createElement('div');menu.id='fjV9BackupMenu';menu.className='fj-v9-backup-menu';menu.innerHTML='<button type="button" id="fjV9SaveBackup">⬇ Save Backup</button><button type="button" id="fjV9MergeBackup">Merge</button><button type="button" id="fjV9OverwriteBackup">Overwrite</button><button type="button" id="fjV9ReplaceBackup">Replace All</button>';
+ b.parentNode.appendChild(menu);q('fjV9SaveBackup').onclick=downloadBackup;q('fjV9MergeBackup').onclick=function(){chooseBackup('merge')};q('fjV9OverwriteBackup').onclick=function(){chooseBackup('overwrite')};q('fjV9ReplaceBackup').onclick=function(){if(confirm('⚠️ Replace All akan mengganti seluruh Client Profile dan Calendar Event lokal dengan backup. Lanjutkan?'))chooseBackup('replace')};
+}
+function observe(){
+ var btn=q('ccResetBtn');if(btn&&!btn.dataset.fjV9FinalReset){btn.dataset.fjV9FinalReset='1';btn.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openResetChoice()}}
+ ensureBackupUI();
+ var m=q('ccModal');if(m&&!m.dataset.fjV9FinalModal){m.dataset.fjV9FinalModal='1';new MutationObserver(function(){if(m.classList.contains('open')){setTimeout(function(){if(typeof window.ensureClientSelect==='function')window.ensureClientSelect();if(typeof window.ensureSessionBA==='function')window.ensureSessionBA();if(typeof window.fillSessionBA==='function')window.fillSessionBA()},0)}}).observe(m,{attributes:true,attributeFilter:['class']})}
+}
+var style=document.createElement('style');style.textContent='.fj-v9-choice-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:none;align-items:center;justify-content:center;padding:18px}.fj-v9-choice-modal.open{display:flex}.fj-v9-choice-dialog{background:#fff;border-radius:16px;max-width:520px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25)}.fj-v9-choice-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.fj-v9-choice-actions .danger{border-color:#c0392b;color:#c0392b}.fj-v9-backup-menu{display:none;position:absolute;z-index:9999;background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:8px;box-shadow:0 10px 30px rgba(0,0,0,.18);margin-top:6px}.fj-v9-backup-menu.open{display:grid}.fj-v9-backup-menu button{border:0;background:#fff;text-align:left;padding:9px 12px;border-radius:8px;font-weight:700;cursor:pointer}.fj-v9-backup-menu button:hover{background:#eef6ff}';document.head.appendChild(style);
+var timer=setInterval(observe,500);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(observe,100)});else setTimeout(observe,100);
 })();
 </script>

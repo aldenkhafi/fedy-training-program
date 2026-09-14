@@ -6734,3 +6734,126 @@ window.addEventListener('load',function(){setTimeout(boot,120)});
 var mo=new MutationObserver(function(){addButton();addPicker()});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
 })();
 </script>
+
+<!-- FJ V32: Client Calendar initial-area cleanup + Add Client only. -->
+<style id="fj-v32-client-calendar-only">
+/* ONLY Client Calendar: remove legacy client-data / Before-After UI and V30 client-list UI. */
+#trainingClientCalendar #ccClientData,
+#trainingClientCalendar #fjV27CalendarProgress,
+#trainingClientCalendar .fj-v27-progress,
+#trainingClientCalendar .fj-v27-progress-page,
+#trainingClientCalendar [id="fjV30ClientPanel"],
+#trainingClientCalendar .fj-v30-client-panel{display:none!important}
+#trainingClientCalendar .fj-v32-add-client-row{display:flex!important;align-items:center!important;gap:8px!important;margin:0 0 10px!important}
+#trainingClientCalendar .fj-v32-add-client{font-weight:800!important}
+#fjV32ClientModal{position:fixed;inset:0;background:rgba(13,29,39,.48);z-index:100002;display:none;align-items:center;justify-content:center;padding:14px}
+#fjV32ClientModal.open{display:flex}
+#fjV32ClientModal .fj-v32-dialog{width:min(900px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:12px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.25)}
+#fjV32ClientModal h3{margin:0 0 12px;color:#183449}
+#fjV32ClientModal .fj-v32-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#fjV32ClientModal .fj-v32-field{min-width:0}
+#fjV32ClientModal .span2{grid-column:span 2}
+#fjV32ClientModal label{display:block;font-size:10px;font-weight:800;margin:0 0 4px;color:#567080}
+#fjV32ClientModal input,#fjV32ClientModal select,#fjV32ClientModal textarea{width:100%;box-sizing:border-box;height:34px;padding:5px 7px;border:1px solid #ccd5dc;border-radius:6px;background:#fff}
+#fjV32ClientModal textarea{height:64px;resize:vertical}
+#fjV32ClientModal .fj-v32-section{margin-top:14px;padding-top:10px;border-top:1px solid #e0e7eb}
+#fjV32ClientModal .fj-v32-section h4{margin:0 0 8px;font-size:12px;color:#183449}
+#fjV32ClientModal .fj-v32-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
+#trainingClientCalendar .fj-v32-client-picker{margin:0 0 10px;padding:9px;border:1px solid #d5e0e6;border-radius:8px;background:#fafcfd}
+#trainingClientCalendar .fj-v32-client-picker label{display:block;font-size:10px;font-weight:800;color:#567080;margin-bottom:4px}
+#trainingClientCalendar .fj-v32-client-picker select{width:100%;max-width:420px;height:34px}
+@media(max-width:700px){#fjV32ClientModal .fj-v32-grid{grid-template-columns:1fr 1fr}#fjV32ClientModal .span2{grid-column:span 2}}
+@media(max-width:500px){#fjV32ClientModal .fj-v32-grid{grid-template-columns:1fr}#fjV32ClientModal .span2{grid-column:span 1}}
+</style>
+<script id="fj-v32-client-calendar-only-runtime">
+(function(){
+'use strict';
+var STORE='fj_client_calendar_clients_v32', MAP='fj_client_calendar_event_clients_v32';
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function clients(){try{var x=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
+function write(a){try{localStorage.setItem(STORE,JSON.stringify(a))}catch(e){alert('Unable to save client data.')}}
+function emap(){try{return JSON.parse(localStorage.getItem(MAP)||'{}')||{}}catch(e){return {}}}
+function uid(){return 'client_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+function val(id){var e=q(id);return e?String(e.value||'').trim():''}
+function removeLegacyUI(){
+ var panel=q('trainingClientCalendar');if(!panel)return;
+ ['ccClientData','fjV27CalendarProgress','fjV30ClientPanel'].forEach(function(id){var e=q(id);if(e)e.remove()});
+ panel.querySelectorAll('.fj-v27-progress,.fj-v27-progress-page,.fj-v30-client-panel').forEach(function(e){e.remove()});
+ panel.querySelectorAll('[class*="fj-v23-client-editor"]').forEach(function(e){if(e.id!=='ccCalendar')e.remove()});
+}
+function modal(){if(q('fjV32ClientModal'))return;
+ var m=document.createElement('div');m.id='fjV32ClientModal';
+ m.innerHTML='<div class="fj-v32-dialog"><h3>＋ Add Client</h3><div class="fj-v32-grid">'+
+ '<div class="fj-v32-field span2"><label>Client Name</label><input id="fj32_name"></div>'+ 
+ '<div class="fj-v32-field"><label>Date of Birth</label><input id="fj32_dob" type="date"></div>'+ 
+ '<div class="fj-v32-field"><label>Gender</label><select id="fj32_gender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>'+ 
+ '<div class="fj-v32-field"><label>Age</label><input id="fj32_age" type="number"></div>'+ 
+ '<div class="fj-v32-field"><label>Body Weight (kg)</label><input id="fj32_weight" type="number" step="0.1"></div>'+ 
+ '<div class="fj-v32-field"><label>Height (cm)</label><input id="fj32_height" type="number" step="0.1"></div>'+ 
+ '<div class="fj-v32-field"><label>BMI</label><input id="fj32_bmi" type="number" step="0.1"></div>'+ 
+ '<div class="fj-v32-field"><label>Goal</label><input id="fj32_goal"></div>'+ 
+ '<div class="fj-v32-field"><label>Fitness Level</label><input id="fj32_level"></div>'+ 
+ '<div class="fj-v32-field"><label>Workout Type</label><input id="fj32_wtype"></div>'+ 
+ '<div class="fj-v32-field"><label>Phone</label><input id="fj32_phone"></div>'+ 
+ '<div class="fj-v32-field"><label>Email</label><input id="fj32_email" type="email"></div>'+ 
+ '<div class="fj-v32-field span2"><label>Address</label><input id="fj32_address"></div></div>'+ 
+ '<div class="fj-v32-section"><h4>BEFORE</h4><div class="fj-v32-grid">'+
+ '<div class="fj-v32-field"><label>Weight</label><input id="fj32_bw"></div><div class="fj-v32-field"><label>Height</label><input id="fj32_bh"></div><div class="fj-v32-field"><label>BMI</label><input id="fj32_bbmi"></div><div class="fj-v32-field"><label>Body Fat</label><input id="fj32_bfat"></div><div class="fj-v32-field"><label>Skeletal Muscle</label><input id="fj32_bmuscle"></div><div class="fj-v32-field"><label>WHR</label><input id="fj32_bwhr"></div><div class="fj-v32-field"><label>Visceral Fat</label><input id="fj32_bvisceral"></div><div class="fj-v32-field"><label>BMR</label><input id="fj32_bbmr"></div><div class="fj-v32-field span2"><label>Photo</label><input id="fj32_bphoto" type="file" accept="image/*"></div><div class="fj-v32-field span2"><label>Notes</label><textarea id="fj32_bnotes"></textarea></div></div></div>'+ 
+ '<div class="fj-v32-section"><h4>AFTER</h4><div class="fj-v32-grid">'+
+ '<div class="fj-v32-field"><label>Weight</label><input id="fj32_aw"></div><div class="fj-v32-field"><label>Height</label><input id="fj32_ah"></div><div class="fj-v32-field"><label>BMI</label><input id="fj32_abmi"></div><div class="fj-v32-field"><label>Body Fat</label><input id="fj32_afat"></div><div class="fj-v32-field"><label>Skeletal Muscle</label><input id="fj32_amuscle"></div><div class="fj-v32-field"><label>WHR</label><input id="fj32_awhr"></div><div class="fj-v32-field"><label>Visceral Fat</label><input id="fj32_avisceral"></div><div class="fj-v32-field"><label>BMR</label><input id="fj32_abmr"></div><div class="fj-v32-field span2"><label>Photo</label><input id="fj32_aphoto" type="file" accept="image/*"></div><div class="fj-v32-field span2"><label>Notes</label><textarea id="fj32_anotes"></textarea></div></div></div>'+ 
+ '<div class="fj-v32-actions"><button type="button" class="btn alt" id="fj32_cancel">Cancel</button><button type="button" class="btn" id="fj32_save">Save Client</button></div></div>';
+ document.body.appendChild(m);q('fj32_cancel').onclick=function(){m.classList.remove('open')};q('fj32_save').onclick=saveClient;
+}
+function file(id,cb){var e=q(id),f=e&&e.files&&e.files[0];if(!f){cb('');return}var r=new FileReader();r.onload=function(){cb(String(r.result||''))};r.readAsDataURL(f)}
+function saveClient(){var name=val('fj32_name');if(!name){alert('Client Name is required.');return}var c={id:uid(),name:name,dob:val('fj32_dob'),gender:val('fj32_gender'),age:val('fj32_age'),weight:val('fj32_weight'),height:val('fj32_height'),bmi:val('fj32_bmi'),goal:val('fj32_goal'),level:val('fj32_level'),wtype:val('fj32_wtype'),phone:val('fj32_phone'),email:val('fj32_email'),address:val('fj32_address'),before:{weight:val('fj32_bw'),height:val('fj32_bh'),bmi:val('fj32_bbmi'),bodyFat:val('fj32_bfat'),skeletalMuscle:val('fj32_bmuscle'),whr:val('fj32_bwhr'),visceralFat:val('fj32_bvisceral'),bmr:val('fj32_bbmr'),notes:val('fj32_bnotes')},after:{weight:val('fj32_aw'),height:val('fj32_ah'),bmi:val('fj32_abmi'),bodyFat:val('fj32_afat'),skeletalMuscle:val('fj32_amuscle'),whr:val('fj32_awhr'),visceralFat:val('fj32_avisceral'),bmr:val('fj32_abmr'),notes:val('fj32_anotes')},createdAt:new Date().toISOString()};file('fj32_bphoto',function(b){c.before.photo=b;file('fj32_aphoto',function(a){c.after.photo=a;var a2=clients();a2.push(c);write(a2);q('fjV32ClientModal').classList.remove('open');refreshPicker();alert('Client saved.');})})}
+function refreshPicker(){var s=q('fj32_event_client');if(!s)return;var old=s.value,a=clients();s.innerHTML='<option value="">Select client</option>'+a.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join('');if(old)s.value=old}
+function addButton(){var p=q('trainingClientCalendar');if(!p||q('fj32_add_client'))return;var row=document.createElement('div');row.className='fj-v32-add-client-row';row.innerHTML='<button type="button" class="btn fj-v32-add-client" id="fj32_add_client">＋ Add Client</button>';var tb=p.querySelector('.fj-cc-toolbar');if(tb)tb.parentNode.insertBefore(row,tb);q('fj32_add_client').onclick=function(){modal();q('fjV32ClientModal').classList.add('open');q('fj32_name').focus()}}
+function addPicker(){var dlg=q('ccModal');if(!dlg||q('fj32_event_client'))return;var grid=dlg.querySelector('.fj-cc-form-grid');if(!grid)return;var wrap=document.createElement('div');wrap.className='fj-v32-client-picker';wrap.innerHTML='<label>Client</label><select id="fj32_event_client"><option value="">Select client</option></select>';grid.parentNode.insertBefore(wrap,grid);refreshPicker();var saveBtn=q('ccSaveEvent');if(saveBtn&&!saveBtn.dataset.fj32){saveBtn.dataset.fj32='1';saveBtn.addEventListener('click',function(){var k=q('ccEditKey')&&q('ccEditKey').value;if(!k)return;var map=emap(),id=q('fj32_event_client').value;if(id)map[k]=id;else delete map[k];localStorage.setItem(MAP,JSON.stringify(map))},false)}}
+function boot(){removeLegacyUI();modal();addButton();addPicker();refreshPicker()}
+boot();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);window.addEventListener('load',boot);setInterval(boot,700);
+})();
+</script>
+
+<!-- FJ V33: Mobile Add Client Before/After compact side-by-side layout only. -->
+<style id="fj-v33-mobile-before-after">
+@media(max-width:700px){
+  #fjV32ClientModal .fj-v32-section{display:inline-block;vertical-align:top;width:calc(50% - 5px);margin-right:6px;box-sizing:border-box;}
+  #fjV32ClientModal .fj-v32-section:nth-of-type(3){margin-right:0;}
+  #fjV32ClientModal .fj-v32-section .fj-v32-grid{grid-template-columns:1fr 1fr!important;gap:6px!important;}
+  #fjV32ClientModal .fj-v32-section .fj-v32-field{min-width:0;}
+  #fjV32ClientModal .fj-v32-section .span2{grid-column:span 2!important;}
+  #fjV32ClientModal .fj-v32-section input,
+  #fjV32ClientModal .fj-v32-section textarea{width:100%;box-sizing:border-box;min-width:0;}
+  #fjV32ClientModal .fj-v32-section input[type="file"]{font-size:9px;padding:3px;}
+  #fjV32ClientModal .fj-v32-section textarea{min-height:48px;}
+  #fjV32ClientModal .fj-v32-section label{font-size:9px;}
+}
+@media(max-width:430px){
+  #fjV32ClientModal .fj-v32-dialog{padding:10px;width:96vw;}
+  #fjV32ClientModal .fj-v32-section{width:calc(50% - 3px);margin-right:4px;padding-top:7px;margin-top:9px;}
+  #fjV32ClientModal .fj-v32-section .fj-v32-grid{gap:4px!important;}
+  #fjV32ClientModal .fj-v32-section h4{font-size:11px;margin-bottom:5px;}
+  #fjV32ClientModal .fj-v32-section input,
+  #fjV32ClientModal .fj-v32-section textarea{font-size:10px;padding:5px 4px;}
+  #fjV32ClientModal .fj-v32-section input[type="file"]{font-size:8px;}
+}
+</style>
+
+<!-- FJ V34: Client Calendar event modal visibility/phone fit repair only. Existing event logic untouched. -->
+<style id="fj-v34-calendar-event-modal-fix">
+/* Keep the existing Calendar Event logic intact; only make its dialog reliably reachable. */
+#trainingClientCalendar .fj-cc-modal{overflow-y:auto!important;overscroll-behavior:contain!important;}
+#trainingClientCalendar .fj-cc-dialog{max-height:calc(100vh - 28px)!important;box-sizing:border-box!important;}
+@media(max-width:700px){
+  #trainingClientCalendar .fj-cc-modal{align-items:flex-start!important;padding:8px!important;}
+  #trainingClientCalendar .fj-cc-dialog{width:100%!important;max-width:100%!important;max-height:calc(100vh - 16px)!important;padding:10px!important;margin:0!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;}
+  #trainingClientCalendar .fj-cc-form-grid{grid-template-columns:1fr 1fr!important;gap:7px!important;}
+  #trainingClientCalendar .fj-cc-form-grid .span2{grid-column:span 2!important;}
+  #trainingClientCalendar .fj-cc-exercises{width:100%!important;min-width:0!important;overflow:visible!important;}
+  #trainingClientCalendar .fj-cc-ex-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;min-width:0!important;width:100%!important;gap:6px!important;box-sizing:border-box!important;padding:6px!important;border:1px solid #e0e7eb;border-radius:8px;background:#fbfdfe;}
+  #trainingClientCalendar .fj-cc-ex-row select{grid-column:span 2!important;}
+  #trainingClientCalendar .fj-cc-ex-row button{min-height:34px!important;}
+  #trainingClientCalendar .fj-cc-dialog-actions{position:sticky!important;bottom:0!important;background:#fff!important;padding-top:8px!important;padding-bottom:2px!important;z-index:2!important;}
+}
+</style>

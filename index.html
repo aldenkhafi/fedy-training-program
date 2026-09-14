@@ -5743,11 +5743,11 @@ function daysInMonth(y,m){return new Date(y,m+1,0).getDate()}
 function key(date,h){return date+'T'+String(h).padStart(2,'0')+':00'}
 function clone(o){return JSON.parse(JSON.stringify(o))}
 function snapshot(){return clone(ccState)}
-function pushHistory(){ccUndo.push(snapshot());if(ccUndo.length>50)ccUndo.shift();ccRedo=[];updateHistory()}
-function restore(s){ccState=clone(s);renderCalendar();updateHistory()}
-function undo(){if(!ccUndo.length)return;ccRedo.push(snapshot());restore(ccUndo.pop())}
-function redo(){if(!ccRedo.length)return;ccUndo.push(snapshot());restore(ccRedo.pop())}
-function updateHistory(){var u=$('ccUndoBtn'),r=$('ccRedoBtn');if(u)u.disabled=!ccUndo.length;if(r)r.disabled=!ccRedo.length}
+function pushHistory(){var now=snapshot();var last=ccUndo.length?ccUndo[ccUndo.length-1]:null;if(last&&JSON.stringify(last)===JSON.stringify(now))return;ccUndo.push(now);if(ccUndo.length>50)ccUndo.shift();ccRedo=[];updateHistory()}
+function restore(s){ccState=clone(s);try{persistCalendar()}catch(e){}renderCalendar();renderClient();updateHistory()}
+function undo(){if(!ccUndo.length){updateHistory();return}ccRedo.push(snapshot());restore(ccUndo.pop())}
+function redo(){if(!ccRedo.length){updateHistory();return}ccUndo.push(snapshot());restore(ccRedo.pop())}
+function updateHistory(){var u=$('ccUndoBtn'),r=$('ccRedoBtn');if(u){u.disabled=ccUndo.length===0;u.setAttribute('aria-disabled',u.disabled?'true':'false')}if(r){r.disabled=ccRedo.length===0;r.setAttribute('aria-disabled',r.disabled?'true':'false')}}
 function renderClient(){var c=client(),out=$('ccClientData');if(!out)return;var rows=[['Client Name',c.name],['Age',c.age+' years'],['Gender',c.gender],['Body Weight',c.weight+' kg'],['Height',c.height+' cm'],['Goal',c.goal],['Fitness Level',c.level],['Workout Type',c.wtype],['Duration',c.duration+' months'],['Frequency',c.freq]];out.innerHTML=rows.map(function(r){return '<div class="fj-cc-client-item"><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'}).join('')}
 function renderCalendar(){var out=$('ccCalendar');if(!out)return;var y=ccState.year,m=ccState.month,days=daysInMonth(y,m);out.style.setProperty('--cc-days',days);var html='<div class="fj-cc-calendar">';html+='<div class="fj-cc-head" style="position:sticky;left:0;z-index:7">TIME</div>';var dnames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];for(var d=1;d<=days;d++){var dt=new Date(y,m,d),dow=dnames[dt.getDay()];html+='<div class="fj-cc-head"><span class="daynum">'+d+'</span><span class="dow">'+dow+'</span></div>'}for(var h=0;h<24;h++){html+='<div class="fj-cc-time">'+String(h).padStart(2,'0')+':00</div>';for(d=1;d<=days;d++){var date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),k=key(date,h),ev=ccState.events[k],today=(new Date().getFullYear()===y&&new Date().getMonth()===m&&new Date().getDate()===d);var owner=ev&&ev.client&&ev.client.name?String(ev.client.name):'';var meta=ev?((owner?owner+' • ':'')+(ev.client&&ev.client.goal?'Goal: '+ev.client.goal+' • ': '')+(ev.client&&ev.client.wtype?'Type: '+ev.client.wtype:'')):'';var ex=ev&&ev.exercises?ev.exercises.map(function(x){return x.exercise}).filter(Boolean).join(' • '):'';html+='<div class="fj-cc-cell '+(today?'today':'')+'" data-cc-key="'+k+'">'+(ev?'<div class="fj-cc-event"><strong>'+esc(ev.title||'Training')+'</strong><small>'+esc(meta)+'</small><small>'+esc(ex)+'</small></div>':'')+'</div>'}}html+='</div>';out.innerHTML=html;out.querySelectorAll('[data-cc-key]').forEach(function(cell){cell.onclick=function(e){if(e)e.preventDefault();openEditor(this.dataset.ccKey)}});var title=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});var t=$('ccMonthTitle');if(t)t.textContent=title}
 function calendarClientFromEvent(ev){var c=ev&&ev.client?ev.client:{};return {name:String(c.name||''),age:String(c.age||''),gender:String(c.gender||'male'),weight:String(c.weight||''),height:String(c.height||''),goal:String(c.goal||'General Fitness'),level:String(c.level||'auto'),wtype:String(c.wtype||'standard'),duration:String(c.duration||'3'),freq:String(c.freq||'3')}}
@@ -5904,7 +5904,7 @@ $('ccPrev').onclick=prevMonth;$('ccNext').onclick=nextMonth;$('ccUndoBtn').oncli
  renderClient();renderCalendar();updateHistory();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-window.fjClientCalendar={state:function(){return ccState},render:renderCalendar};
+window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,__v9PushHistory:function(){pushHistory()},__v9Undo:function(){undo()},__v9Redo:function(){redo()},__v9History:function(){return {undo:ccUndo.length,redo:ccRedo.length}}};
 })();
 </script>
 <style id="fj-v17-client-calendar-print">
@@ -6473,7 +6473,178 @@ setInterval(observe,250);if(document.readyState==='loading')document.addEventLis
 })();
 
 </script>
-</body></html>
+<!-- V9 RESTORE / SURGICAL FIX: reset workflow + backup merge/overwrite/replace-all. -->
+<style id="fj-v9-restore-fix-css">
+#trainingClientCalendar .fj-v9-backup-modal{display:none;position:fixed;inset:0;background:rgba(12,28,42,.48);z-index:2147483000;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+#trainingClientCalendar .fj-v9-backup-modal.open{display:flex}
+#trainingClientCalendar .fj-v9-backup-dialog{width:min(560px,96vw);background:#fff;border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+#trainingClientCalendar .fj-v9-backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+#trainingClientCalendar .fj-v9-backup-actions .danger{border-color:#c0392b;color:#c0392b}
+#trainingClientCalendar .fj-v9-backup-status{margin-top:10px;padding:8px 10px;border-radius:8px;background:#f5f8fa;font-size:12px;line-height:1.45}
+@media(max-width:760px){#trainingClientCalendar .fj-v9-backup-actions{grid-template-columns:1fr}}
+</style>
+<script id="fj-v9-restore-fix-runtime">
+(function(){
+'use strict';
+var PROFILE_KEY='fj_client_calendar_profiles_v1',ACTIVE_KEY='fj_client_calendar_active_profile_v1',STORE='fj_client_calendar_v1';
+function q(id){return document.getElementById(id)}
+function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
+function blankBA(){return {before:{image:'',weight:'',height:'',bmi:'',skeletalMuscle:'',bodyFat:'',whr:'',visceralFat:'',bmr:'',notes:''},after:{image:'',weight:'',height:'',bmi:'',skeletalMuscle:'',bodyFat:'',whr:'',visceralFat:'',bmr:'',notes:''}}}
+function pkey(n){return String(n||'').trim().toLowerCase()}
+function profiles(){try{var x=JSON.parse(localStorage.getItem(PROFILE_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return {}}}
+function saveProfiles(x){localStorage.setItem(PROFILE_KEY,JSON.stringify(x||{}))}
+function getCalendar(){try{return window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null}catch(e){return null}}
+function localDate(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function clearMasterClientFields(){
+ var ids=['clientName','programAge','programWeight','programHeight','programMonths','programFreq'];
+ ids.forEach(function(id){var e=q(id);if(e)e.value=''});
+ ['programGender','programGoal','programLevel','programWorkoutType'].forEach(function(id){var e=q(id);if(e)e.selectedIndex=0});
+ try{var c=q('ccClientData');if(c)c.dataset.fjV23Rendered='';}catch(e){}
+}
+function clearBeforeAfterKeepFrames(){
+ // Clear values/photos only. The existing Before/After containers are rebuilt so their frames remain.
+ var empty=blankBA();
+ try{localStorage.setItem('fj_v27_before_after',JSON.stringify(empty))}catch(e){}
+ try{if(window.fjSetBeforeAfterState)window.fjSetBeforeAfterState(clone(empty))}catch(e){}
+ document.querySelectorAll('[data-fj27-side][data-fj27-key]').forEach(function(i){i.value=''});
+ document.querySelectorAll('[data-fj27-file]').forEach(function(i){i.value=''});
+ document.querySelectorAll('[data-fj27-photo] img').forEach(function(img){img.removeAttribute('src');img.style.display='none'});
+ document.querySelectorAll('[data-fj27-upload]').forEach(function(box){
+   var img=box.querySelector('img');
+   if(img){img.removeAttribute('src');img.style.display='none'}
+   // Keep the upload frame/label itself intact.
+ });
+ ['fjV27MasterProgress','fjV27ProProgress','fjV27CalendarProgress'].forEach(function(id){var h=q(id);if(h)h.innerHTML=''});
+ if(typeof window.renderAllProgress==='function')try{window.renderAllProgress()}catch(e){}
+ // Session Before/After inside Client Workout modal: keep the boxes, clear contents.
+ var w=q('fjV28SessionBA');if(w){
+   ['before','after'].forEach(function(s){
+     w.querySelectorAll('[data-v28-ba^="'+s+'."]').forEach(function(i){i.value=''});
+     var im=w.querySelector('[data-v28-img="'+s+'"]');if(im){im.removeAttribute('src');im.dataset.data='';im.style.display='none'}
+     var fi=w.querySelector('[data-v28-file="'+s+'"]');if(fi)fi.value='';
+   });
+ }
+}
+function clearActive(){try{localStorage.removeItem(ACTIVE_KEY)}catch(e){}}
+function refreshProfileSelect(){var s=q('ccEditClientSelect');if(!s)return;var ps=profiles(),keys=Object.keys(ps).filter(function(k){return ps[k]&&ps[k].name}).sort(function(a,b){return ps[a].name.localeCompare(ps[b].name)});s.innerHTML='<option value="">Choose registered client…</option>'+keys.map(function(k){return '<option value="'+String(k).replace(/"/g,'&quot;')+'">'+String(ps[k].name).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})+'</option>'}).join('')+'<option value="__new__">＋ New Client</option>';s.value='';var nw=q('ccNewClientNameWrap');if(nw)nw.style.display='none';}
+function closeModal(){var m=q('ccModal');if(m)m.classList.remove('open')}
+function doReset(){
+ var st=getCalendar(),count=st&&st.events?Object.keys(st.events).length:0,pc=Object.keys(profiles()).length;
+ var msg='⚠️ WARNING\n\nRESET CALENDAR akan menghapus SEMUA event/jadwal/training yang tampil di Client Calendar.';
+ msg+='\n\nData Registered Client / Client Profile TIDAK dihapus.';
+ msg+='\nData Before / After yang sudah tersimpan di Registered Client TETAP tersimpan.';
+ if(count)msg+='\n\nSaat ini ada '+count+' event di Calendar yang akan dihapus.';
+ if(pc)msg+='\nAda '+pc+' Registered Client yang tetap aman.';
+ msg+='\n\nSetelah Reset, kolom Client Profile di atas akan dikosongkan agar Anda bisa memasukkan client/data baru.';
+ msg+='\nFrame Before / After tetap ada, tetapi foto dan isi datanya akan dikosongkan.';
+ msg+='\n\nLanjutkan Reset Calendar?';
+ if(!window.confirm(msg))return;
+ if(st){
+   // Keep the original main Calendar Undo/Redo behavior: reset itself is one history action.
+   try{if(window.fjClientCalendar&&window.fjClientCalendar.__v9PushHistory)window.fjClientCalendar.__v9PushHistory()}catch(e){}
+   st.events={};
+   try{localStorage.removeItem(STORE)}catch(e){}
+ }
+ clearMasterClientFields();
+ clearActive();
+ clearBeforeAfterKeepFrames();
+ closeModal();
+ try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}
+ refreshProfileSelect();
+ // Do not auto-load the previous registered client after reset.
+}
+function bindReset(){var old=q('ccResetBtn');if(!old||old.dataset.fjV9Restored==='1')return;var b=old.cloneNode(true);b.dataset.fjV9Restored='1';old.parentNode.replaceChild(b,old);b.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();doReset()};}
+function profileWithId(p){var x=clone(p||{});if(!x.id)x.id='client_'+pkey(x.name).replace(/[^a-z0-9]+/g,'_');return x}
+function makeBackup(){
+ var st=getCalendar()||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};
+ var ps=profiles(),norm={};Object.keys(ps).forEach(function(k){norm[k]=profileWithId(ps[k])});
+ var ba;try{ba=JSON.parse(localStorage.getItem('fj_v27_before_after')||'null')}catch(e){ba=null}
+ return {format:'FITNESS_JOURNEY_CLIENT_CALENDAR_BACKUP_V9',version:9,savedAt:new Date().toISOString(),activeProfile:(function(){try{return localStorage.getItem(ACTIVE_KEY)||''}catch(e){return ''}})(),profiles:norm,beforeAfter:ba||blankBA(),calendar:clone(st),masterClient:{name:(q('clientName')||{}).value||'',age:(q('programAge')||{}).value||'',gender:(q('programGender')||{}).value||'',weight:(q('programWeight')||{}).value||'',height:(q('programHeight')||{}).value||'',goal:(q('programGoal')||{}).value||'',level:(q('programLevel')||{}).value||'',wtype:(q('programWorkoutType')||{}).value||'',duration:(q('programMonths')||{}).value||'',freq:(q('programFreq')||{}).value||''}};
+}
+function downloadBackup(){var p=makeBackup(),blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FitnessJourney_ClientCalendar_Backup_'+localDate().replace(/-/g,'')+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);setStatus('Backup berhasil disimpan ke device.');}
+function setStatus(t){var s=q('fjV9BackupStatus');if(s)s.textContent=t}
+function openBackup(){var m=q('fjV9BackupModal');if(m)m.classList.add('open');}
+function closeBackup(){var m=q('fjV9BackupModal');if(m)m.classList.remove('open')}
+function pickBackup(mode){
+ var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);input.onchange=function(){var f=input.files&&input.files[0];input.remove();if(!f)return;var r=new FileReader();r.onload=function(){try{var p=JSON.parse(r.result);applyBackup(p,mode)}catch(e){alert('Backup tidak valid atau rusak.')}};r.readAsText(f)};input.click();
+}
+function applyBackup(p,mode){
+ if(!p||!p.calendar||!p.calendar.events||!p.profiles)throw Error('Invalid backup');
+ var current=getCalendar()||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};
+ var incoming=clone(p.calendar),curProfiles=profiles(),incProfiles=clone(p.profiles||{});
+ Object.keys(incProfiles).forEach(function(k){incProfiles[k]=profileWithId(incProfiles[k])});
+ if(mode==='merge'){
+   Object.keys(incProfiles).forEach(function(k){if(!curProfiles[k])curProfiles[k]=incProfiles[k]});
+   Object.keys(incoming.events||{}).forEach(function(k){if(!current.events[k])current.events[k]=incoming.events[k]});
+   saveProfiles(curProfiles);current.year=Number(incoming.year)||current.year;current.month=Number(incoming.month);if(Number.isNaN(current.month))current.month=current.month;
+   localStorage.setItem(STORE,JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:p.masterClient||{},calendar:current,beforeAfter:p.beforeAfter||blankBA()}));
+   setStatus('Merge selesai: data lama dipertahankan dan data backup yang belum ada ditambahkan.');
+ }else if(mode==='overwrite'){
+   Object.keys(incProfiles).forEach(function(k){curProfiles[k]=incProfiles[k]});
+   Object.keys(incoming.events||{}).forEach(function(k){current.events[k]=incoming.events[k]});
+   saveProfiles(curProfiles);current.year=Number(incoming.year)||current.year;current.month=Number(incoming.month);if(Number.isNaN(current.month))current.month=new Date().getMonth();
+   localStorage.setItem(STORE,JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:p.masterClient||{},calendar:current,beforeAfter:p.beforeAfter||blankBA()}));
+   setStatus('Overwrite selesai: record dengan ID/key yang sama ditimpa dari backup.');
+ }else if(mode==='replace'){
+   saveProfiles(incProfiles);
+   current.year=Number(incoming.year)||new Date().getFullYear();current.month=Number(incoming.month)||0;current.events=clone(incoming.events||{});
+   localStorage.setItem(STORE,JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:p.masterClient||{},calendar:current,beforeAfter:p.beforeAfter||blankBA()}));
+   try{localStorage.setItem(ACTIVE_KEY,p.activeProfile||'')}catch(e){}
+   try{localStorage.setItem('fj_v27_before_after',JSON.stringify(p.beforeAfter||blankBA()))}catch(e){}
+   setStatus('Replace All selesai: Client Calendar/Profile lokal diganti dengan isi backup.');
+ }
+ var st=getCalendar();if(st){st.year=current.year;st.month=current.month;st.events=current.events}
+ // Refresh only Client Calendar UI.
+ try{if(window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){}
+ try{if(typeof window.renderAllProgress==='function')window.renderAllProgress()}catch(e){}
+ closeBackup();alert('Backup berhasil diproses: '+(mode==='merge'?'MERGE':mode==='overwrite'?'OVERWRITE':'REPLACE ALL'));
+}
+function ensureBackupUI(){
+ var panel=q('trainingClientCalendar'),tb=q('ccPrintBtn')&&q('ccPrintBtn').parentNode;if(!panel||!tb)return;
+ if(!q('ccBackupBtn')){var b=document.createElement('button');b.type='button';b.className='btn alt';b.id='ccBackupBtn';b.textContent='💾 Backup / Restore';b.title='Save backup atau restore dengan Merge / Overwrite / Replace All';tb.insertBefore(b,q('ccPrintBtn'));b.onclick=openBackup}
+ if(!q('fjV9BackupModal')){var m=document.createElement('div');m.id='fjV9BackupModal';m.className='fj-v9-backup-modal';m.innerHTML='<div class="fj-v9-backup-dialog" role="dialog" aria-modal="true"><h3 style="margin:0 0 6px">Client Calendar — Backup / Restore</h3><p class="muted" style="margin:0">Save seluruh Client Profile, Before / After, dan Calendar. Saat restore, pilih cara penggabungan data.</p><div class="fj-v9-backup-actions"><button type="button" class="btn" id="fjV9BackupSave">💾 Save Backup</button><button type="button" class="btn alt" id="fjV9BackupMerge">↔ Merge</button><button type="button" class="btn alt" id="fjV9BackupOverwrite">⟳ Overwrite</button><button type="button" class="btn alt danger" id="fjV9BackupReplace">⚠ Replace All</button></div><div class="fj-v9-backup-status" id="fjV9BackupStatus">Merge menambahkan data yang belum ada. Overwrite menimpa key/record yang sama. Replace All mengganti seluruh data Client Calendar/Profile.</div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button type="button" class="btn alt" id="fjV9BackupClose">Close</button></div></div>';panel.appendChild(m);q('fjV9BackupSave').onclick=downloadBackup;q('fjV9BackupMerge').onclick=function(){pickBackup('merge')};q('fjV9BackupOverwrite').onclick=function(){pickBackup('overwrite')};q('fjV9BackupReplace').onclick=function(){if(confirm('⚠️ REPLACE ALL akan mengganti seluruh Client Profile dan Calendar lokal dengan file backup. Lanjutkan?'))pickBackup('replace')};q('fjV9BackupClose').onclick=closeBackup;m.addEventListener('click',function(e){if(e.target===m)closeBackup()})}
+}
+function run(){if(q('trainingClientCalendar')){bindReset();ensureBackupUI()}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,250)});else setTimeout(run,250);setInterval(run,1000);
+})();
+</script>
+
+\n<!-- V9 FINAL UNDO/REDO + RESET REPAIR: only Client Calendar. -->\n<script id="fj-v9-final-undo-reset-repair">
+(function(){
+  'use strict';
+  function q(id){return document.getElementById(id)}
+  function bindHistory(){
+    var u=q('ccUndoBtn'),r=q('ccRedoBtn');
+    if(u&&window.fjClientCalendar&&window.fjClientCalendar.__v9Undo){
+      if(u.dataset.fjFinalHistory!=='1'){
+        u.dataset.fjFinalHistory='1';
+        u.onclick=function(e){if(e){e.preventDefault();e.stopImmediatePropagation()}window.fjClientCalendar.__v9Undo()};
+      }
+    }
+    if(r&&window.fjClientCalendar&&window.fjClientCalendar.__v9Redo){
+      if(r.dataset.fjFinalHistory!=='1'){
+        r.dataset.fjFinalHistory='1';
+        r.onclick=function(e){if(e){e.preventDefault();e.stopImmediatePropagation()}window.fjClientCalendar.__v9Redo()};
+      }
+    }
+  }
+  function finalResetRepair(){
+    var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;
+    if(!st||Object.keys(st.events||{}).length) return;
+    var active=document.getElementById('ccEditClientSelect');
+    if(active)active.value='';
+    ['clientName','programAge','programWeight','programHeight','programMonths','programFreq'].forEach(function(id){var e=q(id);if(e)e.value=''});
+    ['programGender','programGoal','programLevel','programWorkoutType'].forEach(function(id){var e=q(id);if(e)e.selectedIndex=0});
+    try{localStorage.removeItem('fj_client_calendar_active_profile_v1');localStorage.setItem('fj_v27_before_after',JSON.stringify({before:{image:'',weight:'',height:'',bmi:'',skeletalMuscle:'',bodyFat:'',whr:'',visceralFat:'',bmr:'',notes:''},after:{image:'',weight:'',height:'',bmi:'',skeletalMuscle:'',bodyFat:'',whr:'',visceralFat:'',bmr:'',notes:''}}))}catch(e){}
+    var ba=document.getElementById('fjV28SessionBA');
+    if(ba){['before','after'].forEach(function(s){ba.querySelectorAll('[data-v28-ba^="'+s+'."]').forEach(function(i){i.value=''});var im=ba.querySelector('[data-v28-img="'+s+'"]');if(im){im.removeAttribute('src');im.dataset.data='';im.style.display='none'}var fi=ba.querySelector('[data-v28-file="'+s+'"]');if(fi)fi.value=''})}
+  }
+  function run(){bindHistory();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,300)});else setTimeout(run,300);
+  setInterval(run,1000);
+  document.addEventListener('click',function(e){if(e.target&&e.target.id==='ccResetBtn'){setTimeout(finalResetRepair,250);setTimeout(finalResetRepair,600)}},true);
+})();
+</script>\n</body></html>
 
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -6669,16 +6840,17 @@ function ensureProfileUI(){
 }
 function restoreActiveIntoNewWorkout(){var sel=q('ccEditClientSelect'),ps=profiles(),active=getActive();if(sel&&active&&ps[active]){sel.value=active;var inp=q('ccEditClientName');if(inp)inp.value=ps[active].name;applyProfile(ps[active]);}}
 function repairReset(){
- // Calendar reset is deliberately independent from PROFILE_KEY.
+ // FINAL V9 RESET REPAIR: do not restore the previously active client.
+ // Registered profiles remain stored, but the current form/session becomes blank.
  refreshSelect();
- var ps=profiles(),active=getActive();
- if(active&&ps[active]){
-  var inp=q('ccEditClientName');if(inp)inp.value=ps[active].name;
-  var sel=q('ccEditClientSelect');if(sel)sel.value=active;
-  fillModalBA(ps[active].beforeAfter||blankBA());
- }
- // Restore the standalone Client Calendar progress state from the registered profile.
- try{var p=active&&ps[active]?ps[active]:null;if(p&&p.beforeAfter){localStorage.setItem('fj_v27_before_after',JSON.stringify(p.beforeAfter));var cal=q('fjV27CalendarProgress');if(cal)cal.dataset.fjV9Profile=active;}}catch(e){}
+ try{localStorage.removeItem(ACTIVE_KEY)}catch(e){}
+ var sel=q('ccEditClientSelect');if(sel)sel.value='';
+ var inp=q('ccEditClientName');if(inp)inp.value='';
+ ['ccEditAge','ccEditWeight','ccEditHeight','ccEditDuration','ccEditFreq'].forEach(function(id){var e=q(id);if(e)e.value=''});
+ ['ccEditGender','ccEditGoal','ccEditLevel','ccEditWtype'].forEach(function(id){var e=q(id);if(e)e.selectedIndex=0});
+ var t=q('ccEditTitle');if(t)t.value='';var n=q('ccEditNotes');if(n)n.value='';
+ fillModalBA(blankBA());
+ try{localStorage.setItem('fj_v27_before_after',JSON.stringify(blankBA()))}catch(e){}
 }
 function bind(){
  ensureProfileUI();

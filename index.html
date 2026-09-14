@@ -6734,194 +6734,63 @@ window.addEventListener('load',function(){setTimeout(boot,120)});
 var mo=new MutationObserver(function(){addButton();addPicker()});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
 })();
 </script>
-
-<!-- FJ V32: Client Calendar initial-area cleanup + Add Client only. -->
-<style id="fj-v32-client-calendar-only">
-/* ONLY Client Calendar: remove legacy client-data / Before-After UI and V30 client-list UI. */
-#trainingClientCalendar #ccClientData,
-#trainingClientCalendar #fjV27CalendarProgress,
-#trainingClientCalendar .fj-v27-progress,
-#trainingClientCalendar .fj-v27-progress-page,
-#trainingClientCalendar [id="fjV30ClientPanel"],
+<style id="fj-v36-client-calendar-fix-css">
+/* V36: Client Calendar UI cleanup only */
+#trainingClientCalendar #ccClientData{display:none!important}
 #trainingClientCalendar .fj-v30-client-panel{display:none!important}
-#trainingClientCalendar .fj-v32-add-client-row{display:flex!important;align-items:center!important;gap:8px!important;margin:0 0 10px!important}
-#trainingClientCalendar .fj-v32-add-client{font-weight:800!important}
-#fjV32ClientModal{position:fixed;inset:0;background:rgba(13,29,39,.48);z-index:100002;display:none;align-items:center;justify-content:center;padding:14px}
-#fjV32ClientModal.open{display:flex}
-#fjV32ClientModal .fj-v32-dialog{width:min(900px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:12px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.25)}
-#fjV32ClientModal h3{margin:0 0 12px;color:#183449}
-#fjV32ClientModal .fj-v32-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-#fjV32ClientModal .fj-v32-field{min-width:0}
-#fjV32ClientModal .span2{grid-column:span 2}
-#fjV32ClientModal label{display:block;font-size:10px;font-weight:800;margin:0 0 4px;color:#567080}
-#fjV32ClientModal input,#fjV32ClientModal select,#fjV32ClientModal textarea{width:100%;box-sizing:border-box;height:34px;padding:5px 7px;border:1px solid #ccd5dc;border-radius:6px;background:#fff}
-#fjV32ClientModal textarea{height:64px;resize:vertical}
-#fjV32ClientModal .fj-v32-section{margin-top:14px;padding-top:10px;border-top:1px solid #e0e7eb}
-#fjV32ClientModal .fj-v32-section h4{margin:0 0 8px;font-size:12px;color:#183449}
-#fjV32ClientModal .fj-v32-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
-#trainingClientCalendar .fj-v32-client-picker{margin:0 0 10px;padding:9px;border:1px solid #d5e0e6;border-radius:8px;background:#fafcfd}
-#trainingClientCalendar .fj-v32-client-picker label{display:block;font-size:10px;font-weight:800;color:#567080;margin-bottom:4px}
-#trainingClientCalendar .fj-v32-client-picker select{width:100%;max-width:420px;height:34px}
-@media(max-width:700px){#fjV32ClientModal .fj-v32-grid{grid-template-columns:1fr 1fr}#fjV32ClientModal .span2{grid-column:span 2}}
-@media(max-width:500px){#fjV32ClientModal .fj-v32-grid{grid-template-columns:1fr}#fjV32ClientModal .span2{grid-column:span 1}}
+.fj-v36-add-row{display:flex;justify-content:flex-end;margin:0 0 8px}
+.fj-v36-add-row .btn{white-space:nowrap}
+#fjV36ClientModal{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.38)}
+#fjV36ClientModal.open{display:flex}
+#fjV36ClientModal .fj-v36-dialog{width:min(900px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:12px;padding:16px;box-shadow:0 18px 60px rgba(0,0,0,.25)}
+#fjV36ClientModal h3{margin:0 0 12px;color:#183449}
+#fjV36ClientModal .fj-v36-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#fjV36ClientModal .fj-v36-field{min-width:0}
+#fjV36ClientModal .fj-v36-field.span2{grid-column:span 2}
+#fjV36ClientModal label{display:block;font-size:10px;font-weight:800;margin:0 0 4px;color:#567080}
+#fjV36ClientModal input,#fjV36ClientModal select,#fjV36ClientModal textarea{width:100%;box-sizing:border-box;height:34px;padding:5px 7px;border:1px solid #ccd5dc;border-radius:6px;background:#fff}
+#fjV36ClientModal textarea{height:64px;resize:vertical}
+#fjV36ClientModal .fj-v36-section{margin-top:14px;padding-top:10px;border-top:1px solid #e0e7eb}
+#fjV36ClientModal .fj-v36-section h4{margin:0 0 8px;font-size:12px;color:#183449}
+#fjV36ClientModal .fj-v36-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
+.fj-v36-print-picker{position:fixed;inset:0;z-index:99998;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.38);padding:14px}
+.fj-v36-print-picker.open{display:flex}
+.fj-v36-print-dialog{width:min(420px,94vw);background:#fff;border-radius:12px;padding:18px;box-shadow:0 18px 60px rgba(0,0,0,.25)}
+.fj-v36-print-dialog h3{margin:0 0 12px}.fj-v36-print-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fj-v36-print-grid label{font-size:11px;font-weight:800;display:block;margin-bottom:4px}.fj-v36-print-grid input{width:100%;height:36px;box-sizing:border-box}.fj-v36-print-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+@media(max-width:600px){#fjV36ClientModal .fj-v36-grid{grid-template-columns:1fr 1fr}#fjV36ClientModal .fj-v36-field.span2{grid-column:span 2}.fj-v36-print-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){#fjV36ClientModal .fj-v36-grid{grid-template-columns:1fr 1fr}.fj-v36-print-grid{grid-template-columns:1fr 1fr}}
 </style>
-<script id="fj-v32-client-calendar-only-runtime">
-(function(){
-'use strict';
-var STORE='fj_client_calendar_clients_v32', MAP='fj_client_calendar_event_clients_v32';
+<script id="fj-v36-client-calendar-fix-runtime">
+(function(){'use strict';
+var CLIENT_STORE='fj_client_calendar_clients_v36';
+var EVENT_MAP='fj_client_calendar_event_clients_v36';
 function q(id){return document.getElementById(id)}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function clients(){try{var x=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
-function write(a){try{localStorage.setItem(STORE,JSON.stringify(a))}catch(e){alert('Unable to save client data.')}}
-function emap(){try{return JSON.parse(localStorage.getItem(MAP)||'{}')||{}}catch(e){return {}}}
 function uid(){return 'client_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
-function val(id){var e=q(id);return e?String(e.value||'').trim():''}
-function removeLegacyUI(){
- var panel=q('trainingClientCalendar');if(!panel)return;
- ['ccClientData','fjV27CalendarProgress','fjV30ClientPanel'].forEach(function(id){var e=q(id);if(e)e.remove()});
- panel.querySelectorAll('.fj-v27-progress,.fj-v27-progress-page,.fj-v30-client-panel').forEach(function(e){e.remove()});
- panel.querySelectorAll('[class*="fj-v23-client-editor"]').forEach(function(e){if(e.id!=='ccCalendar')e.remove()});
-}
-function modal(){if(q('fjV32ClientModal'))return;
- var m=document.createElement('div');m.id='fjV32ClientModal';
- m.innerHTML='<div class="fj-v32-dialog"><h3>＋ Add Client</h3><div class="fj-v32-grid">'+
- '<div class="fj-v32-field span2"><label>Client Name</label><input id="fj32_name"></div>'+ 
- '<div class="fj-v32-field"><label>Date of Birth</label><input id="fj32_dob" type="date"></div>'+ 
- '<div class="fj-v32-field"><label>Gender</label><select id="fj32_gender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>'+ 
- '<div class="fj-v32-field"><label>Age</label><input id="fj32_age" type="number"></div>'+ 
- '<div class="fj-v32-field"><label>Body Weight (kg)</label><input id="fj32_weight" type="number" step="0.1"></div>'+ 
- '<div class="fj-v32-field"><label>Height (cm)</label><input id="fj32_height" type="number" step="0.1"></div>'+ 
- '<div class="fj-v32-field"><label>BMI</label><input id="fj32_bmi" type="number" step="0.1"></div>'+ 
- '<div class="fj-v32-field"><label>Goal</label><input id="fj32_goal"></div>'+ 
- '<div class="fj-v32-field"><label>Fitness Level</label><input id="fj32_level"></div>'+ 
- '<div class="fj-v32-field"><label>Workout Type</label><input id="fj32_wtype"></div>'+ 
- '<div class="fj-v32-field"><label>Phone</label><input id="fj32_phone"></div>'+ 
- '<div class="fj-v32-field"><label>Email</label><input id="fj32_email" type="email"></div>'+ 
- '<div class="fj-v32-field span2"><label>Address</label><input id="fj32_address"></div></div>'+ 
- '<div class="fj-v32-section"><h4>BEFORE</h4><div class="fj-v32-grid">'+
- '<div class="fj-v32-field"><label>Weight</label><input id="fj32_bw"></div><div class="fj-v32-field"><label>Height</label><input id="fj32_bh"></div><div class="fj-v32-field"><label>BMI</label><input id="fj32_bbmi"></div><div class="fj-v32-field"><label>Body Fat</label><input id="fj32_bfat"></div><div class="fj-v32-field"><label>Skeletal Muscle</label><input id="fj32_bmuscle"></div><div class="fj-v32-field"><label>WHR</label><input id="fj32_bwhr"></div><div class="fj-v32-field"><label>Visceral Fat</label><input id="fj32_bvisceral"></div><div class="fj-v32-field"><label>BMR</label><input id="fj32_bbmr"></div><div class="fj-v32-field span2"><label>Photo</label><input id="fj32_bphoto" type="file" accept="image/*"></div><div class="fj-v32-field span2"><label>Notes</label><textarea id="fj32_bnotes"></textarea></div></div></div>'+ 
- '<div class="fj-v32-section"><h4>AFTER</h4><div class="fj-v32-grid">'+
- '<div class="fj-v32-field"><label>Weight</label><input id="fj32_aw"></div><div class="fj-v32-field"><label>Height</label><input id="fj32_ah"></div><div class="fj-v32-field"><label>BMI</label><input id="fj32_abmi"></div><div class="fj-v32-field"><label>Body Fat</label><input id="fj32_afat"></div><div class="fj-v32-field"><label>Skeletal Muscle</label><input id="fj32_amuscle"></div><div class="fj-v32-field"><label>WHR</label><input id="fj32_awhr"></div><div class="fj-v32-field"><label>Visceral Fat</label><input id="fj32_avisceral"></div><div class="fj-v32-field"><label>BMR</label><input id="fj32_abmr"></div><div class="fj-v32-field span2"><label>Photo</label><input id="fj32_aphoto" type="file" accept="image/*"></div><div class="fj-v32-field span2"><label>Notes</label><textarea id="fj32_anotes"></textarea></div></div></div>'+ 
- '<div class="fj-v32-actions"><button type="button" class="btn alt" id="fj32_cancel">Cancel</button><button type="button" class="btn" id="fj32_save">Save Client</button></div></div>';
- document.body.appendChild(m);q('fj32_cancel').onclick=function(){m.classList.remove('open')};q('fj32_save').onclick=saveClient;
-}
+function clients(){try{var a=JSON.parse(localStorage.getItem(CLIENT_STORE)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function saveClients(a){localStorage.setItem(CLIENT_STORE,JSON.stringify(a))}
+function eventMap(){try{return JSON.parse(localStorage.getItem(EVENT_MAP)||'{}')||{}}catch(e){return{}}}
+function saveEventMap(a){localStorage.setItem(EVENT_MAP,JSON.stringify(a||{}))}
+function modal(){if(q('fjV36ClientModal'))return;var m=document.createElement('div');m.id='fjV36ClientModal';m.innerHTML='<div class="fj-v36-dialog"><h3>＋ Add Client</h3><div class="fj-v36-grid">'+
+'<div class="fj-v36-field span2"><label>Client Name</label><input id="fj36_name"></div><div class="fj-v36-field"><label>Date of Birth</label><input id="fj36_dob" type="date"></div><div class="fj-v36-field"><label>Gender</label><select id="fj36_gender"><option value="">Select</option><option>Male</option><option>Female</option></select></div><div class="fj-v36-field"><label>Age</label><input id="fj36_age" type="number"></div><div class="fj-v36-field"><label>Body Weight (kg)</label><input id="fj36_weight" type="number" step="0.1"></div><div class="fj-v36-field"><label>Height (cm)</label><input id="fj36_height" type="number" step="0.1"></div><div class="fj-v36-field"><label>BMI</label><input id="fj36_bmi" type="number" step="0.1"></div><div class="fj-v36-field"><label>Goal</label><input id="fj36_goal"></div><div class="fj-v36-field"><label>Fitness Level</label><input id="fj36_level"></div><div class="fj-v36-field"><label>Workout Type</label><input id="fj36_wtype"></div><div class="fj-v36-field"><label>Phone</label><input id="fj36_phone"></div><div class="fj-v36-field"><label>Email</label><input id="fj36_email" type="email"></div><div class="fj-v36-field span2"><label>Address</label><input id="fj36_address"></div></div>'+
+'<div class="fj-v36-section"><h4>BEFORE</h4><div class="fj-v36-grid"><div class="fj-v36-field"><label>Weight</label><input id="fj36_bw"></div><div class="fj-v36-field"><label>Height</label><input id="fj36_bh"></div><div class="fj-v36-field"><label>BMI</label><input id="fj36_bbmi"></div><div class="fj-v36-field"><label>Body Fat</label><input id="fj36_bf"></div><div class="fj-v36-field"><label>Skeletal Muscle</label><input id="fj36_bm"></div><div class="fj-v36-field"><label>WHR</label><input id="fj36_bwhr"></div><div class="fj-v36-field"><label>Visceral Fat</label><input id="fj36_bvis"></div><div class="fj-v36-field"><label>BMR</label><input id="fj36_bbmr"></div><div class="fj-v36-field span2"><label>Photo</label><input id="fj36_bp" type="file" accept="image/*"></div><div class="fj-v36-field span2"><label>Notes</label><textarea id="fj36_bn"></textarea></div></div></div>'+
+'<div class="fj-v36-section"><h4>AFTER</h4><div class="fj-v36-grid"><div class="fj-v36-field"><label>Weight</label><input id="fj36_aw"></div><div class="fj-v36-field"><label>Height</label><input id="fj36_ah"></div><div class="fj-v36-field"><label>BMI</label><input id="fj36_abmi"></div><div class="fj-v36-field"><label>Body Fat</label><input id="fj36_af"></div><div class="fj-v36-field"><label>Skeletal Muscle</label><input id="fj36_am"></div><div class="fj-v36-field"><label>WHR</label><input id="fj36_awhr"></div><div class="fj-v36-field"><label>Visceral Fat</label><input id="fj36_avis"></div><div class="fj-v36-field"><label>BMR</label><input id="fj36_abmr"></div><div class="fj-v36-field span2"><label>Photo</label><input id="fj36_ap" type="file" accept="image/*"></div><div class="fj-v36-field span2"><label>Notes</label><textarea id="fj36_an"></textarea></div></div></div>'+
+'<div class="fj-v36-actions"><button type="button" class="btn alt" id="fj36_cancel">Cancel</button><button type="button" class="btn" id="fj36_save">Save Client</button></div></div>';document.body.appendChild(m);q('fj36_cancel').onclick=function(){m.classList.remove('open')};q('fj36_save').onclick=saveClient}
+function v(id){var e=q(id);return e?String(e.value||'').trim():''}
 function file(id,cb){var e=q(id),f=e&&e.files&&e.files[0];if(!f){cb('');return}var r=new FileReader();r.onload=function(){cb(String(r.result||''))};r.readAsDataURL(f)}
-function saveClient(){var name=val('fj32_name');if(!name){alert('Client Name is required.');return}var c={id:uid(),name:name,dob:val('fj32_dob'),gender:val('fj32_gender'),age:val('fj32_age'),weight:val('fj32_weight'),height:val('fj32_height'),bmi:val('fj32_bmi'),goal:val('fj32_goal'),level:val('fj32_level'),wtype:val('fj32_wtype'),phone:val('fj32_phone'),email:val('fj32_email'),address:val('fj32_address'),before:{weight:val('fj32_bw'),height:val('fj32_bh'),bmi:val('fj32_bbmi'),bodyFat:val('fj32_bfat'),skeletalMuscle:val('fj32_bmuscle'),whr:val('fj32_bwhr'),visceralFat:val('fj32_bvisceral'),bmr:val('fj32_bbmr'),notes:val('fj32_bnotes')},after:{weight:val('fj32_aw'),height:val('fj32_ah'),bmi:val('fj32_abmi'),bodyFat:val('fj32_afat'),skeletalMuscle:val('fj32_amuscle'),whr:val('fj32_awhr'),visceralFat:val('fj32_avisceral'),bmr:val('fj32_abmr'),notes:val('fj32_anotes')},createdAt:new Date().toISOString()};file('fj32_bphoto',function(b){c.before.photo=b;file('fj32_aphoto',function(a){c.after.photo=a;var a2=clients();a2.push(c);write(a2);q('fjV32ClientModal').classList.remove('open');refreshPicker();alert('Client saved.');})})}
-function refreshPicker(){var s=q('fj32_event_client');if(!s)return;var old=s.value,a=clients();s.innerHTML='<option value="">Select client</option>'+a.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join('');if(old)s.value=old}
-function addButton(){var p=q('trainingClientCalendar');if(!p||q('fj32_add_client'))return;var row=document.createElement('div');row.className='fj-v32-add-client-row';row.innerHTML='<button type="button" class="btn fj-v32-add-client" id="fj32_add_client">＋ Add Client</button>';var tb=p.querySelector('.fj-cc-toolbar');if(tb)tb.parentNode.insertBefore(row,tb);q('fj32_add_client').onclick=function(){modal();q('fjV32ClientModal').classList.add('open');q('fj32_name').focus()}}
-function addPicker(){var dlg=q('ccModal');if(!dlg||q('fj32_event_client'))return;var grid=dlg.querySelector('.fj-cc-form-grid');if(!grid)return;var wrap=document.createElement('div');wrap.className='fj-v32-client-picker';wrap.innerHTML='<label>Client</label><select id="fj32_event_client"><option value="">Select client</option></select>';grid.parentNode.insertBefore(wrap,grid);refreshPicker();var saveBtn=q('ccSaveEvent');if(saveBtn&&!saveBtn.dataset.fj32){saveBtn.dataset.fj32='1';saveBtn.addEventListener('click',function(){var k=q('ccEditKey')&&q('ccEditKey').value;if(!k)return;var map=emap(),id=q('fj32_event_client').value;if(id)map[k]=id;else delete map[k];localStorage.setItem(MAP,JSON.stringify(map))},false)}}
-function boot(){removeLegacyUI();modal();addButton();addPicker();refreshPicker()}
-boot();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);window.addEventListener('load',boot);setInterval(boot,700);
+function saveClient(){var name=v('fj36_name');if(!name){alert('Client Name is required.');return}var c={id:uid(),name:name,dob:v('fj36_dob'),gender:v('fj36_gender'),age:v('fj36_age'),weight:v('fj36_weight'),height:v('fj36_height'),bmi:v('fj36_bmi'),goal:v('fj36_goal'),level:v('fj36_level'),wtype:v('fj36_wtype'),phone:v('fj36_phone'),email:v('fj36_email'),address:v('fj36_address'),before:{weight:v('fj36_bw'),height:v('fj36_bh'),bmi:v('fj36_bbmi'),bodyFat:v('fj36_bf'),skeletalMuscle:v('fj36_bm'),whr:v('fj36_bwhr'),visceralFat:v('fj36_bvis'),bmr:v('fj36_bbmr'),notes:v('fj36_bn')},after:{weight:v('fj36_aw'),height:v('fj36_ah'),bmi:v('fj36_abmi'),bodyFat:v('fj36_af'),skeletalMuscle:v('fj36_am'),whr:v('fj36_awhr'),visceralFat:v('fj36_avis'),bmr:v('fj36_abmr'),notes:v('fj36_an')},createdAt:new Date().toISOString()};file('fj36_bp',function(b){c.before.photo=b;file('fj36_ap',function(a){c.after.photo=a;var arr=clients();arr.push(c);saveClients(arr);q('fjV36ClientModal').classList.remove('open');refreshClientSelect();alert('Client saved.');})})}
+function refreshClientSelect(){var s=q('fjV36EventClient');if(!s)return;var old=s.value,a=clients();s.innerHTML='<option value="">— Select Client —</option>'+a.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join('');if(old&&a.some(function(c){return c.id===old}))s.value=old}
+function addButton(){var cal=q('trainingClientCalendar');if(!cal||q('fjV36AddClient'))return;var tb=cal.querySelector('.fj-cc-toolbar');if(!tb)return;var row=document.createElement('div');row.className='fj-v36-add-row';row.innerHTML='<button type="button" class="btn" id="fjV36AddClient">＋ Add Client</button>';tb.parentNode.insertBefore(row,tb);q('fjV36AddClient').onclick=function(){modal();q('fjV36ClientModal').classList.add('open');q('fj36_name').focus()}}
+function addClientSelect(){var dlg=q('ccModal');if(!dlg||q('fjV36EventClient'))return;var grid=dlg.querySelector('.fj-cc-form-grid');if(!grid)return;var wrap=document.createElement('div');wrap.className='field span2';wrap.innerHTML='<label>Client</label><select id="fjV36EventClient"><option value="">— Select Client —</option></select>';grid.appendChild(wrap);refreshClientSelect();var original=window.openEditor;if(typeof original==='function'&&!window.__fjV36OpenEditor){window.__fjV36OpenEditor=true;window.openEditor=function(k){original(k);setTimeout(function(){refreshClientSelect();var s=q('fjV36EventClient');if(s)s.value=eventMap()[k]||''},0)}}var save=q('ccSaveEvent');if(save&&!save.dataset.fjV36){save.dataset.fjV36='1';save.addEventListener('click',function(){setTimeout(function(){var k=q('ccEditKey')&&q('ccEditKey').value,s=q('fjV36EventClient');if(!k||!s)return;var map=eventMap();if(s.value)map[k]=s.value;else delete map[k];saveEventMap(map)},80)})}}
+function saveEventMap(map){saveEventMap._x=1;localStorage.setItem(EVENT_MAP,JSON.stringify(map||{}))}
+function addPrintPicker(){var b=q('ccPrintBtn');if(!b||b.dataset.fjV36Print)return;b.dataset.fjV36Print='1';b.onclick=function(){var x=q('fjV36PrintPicker');if(!x){x=document.createElement('div');x.id='fjV36PrintPicker';x.className='fj-v36-print-picker';x.innerHTML='<div class="fj-v36-print-dialog"><h3>Print Calendar</h3><div class="fj-v36-print-grid"><div><label>From</label><input id="fjV36From" type="date"></div><div><label>To</label><input id="fjV36To" type="date"></div></div><div class="fj-v36-print-actions"><button class="btn alt" id="fjV36PrintCancel">Cancel</button><button class="btn" id="fjV36PrintGo">Print / Save PDF</button></div></div>';document.body.appendChild(x);q('fjV36PrintCancel').onclick=function(){x.classList.remove('open')};q('fjV36PrintGo').onclick=function(){printRange(q('fjV36From').value,q('fjV36To').value);x.classList.remove('open')}}var y=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(y){var first=y.year+'-'+String(y.month+1).padStart(2,'0')+'-01',last=y.year+'-'+String(y.month+1).padStart(2,'0')+'-'+String(new Date(y.year,y.month+1,0).getDate()).padStart(2,'0');q('fjV36From').value=first;q('fjV36To').value=last}x.classList.add('open')}}
+function printRange(from,to){if(!from||!to){alert('Please select From and To dates.');return}if(from>to){alert('From date cannot be after To date.');return}var st=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;if(!st)return;var old=q('fjV36PrintRoot');if(old)old.remove();var map=eventMap(),a=Object.keys(st.events||{}).filter(function(k){var d=k.slice(0,10);return d>=from&&d<=to}).sort();var root=document.createElement('div');root.id='fjV36PrintRoot';var h='<h1>CLIENT CALENDAR</h1><p><b>Date Range:</b> '+esc(from)+' — '+esc(to)+'</p>';if(!a.length)h+='<p>No training events in this date range.</p>';a.forEach(function(k){var e=st.events[k]||{},cid=map[k]||'',c=clients().find(function(x){return String(x.id)===String(cid)}),ex=e.exercises||[];h+='<section class="fj-v36-print-event"><h2>'+esc(k.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2>'+(c?'<p><b>Client:</b> '+esc(c.name)+'</p>':'');h+='<table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th></tr></thead><tbody>';ex.forEach(function(x){h+='<tr><td>'+esc(x.exercise)+'</td><td>'+esc(x.sets)+'</td><td>'+esc(x.reps)+'</td><td>'+esc(x.load)+'</td></tr>'});h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'')+'</section>'});root.innerHTML=h;document.body.appendChild(root);var oldTitle=document.title;document.title='Client Calendar';document.documentElement.classList.add('fj-v36-printing');function clean(){document.documentElement.classList.remove('fj-v36-printing');var r=q('fjV36PrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}window.addEventListener('afterprint',clean,{once:true});setTimeout(function(){window.print();setTimeout(clean,5000)},150)}
+function hideOldClientPanel(){var p=q('fjV30ClientPanel');if(p)p.style.display='none';var cd=q('ccClientData');if(cd)cd.style.display='none'}
+function boot(){hideOldClientPanel();modal();addButton();addClientSelect();addPrintPicker()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,250)});else setTimeout(boot,250);window.addEventListener('load',function(){setTimeout(boot,350)});var mo=new MutationObserver(function(){hideOldClientPanel();addButton();addClientSelect();addPrintPicker()});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
 })();
 </script>
-
-<!-- FJ V33: Mobile Add Client Before/After compact side-by-side layout only. -->
-<style id="fj-v33-mobile-before-after">
-@media(max-width:700px){
-  #fjV32ClientModal .fj-v32-section{display:inline-block;vertical-align:top;width:calc(50% - 5px);margin-right:6px;box-sizing:border-box;}
-  #fjV32ClientModal .fj-v32-section:nth-of-type(3){margin-right:0;}
-  #fjV32ClientModal .fj-v32-section .fj-v32-grid{grid-template-columns:1fr 1fr!important;gap:6px!important;}
-  #fjV32ClientModal .fj-v32-section .fj-v32-field{min-width:0;}
-  #fjV32ClientModal .fj-v32-section .span2{grid-column:span 2!important;}
-  #fjV32ClientModal .fj-v32-section input,
-  #fjV32ClientModal .fj-v32-section textarea{width:100%;box-sizing:border-box;min-width:0;}
-  #fjV32ClientModal .fj-v32-section input[type="file"]{font-size:9px;padding:3px;}
-  #fjV32ClientModal .fj-v32-section textarea{min-height:48px;}
-  #fjV32ClientModal .fj-v32-section label{font-size:9px;}
-}
-@media(max-width:430px){
-  #fjV32ClientModal .fj-v32-dialog{padding:10px;width:96vw;}
-  #fjV32ClientModal .fj-v32-section{width:calc(50% - 3px);margin-right:4px;padding-top:7px;margin-top:9px;}
-  #fjV32ClientModal .fj-v32-section .fj-v32-grid{gap:4px!important;}
-  #fjV32ClientModal .fj-v32-section h4{font-size:11px;margin-bottom:5px;}
-  #fjV32ClientModal .fj-v32-section input,
-  #fjV32ClientModal .fj-v32-section textarea{font-size:10px;padding:5px 4px;}
-  #fjV32ClientModal .fj-v32-section input[type="file"]{font-size:8px;}
-}
+<style id="fj-v36-print-css">
+#fjV36PrintRoot{display:none}
+@media print{html.fj-v36-printing body>*:not(#fjV36PrintRoot){display:none!important}html.fj-v36-printing #fjV36PrintRoot{display:block!important;position:static!important;background:#fff!important;color:#111!important;padding:10mm!important;font-family:Arial,sans-serif!important}html.fj-v36-printing #fjV36PrintRoot h1{font-size:20px;margin:0 0 5mm}html.fj-v36-printing #fjV36PrintRoot h2{font-size:13px;margin:6mm 0 2mm}html.fj-v36-printing #fjV36PrintRoot table{width:100%;border-collapse:collapse;font-size:8.5px}html.fj-v36-printing #fjV36PrintRoot th,html.fj-v36-printing #fjV36PrintRoot td{border:1px solid #888;padding:4px;text-align:left;vertical-align:top}html.fj-v36-printing #fjV36PrintRoot .fj-v36-print-event{break-inside:avoid;page-break-inside:avoid;margin-bottom:6mm}}
 </style>
-
-<!-- FJ V34: Client Calendar event modal visibility/phone fit repair only. Existing event logic untouched. -->
-<style id="fj-v34-calendar-event-modal-fix">
-/* Keep the existing Calendar Event logic intact; only make its dialog reliably reachable. */
-#trainingClientCalendar .fj-cc-modal{overflow-y:auto!important;overscroll-behavior:contain!important;}
-#trainingClientCalendar .fj-cc-dialog{max-height:calc(100vh - 28px)!important;box-sizing:border-box!important;}
-@media(max-width:700px){
-  #trainingClientCalendar .fj-cc-modal{align-items:flex-start!important;padding:8px!important;}
-  #trainingClientCalendar .fj-cc-dialog{width:100%!important;max-width:100%!important;max-height:calc(100vh - 16px)!important;padding:10px!important;margin:0!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;}
-  #trainingClientCalendar .fj-cc-form-grid{grid-template-columns:1fr 1fr!important;gap:7px!important;}
-  #trainingClientCalendar .fj-cc-form-grid .span2{grid-column:span 2!important;}
-  #trainingClientCalendar .fj-cc-exercises{width:100%!important;min-width:0!important;overflow:visible!important;}
-  #trainingClientCalendar .fj-cc-ex-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;min-width:0!important;width:100%!important;gap:6px!important;box-sizing:border-box!important;padding:6px!important;border:1px solid #e0e7eb;border-radius:8px;background:#fbfdfe;}
-  #trainingClientCalendar .fj-cc-ex-row select{grid-column:span 2!important;}
-  #trainingClientCalendar .fj-cc-ex-row button{min-height:34px!important;}
-  #trainingClientCalendar .fj-cc-dialog-actions{position:sticky!important;bottom:0!important;background:#fff!important;padding-top:8px!important;padding-bottom:2px!important;z-index:2!important;}
-}
-</style>
-
-<!-- FJ V35: Calendar Event exercise display/save repair. Scoped only to Calendar Event. -->
-<style id="fj-v35-calendar-event-exercise-fix">
-#trainingClientCalendar .fj-cc-exercises{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;box-sizing:border-box!important}
-#trainingClientCalendar .fj-cc-ex-row{display:grid!important;grid-template-columns:minmax(220px,2fr) minmax(70px,1fr) minmax(90px,1fr) minmax(90px,1fr) 42px!important;align-items:center!important;gap:8px!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;margin:0 0 7px!important;padding:7px!important}
-#trainingClientCalendar .fj-cc-ex-row>*{min-width:0!important;box-sizing:border-box!important}
-#trainingClientCalendar .fj-cc-ex-row select,#trainingClientCalendar .fj-cc-ex-row input{width:100%!important;min-width:0!important;box-sizing:border-box!important}
-#trainingClientCalendar .fj-cc-ex-row select{grid-column:auto!important}
-@media(max-width:900px){
- #trainingClientCalendar .fj-cc-dialog{width:min(96vw,760px)!important;max-width:96vw!important}
- #trainingClientCalendar .fj-cc-ex-row{grid-template-columns:minmax(180px,2fr) repeat(3,minmax(65px,1fr)) 40px!important}
-}
-@media(max-width:700px){
- #trainingClientCalendar .fj-cc-ex-row{grid-template-columns:minmax(0,1fr) minmax(70px,1fr)!important;gap:6px!important}
- #trainingClientCalendar .fj-cc-ex-row select{grid-column:1 / -1!important}
- #trainingClientCalendar .fj-cc-ex-row button{grid-column:auto!important;min-height:34px!important}
-}
-</style>
-<script id="fj-v35-calendar-event-exercise-fix">
-(function(){
-'use strict';
-function q(id){return document.getElementById(id)}
-function api(){return window.fjClientCalendar}
-function state(){var a=api();return a&&typeof a.state==='function'?a.state():null}
-function normalizeRows(rows){
-  if(Array.isArray(rows)) return rows.map(function(r){
-    if(typeof r==='string') return {exercise:r,sets:'',reps:'',load:'',rest:'60–90s'};
-    r=r||{};return {exercise:r.exercise||r.name||'',sets:r.sets==null?'':r.sets,reps:r.reps==null?'':r.reps,load:r.load==null?'':r.load,rest:r.rest||'60–90s'};
-  });
-  if(rows&&typeof rows==='object'){
-    if(Array.isArray(rows.rows)) return normalizeRows(rows.rows);
-    if(Array.isArray(rows.exercises)) return normalizeRows(rows.exercises);
-  }
-  return [];
-}
-function bindOpen(){
-  var cal=q('ccCalendar');if(!cal||cal.dataset.fj35Open)return;
-  cal.dataset.fj35Open='1';
-  cal.addEventListener('click',function(e){
-    var cell=e.target&&e.target.closest?e.target.closest('[data-cc-key]'):null;if(!cell)return;
-    var s=state();if(!s||!s.events)return;var k=cell.getAttribute('data-cc-key'),ev=s.events[k];if(!ev)return;
-    var rows=normalizeRows(ev.exercises);
-    if(rows.length){ev.exercises=rows;}
-    /* Let the original event editor open normally; this only repairs malformed exercise data before opening. */
-  },true);
-}
-function preserveClientFields(){
-  var save=q('ccSaveEvent');if(!save||save.dataset.fj35Preserve)return;
-  save.dataset.fj35Preserve='1';
-  save.addEventListener('click',function(){
-    var s=state(),k=q('ccEditKey')&&q('ccEditKey').value;if(!s||!s.events||!k)return;
-    var old=s.events[k],rows=[];
-    document.querySelectorAll('#ccExercises .fj-cc-ex-row').forEach(function(row){
-      var get=function(n){var x=row.querySelector('[data-cc-field="'+n+'"]');return x?x.value:''};
-      rows.push({exercise:get('exercise'),sets:get('sets'),reps:get('reps'),load:get('load'),rest:(old&&old.exercises&&old.exercises[rows.length]&&old.exercises[rows.length].rest)||'60–90s'});
-    });
-    if(s.events[k]){
-      s.events[k].exercises=rows;
-    }
-  },true);
-}
-function run(){bindOpen();preserveClientFields()}
-run();
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);
-window.addEventListener('load',run);
-setInterval(run,700);
-})();
-</script>

@@ -6673,3 +6673,114 @@ var mo2=new MutationObserver(function(){hookPrintButton();});
 try{mo2.observe(document.body,{childList:true,subtree:true})}catch(e){}
 })();
 </script>
+
+<!-- ============================================================= -->
+<!-- V35 — Auto-select saved range for the currently chosen client -->
+<!-- The "Saved ranges" dropdown (#ccRangeSaved) is hidden visually -->
+<!-- but kept in the DOM. Its value is filled automatically with the -->
+<!-- most recently saved range that matches #ccRangeClient, so the   -->
+<!-- existing Restore button keeps working untouched.                -->
+<!-- ============================================================= -->
+<style id="fj-v35-saved-range-autoselect-css">
+#ccRangeModal .fj-cc-range-saved{display:none!important;}
+#ccRangeModal .fj-cc-range-autohint{margin-top:12px;font-size:11px;font-weight:800;color:#5e8984;line-height:1.5;}
+#ccRangeModal .fj-cc-range-autohint.empty{color:#a08040;}
+</style>
+<script id="fj-v35-saved-range-autoselect-runtime">
+(function(){
+'use strict';
+var RANGE_STORE='fj_client_calendar_ranges_v1';
+function $(id){return document.getElementById(id)}
+function readMap(){try{return JSON.parse(localStorage.getItem(RANGE_STORE)||'{}')||{}}catch(e){return {}}}
+function norm(v){return String(v==null?'':v).trim().toLowerCase()}
+function stamp(x){var t=Date.parse((x&&x.savedAt)||'');return isNaN(t)?0:t}
+
+/* Pick the newest saved range belonging to `name`.
+   Order: savedAt desc -> "to" date desc -> "from" date desc -> id desc. */
+function pickFor(name){
+  var m=readMap(),key=norm(name),list=[];
+  Object.keys(m).forEach(function(id){
+    var x=m[id];if(!x)return;
+    var owner=norm(x.client&&x.client.name?x.client.name:String(id).split('|')[0]);
+    if(key&&owner!==key)return;
+    list.push({id:id,x:x});
+  });
+  if(!list.length)return null;
+  list.sort(function(a,b){
+    var d=stamp(b.x)-stamp(a.x);if(d)return d;
+    var at=String(a.x.to||''),bt=String(b.x.to||'');if(at!==bt)return at<bt?1:-1;
+    var af=String(a.x.from||''),bf=String(b.x.from||'');if(af!==bf)return af<bf?1:-1;
+    return a.id<b.id?1:-1;
+  });
+  return list[0];
+}
+
+function ensureHint(){
+  var dlg=document.querySelector('#ccRangeModal .fj-cc-range-dialog');if(!dlg)return null;
+  var h=dlg.querySelector('.fj-cc-range-autohint');
+  if(!h){
+    h=document.createElement('div');h.className='fj-cc-range-autohint';
+    var note=dlg.querySelector('.fj-cc-range-note');
+    if(note&&note.parentNode)note.parentNode.insertBefore(h,note);else dlg.appendChild(h);
+  }
+  return h;
+}
+
+/* Sync the hidden dropdown with the currently selected client. */
+function apply(){
+  var sel=$('ccRangeSaved');if(!sel)return null;
+  var cli=$('ccRangeClient'),hit=pickFor(cli?cli.value:''),hint=ensureHint();
+  if(!hit){
+    sel.value='';
+    if(hint){hint.className='fj-cc-range-autohint empty';hint.textContent='Belum ada saved range untuk client ini. Simpan dulu lewat "Save / Overwrite Range".';}
+    return null;
+  }
+  var exists=Array.prototype.some.call(sel.options,function(o){return o.value===hit.id});
+  if(!exists){var o=document.createElement('option');o.value=hit.id;o.textContent=hit.id;sel.appendChild(o)}
+  sel.value=hit.id;
+  if(hint){
+    var nm=(hit.x.client&&hit.x.client.name)||(cli?cli.value:'')||'Client';
+    hint.className='fj-cc-range-autohint';
+    hint.textContent='Restore akan memakai saved range terakhir: '+nm+' • '+(hit.x.from||'?')+' → '+(hit.x.to||'?')+'.';
+  }
+  return hit;
+}
+
+function wire(){
+  var modal=$('ccRangeModal');if(!modal||modal.dataset.fjV35Wired)return;
+  modal.dataset.fjV35Wired='1';
+
+  var cli=$('ccRangeClient');
+  if(cli)cli.addEventListener('change',function(){setTimeout(apply,0)});
+
+  /* fillRangeDialog() rebuilds the option list on open and after save —
+     re-apply whenever that happens. Setting .value alone does not mutate
+     childList, so this converges instead of looping. */
+  var sel=$('ccRangeSaved');
+  if(sel){try{new MutationObserver(function(){setTimeout(apply,0)}).observe(sel,{childList:true})}catch(e){}}
+
+  /* Dialog opens by toggling the .open class. */
+  try{new MutationObserver(function(){if(modal.classList.contains('open'))setTimeout(apply,0)})
+    .observe(modal,{attributes:true,attributeFilter:['class']})}catch(e){}
+
+  /* Safety net only: capture phase runs before the original onclick, so
+     restoreRange() itself is untouched and just reads a fresh value. */
+  var rb=$('ccRangeRestore');
+  if(rb)rb.addEventListener('click',function(e){
+    var s=$('ccRangeSaved');
+    if(s&&s.value)return;
+    if(apply())return;
+    e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
+    alert('Belum ada saved range tersimpan untuk client ini.\nGunakan "Save / Overwrite Range" dulu, baru Restore.');
+  },true);
+
+  if(modal.classList.contains('open'))apply();
+}
+
+function boot(){wire()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,180)},{once:true});else setTimeout(boot,180);
+window.addEventListener('load',function(){setTimeout(boot,260)});
+var mo=new MutationObserver(function(){if($('ccRangeModal'))wire()});
+try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>

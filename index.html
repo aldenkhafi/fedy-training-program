@@ -3679,7 +3679,11 @@ function fjV31PrintSelectedClient(mode,fromDate,toDate){
  var modeText=mode==='session'?'SESSION TERPILIH':mode==='range'?('PERIODE '+fromDate+' s/d '+toDate):'SEMUA PROGRAM CLIENT';
  var h='<section class="cc-print-cover"><h1>CLIENT TRAINING PROGRAM</h1><h2>'+fjV30Esc(client.name||'Client')+'</h2><p style="margin-top:5mm;font-size:12px;font-weight:700">'+fjV30Esc(modeText)+'</p><div class="cc-print-client">';
  [['Client Name',client.name],['Age',client.age?(client.age+' years'):'' ],['Gender',client.gender],['Body Weight',client.weight?(client.weight+' kg'):'' ],['Height',client.height?(client.height+' cm'):'' ],['Goal',client.goal],['Fitness Level',client.level],['Workout Type',client.wtype],['Duration',client.duration?(client.duration+' months'):'' ],['Frequency',client.freq?(client.freq+' x / week'):'' ]].forEach(function(r){h+='<div><b>'+fjV30Esc(r[0])+'</b><span>'+fjV30Esc(r[1]||'—')+'</span></div>'});
- h+='</div><p style="margin-top:10mm;font-size:11px">Printed sessions: '+matches.length+'</p></section>';
+ h+='</div>';
+ var coverBA=ctx.selected.beforeAfter||blankBA();
+ var coverHasBA=['before','after'].some(function(side){var z=coverBA[side]||{};return Object.keys(z).some(function(q){return z[q]})});
+ if(coverHasBA){h+='<div class="cc-print-session-ba cc-print-cover-ba"><h3>BEFORE / AFTER — CLIENT</h3><div class="cc-progress-grid">';['before','after'].forEach(function(side){var z=coverBA[side]||{},ttl=side.toUpperCase(),img=z.image?'<img src="'+fjV30Esc(z.image)+'" alt="'+ttl+'">':'<div class="cc-progress-empty">No photo</div>';h+='<div class="cc-progress-card"><h2>'+ttl+'</h2><div class="cc-progress-photo">'+img+'</div><div class="cc-progress-fields">';[['Weight',z.weight],['Height',z.height],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['Body Fat',z.bodyFat],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Notes',z.notes]].forEach(function(v){h+='<div><b>'+fjV30Esc(v[0])+'</b><span>'+fjV30Esc(v[1]||'—')+'</span></div>'});h+='</div></div>'});h+='</div></div>'}
+ h+='<p style="margin-top:10mm;font-size:11px">Printed sessions: '+matches.length+'</p></section>';
  matches.forEach(function(k,i){var e=st.events[k]||{},ba=e.beforeAfter||blankBA();h+='<section class="cc-print-event"><h1>SESSION '+(i+1)+'</h1><h2>'+fjV30Esc(k.replace('T',' '))+' — '+fjV30Esc(e.title||'Training')+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';
  (e.exercises||[]).forEach(function(x){h+='<tr><td>'+fjV30Esc(x.exercise||x.name||'')+'</td><td>'+fjV30Esc(x.sets||'')+'</td><td>'+fjV30Esc(x.reps||'')+'</td><td>'+fjV30Esc(x.load||'')+'</td><td>'+fjV30Esc(x.rest||x.restTime||'—')+'</td></tr>'});
  h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+fjV30Esc(e.notes)+'</p>':'');
@@ -6297,6 +6301,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  #fj-v13-print-root .fj-pdf-ba-fields span,#fjProPrintRoot .fj-pdf-ba-fields span{margin-top:1mm!important;overflow-wrap:anywhere!important}
  #fjClientCalendarPrintRoot .cc-print-progress{break-after:page!important;page-break-after:always!important;min-height:245mm!important}
  #fjClientCalendarPrintRoot .cc-print-event{break-inside:avoid!important;page-break-inside:avoid!important}
+#fjClientCalendarPrintRoot .cc-print-cover-ba{margin-top:8mm!important}
+#fjClientCalendarPrintRoot .cc-print-cover-ba .cc-progress-card{break-inside:avoid!important;page-break-inside:avoid!important}
 }
 </style>
 <style id="fj-clean-v2-calendar-editor-only">
@@ -6508,8 +6514,9 @@ function q(id){return document.getElementById(id)}
 function reorderClientCalendarEditor(){
   var host=q('ccExercises');if(!host||!host.parentNode)return;
   var parent=host.parentNode, actions=parent.querySelector('.fj-cc-dialog-actions'), ba=q('fjV28SessionBA');
-  if(actions && actions.previousElementSibling!==host)parent.insertBefore(actions,host.nextSibling);
-  if(ba && ba.previousElementSibling!==actions)parent.insertBefore(ba,actions.nextSibling);
+  if(ba && ba.parentNode!==parent)parent.appendChild(ba);
+  if(actions && actions.parentNode===parent)parent.appendChild(actions);
+  if(ba && actions && ba.nextElementSibling!==actions)parent.insertBefore(ba,actions);
 }
 function syncGoalWorkoutType(){
   var goal=q('programGoal'),sel=q('programWorkoutType');

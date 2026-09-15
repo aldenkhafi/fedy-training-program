@@ -6787,3 +6787,141 @@ var mo=new MutationObserver(function(){if($('ccRangeModal'))wire()});
 try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
 })();
 </script>
+
+<!-- ================================================================= -->
+<!-- V37 — RESTORE ALL                                                  -->
+<!-- Save / Overwrite Range now also snapshots the WHOLE calendar, and  -->
+<!-- Restore brings back EVERYTHING that was ever saved (all clients,   -->
+<!-- all ranges, plus the last full-calendar snapshot) instead of only  -->
+<!-- the one most recent saved range.                                   -->
+<!-- Additive patch: original saveRange()/restoreRange() untouched;     -->
+<!-- the Restore button is re-bound to the full-restore handler.        -->
+<!-- ================================================================= -->
+<script id="fj-v37-restore-all-runtime">
+(function(){
+'use strict';
+var RANGE_STORE='fj_client_calendar_ranges_v1';
+var FULL_STORE='fj_client_calendar_full_snapshot_v1';
+
+function $(id){return document.getElementById(id)}
+function cc(){return window.fjClientCalendar||null}
+function clone(o){try{return JSON.parse(JSON.stringify(o))}catch(e){return o}}
+function stampOf(x){var t=Date.parse((x&&x.savedAt)||'');return isNaN(t)?0:t}
+function readMap(){try{return JSON.parse(localStorage.getItem(RANGE_STORE)||'{}')||{}}catch(e){return {}}}
+function readFull(){try{var r=localStorage.getItem(FULL_STORE);return r?JSON.parse(r):null}catch(e){return null}}
+function writeFull(o){try{localStorage.setItem(FULL_STORE,JSON.stringify(o));return true}catch(e){console.warn('FJ V37 full snapshot failed',e);return false}}
+
+/* ---------- SAVE SIDE: snapshot the whole calendar on every save ---------- */
+/* We snapshot only when the saved-range store actually changes, so pressing
+   "Batal" in the save-choice dialog does not write anything. */
+function currentEvents(){var c=cc();if(!c||typeof c.state!=='function')return null;var st=c.state();return st&&st.events?clone(st.events):null}
+
+function armSnapshot(){
+  var before=localStorage.getItem(RANGE_STORE)||'';
+  var pending=currentEvents();
+  if(!pending)return;
+  var tries=0;
+  var iv=setInterval(function(){
+    tries++;
+    var now=localStorage.getItem(RANGE_STORE)||'';
+    if(now!==before){
+      clearInterval(iv);
+      writeFull({version:'CLIENT_CALENDAR_FULL_V1',savedAt:new Date().toISOString(),events:pending});
+    }else if(tries>150){clearInterval(iv)}
+  },200);
+}
+
+/* ---------- RESTORE SIDE: merge everything that was ever saved ---------- */
+function collectSources(){
+  var out=[],map=readMap();
+  Object.keys(map).forEach(function(id){
+    var x=map[id];if(!x)return;
+    var evs={};
+    (x.events||[]).forEach(function(r){if(r&&r.key&&r.event)evs[r.key]=r.event});
+    out.push({t:stampOf(x),label:((x.client&&x.client.name)||'Client')+' • '+(x.from||'?')+' → '+(x.to||'?'),events:evs});
+  });
+  var full=readFull();
+  if(full&&full.events)out.push({t:stampOf(full),label:'Full calendar snapshot',events:full.events});
+  out.sort(function(a,b){return a.t-b.t}); /* oldest first, newest wins on conflict */
+  return out;
+}
+
+function restoreAll(){
+  var c=cc();
+  if(!c||typeof c.state!=='function'){alert('Client Calendar belum siap. Coba buka ulang tab Client Calendar.');return}
+  var sources=collectSources();
+  if(!sources.length){alert('Belum ada data tersimpan.\nGunakan "Save / Overwrite Range" dulu, baru Restore.');return}
+
+  var merged={};
+  sources.forEach(function(s){Object.keys(s.events).forEach(function(k){merged[k]=clone(s.events[k])})});
+  var keys=Object.keys(merged);
+  if(!keys.length){alert('Data tersimpan tidak berisi event apa pun.');return}
+
+  var st=c.state();
+  if(typeof c.pushHistory==='function')c.pushHistory();
+  st.events=st.events||{};
+  var added=0,replaced=0;
+  keys.forEach(function(k){if(st.events[k])replaced++;else added++;st.events[k]=merged[k]});
+
+  if(typeof c.render==='function')c.render();
+  if(typeof c.updateHistory==='function')c.updateHistory();
+
+  var clients={};
+  keys.forEach(function(k){var e=merged[k],n=e&&e.client&&e.client.name?String(e.client.name):'—';clients[n]=(clients[n]||0)+1});
+  var lines=Object.keys(clients).sort().map(function(n){return '• '+n+': '+clients[n]+' event'});
+  alert('Restore selesai — SEMUA data tersimpan dikembalikan.\n\n'
+    +'Total event: '+keys.length+' ('+added+' baru, '+replaced+' menimpa yang ada)\n'
+    +'Sumber data: '+sources.length+' simpanan\n\n'+lines.join('\n'));
+}
+
+/* ---------- WIRING ---------- */
+function updateHint(){
+  var dlg=document.querySelector('#ccRangeModal .fj-cc-range-dialog');if(!dlg)return;
+  var h=dlg.querySelector('.fj-cc-range-autohint');if(!h)return;
+  var sources=collectSources(),n=0;
+  sources.forEach(function(s){n+=Object.keys(s.events).length});
+  h.className='fj-cc-range-autohint'+(n?'':' empty');
+  h.textContent=n
+    ? 'Restore akan mengembalikan SEMUA data tersimpan: '+n+' event dari '+sources.length+' simpanan (semua client & semua range).'
+    : 'Belum ada data tersimpan. Gunakan "Save / Overwrite Range" dulu, baru Restore.';
+}
+
+function updateNote(){
+  var note=document.querySelector('#ccRangeModal .fj-cc-range-note');
+  if(note)note.textContent='Save / Overwrite menyimpan client + range terpilih DAN snapshot seluruh kalender di browser ini. Restore mengembalikan semua data yang pernah disimpan ke kalender, tanpa menghapus event lain.';
+}
+
+function wire(){
+  var modal=$('ccRangeModal');if(!modal)return;
+
+  var rb=$('ccRangeRestore');
+  if(rb&&!rb.dataset.fjV37){
+    /* Clone to drop the original onclick + the V35 capture guard, then bind ours. */
+    var fresh=rb.cloneNode(true);
+    fresh.dataset.fjV37='1';
+    fresh.textContent='↥ Restore All Saved Data';
+    rb.parentNode.replaceChild(fresh,rb);
+    fresh.addEventListener('click',function(e){e.preventDefault();restoreAll()});
+  }
+
+  var sb=$('ccRangeSave');
+  if(sb&&!sb.dataset.fjV37){
+    sb.dataset.fjV37='1';
+    sb.addEventListener('click',function(){armSnapshot()},true);
+  }
+
+  if(!modal.dataset.fjV37Obs){
+    modal.dataset.fjV37Obs='1';
+    try{new MutationObserver(function(){
+      if(modal.classList.contains('open'))setTimeout(function(){updateNote();updateHint()},60);
+    }).observe(modal,{attributes:true,attributeFilter:['class']})}catch(e){}
+  }
+  if(modal.classList.contains('open')){updateNote();updateHint()}
+}
+
+function boot(){wire()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,400)},{once:true});else setTimeout(boot,400);
+window.addEventListener('load',function(){setTimeout(boot,600)});
+setInterval(function(){if($('ccRangeModal'))wire()},1200);
+})();
+</script>

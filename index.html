@@ -3679,11 +3679,7 @@ function fjV31PrintSelectedClient(mode,fromDate,toDate){
  var modeText=mode==='session'?'SESSION TERPILIH':mode==='range'?('PERIODE '+fromDate+' s/d '+toDate):'SEMUA PROGRAM CLIENT';
  var h='<section class="cc-print-cover"><h1>CLIENT TRAINING PROGRAM</h1><h2>'+fjV30Esc(client.name||'Client')+'</h2><p style="margin-top:5mm;font-size:12px;font-weight:700">'+fjV30Esc(modeText)+'</p><div class="cc-print-client">';
  [['Client Name',client.name],['Age',client.age?(client.age+' years'):'' ],['Gender',client.gender],['Body Weight',client.weight?(client.weight+' kg'):'' ],['Height',client.height?(client.height+' cm'):'' ],['Goal',client.goal],['Fitness Level',client.level],['Workout Type',client.wtype],['Duration',client.duration?(client.duration+' months'):'' ],['Frequency',client.freq?(client.freq+' x / week'):'' ]].forEach(function(r){h+='<div><b>'+fjV30Esc(r[0])+'</b><span>'+fjV30Esc(r[1]||'—')+'</span></div>'});
- h+='</div>';
- var coverBA=ctx.selected.beforeAfter||blankBA();
- var coverHasBA=['before','after'].some(function(side){var z=coverBA[side]||{};return Object.keys(z).some(function(q){return z[q]})});
- if(coverHasBA){h+='<div class="cc-print-session-ba cc-print-cover-ba"><h3>BEFORE / AFTER — CLIENT</h3><div class="cc-progress-grid">';['before','after'].forEach(function(side){var z=coverBA[side]||{},ttl=side.toUpperCase(),img=z.image?'<img src="'+fjV30Esc(z.image)+'" alt="'+ttl+'">':'<div class="cc-progress-empty">No photo</div>';h+='<div class="cc-progress-card"><h2>'+ttl+'</h2><div class="cc-progress-photo">'+img+'</div><div class="cc-progress-fields">';[['Weight',z.weight],['Height',z.height],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['Body Fat',z.bodyFat],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Notes',z.notes]].forEach(function(v){h+='<div><b>'+fjV30Esc(v[0])+'</b><span>'+fjV30Esc(v[1]||'—')+'</span></div>'});h+='</div></div>'});h+='</div></div>'}
- h+='<p style="margin-top:10mm;font-size:11px">Printed sessions: '+matches.length+'</p></section>';
+ h+='</div><p style="margin-top:10mm;font-size:11px">Printed sessions: '+matches.length+'</p></section>';
  matches.forEach(function(k,i){var e=st.events[k]||{},ba=e.beforeAfter||blankBA();h+='<section class="cc-print-event"><h1>SESSION '+(i+1)+'</h1><h2>'+fjV30Esc(k.replace('T',' '))+' — '+fjV30Esc(e.title||'Training')+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';
  (e.exercises||[]).forEach(function(x){h+='<tr><td>'+fjV30Esc(x.exercise||x.name||'')+'</td><td>'+fjV30Esc(x.sets||'')+'</td><td>'+fjV30Esc(x.reps||'')+'</td><td>'+fjV30Esc(x.load||'')+'</td><td>'+fjV30Esc(x.rest||x.restTime||'—')+'</td></tr>'});
  h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+fjV30Esc(e.notes)+'</p>':'');
@@ -5693,6 +5689,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  #trainingClientCalendar .fj-cc-ex-row{grid-template-columns:minmax(180px,1fr) 70px 95px 90px 34px;min-width:610px}
  #trainingClientCalendar .fj-cc-dialog{padding:12px}
 }
+#fjClientCalendarPrintRoot{display:none}
+@media print{
+ html.fj-v17-cc-printing #fjClientCalendarPrintRoot{display:block!important;position:static!important;width:100%!important;background:#fff!important;color:#111!important;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:1.35;padding:12px!important}
+ html.fj-v17-cc-printing body>*:not(#fjClientCalendarPrintRoot){display:none!important}
+ html.fj-v17-cc-printing .cc-print-cover{break-after:page;page-break-after:always}
+ html.fj-v17-cc-printing .cc-print-event{break-inside:avoid;margin-bottom:20px}
+ html.fj-v17-cc-printing .cc-print-client table,html.fj-v17-cc-printing .cc-print-ba table,html.fj-v17-cc-printing .cc-print-training table{width:100%;border-collapse:collapse;margin:6px 0 10px}
+ html.fj-v17-cc-printing th,html.fj-v17-cc-printing td{border:1px solid #cfd8dc;padding:5px;text-align:left;vertical-align:top}
+ html.fj-v17-cc-printing .cc-print-client th,html.fj-v17-cc-printing .cc-print-ba th{width:30%;background:#f3f6f7}
+ html.fj-v17-cc-printing .cc-print-ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ html.fj-v17-cc-printing .cc-print-ba-card{break-inside:avoid}
+ html.fj-v17-cc-printing .cc-print-ba-card img{display:block;max-width:180px;max-height:180px;object-fit:contain;margin-bottom:6px}
+}
 </style>
 <script id="fj-v17-client-calendar-runtime">
 (function(){
@@ -5764,7 +5773,20 @@ function fillRangeDialog(){var m=ensureRangeDialog(),sel=$('ccRangeClient'),name
 function rangePayload(){var name=$('ccRangeClient').value,from=$('ccRangeFrom').value,to=$('ccRangeTo').value;if(!name||!from||!to){alert('Pilih client dan tanggal From / To.');return null}if(from>to){alert('Tanggal From tidak boleh setelah To.');return null}var evs=rangeEvents(name,from,to);return {version:'CLIENT_CALENDAR_RANGE_V1',savedAt:new Date().toISOString(),client:{name:name},from:from,to:to,events:evs}}
 function saveRange(){var p=rangePayload();if(!p)return;var map=savedRangeMap(),id=rangeId(p.client.name,p.from,p.to),old=map[id];if(old&&!window.confirm('Data saved untuk client dan date range ini akan di-overwrite. Lanjutkan?'))return;map[id]=p;try{localStorage.setItem(RANGE_STORE,JSON.stringify(map));var blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FitnessJourney_'+p.client.name.replace(/[^a-z0-9_-]+/gi,'_')+'_'+p.from+'_'+p.to+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);fillRangeDialog();alert((old?'Range berhasil di-overwrite. ':'Range berhasil disimpan. ')+'File JSON juga dibuat untuk backup.')}catch(e){alert('Range gagal disimpan: '+e.message)}}
 function restoreRange(){var id=$('ccRangeSaved').value;if(!id){alert('Pilih saved range terlebih dahulu.');return}var p=savedRangeMap()[id];if(!p)return;pushHistory();var added=0;Object.keys(ccState.events||{}).forEach(function(k){var date=k.slice(0,10);if(date>=p.from&&date<=p.to&&ccState.events[k]&&ccState.events[k].client&&ccState.events[k].client.name===p.client.name)delete ccState.events[k]});(p.events||[]).forEach(function(x){if(x&&x.key&&x.event){ccState.events[x.key]=clone(x.event);added++}});renderCalendar();updateHistory();alert(added+' event(s) dari saved range berhasil di-restore.')}
-function printRange(){var p=rangePayload();if(!p)return;var old=document.getElementById('fjClientCalendarPrintRoot');if(old)old.remove();var root=document.createElement('div');root.id='fjClientCalendarPrintRoot';var h='<section class="cc-print-cover"><h1>CLIENT CALENDAR</h1><p><b>'+esc(p.client.name)+'</b> • '+esc(p.from)+' → '+esc(p.to)+'</p></section>';if(!p.events.length)h+='<p>No events found in selected range.</p>';p.events.forEach(function(x){var e=x.event||{};h+='<section class="cc-print-event"><h2>'+esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';(e.exercises||[]).forEach(function(r){h+='<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td></tr>'});h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'')+'</section>'});root.innerHTML=h;document.body.appendChild(root);var oldTitle=document.title;document.title='Client Calendar — '+p.client.name+' — '+p.from+' to '+p.to;document.documentElement.classList.add('fj-v17-cc-printing');function clean(){document.documentElement.classList.remove('fj-v17-cc-printing');var r=document.getElementById('fjClientCalendarPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}window.addEventListener('afterprint',clean,{once:true});try{window.print()}catch(e){console.error('Client Calendar print failed',e);clean()}}
+function printRange(){
+ var p=rangePayload();if(!p)return;
+ var old=document.getElementById('fjClientCalendarPrintRoot');if(old)old.remove();
+ var root=document.createElement('div');root.id='fjClientCalendarPrintRoot';
+ function clientTable(c){c=c||{};var rows=[['Client Name',c.name],['Age',c.age],['Gender',c.gender],['Weight (kg)',c.weight],['Height (cm)',c.height],['Goal',c.goal],['Fitness Level',c.level],['Workout Type',c.wtype],['Duration (months)',c.duration],['Frequency / week',c.freq]];var out='<div class="cc-print-client"><h3>CLIENT DATA</h3><table><tbody>';rows.forEach(function(r){out+='<tr><th>'+esc(r[0])+'</th><td>'+esc(r[1]||'—')+'</td></tr>'});return out+'</tbody></table></div>'}
+ function baBlock(ba){ba=ba||{};function side(o,title){o=o||{};var img=o.image?'<img src="'+esc(o.image)+'" alt="'+title+'">':'';return '<div class="cc-print-ba-card"><h4>'+title+'</h4>'+img+'<table><tbody>'+[['Weight',o.weight],['Height',o.height],['BMI',o.bmi],['Skeletal Muscle',o.skeletalMuscle],['Body Fat',o.bodyFat],['WHR',o.whr],['Visceral Fat',o.visceralFat],['BMR',o.bmr],['Notes',o.notes]].map(function(r){return '<tr><th>'+esc(r[0])+'</th><td>'+esc(r[1]||'—')+'</td></tr>'}).join('')+'</tbody></table></div>'}return '<div class="cc-print-ba"><h3>BEFORE / AFTER</h3><div class="cc-print-ba-grid">'+side(ba.before,'BEFORE')+side(ba.after,'AFTER')+'</div></div>'}
+ var h='<section class="cc-print-cover"><h1>CLIENT CALENDAR</h1><p><b>'+esc(p.client.name)+'</b> • '+esc(p.from)+' → '+esc(p.to)+'</p></section>';
+ if(!p.events.length)h+='<p>No events found in selected range.</p>';
+ p.events.forEach(function(x){var e=x.event||{},c=e.client||p.client||{},ba=e.beforeAfter||{};h+='<section class="cc-print-event"><h2>'+esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2>'+clientTable(c)+baBlock(ba)+'<div class="cc-print-training"><h3>TRAINING</h3><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';(e.exercises||[]).forEach(function(r){h+='<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td></tr>'});h+='</tbody></table></div>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'')+'</section>'});
+ root.innerHTML=h;document.body.appendChild(root);
+ var oldTitle=document.title;document.title='Client Calendar — '+p.client.name+' — '+p.from+' to '+p.to;document.documentElement.classList.add('fj-v17-cc-printing');
+ function clean(){document.documentElement.classList.remove('fj-v17-cc-printing');var r=document.getElementById('fjClientCalendarPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}
+ window.addEventListener('afterprint',clean,{once:true});try{window.print()}catch(e){console.error('Client Calendar print failed',e);clean()}
+}
 function openRange(){fillRangeDialog();$('ccRangeModal').classList.add('open')}
 function bindRangeDialog(){if($('ccRangeClose'))$('ccRangeClose').onclick=function(){$('ccRangeModal').classList.remove('open')};if($('ccRangeSave'))$('ccRangeSave').onclick=saveRange;if($('ccRangeRestore'))$('ccRangeRestore').onclick=restoreRange;if($('ccRangePrint'))$('ccRangePrint').onclick=printRange}
 function renderCalendar(){var out=$('ccCalendar');if(!out)return;var y=ccState.year,m=ccState.month,days=daysInMonth(y,m);out.style.setProperty('--cc-days',days);var html='<div class="fj-cc-calendar">';html+='<div class="fj-cc-head" style="position:sticky;left:0;z-index:7">TIME</div>';var dnames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];for(var d=1;d<=days;d++){var dt=new Date(y,m,d),dow=dnames[dt.getDay()];html+='<div class="fj-cc-head"><span class="daynum">'+d+'</span><span class="dow">'+dow+'</span></div>'}for(var h=0;h<24;h++){html+='<div class="fj-cc-time">'+String(h).padStart(2,'0')+':00</div>';for(d=1;d<=days;d++){var date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),k=key(date,h),ev=ccState.events[k],today=(new Date().getFullYear()===y&&new Date().getMonth()===m&&new Date().getDate()===d),owner=ev&&ev.client&&ev.client.name?String(ev.client.name):'',meta=ev?((owner?owner+' • ':'')+(ev.client&&ev.client.goal?'Goal: '+ev.client.goal+' • ':'')+(ev.client&&ev.client.wtype?'Type: '+ev.client.wtype:'')):'';var ex=ev&&ev.exercises?ev.exercises.map(function(x){return x.exercise}).filter(Boolean).join(' • '):'';html+='<div class="fj-cc-cell '+(today?'today':'')+'" data-cc-key="'+k+'">'+(ev?'<div class="fj-cc-event"><strong>'+esc(ev.title||'Training')+'</strong><small>'+esc(meta)+'</small><small>'+esc(ex)+'</small></div>':'')+'</div>'}}html+='</div>';out.innerHTML=html;out.querySelectorAll('[data-cc-key]').forEach(function(cell){cell.onclick=function(e){if(e)e.preventDefault();openEditor(this.dataset.ccKey)}});var title=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}),t=$('ccMonthTitle');if(t)t.textContent=title}
@@ -6301,8 +6323,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  #fj-v13-print-root .fj-pdf-ba-fields span,#fjProPrintRoot .fj-pdf-ba-fields span{margin-top:1mm!important;overflow-wrap:anywhere!important}
  #fjClientCalendarPrintRoot .cc-print-progress{break-after:page!important;page-break-after:always!important;min-height:245mm!important}
  #fjClientCalendarPrintRoot .cc-print-event{break-inside:avoid!important;page-break-inside:avoid!important}
-#fjClientCalendarPrintRoot .cc-print-cover-ba{margin-top:8mm!important}
-#fjClientCalendarPrintRoot .cc-print-cover-ba .cc-progress-card{break-inside:avoid!important;page-break-inside:avoid!important}
 }
 </style>
 <style id="fj-clean-v2-calendar-editor-only">
@@ -6514,9 +6534,9 @@ function q(id){return document.getElementById(id)}
 function reorderClientCalendarEditor(){
   var host=q('ccExercises');if(!host||!host.parentNode)return;
   var parent=host.parentNode, actions=parent.querySelector('.fj-cc-dialog-actions'), ba=q('fjV28SessionBA');
-  if(ba && ba.parentNode!==parent)parent.appendChild(ba);
+  /* Requested order only: exercises -> Before/After -> Cancel/Save Training. */
+  if(ba && ba.parentNode===parent)parent.appendChild(ba);
   if(actions && actions.parentNode===parent)parent.appendChild(actions);
-  if(ba && actions && ba.nextElementSibling!==actions)parent.insertBefore(ba,actions);
 }
 function syncGoalWorkoutType(){
   var goal=q('programGoal'),sel=q('programWorkoutType');

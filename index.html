@@ -5755,8 +5755,8 @@ function rangeId(name,from,to){return String(name||'').trim().toLowerCase()+'|'+
 function rangeEvents(name,from,to){var out=[];Object.keys(ccState.events||{}).sort().forEach(function(k){var date=k.slice(0,10),ev=ccState.events[k];if(date<from||date>to)return;var owner=ev&&ev.client&&ev.client.name?String(ev.client.name):'';if(name&&owner!==name)return;out.push({key:k,event:clone(ev)})});return out}
 function eventClientNames(){var names={},c=client();if(c.name&&c.name!=='—')names[c.name]=1;Object.keys(ccState.events||{}).forEach(function(k){var n=ccState.events[k]&&ccState.events[k].client&&ccState.events[k].client.name;if(n)names[String(n)]=1});return Object.keys(names).sort()}
 function formatDateInput(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
-function ensureRangeDialog(){var host=$('ccRangeModal');if(host)return host;host=document.createElement('div');host.id='ccRangeModal';host.className='fj-cc-range-modal';host.innerHTML='<div class="fj-cc-range-dialog"><div class="fj-cc-range-head"><h3>Print / Save Date Range</h3><button type="button" class="btn alt" id="ccRangeClose">×</button></div><div class="fj-cc-range-grid"><div class="field"><label>Client</label><select id="ccRangeClient"></select></div><div class="field"><label>From</label><input id="ccRangeFrom" type="date"></div><div class="field"><label>To</label><input id="ccRangeTo" type="date"></div></div><div class="fj-cc-range-saved"><label>Saved ranges</label><select id="ccRangeSaved"><option value="">— Select saved range to restore / overwrite —</option></select></div><div class="fj-cc-range-actions"><button type="button" class="btn alt" id="ccRangeRestore">↥ Restore Saved Range</button><button type="button" class="btn alt" id="ccRangeSave">💾 Save / Overwrite Range</button><button type="button" class="btn" id="ccRangePrint">▣ Print Range</button></div><div class="fj-cc-range-note">Save / Overwrite stores the selected client + date range in this browser. Restore puts the saved events back into the current calendar without deleting other events.</div></div>';document.body.appendChild(host);bindRangeDialog();return host}
-function fillRangeDialog(){var m=ensureRangeDialog(),sel=$('ccRangeClient'),names=eventClientNames(),current=client().name||'';sel.innerHTML=names.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');if(names.indexOf(current)>=0)sel.value=current;var from=formatDateInput(new Date(ccState.year,ccState.month,1)),to=formatDateInput(new Date(ccState.year,ccState.month+1,0));$('ccRangeFrom').value=from;$('ccRangeTo').value=to;var saved=$('ccRangeSaved'),map=savedRangeMap();saved.innerHTML='<option value="">— Select saved range to restore / overwrite —</option>'+Object.keys(map).sort().map(function(id){var x=map[id];return '<option value="'+esc(id)+'">'+esc(x.client&&x.client.name?x.client.name:'Client')+' • '+esc(x.from)+' → '+esc(x.to)+'</option>'}).join('')}
+function ensureRangeDialog(){var host=$('ccRangeModal');if(host)return host;host=document.createElement('div');host.id='ccRangeModal';host.className='fj-cc-range-modal';host.innerHTML='<div class="fj-cc-range-dialog"><div class="fj-cc-range-head"><h3>Print / Save Date Range</h3><button type="button" class="btn alt" id="ccRangeClose">×</button></div><div class="fj-cc-range-grid"><div class="field"><label>Client</label><select id="ccRangeClient"></select></div><div class="field"><label>From</label><input id="ccRangeFrom" type="date"></div><div class="field"><label>To</label><input id="ccRangeTo" type="date"></div></div><div class="fj-cc-range-saved"><label>Saved ranges</label><select id="ccRangeSaved"><option value=""></option></select></div><div class="fj-cc-range-actions"><button type="button" class="btn alt" id="ccRangeRestore">↥ Restore Saved Range</button><button type="button" class="btn alt" id="ccRangeSave">💾 Save / Overwrite Range</button><button type="button" class="btn" id="ccRangePrint">▣ Print Range</button></div><div class="fj-cc-range-note">Save / Overwrite stores the selected client + date range in this browser. Restore puts the saved events back into the current calendar without deleting other events.</div></div>';document.body.appendChild(host);bindRangeDialog();return host}
+function fillRangeDialog(){var m=ensureRangeDialog(),sel=$('ccRangeClient'),names=eventClientNames(),current=client().name||'';sel.innerHTML=names.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>'}).join('');if(names.indexOf(current)>=0)sel.value=current;var from=formatDateInput(new Date(ccState.year,ccState.month,1)),to=formatDateInput(new Date(ccState.year,ccState.month+1,0));$('ccRangeFrom').value=from;$('ccRangeTo').value=to;var saved=$('ccRangeSaved'),map=savedRangeMap();saved.innerHTML='<option value=""></option>'+Object.keys(map).sort().map(function(id){var x=map[id];return '<option value="'+esc(id)+'">'+esc(x.client&&x.client.name?x.client.name:'Client')+' • '+esc(x.from)+' → '+esc(x.to)+'</option>'}).join('')}
 function rangePayload(){var name=$('ccRangeClient').value,from=$('ccRangeFrom').value,to=$('ccRangeTo').value;if(!name||!from||!to){alert('Pilih client dan tanggal From / To.');return null}if(from>to){alert('Tanggal From tidak boleh setelah To.');return null}var evs=rangeEvents(name,from,to);return {version:'CLIENT_CALENDAR_RANGE_V1',savedAt:new Date().toISOString(),client:{name:name},from:from,to:to,events:evs}}
 function saveRange(){var p=rangePayload();if(!p)return;var map=savedRangeMap(),id=rangeId(p.client.name,p.from,p.to),old=map[id];if(old&&!window.confirm('Data saved untuk client dan date range ini akan di-overwrite. Lanjutkan?'))return;map[id]=p;try{localStorage.setItem(RANGE_STORE,JSON.stringify(map));var blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FitnessJourney_'+p.client.name.replace(/[^a-z0-9_-]+/gi,'_')+'_'+p.from+'_'+p.to+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);fillRangeDialog();alert((old?'Range berhasil di-overwrite. ':'Range berhasil disimpan. ')+'File JSON juga dibuat untuk backup.')}catch(e){alert('Range gagal disimpan: '+e.message)}}
 function restoreRange(){var id=$('ccRangeSaved').value;if(!id){alert('Pilih saved range terlebih dahulu.');return}var p=savedRangeMap()[id];if(!p)return;pushHistory();var added=0;Object.keys(ccState.events||{}).forEach(function(k){var date=k.slice(0,10);if(date>=p.from&&date<=p.to&&ccState.events[k]&&ccState.events[k].client&&ccState.events[k].client.name===p.client.name)delete ccState.events[k]});(p.events||[]).forEach(function(x){if(x&&x.key&&x.event){ccState.events[x.key]=clone(x.event);added++}});renderCalendar();updateHistory();alert(added+' event(s) dari saved range berhasil di-restore.')}
@@ -6564,14 +6564,16 @@ try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
 })();
 </script>
 
-<!-- V33 REQUESTED REVISION: Print / Save Date Range — put Client data on its own sheet, -->
-<!-- then Before/After (if present) on its own sheet, then the exercises on the sheet(s) after that, -->
-<!-- repeating for every session in the selected range. This overrides only printRange(); -->
-<!-- nothing else (including the other print flow used by the "Print" button inside a session) is touched. -->
-<style id="fj-v33-daterange-ba-page">
+<!-- V34 REQUESTED REVISION: Print / Save Date Range — the cover sheet now includes the -->
+<!-- client data (name, age, gender, weight, height, goal, level, workout type, duration, -->
+<!-- frequency), pulled from the matching client on the sessions in the selected range. -->
+<!-- Sessions (with their Before/After, when filled in) no longer force a new sheet each; -->
+<!-- they flow continuously down one sheet and only move to the next sheet when the -->
+<!-- current one is full. This overrides only printRange(); nothing else (including the -->
+<!-- other print flow used by the "Print" button inside a session) is touched. -->
+<style id="fj-v34-daterange-flow-page">
 @media print{
- html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-ba-page{display:block!important;min-height:245mm!important;box-sizing:border-box!important;padding:8mm!important;break-before:page!important;page-break-before:always!important;break-after:page!important;page-break-after:always!important}
- html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-event-page{break-before:page!important;page-break-before:always!important}
+ html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-session-ba{break-inside:avoid;page-break-inside:avoid;margin-top:4mm}
 }
 </style>
 <script id="fj-v33-daterange-print-runtime">
@@ -6605,18 +6607,36 @@ function buildRangePayload(){
   });
   return {client:{name:name},from:from,to:to,events:events};
 }
+function findRangeClientInfo(p){
+  var name=String(p.client.name||'').trim().toLowerCase();
+  for(var i=0;i<p.events.length;i++){
+    var c=p.events[i].event&&p.events[i].event.client;
+    if(c&&String(c.name||'').trim().toLowerCase()===name)return c;
+  }
+  return {name:p.client.name};
+}
 function printRangeWithBA(){
   var p=buildRangePayload();if(!p)return;
+  var clientInfo=findRangeClientInfo(p);
   var old=document.getElementById('fjClientCalendarPrintRoot');if(old)old.remove();
   var root=document.createElement('div');root.id='fjClientCalendarPrintRoot';
-  var h='<section class="cc-print-cover"><h1>CLIENT CALENDAR</h1><p><b>'+esc(p.client.name)+'</b> • '+esc(p.from)+' → '+esc(p.to)+'</p></section>';
+  var h='<section class="cc-print-cover"><h1>CLIENT CALENDAR</h1><h2>'+esc(clientInfo.name||p.client.name)+'</h2><p style="margin-top:5mm;font-size:12px;font-weight:700">PERIODE '+esc(p.from)+' s/d '+esc(p.to)+'</p><div class="cc-print-client">';
+  [['Client Name',clientInfo.name],['Age',clientInfo.age?(clientInfo.age+' years'):''],['Gender',clientInfo.gender],['Body Weight',clientInfo.weight?(clientInfo.weight+' kg'):''],['Height',clientInfo.height?(clientInfo.height+' cm'):''],['Goal',clientInfo.goal],['Fitness Level',clientInfo.level],['Workout Type',clientInfo.wtype],['Duration',clientInfo.duration?(clientInfo.duration+' months'):''],['Frequency',clientInfo.freq?(clientInfo.freq+' x / week'):'']].forEach(function(r){
+    h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1]||'—')+'</span></div>';
+  });
+  h+='</div><p style="margin-top:10mm;font-size:11px">Printed sessions: '+p.events.length+'</p></section>';
   if(!p.events.length)h+='<p>No events found in selected range.</p>';
   p.events.forEach(function(x){
     var e=x.event||{};
     var ba=(e.beforeAfter&&typeof e.beforeAfter==='object')?e.beforeAfter:{before:{},after:{}};
     var label=esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training');
+    h+='<section class="cc-print-event"><h2>'+label+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';
+    (e.exercises||[]).forEach(function(r){
+      h+='<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td></tr>';
+    });
+    h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'');
     if(hasBAData(ba)){
-      h+='<section class="cc-print-ba-page"><h2>'+label+'</h2><h3>BEFORE / AFTER — TRAINING DAY</h3><div class="cc-progress-grid">';
+      h+='<div class="cc-print-session-ba"><h3>BEFORE / AFTER — TRAINING DAY</h3><div class="cc-progress-grid">';
       ['before','after'].forEach(function(side){
         var z=ba[side]||{},ttl=side.toUpperCase();
         var img=z.image?'<img src="'+esc(z.image)+'" alt="'+ttl+'">':'<div class="cc-progress-empty">No photo</div>';
@@ -6626,13 +6646,9 @@ function printRangeWithBA(){
         });
         h+='</div></div>';
       });
-      h+='</div></section>';
+      h+='</div>';
     }
-    h+='<section class="cc-print-event cc-print-event-page"><h2>'+label+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';
-    (e.exercises||[]).forEach(function(r){
-      h+='<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td></tr>';
-    });
-    h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'')+'</section>';
+    h+='</section>';
   });
   root.innerHTML=h;document.body.appendChild(root);
   var oldTitle=document.title;document.title='Client Calendar — '+p.client.name+' — '+p.from+' to '+p.to;

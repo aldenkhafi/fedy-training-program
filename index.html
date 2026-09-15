@@ -6495,6 +6495,7 @@ function syncGoalWorkoutType(){
   var current=sel.value;
   if(!sel.dataset.fjV30All)sel.dataset.fjV30All=sel.innerHTML;
   var src=document.createElement('select');src.innerHTML=sel.dataset.fjV30All;
+  
   src.querySelectorAll('option').forEach(function(o){if(allowed.indexOf(o.value)<0)o.remove();});
   src.querySelectorAll('optgroup').forEach(function(g){if(!g.querySelector('option'))g.remove();});
   sel.innerHTML=src.innerHTML;

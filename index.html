@@ -6534,3 +6534,126 @@ window.addEventListener('load',function(){setTimeout(bind,120)});
 var mo=new MutationObserver(function(){reorderClientCalendarEditor();});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
 })();
 </script>
+<!-- V32 REQUESTED REVISION: move Delete / Cancel / Save Training buttons to AFTER Before/After. -->
+<!-- Only these 3 buttons move. Add Exercise Recommended/General, Undo, Redo stay exactly where they are. -->
+<!-- Nothing else in the file is modified. -->
+<script id="fj-v32-move-actions-bottom">
+(function(){
+'use strict';
+function q(id){return document.getElementById(id)}
+function moveDialogActionsBottom(){
+  var del=q('ccDeleteEvent'),cancel=q('ccCancel'),save=q('ccSaveEvent');
+  if(!del||!cancel||!save)return;
+  var ba=q('fjV28SessionBA');if(!ba||!ba.parentNode)return;
+  var bottom=q('fjV32BottomActions');
+  if(!bottom){
+    bottom=document.createElement('div');
+    bottom.id='fjV32BottomActions';
+    bottom.className='fj-cc-dialog-actions';
+  }
+  if(bottom.parentNode!==ba.parentNode||bottom.previousElementSibling!==ba){
+    ba.parentNode.insertBefore(bottom,ba.nextSibling);
+  }
+  [del,cancel,save].forEach(function(btn){ if(btn.parentNode!==bottom) bottom.appendChild(btn); });
+}
+function bind(){ moveDialogActionsBottom(); }
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,150)},{once:true});else setTimeout(bind,150);
+window.addEventListener('load',function(){setTimeout(bind,220)});
+var mo=new MutationObserver(function(){moveDialogActionsBottom();});
+try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>
+
+<!-- V33 REQUESTED REVISION: Print / Save Date Range — put Client data on its own sheet, -->
+<!-- then Before/After (if present) on its own sheet, then the exercises on the sheet(s) after that, -->
+<!-- repeating for every session in the selected range. This overrides only printRange(); -->
+<!-- nothing else (including the other print flow used by the "Print" button inside a session) is touched. -->
+<style id="fj-v33-daterange-ba-page">
+@media print{
+ html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-ba-page{display:block!important;min-height:245mm!important;box-sizing:border-box!important;padding:8mm!important;break-before:page!important;page-break-before:always!important;break-after:page!important;page-break-after:always!important}
+ html.fj-v17-cc-printing #fjClientCalendarPrintRoot .cc-print-event-page{break-before:page!important;page-break-before:always!important}
+}
+</style>
+<script id="fj-v33-daterange-print-runtime">
+(function(){
+'use strict';
+/* The original printRange() lives inside a private closure, so instead of
+   overriding it, we intercept the "Print Range" button click in the capture
+   phase (stopImmediatePropagation) and run our own equivalent build using
+   the public window.fjClientCalendar.state() data — same source of truth,
+   same date-range/client filtering, only the generated HTML differs. */
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function hasBAData(ba){
+  if(!ba)return false;
+  return ['before','after'].some(function(side){var z=ba[side]||{};return Object.keys(z).some(function(q){return z[q]})});
+}
+function buildRangePayload(){
+  var nameEl=document.getElementById('ccRangeClient'),fromEl=document.getElementById('ccRangeFrom'),toEl=document.getElementById('ccRangeTo');
+  if(!nameEl||!fromEl||!toEl)return null;
+  var name=nameEl.value,from=fromEl.value,to=toEl.value;
+  if(!name||!from||!to){alert('Pilih client dan tanggal From / To.');return null}
+  if(from>to){alert('Tanggal From tidak boleh setelah To.');return null}
+  var cal=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;
+  var all=(cal&&cal.events)||{};
+  var events=[];
+  Object.keys(all).sort().forEach(function(k){
+    var date=k.slice(0,10),ev=all[k];
+    if(date<from||date>to)return;
+    var owner=ev&&ev.client&&ev.client.name?String(ev.client.name):'';
+    if(name&&owner!==name)return;
+    events.push({key:k,event:JSON.parse(JSON.stringify(ev))});
+  });
+  return {client:{name:name},from:from,to:to,events:events};
+}
+function printRangeWithBA(){
+  var p=buildRangePayload();if(!p)return;
+  var old=document.getElementById('fjClientCalendarPrintRoot');if(old)old.remove();
+  var root=document.createElement('div');root.id='fjClientCalendarPrintRoot';
+  var h='<section class="cc-print-cover"><h1>CLIENT CALENDAR</h1><p><b>'+esc(p.client.name)+'</b> • '+esc(p.from)+' → '+esc(p.to)+'</p></section>';
+  if(!p.events.length)h+='<p>No events found in selected range.</p>';
+  p.events.forEach(function(x){
+    var e=x.event||{};
+    var ba=(e.beforeAfter&&typeof e.beforeAfter==='object')?e.beforeAfter:{before:{},after:{}};
+    var label=esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training');
+    if(hasBAData(ba)){
+      h+='<section class="cc-print-ba-page"><h2>'+label+'</h2><h3>BEFORE / AFTER — TRAINING DAY</h3><div class="cc-progress-grid">';
+      ['before','after'].forEach(function(side){
+        var z=ba[side]||{},ttl=side.toUpperCase();
+        var img=z.image?'<img src="'+esc(z.image)+'" alt="'+ttl+'">':'<div class="cc-progress-empty">No photo</div>';
+        h+='<div class="cc-progress-card"><h2>'+ttl+'</h2><div class="cc-progress-photo">'+img+'</div><div class="cc-progress-fields">';
+        [['Weight',z.weight],['Height',z.height],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['Body Fat',z.bodyFat],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Notes',z.notes]].forEach(function(v){
+          h+='<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>';
+        });
+        h+='</div></div>';
+      });
+      h+='</div></section>';
+    }
+    h+='<section class="cc-print-event cc-print-event-page"><h2>'+label+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';
+    (e.exercises||[]).forEach(function(r){
+      h+='<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td></tr>';
+    });
+    h+='</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'')+'</section>';
+  });
+  root.innerHTML=h;document.body.appendChild(root);
+  var oldTitle=document.title;document.title='Client Calendar — '+p.client.name+' — '+p.from+' to '+p.to;
+  document.documentElement.classList.add('fj-v17-cc-printing');
+  function clean(){document.documentElement.classList.remove('fj-v17-cc-printing');var r=document.getElementById('fjClientCalendarPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}
+  window.addEventListener('afterprint',clean,{once:true});
+  try{window.print()}catch(err){console.error('Client Calendar print failed',err);clean()}
+}
+function hookPrintButton(){
+  var b=document.getElementById('ccRangePrint');
+  if(!b||b.dataset.fjV33Hooked)return;
+  b.dataset.fjV33Hooked='1';
+  b.addEventListener('click',function(e){
+    e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
+    printRangeWithBA();
+  },true);
+}
+function bind(){hookPrintButton();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,180)},{once:true});else setTimeout(bind,180);
+window.addEventListener('load',function(){setTimeout(bind,260)});
+var mo2=new MutationObserver(function(){hookPrintButton();});
+try{mo2.observe(document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>

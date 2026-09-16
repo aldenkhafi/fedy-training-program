@@ -5003,7 +5003,7 @@ function updateProHistoryButtons(){
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function optionList(id){const e=$(id);return e?e.innerHTML:''}
 function makeField(label,id,html,cls){return '<div class="field '+(cls||'')+'"><label>'+label+'</label>'+html.replace('<select ','<select id="'+id+'" ').replace('<input ','<input id="'+id+'" ')+'</div>'}
-function selectFrom(masterId,proId){const m=$(masterId);return '<select id="'+proId+'">'+(m?m.innerHTML:'')+'</select>'}
+function selectFrom(masterId,proId){const m=$(masterId);/* FJ-V39 FIX: prefer the master's true full option snapshot (dataset.fjAllWorkoutOptions) over its current (possibly goal-reduced) innerHTML, so PRO starts with the complete, varied list before its own goal filter runs. */const html=(m&&m.dataset&&m.dataset.fjAllWorkoutOptions)?m.dataset.fjAllWorkoutOptions:(m?m.innerHTML:'');return '<select id="'+proId+'">'+html+'</select>'}
 function inputFrom(masterId,proId,type){const m=$(masterId);return '<input id="'+proId+'" type="'+type+'" min="'+(m?.min||'')+'" max="'+(m?.max||'')+'" placeholder="'+esc(m?.placeholder||'')+'">'}
 function buildPanel(){
  if($('trainingPro'))return;
@@ -6515,12 +6515,21 @@ function reorderClientCalendarEditor(){
   if(ba && ba.previousElementSibling!==actions)parent.insertBefore(ba,actions.nextSibling);
 }
 function syncGoalWorkoutType(){
+  /* FJ-V39 FIX: this used to keep its own separate "all options" snapshot
+     (dataset.fjV30All), captured whenever it first ran — which could already
+     be a goal-reduced subset (e.g. only Fat Loss's ~20 types) rather than the
+     true full 36-type list, causing later goal switches to collapse to almost
+     nothing. filterWorkoutTypesByGoal() (defined earlier in this file) is the
+     canonical implementation and always rebuilds from the correct full
+     snapshot (dataset.fjAllWorkoutOptions), so just delegate to it. */
+  if(typeof window.filterWorkoutTypesByGoal==='function'){window.filterWorkoutTypesByGoal();return;}
   var goal=q('programGoal'),sel=q('programWorkoutType');
   if(!goal||!sel||typeof window.allowedWorkoutTypesForGoal!=='function')return;
   var allowed=window.allowedWorkoutTypesForGoal(goal.value||'General Fitness')||[];
   var current=sel.value;
-  if(!sel.dataset.fjV30All)sel.dataset.fjV30All=sel.innerHTML;
-  var src=document.createElement('select');src.innerHTML=sel.dataset.fjV30All;
+  var fullSrc=sel.dataset.fjAllWorkoutOptions||sel.innerHTML;
+  if(!sel.dataset.fjAllWorkoutOptions)sel.dataset.fjAllWorkoutOptions=fullSrc;
+  var src=document.createElement('select');src.innerHTML=fullSrc;
   src.querySelectorAll('option').forEach(function(o){if(allowed.indexOf(o.value)<0)o.remove();});
   src.querySelectorAll('optgroup').forEach(function(g){if(!g.querySelector('option'))g.remove();});
   sel.innerHTML=src.innerHTML;
@@ -7388,17 +7397,31 @@ try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
 (function(){
 'use strict';
 function q(id){return document.getElementById(id)}
+function trueFullWorkoutTypeHtml(wtypeSel){
+  /* FJ-V39 FIX: the Add Client form's Workout Type select was originally cloned
+     from #programWorkoutType's CURRENT innerHTML, which can already be a
+     goal-reduced subset (e.g. only ~20 of the 36 types) depending on whatever
+     Goal the master Training Program happened to have at that moment. Always
+     source from the master's true full snapshot (dataset.fjAllWorkoutOptions)
+     instead, so Add Client gets the complete, varied list before filtering. */
+  var master=q('programWorkoutType');
+  if(master&&master.dataset&&master.dataset.fjAllWorkoutOptions)return master.dataset.fjAllWorkoutOptions;
+  if(wtypeSel&&wtypeSel.dataset&&wtypeSel.dataset.fjV39All)return wtypeSel.dataset.fjV39All;
+  return wtypeSel?wtypeSel.innerHTML:'';
+}
 function filterClientDirectoryWtype(){
   var goalSel=q('fjcdGoal'),wtypeSel=q('fjcdWtype');
   if(!goalSel||!wtypeSel||typeof window.allowedWorkoutTypesForGoal!=='function')return;
-  if(wtypeSel.dataset.fjV39LastGoal===goalSel.value)return;
+  var fullHtml=trueFullWorkoutTypeHtml(wtypeSel);
+  if(!fullHtml)return;
+  if(wtypeSel.dataset.fjV39LastGoal===goalSel.value&&wtypeSel.dataset.fjV39All===fullHtml)return;
+  wtypeSel.dataset.fjV39All=fullHtml;
   var allowed=window.allowedWorkoutTypesForGoal(goalSel.value||'General Fitness')||[];
   if(!allowed.length)return;
-  if(!wtypeSel.dataset.fjV39All)wtypeSel.dataset.fjV39All=wtypeSel.innerHTML;
   var current=wtypeSel.value;
   var allowedSet={};
   allowed.forEach(function(v){allowedSet[v]=true});
-  var src=document.createElement('select');src.innerHTML=wtypeSel.dataset.fjV39All;
+  var src=document.createElement('select');src.innerHTML=fullHtml;
   Array.prototype.slice.call(src.querySelectorAll('option')).forEach(function(o){if(!allowedSet[o.value])o.remove()});
   Array.prototype.slice.call(src.querySelectorAll('optgroup')).forEach(function(g){if(!g.querySelector('option'))g.remove()});
   wtypeSel.innerHTML=src.innerHTML;

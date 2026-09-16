@@ -6511,7 +6511,7 @@ function reorderClientCalendarEditor(){
   if(actions && actions.previousElementSibling!==host)parent.insertBefore(actions,host.nextSibling);
   if(ba && ba.previousElementSibling!==actions)parent.insertBefore(ba,actions.nextSibling);
 }
-function syncGoalWorkoutType(){
+function syncGoalWorkoutType(){d
   var goal=q('programGoal'),sel=q('programWorkoutType');
   if(!goal||!sel||typeof window.allowedWorkoutTypesForGoal!=='function')return;
   var allowed=window.allowedWorkoutTypesForGoal(goal.value||'General Fitness')||[];

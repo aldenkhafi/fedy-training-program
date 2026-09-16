@@ -7272,3 +7272,157 @@ setInterval(function(){if($(PANEL_ID))boot()},1500);
 window.fjClientDirectory={list:sortedClients,get:getClient,active:function(){return getClient(activeId())},refresh:renderList};
 })();
 </script>
+
+<!-- V39 REQUESTED REVISION #1: "Save & Print PDF" button next to Delete, inside the -->
+<!-- Training Day session editor (ccModal). Saves ONLY that single day's session, then -->
+<!-- opens the print dialog (Save as PDF) for just that session. Reuses the exact same -->
+<!-- print classes / print flow already used elsewhere in this file (cc-print-cover, -->
+<!-- cc-print-event, cc-progress-grid, fj-v17-cc-printing) so no new CSS is needed and -->
+<!-- nothing else in the app is touched. -->
+<script id="fj-v39-session-save-print-pdf">
+(function(){
+'use strict';
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function hasBAData(ba){
+  if(!ba)return false;
+  return ['before','after'].some(function(side){var z=ba[side]||{};return Object.keys(z).some(function(k){return z[k]})});
+}
+function buildSessionPrintHtml(k,ev){
+  var c=ev.client||{};
+  var h='<section class="cc-print-cover"><h1>TRAINING DAY</h1><h2>'+esc(c.name||'Client')+'</h2>';
+  h+='<p style="margin-top:5mm;font-size:12px;font-weight:700">'+esc(k.replace('T',' '))+' — '+esc(ev.title||'Training')+'</p>';
+  h+='<div class="cc-print-client">';
+  [['Client Name',c.name],['Age',c.age?(c.age+' years'):''],['Gender',c.gender],['Body Weight',c.weight?(c.weight+' kg'):''],['Height',c.height?(c.height+' cm'):''],['Goal',c.goal],['Fitness Level',c.level],['Workout Type',c.wtype],['Duration',c.duration?(c.duration+' months'):''],['Frequency',c.freq?(c.freq+' x / week'):'']].forEach(function(r){
+    h+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1]||'—')+'</span></div>';
+  });
+  h+='</div></section>';
+  h+='<section class="cc-print-event"><h2>'+esc(k.replace('T',' '))+' — '+esc(ev.title||'Training')+'</h2><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody>';
+  (ev.exercises||[]).forEach(function(r){
+    h+='<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td></tr>';
+  });
+  h+='</tbody></table>'+(ev.notes?'<p><b>Notes:</b> '+esc(ev.notes)+'</p>':'');
+  var ba=ev.beforeAfter;
+  if(hasBAData(ba)){
+    h+='<div class="cc-print-session-ba"><h3>BEFORE / AFTER — TRAINING DAY</h3><div class="cc-progress-grid">';
+    ['before','after'].forEach(function(side){
+      var z=ba[side]||{},ttl=side.toUpperCase();
+      var img=z.image?'<img src="'+esc(z.image)+'" alt="'+ttl+'">':'<div class="cc-progress-empty">No photo</div>';
+      h+='<div class="cc-progress-card"><h2>'+ttl+'</h2><div class="cc-progress-photo">'+img+'</div><div class="cc-progress-fields">';
+      [['Weight',z.weight],['Height',z.height],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['Body Fat',z.bodyFat],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Notes',z.notes]].forEach(function(v){
+        h+='<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>';
+      });
+      h+='</div></div>';
+    });
+    h+='</div></div>';
+  }
+  h+='</section>';
+  return h;
+}
+function printSingleSession(k){
+  var cal=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;
+  var ev=cal&&cal.events?cal.events[k]:null;
+  if(!ev){alert('Sesi latihan belum tersimpan / tidak ditemukan. Pastikan minimal ada 1 exercise sebelum Save & Print PDF.');return}
+  var old=document.getElementById('fjClientCalendarPrintRoot');if(old)old.remove();
+  var root=document.createElement('div');root.id='fjClientCalendarPrintRoot';
+  root.innerHTML=buildSessionPrintHtml(k,ev);
+  document.body.appendChild(root);
+  var oldTitle=document.title;
+  document.title='Training Day — '+((ev.client&&ev.client.name)||'Client')+' — '+k.slice(0,10);
+  document.documentElement.classList.add('fj-v17-cc-printing');
+  var done=false;
+  function clean(){
+    if(done)return;done=true;
+    document.documentElement.classList.remove('fj-v17-cc-printing');
+    var r=document.getElementById('fjClientCalendarPrintRoot');if(r)r.remove();
+    document.title=oldTitle;
+    window.removeEventListener('afterprint',clean);
+  }
+  window.addEventListener('afterprint',clean,{once:true});
+  requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){
+    try{window.print()}catch(e){console.error('Session PDF print failed',e);clean();alert('PDF gagal dibuka.')}
+    setTimeout(clean,5000);
+  },150)})});
+}
+function saveAndPrintSession(e){
+  if(e){e.preventDefault();e.stopPropagation()}
+  var keyInput=q('ccEditKey');
+  var k=keyInput?keyInput.value:'';
+  if(!k){alert('Tidak ada sesi training yang sedang dibuka.');return}
+  var saveBtn=q('ccSaveEvent');
+  if(saveBtn){
+    try{saveBtn.click()}catch(err){console.error(err)}
+  }
+  setTimeout(function(){printSingleSession(k)},220);
+}
+function ensureButton(){
+  var del=q('ccDeleteEvent');
+  if(!del||!del.parentNode)return;
+  var btn=q('ccSavePrintPdf');
+  if(!btn){
+    btn=document.createElement('button');
+    btn.type='button';
+    btn.className='btn alt';
+    btn.id='ccSavePrintPdf';
+    btn.textContent='▣ Save & Print PDF';
+    btn.addEventListener('click',saveAndPrintSession);
+  }
+  if(btn.previousElementSibling!==del||btn.parentNode!==del.parentNode){
+    del.parentNode.insertBefore(btn,del.nextSibling);
+  }
+}
+function bind(){ensureButton()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,300)},{once:true});
+else setTimeout(bind,300);
+window.addEventListener('load',function(){setTimeout(bind,500)});
+var mo=new MutationObserver(function(){ensureButton()});
+try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>
+
+<!-- V39 REQUESTED REVISION #2: on the "Add Client" (Client Directory) form, the Workout -->
+<!-- Type list now filters to match the selected Goal, using the exact same -->
+<!-- window.allowedWorkoutTypesForGoal() mapping already used by Training Program and -->
+<!-- Training Program PRO. Only the #fjcdGoal / #fjcdWtype pair is touched. -->
+<script id="fj-v39-client-directory-wtype-fix">
+(function(){
+'use strict';
+function q(id){return document.getElementById(id)}
+function filterClientDirectoryWtype(){
+  var goalSel=q('fjcdGoal'),wtypeSel=q('fjcdWtype');
+  if(!goalSel||!wtypeSel||typeof window.allowedWorkoutTypesForGoal!=='function')return;
+  if(wtypeSel.dataset.fjV39LastGoal===goalSel.value)return;
+  var allowed=window.allowedWorkoutTypesForGoal(goalSel.value||'General Fitness')||[];
+  if(!allowed.length)return;
+  if(!wtypeSel.dataset.fjV39All)wtypeSel.dataset.fjV39All=wtypeSel.innerHTML;
+  var current=wtypeSel.value;
+  var allowedSet={};
+  allowed.forEach(function(v){allowedSet[v]=true});
+  var src=document.createElement('select');src.innerHTML=wtypeSel.dataset.fjV39All;
+  Array.prototype.slice.call(src.querySelectorAll('option')).forEach(function(o){if(!allowedSet[o.value])o.remove()});
+  Array.prototype.slice.call(src.querySelectorAll('optgroup')).forEach(function(g){if(!g.querySelector('option'))g.remove()});
+  wtypeSel.innerHTML=src.innerHTML;
+  var stillValid=Array.prototype.some.call(wtypeSel.options,function(o){return o.value===current});
+  if(stillValid){wtypeSel.value=current}
+  else{
+    var first=Array.prototype.filter.call(wtypeSel.options,function(o){return o.value!=='auto'})[0]||wtypeSel.options[0];
+    if(first)wtypeSel.value=first.value;
+  }
+  wtypeSel.dataset.fjV39LastGoal=goalSel.value;
+}
+function bind(){
+  var goalSel=q('fjcdGoal');
+  if(!goalSel)return;
+  if(!goalSel.dataset.fjV39WtypeBound){
+    goalSel.dataset.fjV39WtypeBound='1';
+    goalSel.addEventListener('change',filterClientDirectoryWtype);
+  }
+  filterClientDirectoryWtype();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,700)},{once:true});
+else setTimeout(bind,700);
+window.addEventListener('load',function(){setTimeout(bind,900)});
+var mo=new MutationObserver(function(){bind()});
+try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+})();
+</script>

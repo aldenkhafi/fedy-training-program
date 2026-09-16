@@ -1756,7 +1756,7 @@ function getMonthlyFocus(month, totalMonths, phase, goal){
  return list[idx];
 }
 
-function pickExercise(pattern,resistance,seed){const pool=EXO_POOL[pattern]||[];const r=String(resistance||'').toLowerCase();if(r==='mixed'||!r||r==='auto')return pool[seed%pool.length];const filtered=pool.filter(e=>String(e.equip).toLowerCase()===r);return (filtered.length?filtered:pool.filter(e=>String(e.equip).toLowerCase()==='bodyweight'))[seed%(filtered.length?filtered.length:Math.max(1,pool.filter(e=>String(e.equip).toLowerCase()==='bodyweight').length))]||pool[seed%pool.length]}
+function pickExercise(pattern,resistance,seed){const pool=EXO_POOL[pattern];let filtered=pool.filter(e=>e.equip===resistance);if(resistance==='Mixed'||filtered.length===0)filtered=pool;return filtered[seed%filtered.length]}
 function bmiInfo(w,h){if(!w||!h)return null;const bmi=w/Math.pow(h/100,2);const cat=bmi<18.5?'Underweight':bmi<25?'Normal':bmi<30?'Overweight':'Obese';return{bmi:bmi.toFixed(1),cat}}
 function pickPoolItems(pool,seed,count){const out=[];for(let i=0;i<count;i++){out.push(pool[(seed+i)%pool.length])}return out}
 function loadTextFor(pattern,level,weight,phaseBoost,goal='General Fitness',age=0,repsStr='8–12',e1rmMap=null,month=1,weekIndex=0,sessionIndex=0,totalMonths=12){

@@ -7651,3 +7651,37 @@ window.fjClientDirectory={list:sortedClients,get:getClient,active:function(){ret
   setInterval(restore,1500);
 })();
 </script>
+
+<!-- V41: ADMIN ACCESS NAV RESTORE. ONLY restores visibility of existing Admin Access Approval. -->
+<style id="fj-v41-admin-access-visible">
+#adminNav{display:flex!important;visibility:visible!important;opacity:1!important;}
+#adminGroup{display:block!important;visibility:visible!important;}
+</style>
+<script id="fj-v41-admin-access-visible-runtime">
+(function(){
+  'use strict';
+  function restoreAdminNav(){
+    var nav=document.getElementById('adminNav'),group=document.getElementById('adminGroup');
+    if(nav){nav.style.setProperty('display','flex','important');nav.style.setProperty('visibility','visible','important');nav.style.setProperty('opacity','1','important');}
+    if(group){group.style.setProperty('display','block','important');group.style.setProperty('visibility','visible','important');}
+  }
+  function bind(){
+    restoreAdminNav();
+    var nav=document.getElementById('adminNav');
+    if(nav && !nav.dataset.fjV41Bound){
+      nav.dataset.fjV41Bound='1';
+      nav.addEventListener('click',function(){
+        restoreAdminNav();
+        setTimeout(function(){
+          if(typeof window.loadAdminAccess==='function'){
+            try{window.loadAdminAccess();}catch(e){console.error(e);}
+          }
+        },50);
+      },true);
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.addEventListener('load',function(){setTimeout(bind,100);setTimeout(bind,800);setTimeout(bind,1800);});
+  setInterval(bind,1000);
+})();
+</script>

@@ -1884,7 +1884,7 @@ function filterWorkoutTypesByGoal(){
   });
   source.querySelectorAll('optgroup').forEach(function(og){if(!og.querySelector('option'))og.remove()});
   sel.innerHTML=source.innerHTML;
-  const recommended=recommendedWorkoutTypeForGoal(goal,document.getElementById('programFreq')?.value||3);
+  const recommended=typeof recommendedWorkoutTypeForGoal==='function'?recommendedWorkoutTypeForGoal(goal,document.getElementById('programFreq')?.value||3):'fullbody';
   if(allowed.has(recommended))sel.value=recommended;
   else if(Array.from(sel.options).some(function(o){return o.value===current}))sel.value=current;
   else{

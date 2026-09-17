@@ -7603,11 +7603,16 @@ window.fjClientDirectory={list:sortedClients,get:getClient,active:function(){ret
 })();
 </script>
 
-<!-- V40: RESTORE MASTER ADMIN ACCESS ONLY. No other feature changes. -->
-<style id="fj-v40-admin-access-restore">
-#adminNav.fj-v40-admin-visible{display:flex!important;}
-</style>
-<script id="fj-v40-admin-access-restore-runtime">
+<!-- V42: ADMIN ACCESS APPROVAL — MASTER-ADMIN-ONLY VISIBILITY FIX (replaces V40 + V41).
+     V40 and V41 both forced #adminNav / #adminGroup visible via CSS `!important` + a
+     repeating setInterval, with NO email check in V41 at all — the end result was that
+     EVERY logged-in user (not just aldenkhafi0203@gmail.com) could see and open the
+     "Admin Access Approval" nav item, defeating the Master-Admin-only rule. This block
+     keeps the same "keep re-asserting visibility" approach (so the nav still reliably
+     shows up for the real Master Admin even if some other script tries to hide it), but
+     re-checks the Master Admin email every single time before showing or hiding it, and
+     it actively hides the nav for anyone else. No other feature is touched. -->
+<script id="fj-v42-admin-access-gate">
 (function(){
   'use strict';
   var MASTER='aldenkhafi0203@gmail.com';
@@ -7617,71 +7622,55 @@ window.fjClientDirectory={list:sortedClients,get:getClient,active:function(){ret
       return String(u&&u.email||'').trim().toLowerCase()===MASTER;
     }catch(e){return false;}
   }
-  function restore(){
-    var nav=document.getElementById('adminNav');
-    var panel=document.getElementById('adminAccess');
+  function gate(){
+    var nav=document.getElementById('adminNav'),group=document.getElementById('adminGroup');
     if(!nav)return;
     if(isMaster()){
-      nav.classList.add('fj-v40-admin-visible');
-      nav.style.display='flex';
+      nav.style.setProperty('display','flex','important');
+      nav.style.setProperty('visibility','visible','important');
+      nav.style.setProperty('opacity','1','important');
       nav.removeAttribute('aria-hidden');
-      /* Keep the existing Admin Access panel and existing loadAdminAccess logic intact. */
-      if(panel) panel.dataset.fjV40Admin='1';
+      if(group){
+        group.style.setProperty('display','block','important');
+        group.style.setProperty('visibility','visible','important');
+      }
     }else{
-      nav.classList.remove('fj-v40-admin-visible');
-      nav.style.display='none';
+      nav.style.setProperty('display','none','important');
+      nav.style.removeProperty('visibility');
+      nav.style.removeProperty('opacity');
+      if(group){
+        group.style.setProperty('display','none','important');
+        group.style.removeProperty('visibility');
+      }
     }
   }
-  function hook(){
-    restore();
-    try{
-      if(typeof window.fjApplyAccessUI==='function' && !window.fjV40Wrapped){
-        var original=window.fjApplyAccessUI;
-        window.fjApplyAccessUI=function(){
-          try{original.apply(this,arguments);}catch(e){console.warn('fjApplyAccessUI:',e)}
-          restore();
-        };
-        window.fjV40Wrapped=true;
-      }
-    }catch(e){}
-    restore();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hook,{once:true});else hook();
-  window.addEventListener('load',function(){setTimeout(hook,300);setTimeout(hook,1200)});
-  setInterval(restore,1500);
-})();
-</script>
-
-<!-- V41: ADMIN ACCESS NAV RESTORE. ONLY restores visibility of existing Admin Access Approval. -->
-<style id="fj-v41-admin-access-visible">
-#adminNav{display:flex!important;visibility:visible!important;opacity:1!important;}
-#adminGroup{display:block!important;visibility:visible!important;}
-</style>
-<script id="fj-v41-admin-access-visible-runtime">
-(function(){
-  'use strict';
-  function restoreAdminNav(){
-    var nav=document.getElementById('adminNav'),group=document.getElementById('adminGroup');
-    if(nav){nav.style.setProperty('display','flex','important');nav.style.setProperty('visibility','visible','important');nav.style.setProperty('opacity','1','important');}
-    if(group){group.style.setProperty('display','block','important');group.style.setProperty('visibility','visible','important');}
-  }
   function bind(){
-    restoreAdminNav();
+    gate();
     var nav=document.getElementById('adminNav');
-    if(nav && !nav.dataset.fjV41Bound){
-      nav.dataset.fjV41Bound='1';
+    if(nav && !nav.dataset.fjV42Bound){
+      nav.dataset.fjV42Bound='1';
       nav.addEventListener('click',function(){
-        restoreAdminNav();
+        gate();
         setTimeout(function(){
-          if(typeof window.loadAdminAccess==='function'){
+          if(isMaster() && typeof window.loadAdminAccess==='function'){
             try{window.loadAdminAccess();}catch(e){console.error(e);}
           }
         },50);
       },true);
     }
+    try{
+      if(typeof window.fjApplyAccessUI==='function' && !window.fjV42Wrapped){
+        var original=window.fjApplyAccessUI;
+        window.fjApplyAccessUI=function(){
+          try{original.apply(this,arguments);}catch(e){console.warn('fjApplyAccessUI:',e)}
+          gate();
+        };
+        window.fjV42Wrapped=true;
+      }
+    }catch(e){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
   window.addEventListener('load',function(){setTimeout(bind,100);setTimeout(bind,800);setTimeout(bind,1800);});
-  setInterval(bind,1000);
+  setInterval(gate,1500);
 })();
 </script>

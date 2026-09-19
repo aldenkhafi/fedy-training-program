@@ -5847,7 +5847,7 @@ function filterCalendarWorkoutTypeByGoal(){
 }
 ensureRangeDialog();$('ccPrev').onclick=prevMonth;$('ccNext').onclick=nextMonth;$('ccUndoBtn').onclick=undo;$('ccRedoBtn').onclick=redo;$('ccSaveBtn').onclick=save;$('ccLoadBtn').onclick=load;$('ccResetBtn').onclick=resetCalendar;$('ccPrintBtn').onclick=openRange;$('ccDeleteEvent').onclick=deleteEvent;$('ccCancel').onclick=function(){$('ccModal').classList.remove('open')};$('ccSaveEvent').onclick=saveEditor;$('ccModalUndo').onclick=function(e){if(e){e.preventDefault();e.stopPropagation()}undoModal()};$('ccModalRedo').onclick=function(e){if(e){e.preventDefault();e.stopPropagation()}redoModal()};['ccEditGoal','ccEditWtype','ccEditAge','ccEditGender','ccEditWeight','ccEditHeight','ccEditLevel'].forEach(function(id){var e=$(id);if(e&&!e.dataset.ccRecommendBind){e.dataset.ccRecommendBind='1';e.addEventListener('change',refreshCalendarRecommendation)}});var ccGoal=$('ccEditGoal');if(ccGoal&&!ccGoal.dataset.ccWtypeFilter){ccGoal.dataset.ccWtypeFilter='1';ccGoal.addEventListener('change',filterCalendarWorkoutTypeByGoal)}filterCalendarWorkoutTypeByGoal();renderCalendar();updateHistory();addExerciseMenu()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,pushHistory:function(){pushHistory()},updateHistory:function(){updateHistory()},openEditor:function(key){openEditor(key)},openRange:function(){openRange()},printRangeWithBA:function(){if(typeof printRangeWithBA==='function')printRangeWithBA()}};
+window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,pushHistory:function(){pushHistory()},updateHistory:function(){updateHistory()}};
 })();
 </script>
 <style id="fj-v17-client-calendar-print">
@@ -6382,189 +6382,16 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .fj-cc-ex-row{display:grid!important;grid-template-columns:minmax(180px,2fr) 80px 110px 100px 100px 42px!important;gap:6px!important;align-items:center!important}
 @media(max-width:700px){.fj-cc-ex-row{grid-template-columns:minmax(150px,2fr) 70px 95px 90px 90px 38px!important;min-width:650px!important}.fj-cc-exercises-wrap{overflow-x:auto!important}}
 </style>
-
-<style id="fj-pt-ops-v2-css">
-#fjPtOpsV2{padding-bottom:28px}#fjPtOpsV2 .ptv2-shell{background:#f7fbfd;border:1px solid #d9e8ef;border-radius:18px;padding:16px}.ptv2-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.ptv2-head h2{margin:2px 0;color:#17364e}.ptv2-muted{color:#6d879e;font-size:12px}.ptv2-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.ptv2-tab{border:1px solid #cfe0e9;background:#fff;color:#31576f;border-radius:10px;padding:9px 13px;font-weight:900;cursor:pointer}.ptv2-tab.active{background:#eaf8ff;color:#087c98;border-color:#8ccde0}.ptv2-view{display:none}.ptv2-view.active{display:block}.ptv2-card{background:#fff;border:1px solid #dce8ef;border-radius:14px;padding:14px;box-shadow:0 7px 18px rgba(35,65,90,.06);margin-bottom:12px}.ptv2-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.ptv2-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.ptv2-kpi{background:#fff;border:1px solid #dce8ef;border-radius:12px;padding:12px}.ptv2-kpi b{display:block;font-size:22px;color:#17364e}.ptv2-kpi span{font-size:11px;color:#6d879e}.ptv2-client-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.ptv2-client{border:1px solid #d7e5ee;border-radius:12px;padding:12px;background:#fff;cursor:pointer}.ptv2-client:hover{border-color:#72b4dc;box-shadow:0 7px 18px rgba(20,55,80,.08)}.ptv2-client h3{margin:0 0 5px;color:#17364e}.ptv2-table{width:100%;border-collapse:collapse;font-size:12px}.ptv2-table th,.ptv2-table td{border-bottom:1px solid #e6eef3;padding:8px;text-align:left;vertical-align:top}.ptv2-table th{background:#f5f9fb;color:#31576f}.ptv2-badge{display:inline-block;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:900}.ptv2-active{background:#e9f8f1;color:#187553}.ptv2-expired{background:#fff0ef;color:#b43b2f}.ptv2-pending{background:#fff7df;color:#8b6410}.ptv2-btn{border:0;border-radius:9px;padding:8px 11px;background:#1787c8;color:#fff;font-weight:900;cursor:pointer}.ptv2-btn.alt{background:#fff;color:#31576f;border:1px solid #cfe0e9}.ptv2-btn.danger{background:#b43b2f}.ptv2-actions{display:flex;gap:8px;flex-wrap:wrap}.ptv2-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.ptv2-form .span3{grid-column:1/-1}.ptv2-form label{display:block;font-size:11px;font-weight:900;color:#31576f;margin-bottom:4px}.ptv2-form input,.ptv2-form select,.ptv2-form textarea{width:100%;box-sizing:border-box;border:1px solid #cfe0e9;border-radius:9px;padding:9px;background:#fff}.ptv2-modal{position:fixed;inset:0;background:rgba(15,43,64,.68);display:none;align-items:center;justify-content:center;padding:14px;z-index:2147483000}.ptv2-modal.open{display:flex}.ptv2-modalbox{width:min(800px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:16px}.ptv2-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.ptv2-day{min-height:105px;border:1px solid #dce8ef;border-radius:9px;background:#fff;padding:6px}.ptv2-daynum{font-weight:950;color:#31576f;margin-bottom:5px}.ptv2-event{border-radius:7px;background:#edf8ff;border:1px solid #b9d9ef;padding:5px;margin-top:4px;font-size:10px;cursor:pointer}.ptv2-event.done{background:#effaf5;border-color:#c5e5d8}.ptv2-event.exp{background:#fff0ef;border-color:#efc2bd}.ptv2-monitor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:900px){.ptv2-grid{grid-template-columns:1fr 1fr}.ptv2-kpis{grid-template-columns:repeat(3,1fr)}.ptv2-client-list{grid-template-columns:1fr 1fr}.ptv2-monitor-grid{grid-template-columns:1fr}}@media(max-width:600px){.ptv2-grid,.ptv2-form{grid-template-columns:1fr}.ptv2-kpis{grid-template-columns:1fr 1fr}.ptv2-client-list{grid-template-columns:1fr}.ptv2-calendar{grid-template-columns:1fr}.ptv2-day{min-height:60px}}
-</style>
-<script id="fj-pt-ops-v2-runtime">
-(function(){'use strict';
-var V={clients:[],packages:[],conducts:[],schedules:[],extensions:[],selected:null,month:new Date()};
-function q(id){return document.getElementById(id)}function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function today(){return new Date().toISOString().slice(0,10)}
-function master(){return String(currentUser?.email||'').toLowerCase()==='aldenkhafi0203@gmail.com'}
-function access(){return fjCurrentRole(currentUser?.email).role}
-function manager(){return master()||access()==='MANAGER'||access()==='ADMIN'}
-function can(){return master()||['PT','MANAGER','ADMIN'].includes(access())}
-function uid(){return currentUser?.id||null}function email(){return currentUser?.email||''}
-function sbc(){return window.sb||null}
-function expFor(p,total){var d=new Date(p+'T00:00:00');var weeks=Math.ceil(Math.max(1,Number(total)||1)/2);d.setDate(d.getDate()+weeks*7);d.setMonth(d.getMonth()+1);return d.toISOString().slice(0,10)}
-function status(p){if(!p)return'EXPIRED';if(Number(p.used_sessions)>=Number(p.total_sessions))return'CLOSED';if(p.status==='EXTEND_REQUESTED')return'EXTEND REQUESTED';return p.expiry_date>=today()?'ACTIVE':'EXPIRED'}
-function clients(){return V.clients.filter(function(c){return master()||manager()||c.pt_user_id===uid()})}
-function client(id){return V.clients.find(function(c){return c.id===id})}
-function activeP(id){return V.packages.filter(function(p){return p.client_id===id&&Number(p.used_sessions)<Number(p.total_sessions)&&p.expiry_date>=today()}).sort(function(a,b){return String(a.expiry_date).localeCompare(String(b.expiry_date))})}
-function nav(){if(!can())return;var side=document.querySelector('.side');if(!side)return;if(!q('fjPtOpsV2Nav')){var n=document.createElement('button');n.id='fjPtOpsV2Nav';n.className='navbtn';n.textContent='▣ PT Management';n.type='button';n.onclick=function(){show('calendar')};var anchor=document.getElementById('clientCalendarNav');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n)}}
-function build(){if(q('fjPtOpsV2')||!can())return;var main=document.querySelector('main.main')||document.querySelector('.main');if(!main)return;var sec=document.createElement('section');sec.className='panel';sec.id='fjPtOpsV2';sec.innerHTML='<div class="ptv2-shell"><div class="ptv2-head"><div><div class="label">PT MANAGEMENT</div><h2>Client Operations</h2><div class="ptv2-muted">Client Calendar • Client List • Client Detail • Package • Conduct • Master Monitor</div></div><div class="pill">'+E(master()?'MASTER ADMIN':access())+'</div></div><div class="ptv2-tabs"><button class="ptv2-tab active" data-v="calendar">Client Calendar</button><button class="ptv2-tab" data-v="clients">Client List</button><button class="ptv2-tab" data-v="detail">Client Detail</button><button class="ptv2-tab" data-v="monitor" style="display:'+(master()||manager()?'block':'none')+'">Master Monitor</button></div><div id="ptv2Calendar" class="ptv2-view active"></div><div id="ptv2Clients" class="ptv2-view"></div><div id="ptv2Detail" class="ptv2-view"></div><div id="ptv2Monitor" class="ptv2-view"></div></div><div id="ptv2Modal" class="ptv2-modal"><div class="ptv2-modalbox"><div id="ptv2ModalBody"></div></div></div>';main.appendChild(sec);sec.querySelectorAll('.ptv2-tab').forEach(function(b){b.onclick=function(){show(b.dataset.v)}});}
-function show(v){if(!can())return;nav();build();document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});q('fjPtOpsV2').classList.add('active');document.querySelectorAll('.ptv2-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v===v)});document.querySelectorAll('.ptv2-view').forEach(function(x){x.classList.remove('active')});q('ptv2'+v.charAt(0).toUpperCase()+v.slice(1)).classList.add('active');if(v==='calendar')renderCalendar();if(v==='clients')renderClients();if(v==='detail')renderDetail();if(v==='monitor')renderMonitor()}
-async function load(){var s=sbc();if(!s||!can())return;build();var qs=await Promise.all([s.from('pt_clients').select('*').order('name'),s.from('pt_packages').select('*').order('purchase_date',{ascending:false}),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(2000),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(2000),s.from('pt_extension_requests').select('*').order('created_at',{ascending:false})]);if(qs.some(function(r){return r.error})){console.warn('PT Management load',qs.map(function(r){return r.error}));return}V.clients=qs[0].data||[];V.packages=qs[1].data||[];V.conducts=qs[2].data||[];V.schedules=qs[3].data||[];V.extensions=qs[4].data||[];renderCalendar();}
-function renderCalendar(){var b=q('ptv2Calendar');if(!b)return;var y=V.month.getFullYear(),m=V.month.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate(),events=V.schedules.filter(function(x){var d=String(x.scheduled_at).slice(0,10);return d.slice(0,7)===y+'-'+String(m+1).padStart(2,'0')});var html='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><button class="ptv2-btn alt" onclick="window.fjPtV2Prev()">←</button><b>'+first.toLocaleDateString('id-ID',{month:'long',year:'numeric'})+'</b><div class="ptv2-actions"><button class="ptv2-btn alt" onclick="window.fjPtV2Next()">→</button><button class="ptv2-btn" onclick="window.fjPtV2NewSchedule()">＋ Schedule</button></div></div></div><div class="ptv2-calendar">';for(var d=1;d<=days;d++){var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');html+='<div class="ptv2-day"><div class="ptv2-daynum">'+d+'</div>'+events.filter(function(e){return String(e.scheduled_at).slice(0,10)===ds}).map(function(e){var c=client(e.client_id),st=e.status==='DONE'?'done':'';return '<div class="ptv2-event '+st+'" onclick="window.fjPtV2Open(\''+e.id+'\')"><b>'+E(c?.name||'Client')+'</b><br>'+E(String(e.scheduled_at).slice(11,16))+' • '+E(e.schedule_type)+'</div>'}).join('')+'</div>'}html+='</div>';b.innerHTML=html}
-window.fjPtV2Prev=function(){V.month.setMonth(V.month.getMonth()-1);renderCalendar()};window.fjPtV2Next=function(){V.month.setMonth(V.month.getMonth()+1);renderCalendar()};
-function renderClients(){var b=q('ptv2Clients');if(!b)return;var a=clients();b.innerHTML='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><div><h3 style="margin:0">Client List</h3><div class="ptv2-muted">'+(master()?'All PT clients':'Only clients assigned to you')+'</div></div></div><input id="ptv2Search" placeholder="Search client" style="margin-top:10px;width:100%;box-sizing:border-box;border:1px solid #cfe0e9;border-radius:9px;padding:9px"></div><div id="ptv2ClientCards" class="ptv2-client-list"></div>';function draw(){var z=String(q('ptv2Search')?.value||'').toLowerCase();q('ptv2ClientCards').innerHTML=a.filter(function(c){return !z||String(c.name).toLowerCase().includes(z)||String(c.phone||'').toLowerCase().includes(z)}).map(function(c){var ps=V.packages.filter(function(p){return p.client_id===c.id}),rem=ps.reduce(function(n,p){return n+Math.max(0,p.total_sessions-p.used_sessions)},0);return '<div class="ptv2-client" onclick="window.fjPtV2OpenClient(\''+c.id+'\')"><h3>'+E(c.name)+'</h3><div class="ptv2-muted">PT: '+E(c.pt_email||'—')+'</div><div style="margin-top:7px"><b>'+rem+'</b> remaining sessions</div></div>'}).join('')||'<div class="ptv2-muted">No clients found.</div>'}q('ptv2Search').oninput=draw;draw()}
-function renderDetail(){var b=q('ptv2Detail');if(!b)return;var c=client(V.selected);if(!c){b.innerHTML='<div class="ptv2-card">Select a client from Client List.</div>';return}var ps=V.packages.filter(function(p){return p.client_id===c.id}).sort(function(a,b){return String(b.purchase_date).localeCompare(String(a.purchase_date))}),cs=V.conducts.filter(function(x){return x.client_id===c.id}).sort(function(a,b){return String(b.conducted_at).localeCompare(String(a.conducted_at))});b.innerHTML='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><div><h2 style="margin:0">'+E(c.name)+'</h2><div class="ptv2-muted">PT: '+E(c.pt_email||'—')+'</div></div><div class="ptv2-actions"><button class="ptv2-btn alt" onclick="window.fjPtV2NewPackage(\''+c.id+'\')">＋ New Package</button><button class="ptv2-btn alt" onclick="window.fjPtV2PDF(\''+c.id+'\')">▣ PDF</button></div></div><div class="ptv2-kpis" style="margin-top:12px"><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.total_sessions||0)},0)+'</b><span>Total Sessions</span></div><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.used_sessions||0)},0)+'</b><span>Used</span></div><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.total_sessions-p.used_sessions)},0)+'</b><span>Remaining</span></div><div class="ptv2-kpi"><b>'+activeP(c.id).length+'</b><span>Active Package</span></div><div class="ptv2-kpi"><b>'+cs.length+'</b><span>Conduct History</span></div></div></div><div class="ptv2-grid"><div class="ptv2-card"><h3>Client Profile</h3><table class="ptv2-table"><tr><th>Field</th><th>Value</th></tr>'+[['Age',c.profile?.age],['Gender',c.profile?.gender],['Weight',c.profile?.weight],['Height',c.profile?.height],['Goal',c.profile?.goal],['Notes',c.notes]].map(function(r){return '<tr><td>'+E(r[0])+'</td><td>'+E(r[1]||'—')+'</td></tr>'}).join('')+'</table></div><div class="ptv2-card"><h3>Packages</h3><table class="ptv2-table"><tr><th>Package</th><th>Sessions</th><th>Purchase</th><th>Expiry</th><th>Status</th><th>Action</th></tr>'+ps.map(function(p){var st=status(p);return '<tr><td>'+E(p.package_name)+'</td><td>'+p.total_sessions+' / '+p.used_sessions+'<br><b>'+(p.total_sessions-p.used_sessions)+'</b> remaining</td><td>'+E(p.purchase_date)+'</td><td>'+E(p.expiry_date)+'</td><td><span class="ptv2-badge '+(st==='ACTIVE'?'ptv2-active':st==='EXTEND REQUESTED'?'ptv2-pending':'ptv2-expired')+'">'+E(st)+'</span></td><td>'+(st!=='CLOSED'?'<button class="ptv2-btn alt" onclick="window.fjPtV2Extend(\''+p.id+'\')">Request Extend</button>':'')+'</td></tr>'}).join('')+'</table></div></div><div class="ptv2-card"><h3>Conduct History</h3><table class="ptv2-table"><tr><th>Date</th><th>PT</th><th>Package</th><th>Notes</th></tr>'+cs.map(function(x){var p=V.packages.find(function(z){return z.id===x.package_id});return '<tr><td>'+E(x.conducted_at)+'</td><td>'+E(x.pt_user_id===uid()?email():x.pt_user_id)+'</td><td>'+E(p?.package_name||'—')+'</td><td>'+E(x.notes||'—')+'</td></tr>'}).join('')||'<tr><td colspan="4">No Conduct yet.</td></tr>'+'</table></div>'}
-window.fjPtV2OpenClient=function(id){V.selected=id;show('detail')};
-function modal(html){q('ptv2ModalBody').innerHTML=html;q('ptv2Modal').classList.add('open')}function closeModal(){q('ptv2Modal').classList.remove('open')}
-window.fjPtV2NewClient=function(){modal('<h2>Add Client</h2><div class="ptv2-form"><div><label>Name</label><input id="v2n"></div><div><label>Phone</label><input id="v2p"></div><div><label>Email</label><input id="v2e"></div><div><label>Age</label><input id="v2a" type="number"></div><div><label>Gender</label><select id="v2g"><option value="">—</option><option>male</option><option>female</option></select></div><div><label>Weight</label><input id="v2w" type="number"></div><div><label>Height</label><input id="v2h" type="number"></div><div><label>Goal</label><input id="v2goal"></div><div class="span3"><label>Notes</label><textarea id="v2notes"></textarea></div></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" onclick="window.fjPtV2SaveClient()">Save Client</button></div>')};window.fjPtV2Close=closeModal;
-window.fjPtV2SaveClient=async function(){var s=sbc();if(!s)return;var name=q('v2n').value.trim();if(!name){alert('Nama client wajib diisi');return}var payload={name:name,phone:q('v2p').value.trim(),email:q('v2e').value.trim(),profile:{age:q('v2a').value,gender:q('v2g').value,weight:q('v2w').value,height:q('v2h').value,goal:q('v2goal').value},notes:q('v2notes').value.trim(),pt_user_id:uid(),pt_email:email()};var r=await s.from('pt_clients').insert(payload).select().single();if(r.error){alert(r.error.message);return}closeModal();await load();show('clients')};
-window.fjPtV2NewPackage=function(id){modal('<h2>New Package</h2><div class="ptv2-form"><div><label>Package</label><input id="v2pn"></div><div><label>Total Sessions</label><input id="v2ps" type="number" min="1"></div><div><label>Purchase Date</label><input id="v2pd" type="date" value="'+today()+'"></div></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" onclick="window.fjPtV2SavePackage(\''+id+'\')">Save Package</button></div>')};window.fjPtV2SavePackage=async function(id){var s=sbc(),n=q('v2pn').value.trim(),t=Number(q('v2ps').value),d=q('v2pd').value;if(!s||!n||!t||!d)return;var r=await s.from('pt_packages').insert({client_id:id,package_name:n,total_sessions:t,purchase_date:d,expiry_date:expFor(d,t),status:'ACTIVE',source:'NEW_PURCHASE'});if(r.error){alert(r.error.message);return}closeModal();await load();show('detail')};
-window.fjPtV2Extend=function(pid){var p=V.packages.find(function(x){return x.id===pid});if(!p)return;var def=p.expiry_date>today()?p.expiry_date:today();modal('<h2>Request Package Extension</h2><div class="ptv2-form"><div><label>New Expiry</label><input id="v2ed" type="date" value="'+def+'"></div><div class="span3"><label>Reason</label><textarea id="v2er"></textarea></div></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" onclick="window.fjPtV2SubmitExtend(\''+pid+'\')">Submit Request</button></div>')};window.fjPtV2SubmitExtend=async function(pid){var s=sbc(),d=q('v2ed').value;if(!s||!d)return;var r=await s.from('pt_extension_requests').insert({package_id:pid,requested_by:uid(),requested_expiry:d,reason:q('v2er').value.trim(),status:'PENDING_APPROVAL'});if(r.error){alert(r.error.message);return}await s.from('pt_packages').update({status:'EXTEND_REQUESTED'}).eq('id',pid);closeModal();await load();show('detail')};
-function renderMonitor(){var b=q('ptv2Monitor');if(!b||!(master()||manager()))return;var pending=V.extensions.filter(function(x){return x.status==='PENDING_APPROVAL'}),todayC=V.conducts.filter(function(x){return String(x.conducted_at).slice(0,10)===today()});b.innerHTML='<div class="ptv2-kpis"><div class="ptv2-kpi"><b>'+V.clients.length+'</b><span>Total Clients</span></div><div class="ptv2-kpi"><b>'+V.packages.filter(function(p){return status(p)==='ACTIVE'}).length+'</b><span>Active Packages</span></div><div class="ptv2-kpi"><b>'+todayC.length+'</b><span>Conduct Today</span></div><div class="ptv2-kpi"><b>'+pending.length+'</b><span>Pending Extend</span></div><div class="ptv2-kpi"><b>'+V.schedules.filter(function(x){return x.status==='SCHEDULED'}).length+'</b><span>Scheduled</span></div></div><div class="ptv2-monitor-grid" style="margin-top:12px"><div class="ptv2-card"><h3>PT Activity</h3><table class="ptv2-table"><tr><th>PT</th><th>Clients</th><th>Conduct MTD</th><th>Schedules</th></tr>'+Object.values(V.clients.reduce(function(a,c){var k=c.pt_user_id;a[k]||(a[k]={id:k,email:c.pt_email,clients:0});a[k].clients++;return a},{})).map(function(x){var cs=V.conducts.filter(function(c){return c.pt_user_id===x.id&&String(c.conducted_at).slice(0,7)===today().slice(0,7)}).length,sc=V.schedules.filter(function(c){return c.pt_user_id===x.id}).length;return '<tr><td>'+E(x.email||x.id)+'</td><td>'+x.clients+'</td><td>'+cs+'</td><td>'+sc+'</td></tr>'}).join('')+'</table></div><div class="ptv2-card"><h3>Extension Approval Queue</h3><table class="ptv2-table"><tr><th>Client / Package</th><th>Requested</th><th>New Expiry</th><th>Action</th></tr>'+pending.map(function(x){var p=V.packages.find(function(z){return z.id===x.package_id}),c=p&&client(p.client_id);return '<tr><td>'+E(c?.name||'—')+'<br>'+E(p?.package_name||'—')+'</td><td>'+E(x.created_at)+'</td><td>'+E(x.requested_expiry)+'</td><td><button class="ptv2-btn" onclick="window.fjPtV2Approve(\''+x.id+'\',true)">Approve</button> <button class="ptv2-btn danger" onclick="window.fjPtV2Approve(\''+x.id+'\',false)">Reject</button></td></tr>'}).join('')||'<tr><td colspan="4">No pending request.</td></tr>'+'</table></div></div>'}
-window.fjPtV2Approve=async function(id,ok){if(!master()&&!manager())return;var s=sbc();if(!s)return;var r=await s.from('pt_extension_requests').update({status:ok?'APPROVED':'REJECTED',approved_by:uid(),approved_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return}await load();show('monitor')};
-window.fjPtV2Open=function(id){var e=V.schedules.find(function(x){return x.id===id}),c=e&&client(e.client_id);if(!e)return;var packs=activeP(e.client_id);modal('<h2>'+E(c?.name||'Client')+'</h2><p class="ptv2-muted">'+E(e.schedule_type)+' • '+E(e.scheduled_at)+'</p><p>'+E(e.notes||'')+'</p><div class="ptv2-actions">'+(e.schedule_type==='PT Session'&&e.status==='SCHEDULED'?'<button class="ptv2-btn" onclick="window.fjPtV2Conduct(\''+e.id+'\')">Conduct</button>':'')+(e.status==='SCHEDULED'?'<button class="ptv2-btn alt" onclick="window.fjPtV2Done(\''+e.id+'\')">Mark Done</button>':'')+'<button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Close</button></div>')};
-window.fjPtV2Conduct=function(sid){var e=V.schedules.find(function(x){return x.id===sid}),ps=activeP(e.client_id);if(!ps.length){alert('Tidak ada package ACTIVE dengan session tersisa.');return}modal('<h2>Conduct Session</h2><div class="ptv2-form"><div><label>Package</label><select id="v2cp">'+ps.map(function(p){return '<option value="'+p.id+'">'+E(p.package_name)+' — '+(p.total_sessions-p.used_sessions)+' remaining</option>'}).join('')+'</select></div><div class="span3"><label>Notes</label><textarea id="v2cn"></textarea></div></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" onclick="window.fjPtV2SaveConduct(\''+sid+'\')">Confirm Conduct</button></div>')};
-window.fjPtV2SaveConduct=async function(sid){var s=sbc(),e=V.schedules.find(function(x){return x.id===sid});if(!s||!e)return;var r=await s.from('pt_conducts').insert({client_id:e.client_id,package_id:q('v2cp').value,pt_user_id:uid(),conducted_at:new Date().toISOString(),notes:q('v2cn').value.trim()});if(r.error){alert(r.error.message);return}await s.from('pt_schedules').update({status:'DONE'}).eq('id',sid);closeModal();await load();show('calendar')};window.fjPtV2Done=async function(id){var s=sbc();if(!s)return;await s.from('pt_schedules').update({status:'DONE'}).eq('id',id);closeModal();await load();show('calendar')};
-window.fjPtV2PDF=function(id){var c=client(id);if(!c)return;var ps=V.packages.filter(function(p){return p.client_id===id}),cs=V.conducts.filter(function(x){return x.client_id===id}),root=document.createElement('div');root.id='fjPtV2Print';root.innerHTML='<h1>'+E(c.name)+'</h1><p>PT: '+E(c.pt_email||'—')+'</p><h2>Client Profile</h2><p>Age: '+E(c.profile?.age||'—')+' | Gender: '+E(c.profile?.gender||'—')+' | Weight: '+E(c.profile?.weight||'—')+' | Height: '+E(c.profile?.height||'—')+' | Goal: '+E(c.profile?.goal||'—')+'</p><h2>Packages</h2><table>'+ps.map(function(p){return '<tr><td>'+E(p.package_name)+'</td><td>'+p.total_sessions+' total</td><td>'+p.used_sessions+' used</td><td>'+(p.total_sessions-p.used_sessions)+' remaining</td><td>'+E(p.purchase_date)+'</td><td>'+E(p.expiry_date)+'</td></tr>'}).join('')+'</table><h2>Conduct History</h2><table>'+cs.map(function(x){return '<tr><td>'+E(x.conducted_at)+'</td><td>'+E(x.notes||'')+'</td></tr>'}).join('')+'</table>';document.body.appendChild(root);var css=document.createElement('style');css.id='fjPtV2PrintCss';css.textContent='@media print{body>*:not(#fjPtV2Print){display:none!important}#fjPtV2Print{display:block!important;padding:25px;font-family:Arial}#fjPtV2Print table{width:100%;border-collapse:collapse}#fjPtV2Print td{border-bottom:1px solid #ddd;padding:7px}}@media screen{#fjPtV2Print{display:none}}';document.head.appendChild(css);window.print();setTimeout(function(){root.remove();css.remove()},500)};
-function protectRefresh(){if(window.__fjRefreshProtected)return;window.__fjRefreshProtected=true;document.documentElement.style.overscrollBehaviorY='none';document.body.style.overscrollBehaviorY='none';var sy=0;document.addEventListener('touchstart',function(e){sy=e.touches&&e.touches[0]?e.touches[0].clientY:0},{passive:true});document.addEventListener('touchmove',function(e){var y=e.touches&&e.touches[0]?e.touches[0].clientY:sy;if(window.scrollY<=0&&y>sy+4)e.preventDefault()},{passive:false});document.addEventListener('keydown',function(e){if(e.key==='F5'||((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='r')){e.preventDefault();e.stopPropagation();alert('Refresh dinonaktifkan agar data tidak hilang.');return false}} ,true);window.addEventListener('beforeunload',function(){try{var p=JSON.parse(localStorage.getItem('fj_client_calendar_v1')||'null');if(p){p.autoBackupAt=new Date().toISOString();localStorage.setItem('fj_client_calendar_v1_autobackup',JSON.stringify(p))}}catch(_){}});}
-function boot(){protectRefresh();nav();build();if(can())load();}
-var __ptmBootTries=0;function retryBoot(){boot();__ptmBootTries++;if(__ptmBootTries<40 && !q('fjPtOpsV2Nav'))setTimeout(retryBoot,500)};setTimeout(retryBoot,300);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);window.addEventListener('load',function(){setTimeout(boot,1100)});window.addEventListener('focus',function(){if(can())load()});
-})();
-</script>
-
-
-
 <!-- V52 TARGETED REPAIR: PT Management stability, device backup, portrait profiles, robust PDF print, and Client Detail consolidation. -->
-<style id="fj-v52-targeted-repair-css">
-/* 1) Logo: keep the existing mark, but give the wordmark enough room on the 230–250px desktop sidebar. */
-@media (min-width:701px){
-  .side .fj-v48-logo{gap:6px!important;align-items:center!important}
-  .side .fj-v48-logo-mark{width:36px!important;height:36px!important;flex:0 0 36px!important}
-  .side .fj-v48-logo-copy{max-width:calc(100% - 42px)!important;min-width:0!important}
-  .side .fj-v48-logo-name{font-size:15px!important;letter-spacing:0!important;line-height:1!important;white-space:nowrap!important}
-  .side .fj-v48-logo-tag{font-size:6.5px!important;letter-spacing:.85px!important;white-space:nowrap!important;margin-top:4px!important}
-}
-/* 5) Client profile Before/After must stay portrait and never crop the original photo. */
-#fjV48ProfileModal .fj-v48-ba-photo{
-  width:100%!important;height:280px!important;object-fit:contain!important;object-position:center!important;
-  background:#eef6f7!important;border-radius:9px!important;display:block!important;
-}
-#fjV48ProfileModal .fj-v48-ba-empty{height:280px!important}
-@media(max-width:760px){
-  #fjV48ProfileModal .fj-v48-ba-photo,#fjV48ProfileModal .fj-v48-ba-empty{height:230px!important}
-}
-/* 7) Client Detail is consolidated into Client List → Client Profile. */
-#fjPtOpsV2 .ptv2-tab[data-v="detail"],#fjPtOpsV2 #ptv2Detail{display:none!important}
-/* Device toolbar is kept visible and compact. */
-#fjPtOpsV2 .fj-v52-device-toolbar{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin:6px 0 10px!important;padding:8px!important;border:1px solid #d9e8ef!important;border-radius:10px!important;background:#fbfefe!important}
-#fjPtOpsV2 .fj-v52-device-toolbar .ptv2-btn{font-size:10px!important;padding:7px 9px!important}
-@media(max-width:760px){#fjPtOpsV2 .fj-v52-device-toolbar{display:grid!important;grid-template-columns:1fr 1fr!important}#fjPtOpsV2 .fj-v52-device-toolbar .ptv2-btn{width:100%!important}}
-/* Print modal */
-#fjV52PrintModal{position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(8,35,51,.68)}
-#fjV52PrintModal.open{display:flex}
-#fjV52PrintModal .fj-v52-print-box{width:min(620px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:16px;box-shadow:0 22px 70px rgba(0,0,0,.28)}
-#fjV52PrintModal .fj-v52-print-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-top:10px}
-#fjV52PrintModal label{display:block;font-size:11px;font-weight:900;color:#31576f;margin-bottom:4px}
-#fjV52PrintModal input,#fjV52PrintModal select{width:100%;box-sizing:border-box;padding:9px;border:1px solid #cfe0e9;border-radius:9px;background:#fff}
-@media(max-width:760px){#fjV52PrintModal .fj-v52-print-grid{grid-template-columns:1fr}}
-</style>
-<script id="fj-v52-targeted-repair-runtime">
-(function(){
-'use strict';
-var CAL='fj_client_calendar_v1',DIR='fj_client_directory_v1',RANGES='fj_client_calendar_ranges_v1',DEVICE='fj_pt_management_device_v1';
-function q(id){return document.getElementById(id)}
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
-function readJSON(key,fb){try{var v=JSON.parse(localStorage.getItem(key)||'null');return v==null?fb:v}catch(e){return fb}}
-function cal(){var p=readJSON(CAL,null);return p&&p.calendar?p:null}
-function dir(){return readJSON(DIR,{})||{}}
-function norm(v){return String(v==null?'':v).trim().toLowerCase()}
-function toast(msg,ok){var old=q('fjV52Toast');if(old)old.remove();var d=document.createElement('div');d.id='fjV52Toast';d.textContent=msg;d.style.cssText='position:fixed;right:14px;bottom:14px;z-index:2147483647;padding:10px 13px;border-radius:10px;background:'+(ok===false?'#b43b2f':'#147d70')+';color:#fff;font:800 12px Arial;box-shadow:0 8px 24px rgba(0,0,0,.22)';document.body.appendChild(d);setTimeout(function(){d.remove()},2400)}
-function emptyCalendar(){return {year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}}
-function devicePayload(){
-  var cp=cal(),dr=dir();
-  return {version:'PT_MANAGEMENT_DEVICE_V52',savedAt:new Date().toISOString(),directory:dr,calendar:(cp&&cp.calendar)||emptyCalendar(),calendarMeta:cp?{version:cp.version||'CLIENT_CALENDAR_V1'}:{},ranges:readJSON(RANGES,[])||[]};
-}
-function saveDevice(){
-  try{
-    var p=devicePayload();
-    localStorage.setItem(DEVICE,JSON.stringify(p));
-    var blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-    a.href=url;a.download='FitnessJourney_PT_Management_Backup_V52.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);
-    toast('Save Device berhasil ✓',true);
-  }catch(e){toast('Save Device gagal: '+(e.message||e),false)}
-}
-function applyDevice(p){
-  if(!p||typeof p!=='object'||!p.directory||!p.calendar)throw new Error('File backup tidak valid.');
-  localStorage.setItem(DIR,JSON.stringify(p.directory));
-  localStorage.setItem(CAL,JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:p.calendar,beforeAfter:p.beforeAfter||{before:{},after:{}}}));
-  if(p.ranges)localStorage.setItem(RANGES,JSON.stringify(p.ranges));
-  try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.render==='function')window.fjClientCalendar.render()}catch(e){}
-  document.dispatchEvent(new Event('fj-v50-refresh'));
-  setTimeout(function(){ensure();try{if(typeof window.fjV45OpenEvent==='function'){} }catch(e){}},80);
-}
-function loadDevice(){
-  var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);
-  input.onchange=function(){var f=input.files&&input.files[0];input.remove();if(!f)return;var rd=new FileReader();rd.onload=function(){try{applyDevice(JSON.parse(rd.result));toast('Load Device berhasil ✓',true)}catch(e){toast('Load Device gagal: '+(e.message||e),false)}};rd.readAsText(f)};input.click();
-}
-function hideClientDetail(){var p=q('fjPtOpsV2');if(!p)return;p.querySelectorAll('.ptv2-tab[data-v="detail"]').forEach(function(x){x.style.display='none'});var d=q('ptv2Detail');if(d)d.style.display='none'}
-function ensureDeviceToolbar(){
-  var p=q('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;
-  var online=p.querySelector('.fj-v48-online-toolbar');if(!online)return;
-  var old=p.querySelector('.fj-v52-device-toolbar');if(old){hideClientDetail();return;}
-  var h=document.createElement('div');h.className='fj-v52-device-toolbar';
-  h.innerHTML='<button type="button" class="ptv2-btn" id="fjV52SaveDevice">💾 Save Device</button><button type="button" class="ptv2-btn alt" id="fjV52LoadDevice">📂 Load Device</button><span style="font-size:9px;color:#668293;align-self:center">Local backup + JSON file</span>';
-  online.parentNode.insertBefore(h,online.nextSibling);
-  q('fjV52SaveDevice').onclick=saveDevice;q('fjV52LoadDevice').onclick=loadDevice;hideClientDetail();
-}
-function clients(){
-  var d=dir(),map={};Object.keys(d).forEach(function(k){var c=d[k];if(c&&c.name)map[norm(c.name)]=c});
-  var cp=cal(),evs=cp&&cp.calendar&&cp.calendar.events||{};
-  Object.keys(evs).forEach(function(k){var c=evs[k]&&evs[k].client;if(c&&c.name&&!map[norm(c.name)])map[norm(c.name)]=c});
-  return Object.keys(map).map(function(k){return map[k]});
-}
-function events(){var cp=cal(),evs=cp&&cp.calendar&&cp.calendar.events||{};return Object.keys(evs).sort().map(function(k){return {key:k,event:evs[k]}}).filter(function(x){return x.event&&x.event.client&&x.event.client.name})}
-function baOf(e,c){var b=(e&&e.beforeAfter)||null;if(!b&&e&&e.client)b=e.client.beforeAfter||null;if(!b&&c)b=c.beforeAfter||{before:c.before||{},after:c.after||{}};b=b||{before:{},after:{}};return {before:clone(b.before||{}),after:clone(b.after||{})}}
-function fields(z){z=z||{};var a=[['Date',z.date],['Weight',z.weight],['Height',z.height],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['Body Fat',z.bodyFat||z.bodyfat],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Chest',z.chest],['Waist',z.waist],['Hip',z.hip],['Arm',z.arm],['Thigh',z.thigh],['Notes',z.notes]];return a.filter(function(x){return x[1]!=null&&x[1]!==''}).map(function(x){return '<div><b>'+esc(x[0])+'</b><span>'+esc(x[1])+'</span></div>'}).join('')}
-function profilePhoto(side,z){var src=z&&((z.image)||z.photo);return src?'<img class="fj-v48-ba-photo" src="'+esc(src)+'" alt="'+side+'">':'<div class="fj-v48-ba-empty">No photo saved</div>'}
-function buildProfileFromLocal(name){
-  var cs=clients(),c=cs.find(function(x){return norm(x.name)===norm(name)})||{name:name},evs=events().filter(function(x){return norm(x.event.client&&x.event.client.name)===norm(name)}),last=evs.length?evs[evs.length-1]:null;
-  var merged=Object.assign({},c,last&&last.event&&last.event.client||{}),ba=baOf(last&&last.event||{},c);
-  var body=q('fjV48ProfileBody'),title=q('fjV48ProfileTitle'),sub=q('fjV48ProfileSub');if(!body||!title)return;
-  title.textContent=merged.name||name;sub.textContent='PT: '+(merged.pt_email||merged.email||'—')+' • LOCAL MIRROR';
-  body.innerHTML='<div class="fj-v48-profile-grid">'+[['Age',merged.age],['Gender',merged.gender],['Weight',merged.weight],['Height',merged.height],['Goal',merged.goal],['Fitness Level',merged.level],['Workout Type',merged.wtype],['Duration',merged.duration],['Frequency',merged.freq],['Phone',merged.phone],['Email',merged.email],['Notes',merged.notes]].map(function(v){return '<div class="fj-v48-profile-item"><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'}).join('')+'</div>'+
-  '<div class="fj-v48-section"><h3>Before / After</h3><div class="fj-v48-ba-grid">'+['before','after'].map(function(side){var z=ba[side]||{};return '<div class="fj-v48-ba-card"><h4>'+side.toUpperCase()+'</h4>'+profilePhoto(side,z)+'<div class="fj-v48-ba-fields">'+fields(z)+'</div></div>'}).join('')+'</div></div>'+
-  '<div class="fj-v48-section"><h3>Training Sessions</h3><div class="tablewrap"><table class="ptv2-table"><tr><th>Date</th><th>Training</th><th>Exercises</th><th>Notes</th></tr>'+evs.map(function(x){var e=x.event||{};return '<tr><td>'+esc(x.key.replace('T',' '))+'</td><td>'+esc(e.title||'Training')+'</td><td>'+esc((e.exercises||[]).map(function(r){return r.exercise}).filter(Boolean).join(', ')||'—')+'</td><td>'+esc(e.notes||'—')+'</td></tr>'}).join('')+'</table></div></div>';
-  q('fjV48ProfileModal').classList.add('open');
-}
-function enhanceProfileClick(){
-  var host=q('ptv2ClientCards');if(!host||host.dataset.fjV52Profile)return;host.dataset.fjV52Profile='1';
-  host.addEventListener('click',function(e){var card=e.target.closest&&e.target.closest('.ptv2-client');if(!card)return;var name=card.getAttribute('data-mirror-client')||card.querySelector('h3')?.textContent||'';if(!name)return;e.preventDefault();e.stopPropagation();
-    if(typeof window.ensureProfileModal==='function'){};
-    /* Reuse the existing modal shell, but rebuild it from the Client Calendar mirror so no portrait image is cropped and no data is lost. */
-    var modal=q('fjV48ProfileModal');if(!modal){
-      modal=document.createElement('div');modal.id='fjV48ProfileModal';modal.innerHTML='<div class="fj-v48-profile-box"><div class="ptv2-actions" style="justify-content:space-between"><div><div class="label">CLIENT PROFILE</div><h2 id="fjV48ProfileTitle" style="margin:2px 0"></h2><div class="ptv2-muted" id="fjV48ProfileSub"></div></div><button type="button" class="ptv2-btn alt" id="fjV52ProfileClose">Close</button></div><div id="fjV48ProfileBody"></div></div>';document.body.appendChild(modal);q('fjV52ProfileClose').onclick=function(){modal.classList.remove('open')}}
-    buildProfileFromLocal(name);
-  },true);
-}
-function printClients(){return clients().sort(function(a,b){return String(a.name).localeCompare(String(b.name))})}
-function openPrintModal(){
-  var old=q('fjV52PrintModal');if(old)old.remove();
-  var cs=printClients(),now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1),m=document.createElement('div');m.id='fjV52PrintModal';
-  m.innerHTML='<div class="fj-v52-print-box"><div class="ptv2-actions" style="justify-content:space-between"><div><div class="label">PT MANAGEMENT</div><h3 style="margin:2px 0">Print / Save PDF</h3></div><button type="button" class="ptv2-btn alt" id="fjV52PrintClose">Close</button></div><div class="fj-v52-print-grid"><div><label>Client</label><select id="fjV52PrintClient"><option value="">All Clients</option>'+cs.map(function(c){return '<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>'}).join('')+'</select></div><div><label>From</label><input id="fjV52PrintFrom" type="date" value="'+first.toISOString().slice(0,10)+'"></div><div><label>To</label><input id="fjV52PrintTo" type="date" value="'+now.toISOString().slice(0,10)+'"></div></div><div class="ptv2-actions" style="justify-content:flex-end;margin-top:12px"><button type="button" class="ptv2-btn alt" id="fjV52PrintCancel">Cancel</button><button type="button" class="ptv2-btn" id="fjV52PrintNow">▣ Print / Save PDF</button></div></div>';
-  document.body.appendChild(m);m.classList.add('open');q('fjV52PrintClose').onclick=function(){m.remove()};q('fjV52PrintCancel').onclick=function(){m.remove()};q('fjV52PrintNow').onclick=function(){var name=q('fjV52PrintClient').value,from=q('fjV52PrintFrom').value,to=q('fjV52PrintTo').value;m.remove();printRange(name,from,to)};
-}
-function printRange(name,from,to){
-  if(!from||!to||from>to){alert('Tanggal From / To belum benar.');return}
-  var evs=events().filter(function(x){var d=x.key.slice(0,10),owner=x.event.client&&x.event.client.name||'';return d>=from&&d<=to&&(!name||norm(owner)===norm(name))});
-  var cs=clients(),ci=cs.find(function(c){return norm(c.name)===norm(name)})||{name:name||'All Clients'};
-  var w=null;try{w=window.open('','fjV52PTPrint','width=1100,height=900,resizable=yes,scrollbars=yes')}catch(e){}
-  if(!w){alert('PDF/Print gagal dibuka. Izinkan pop-up untuk situs ini lalu coba lagi.');return}
-  var h='<!doctype html><html><head><meta charset="utf-8"><title>Fitness Journey — PT Management</title><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:10px}.cover{break-after:page;page-break-after:always;padding:4mm 0}.cover h1{font-size:24px;margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;border:1px solid #cfd8df;padding:10px;border-radius:6px}.grid div{border:1px solid #e0e5e9;padding:7px;border-radius:5px}.grid b,.ba b{display:block;font-size:8px;text-transform:uppercase;color:#66717a}.grid span{display:block;margin-top:2px;font-size:11px;font-weight:700;overflow-wrap:anywhere}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session h2{font-size:13px;margin:0 0 6px}.session table{width:100%;border-collapse:collapse;font-size:8px;table-layout:fixed}.session th,.session td{border:1px solid #aaa;padding:3px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.baCard{border:1px solid #d6dee3;border-radius:6px;padding:7px;break-inside:avoid}.baPhoto{height:120mm;display:flex;align-items:center;justify-content:center;background:#f4f7f8;border-radius:5px;overflow:hidden;margin-top:5px}.baPhoto img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}.baFields{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}.baFields div{border:1px solid #e4e8eb;border-radius:4px;padding:4px;font-size:7.5px}.baFields b{font-size:6.5px}.muted{color:#68737c}</style></head><body>';
+</head><body>';
   h+='<section class="cover"><h1>FITNESS JOURNEY — PT MANAGEMENT</h1><h2>'+esc(name||'All Clients')+'</h2><p>Periode: '+esc(from)+' s/d '+esc(to)+'</p>';
   if(name){h+='<div class="grid">'+[['Client Name',ci.name],['Age',ci.age],['Gender',ci.gender],['Weight',ci.weight],['Height',ci.height],['Goal',ci.goal],['Fitness Level',ci.level],['Workout Type',ci.wtype],['Duration',ci.duration],['Frequency',ci.freq],['Phone',ci.phone],['Email',ci.email],['Notes',ci.notes]].map(function(v){return '<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'}).join('')+'</div>'}
   h+='<p class="muted">Sessions printed: '+evs.length+'</p></section>';
   if(!evs.length)h+='<p>No sessions found in selected range.</p>';
   evs.forEach(function(x,i){var e=x.event||{},ba=baOf(e,ci);h+='<section class="session"><h2>'+(i+1)+'. '+esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2><p><b>Client:</b> '+esc(e.client?.name||'—')+' &nbsp; <b>Goal:</b> '+esc(e.client?.goal||ci.goal||'—')+' &nbsp; <b>Type:</b> '+esc(e.client?.wtype||ci.wtype||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe||'—')+'</td><td>'+esc(r.rir||'—')+'</td><td>'+esc(r.rest||'—')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'');
     if((ba.before&&Object.keys(ba.before).length)||(ba.after&&Object.keys(ba.after).length)){h+='<div class="ba">';['before','after'].forEach(function(side){var z=ba[side]||{},src=z.image||z.photo;h+='<div class="baCard"><h3>'+side.toUpperCase()+'</h3><div class="baPhoto">'+(src?'<img src="'+esc(src)+'" alt="'+side+'">':'<span class="muted">No photo</span>')+'</div><div class="baFields">'+fields(z).replace(/class="fj-v48[^\"]*"/g,'')+'</div></div>'});h+='</div>'}h+='</section>'});
-  h+='</body></html>';
+  h+='
+</body></html>';
   try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
 }
 function bindPrintButton(){
@@ -6579,6 +6406,8 @@ window.addEventListener('load',function(){setTimeout(ensure,1400)});
 </script>
 <style id="fj-ptm-master-mirror-v53-css">
 /* V53 — PT Management is a MASTER-ADMIN mirror of Client Calendar. */
+#fjPtMirrorMaster.panel{display:none!important}
+#fjPtMirrorMaster.panel.active{display:block!important;visibility:visible!important;opacity:1!important}
 #fjPtMirrorMaster{padding-bottom:28px!important;display:block!important;visibility:visible!important;opacity:1!important;position:relative!important}
 #fjPtMirrorMaster .ptm53-shell{background:#f7fbfd;border:1px solid #d9e8ef;border-radius:18px;padding:16px}
 #fjPtMirrorMaster .ptm53-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
@@ -6653,7 +6482,7 @@ window.addEventListener('load',function(){setTimeout(ensure,1400)});
 <script id="fj-ptm-master-mirror-v53-runtime">
 (function(){
 'use strict';
-var P='fjPtMirrorMaster', NAV='fjPtOpsV2Nav', CAL='fj_client_calendar_v1', DIR='fj_client_directory_v1';
+var P='fjPtMirrorMaster', NAV='fjPtMirrorNav', CAL='fj_client_calendar_v1', DIR='fj_client_directory_v1';
 var state={month:new Date(),tab:'calendar',search:'',selectedKey:null};
 function $(id){return document.getElementById(id)}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -6712,171 +6541,45 @@ function saveEventRevision(oldKey,oldEvent,c,oldBA){var p=cal();if(!p||!p.calend
 function closeModal(){var m=$('ptm53Modal');if(m)m.classList.remove('open')}
 function printEvents(list,clientName){var old=document.getElementById('fjPtMPrintRoot');if(old)old.remove();var root=document.createElement('div');root.id='fjPtMPrintRoot';var c=getClient(clientName),h='<section class="ptm53-print-cover"><h1>FITNESS JOURNEY — PT MANAGEMENT</h1><h2>'+esc(clientName||c.name||'Client')+'</h2><p>Client Calendar Mirror — Master Admin</p><div class="ptm53-client-fields">';clientData(c).forEach(function(v){h+='<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'});h+='</div><p style="margin-top:8mm">Printed sessions: '+list.length+'</p></section>';list.forEach(function(x,idx){var e=x.event,ba=baOf(e,c);h+='<section class="ptm53-print-event"><h2>SESSION '+(idx+1)+' — '+esc(x.key.replace('T',' '))+'</h2><p><b>Workout:</b> '+esc(e.title||e.client.wtype||'Training')+' &nbsp; <b>Status:</b> '+esc(e.status||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th><th>Instruction</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td><td>'+esc(r.instruction||r.instructions||'')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Conduct / Notes:</b> '+esc(e.notes)+'</p>':'');if(hasBA(ba)){h+='<div class="ptm53-ba-print">';['before','after'].forEach(function(s){var z=ba[s]||{},src=photo(z);h+='<div class="ptm53-ba-card"><h2>'+s.toUpperCase()+'</h2><div class="ptm53-ba-photo">'+(src?'<img src="'+esc(src)+'">':'No photo')+'</div><div class="ptm53-ba-fields">'+baFields(z).map(function(v){return '<div><b>'+esc(v[0])+'</b><span>'+esc(v[1])+'</span></div>'}).join('')+'</div></div>'});h+='</div>'}h+='</section>'});root.innerHTML=h;document.body.appendChild(root);var oldTitle=document.title;document.title='PT Management — '+(clientName||'Client');document.body.classList.add('fj-ptm53-printing');function clean(){document.body.classList.remove('fj-ptm53-printing');var r=$('fjPtMPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}window.addEventListener('afterprint',clean,{once:true});try{window.print()}catch(e){clean()}}
 function openRangePrint(){var ev=events(),from=prompt('From (YYYY-MM-DD)',new Date(state.month.getFullYear(),state.month.getMonth(),1).toISOString().slice(0,10));if(!from)return;var to=prompt('To (YYYY-MM-DD)',new Date(state.month.getFullYear(),state.month.getMonth()+1,0).toISOString().slice(0,10));if(!to)return;if(from>to){alert('Tanggal From / To tidak benar.');return}var name=prompt('Client name (kosong = semua client)','');var list=ev.filter(function(x){var d=x.key.slice(0,10);return d>=from&&d<=to&&(!name||norm(x.event.client.name)===norm(name))});printEvents(list,name||'All Clients')}
-function hide(){var p=$(P);if(p)p.classList.remove('active');var n=$(NAV);if(n)n.style.display='none';var old=$('fjPtOpsV2');if(old)old.classList.remove('active')}
-async function boot(){var n=$(NAV);if(!master()){hide();return}if(n){n.style.display='';n.textContent='▣ PT Management — Master';n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();render()};}var old=$('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}/* READY: render first; online sync is background and time-limited */var before='';try{before=JSON.stringify(cal()||{})}catch(e){}render();try{await Promise.race([syncOnlineMirror(),new Promise(function(resolve){setTimeout(resolve,2500)})]);}catch(e){console.warn('PT Management background sync',e)}var after='';try{after=JSON.stringify(cal()||{})}catch(e){}if(before!==after)render()}
-document.addEventListener('click',function(e){var n=e.target.closest&&e.target.closest('#'+NAV);if(n&&master()){e.preventDefault();e.stopImmediatePropagation();render()}},true);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);window.addEventListener('load',function(){setTimeout(boot,1200)});
-var lastMaster='';setInterval(function(){var m=master()?'1':'0';if(m!==lastMaster){lastMaster=m;boot()}},3000);
+function hide(){var p=$(P);if(p)p.classList.remove('active');var n=$(NAV);if(n)n.style.display='none'}
+function ensureNav(){
+  var n=$(NAV);
+  if(n)return n;
+  if(!master())return null;
+  var side=document.querySelector('.side');
+  if(!side)return null;
+  n=document.createElement('button');
+  n.type='button';n.id=NAV;n.className='navbtn';
+  n.textContent='▣ PT Management — Master';
+  side.appendChild(n);
+  n.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();render()});
+  return n;
+}
+async function boot(){
+  if(!master()){hide();return}
+  var n=ensureNav();if(n)n.style.display='';
+  render();
+  try{await syncOnlineMirror();render()}catch(e){console.warn('PT Management background sync',e)}
+}
+document.addEventListener('click',function(e){var n=e.target.closest&&e.target.closest('#'+NAV);if(n&&master()){e.preventDefault();e.stopPropagation();render()}},true);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500)},{once:true});else setTimeout(boot,500);
+window.addEventListener('load',function(){setTimeout(function(){if(master()&&!$(NAV))boot()},700)});
+// Only watch for authentication becoming available; never rebuild the panel repeatedly.
+var navWatch=0;setInterval(function(){if(master()){if(!$(NAV))boot()}else if($(NAV))hide()},1500);
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#ptm53Modal')){if(e.target.id==='ptm53Modal')closeModal()}},true);
-window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;window.fjPtM53GetState=function(){try{return clone(cal())}catch(e){return null}};
+window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
 })();
 </script>
 
 
 
-<!-- V54 — PT MANAGEMENT FINAL ARCHITECTURE: READ-THROUGH MIRROR OF CLIENT CALENDAR -->
-<style id="fj-ptm-v54-final">
-/* PT Management is a monitoring/mirror surface. Editing happens through the exact Client Calendar editor. */
-#fjPtMirrorMaster .ptm53-modal{display:none!important}
-#fjPtMirrorMaster .ptm53-event,#fjPtMirrorMaster .ptm53-client{cursor:pointer}
-#fjPtMirrorMaster .ptm53-event::after{content:"  • Open in Client Calendar";font-size:8px;color:#4784a5}
-</style>
-<script id="fj-ptm-v54-final-runtime">
+<script id="fj-v57-clean-master-mirror-guard">
 (function(){
-  'use strict';
-  function activateClientCalendar(){
-    var nav=document.querySelector('[data-tab="clientCalendar"]')||document.getElementById('clientCalendarNav')||document.querySelector('.navbtn[data-tab="client-calendar"]');
-    var panel=document.getElementById('clientCalendar');
-    if(nav){try{nav.click()}catch(e){}}
-    if(panel){document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p===panel)});panel.classList.add('active')}
-  }
-  function openExactClientCalendarEditor(key){
-    if(!key)return;
-    activateClientCalendar();
-    setTimeout(function(){
-      try{
-        if(window.fjClientCalendar&&typeof window.fjClientCalendar.openEditor==='function'){
-          window.fjClientCalendar.openEditor(key);
-          return;
-        }
-      }catch(e){console.error('Client Calendar editor bridge failed',e)}
-      alert('Client Calendar editor belum siap. Silakan buka Client Calendar lalu pilih session tersebut.');
-    },30);
-  }
-  function ptmEventKey(target){
-    var el=target&&target.closest?target.closest('#fjPtMirrorMaster [data-key]'):null;
-    return el?el.getAttribute('data-key'):null;
-  }
-  document.addEventListener('click',function(e){
-    var key=ptmEventKey(e.target);
-    if(key){
-      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
-      openExactClientCalendarEditor(key);
-      return;
-    }
-    var print=e.target.closest&&e.target.closest('#ptm53PrintRange');
-    if(print){
-      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
-      activateClientCalendar();
-      setTimeout(function(){
-        try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.openRange==='function'){window.fjClientCalendar.openRange();}}catch(err){console.error(err)}
-      },30);
-    }
-  },true);
-  // Keep PT Management visually stable: no periodic DOM rebuild while the user is interacting.
-  var lastPanel='';
-  setInterval(function(){
-    var p=document.getElementById('fjPtMirrorMaster');
-    if(!p)return;
-    var active=p.classList.contains('active')?'1':'0';
-    if(active!==lastPanel){lastPanel=active;}
-  },1000);
-})();
-</script>
-<!-- V55 — PT MANAGEMENT = CLIENT CALENDAR MASTER-ADMIN MIRROR -->
-<style id="fj-ptm-v55-final-css">
-  /* Master Mirror has no independent editor. The real Client Calendar editor is used. */
-  #fjPtMirrorMaster .ptm53-modal{display:none!important}
-  #fjPtMirrorMaster .ptm53-event,#fjPtMirrorMaster .ptm53-client{cursor:pointer}
-  #fjPtMirrorMaster .ptm53-event::after{content:"  • Open Client Calendar";font-size:8px;color:#4784a5}
-  #fjPtMirrorMaster .ptm53-client::after{content:"  • View in Client Calendar";font-size:8px;color:#4784a5}
-</style>
-<script id="fj-ptm-v55-final-runtime">
-(function(){
-  'use strict';
-  function isMaster(){return String(window.currentUser?.email||'').toLowerCase()==='aldenkhafi0203@gmail.com'}
-  function cc(){return window.fjClientCalendar||null}
-  function activateCC(){
-    var nav=document.getElementById('clientCalendarNav');
-    var panel=document.getElementById('trainingClientCalendar');
-    if(nav){try{nav.click()}catch(e){}}
-    if(panel){document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p===panel)});panel.classList.add('active')}
-  }
-  function openSessionInCC(key){
-    if(!isMaster()||!key)return;
-    activateCC();
-    setTimeout(function(){
-      try{
-        var api=cc();
-        if(api&&typeof api.openEditor==='function'){api.openEditor(key);return}
-      }catch(e){console.error('Client Calendar editor bridge',e)}
-    },40);
-  }
-  function openRangeInCC(){
-    if(!isMaster())return;
-    activateCC();
-    setTimeout(function(){
-      try{var api=cc();if(api&&typeof api.openRange==='function'){api.openRange();return}}catch(e){console.error('Client Calendar range bridge',e)}
-    },40);
-  }
-  document.addEventListener('click',function(e){
-    if(!isMaster())return;
-    var root=e.target.closest&&e.target.closest('#fjPtMirrorMaster');
-    if(!root)return;
-    var ev=e.target.closest&&e.target.closest('#fjPtMirrorMaster [data-key]');
-    if(ev){
-      var key=ev.getAttribute('data-key');
-      if(key){e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();openSessionInCC(key)}
-      return;
-    }
-    if(e.target.closest&&e.target.closest('#ptm53PrintRange')){
-      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();openRangeInCC();return;
-    }
-  },true);
-  /* Never allow the legacy PT Management editor/modal to become visible. */
-  function suppressLegacy(){
-    var modal=document.getElementById('ptm53Modal');
-    if(modal)modal.classList.remove('open');
+  function clean(){
     var old=document.getElementById('fjPtOpsV2');
-    if(old){old.classList.remove('active');old.style.display='none'}
+    if(old){old.classList.remove('active');old.style.display='none';old.setAttribute('aria-hidden','true')}
   }
-  suppressLegacy();
-  document.addEventListener('fj-v50-refresh',function(){setTimeout(suppressLegacy,0)});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(suppressLegacy,0)},{once:true});
-window.fjOpenPtMirrorMaster=function(){if(!master())return false;var p=ensure();if(!p)return false;render();return true};
-})();
-</script>
-
-<!-- V56 CLEAN PT MANAGEMENT OPEN FIX: only replaces the broken navigation handoff. -->
-<style id="fj-ptm-v56-clean-css">
-/* Do not let the obsolete operations panel cover the Master Mirror. */
-#fjPtOpsV2{display:none!important}
-#fjPtMirrorMaster{visibility:visible!important;opacity:1!important}
-</style>
-<script id="fj-ptm-v56-clean-runtime">
-(function(){
-  'use strict';
-  function master(){var u=window.currentUser||null;return String(u&&u.email||'').trim().toLowerCase()==='aldenkhafi0203@gmail.com'}
-  function openMirror(e){
-    if(!master())return;
-    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
-    var old=document.getElementById('fjPtOpsV2');if(old)old.classList.remove('active');
-    if(typeof window.fjOpenPtMirrorMaster==='function')window.fjOpenPtMirrorMaster();
-    var p=document.getElementById('fjPtMirrorMaster');
-    if(p){document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});p.classList.add('active');p.style.display='block';p.style.visibility='visible';p.style.opacity='1';}
-    return false;
-  }
-  function bind(){
-    var n=document.getElementById('fjPtOpsV2Nav');
-    if(!n||n.dataset.fjV56Bound)return;
-    n.dataset.fjV56Bound='1';
-    n.addEventListener('click',openMirror,true);
-    n.onclick=function(e){return openMirror(e)};
-  }
-  bind();
-  document.addEventListener('DOMContentLoaded',bind,{once:true});
-  window.addEventListener('load',bind);
-  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',clean,{once:true});else clean();
 })();
 </script>
 </body></html>
@@ -9754,88 +9457,3 @@ setInterval(function(){repairOnlineIdentity();mergeBAIntoDirectory();enrichCalen
 
 
 <!-- V50 PATCH: ONLY requested fixes: desktop logo fit, device Save/Load, complete Before/After data mirroring, and mobile exercise label wrapping. -->
-<style id="fj-v50-targeted-fixes">
-/* Desktop/tablet: keep the refreshed logo fully visible even when the sidebar is narrow. */
-.side .brand{overflow:visible!important;min-width:0!important;width:100%!important;box-sizing:border-box!important}
-.side .fj-v48-logo{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;align-items:center!important}
-.side .fj-v48-logo-mark{width:40px!important;height:40px!important;flex:0 0 40px!important}
-.side .fj-v48-logo-copy{min-width:0!important;max-width:calc(100% - 49px)!important;overflow:visible!important}
-.side .fj-v48-logo-name{font-size:16px!important;line-height:1.02!important;letter-spacing:.25px!important;white-space:normal!important;overflow-wrap:anywhere!important}
-.side .fj-v48-logo-tag{font-size:7px!important;letter-spacing:1.1px!important;white-space:normal!important;line-height:1.15!important}
-@media(max-width:760px){
-  .side .fj-v48-logo-mark{width:42px!important;height:42px!important;flex-basis:42px!important}
-  .side .fj-v48-logo-copy{max-width:calc(100% - 51px)!important}
-  .side .fj-v48-logo-name{font-size:18px!important}
-  .side .fj-v48-logo-tag{font-size:7px!important}
-  /* Exercise Library: metadata labels stay inside each card and wrap instead of crossing the border. */
-  #fjExerciseLibrary .exl-grid>.exl-card .exl-meta-line,
-  #exlGridWrap .exl-grid>.exl-card .exl-meta-line,
-  #exlSelected .exl-grid>.exl-card .exl-meta-line,
-  #fjV46EduExercises .exl-card .exl-meta-line{width:100%!important;min-width:0!important;overflow:visible!important;display:flex!important;flex-wrap:wrap!important;align-items:flex-start!important;gap:4px!important}
-  #fjExerciseLibrary .exl-grid>.exl-card .exl-meta-line span,
-  #exlGridWrap .exl-grid>.exl-card .exl-meta-line span,
-  #exlSelected .exl-grid>.exl-card .exl-meta-line span,
-  #fjV46EduExercises .exl-card .exl-meta-line span{display:inline-block!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.15!important}
-}
-/* PT Management device toolbar remains compact and wraps naturally on phones. */
-#fjPtOpsV2 .fj-v50-device-toolbar{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin:6px 0 10px!important;padding:7px!important;border:1px solid #d9e8ef!important;border-radius:10px!important;background:#fbfefe!important}
-#fjPtOpsV2 .fj-v50-device-toolbar .ptv2-btn{font-size:10px!important;padding:6px 8px!important;line-height:1.15!important;white-space:normal!important}
-@media(max-width:760px){#fjPtOpsV2 .fj-v50-device-toolbar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}#fjPtOpsV2 .fj-v50-device-toolbar .ptv2-btn{width:100%!important}}
-.fj-v50-ba-data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin-top:6px}
-.fj-v50-ba-data div{font-size:8px;line-height:1.2;border:1px solid #e1ecef;border-radius:6px;padding:4px;background:#fff;text-align:left;overflow-wrap:anywhere}
-.fj-v50-ba-data b{display:block;color:#6d879e;font-size:7px;text-transform:uppercase}
-</style>
-<script id="fj-v50-targeted-runtime">
-(function(){
-'use strict';
-var DIR='fj_client_directory_v1', CAL='fj_client_calendar_v1', DEVICE='fj_pt_management_device_v1';
-function $ (id){return document.getElementById(id)}
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function norm(v){return String(v==null?'':v).trim().toLowerCase()}
-function clone(x){try{return JSON.parse(JSON.stringify(x))}catch(e){return x}}
-function dirRead(){try{return JSON.parse(localStorage.getItem(DIR)||'{}')||{}}catch(e){return {}}}
-function dirWrite(x){try{localStorage.setItem(DIR,JSON.stringify(x));return true}catch(e){return false}}
-function calRead(){try{var p=JSON.parse(localStorage.getItem(CAL)||'null');return p&&p.calendar?p:null}catch(e){return null}}
-function calWrite(x){try{localStorage.setItem(CAL,JSON.stringify(x));return true}catch(e){return false}}
-function normalizeSide(z){z=clone(z||{});if(!z.image&&z.photo)z.image=z.photo;if(!z.photo&&z.image)z.photo=z.image;return z}
-function getBA(c){c=c||{};var b=c.beforeAfter||c.profile?.beforeAfter||null;if(!b)b={before:c.before||{},after:c.after||{}};return {before:normalizeSide(b.before||{}),after:normalizeSide(b.after||{})}}
-function hasBA(ba){return !!((ba.before&&Object.keys(ba.before).some(function(k){return ba.before[k]}))||(ba.after&&Object.keys(ba.after).some(function(k){return ba.after[k]})))}
-function toast(msg,ok){var old=$('fjV50Toast');if(old)old.remove();var d=document.createElement('div');d.id='fjV50Toast';d.textContent=msg;d.style.cssText='position:fixed;right:14px;bottom:14px;z-index:2147483600;padding:10px 13px;border-radius:10px;background:'+(ok===false?'#b43b2f':'#147d70')+';color:#fff;font:800 12px Arial;box-shadow:0 8px 24px rgba(0,0,0,.22)';document.body.appendChild(d);setTimeout(function(){d.remove()},2400)}
-function devicePayload(){var d=dirRead(),c=calRead();return {version:'PT_MANAGEMENT_DEVICE_V1',savedAt:new Date().toISOString(),directory:d,calendar:c&&c.calendar?c.calendar:null}}
-function saveDevice(){try{var payload=devicePayload();localStorage.setItem(DEVICE,JSON.stringify(payload));var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FitnessJourney_PT_Management_Backup.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);toast('PT Management tersimpan ke device ✓',true)}catch(e){toast('Save Device gagal: '+e.message,false)}}
-function applyDevice(p){if(!p||!p.directory||!p.calendar)throw Error('Format backup PT Management tidak valid.');dirWrite(p.directory);calWrite({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:p.calendar});try{localStorage.setItem(DEVICE,JSON.stringify(p))}catch(e){};try{if(typeof window.fjClientCalendar!=='undefined'&&window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){};setTimeout(function(){try{if(typeof window.fjV45Month!=='undefined'&&typeof window.renderMirrorCalendar==='function')window.renderMirrorCalendar()}catch(e){};var p2=$('fjPtOpsV2');if(p2&&p2.classList.contains('active')){try{if(typeof window.fjV45OpenEvent==='function'){} }catch(e){};document.dispatchEvent(new Event('fj-v50-refresh'))}},80)}
-function loadDevice(){var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);input.onchange=function(){var f=input.files&&input.files[0];input.remove();if(!f)return;var rd=new FileReader();rd.onload=function(){try{var p=JSON.parse(rd.result);applyDevice(p);toast('Backup PT Management berhasil dimuat dari device ✓',true)}catch(e){toast('Load Device gagal: '+(e.message||'format file salah'),false)}};rd.readAsText(f)};input.click()}
-function ensureDeviceToolbar(){var p=$('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;var h=p.querySelector('.fj-v50-device-toolbar');if(h)return;var online=p.querySelector('.fj-v48-online-toolbar');if(!online)return;h=document.createElement('div');h.className='fj-v50-device-toolbar';h.innerHTML='<button type="button" class="ptv2-btn" id="fjV50SaveDevice">💾 Save Device</button><button type="button" class="ptv2-btn alt" id="fjV50LoadDevice">📂 Load Device</button><span style="font-size:9px;color:#668293;align-self:center">Backup lokal + file JSON</span>';online.parentNode.insertBefore(h,online.nextSibling);$('fjV50SaveDevice').onclick=saveDevice;$('fjV50LoadDevice').onclick=loadDevice}
-function baData(z){z=z||{};var vals=[['Date',z.date],['Weight',z.weight],['Body Fat',z.bodyfat],['Chest',z.chest],['Waist',z.waist],['Hip',z.hip],['Arm',z.arm],['Thigh',z.thigh],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Notes',z.notes]];return '<div class="fj-v50-ba-data">'+vals.filter(function(v){return v[1]!=null&&v[1]!==''}).map(function(v){return '<div><b>'+esc(v[0])+'</b>'+esc(v[1])+'</div>'}).join('')+'</div>'}
-function enrichDirectoryFromCalendar(){var cp=calRead();if(!cp||!cp.calendar)return;var d=dirRead(),events=cp.calendar.events||{},changed=false;Object.keys(events).forEach(function(k){var e=events[k];if(!e||!e.client||!e.client.name)return;var key=Object.keys(d).find(function(x){return norm(d[x]?.name)===norm(e.client.name)});if(!key){key='v50_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);d[key]={id:key,name:e.client.name};changed=true}var c=d[key],merged=Object.assign({},c);['age','gender','weight','height','goal','level','wtype','duration','freq','phone','email','notes'].forEach(function(f){if((merged[f]==null||merged[f]==='')&&e.client[f]!=null&&e.client[f]!==''){merged[f]=e.client[f];changed=true}});var eb=getBA(e),cb=getBA(e.client),db=getBA(c),ba=hasBA(eb)?eb:(hasBA(cb)?cb:db);if(hasBA(ba)){merged.before=Object.assign({},db.before,ba.before);merged.after=Object.assign({},db.after,ba.after);merged.beforeAfter={before:clone(merged.before),after:clone(merged.after)};changed=true;var evba={before:Object.assign({},eb.before,ba.before),after:Object.assign({},eb.after,ba.after)};e.beforeAfter=evba;e.client=Object.assign({},e.client,{beforeAfter:clone(evba)});events[k]=e}d[key]=merged});if(changed){cp.savedAt=new Date().toISOString();calWrite(cp);dirWrite(d)}}
-function enrichCardsWithAllBAData(){var host=$('ptv2ClientCards');if(!host)return;host.querySelectorAll('.ptv2-client').forEach(function(card){var old=card.querySelector('.fj-v49-card-ba');if(old)old.remove();var name=card.getAttribute('data-mirror-client')||card.querySelector('h3')?.textContent||'';if(!name)return;var d=dirRead(),c=Object.keys(d).map(function(k){return d[k]}).find(function(x){return norm(x.name)===norm(name)});if(!c)return;var ba=getBA(c);if(!hasBA(ba))return;var wrap=document.createElement('div');wrap.className='fj-v50-card-ba';wrap.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px';[['BEFORE',ba.before],['AFTER',ba.after]].forEach(function(pair){var z=pair[1]||{},x=document.createElement('div');x.style.cssText='border:1px solid #dce9ee;border-radius:7px;padding:4px;background:#fbfefe';var src=z.image||z.photo;x.innerHTML='<div style="text-align:center;font-size:8px;font-weight:900;color:#6d879e">'+pair[0]+'</div>'+(src?'<img src="'+esc(src)+'" alt="'+pair[0]+'" style="display:block;width:100%;height:58px;object-fit:cover;border-radius:5px;margin-top:4px">':'<div style="height:58px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#8aa5a9">NO PHOTO</div>')+baData(z);wrap.appendChild(x)});card.appendChild(wrap)})}
-function bindClientAutofill(){var input=$('v45cn'),save=$('v45saveClient');if(!input||!save||save.dataset.fjV50Bound)return;save.dataset.fjV50Bound='1';function find(){var name=input.value.trim(),d=dirRead(),c=Object.keys(d).map(function(k){return d[k]}).find(function(x){return norm(x.name)===norm(name)});if(!c){var cp=calRead(),evs=cp&&cp.calendar&&cp.calendar.events||{};Object.keys(evs).some(function(k){var e=evs[k],n=e&&e.client&&e.client.name;if(norm(n)===norm(name)){c=Object.assign({},e.client,{beforeAfter:getBA(e)});return true}return false});}if(!c)return;[['v45ca','age'],['v45cg','gender'],['v45cw','weight'],['v45ch','height'],['v45cgoal','goal'],['v45clevel','level'],['v45cwtype','wtype'],['v45cdur','duration'],['v45cfreq','freq'],['v45cphone','phone'],['v45cemail','email'],['v45cnotes','notes']].forEach(function(pair){var el=$(pair[0]);if(el&&c[pair[1]]!=null&&c[pair[1]]!=='')el.value=c[pair[1]]});save.dataset.fjV50ExistingBA=JSON.stringify(getBA(c));toast('Data client lama + Before/After ditemukan dan disiapkan ✓',true)}input.addEventListener('blur',find);input.addEventListener('change',find);var old=save.onclick;save.onclick=function(e){try{var name=input.value.trim(),d=dirRead(),c=Object.keys(d).map(function(k){return d[k]}).find(function(x){return norm(x.name)===norm(name)}),ba=save.dataset.fjV50ExistingBA?JSON.parse(save.dataset.fjV50ExistingBA):getBA(c||{});if(hasBA(ba))save.dataset.fjV50PendingBA=JSON.stringify(ba)}catch(_){}return old?old.call(this,e):undefined}}
-function patchScheduleSave(){var b=$('v45saveSchedule');if(!b||b.dataset.fjV50Bound)return;b.dataset.fjV50Bound='1';var old=b.onclick;b.onclick=function(e){var r=old?old.call(this,e):null;setTimeout(function(){var cp=calRead();if(!cp||!cp.calendar)return;var key=(($('v45sd')||{}).value||'')+'T'+(($('v45st')||{}).value||'09:00'),ev=cp.calendar.events&&cp.calendar.events[key];if(!ev)return;var name=ev.client?.name||(($('v45sc')||{}).value||''),d=dirRead(),c=Object.keys(d).map(function(k){return d[k]}).find(function(x){return norm(x.name)===norm(name)});var ba=getBA(c||ev.client||{});if(hasBA(ba)){ev.beforeAfter=clone(ba);ev.client=Object.assign({},ev.client,{beforeAfter:clone(ba)});cp.calendar.events[key]=ev;cp.savedAt=new Date().toISOString();calWrite(cp);enrichDirectoryFromCalendar()};},650);return r}}
-function patchEventModal(){var old=window.fjV45OpenEvent;if(!old||old.__fjV50)return;function open(key){var cp=calRead(),e=cp&&cp.calendar&&cp.calendar.events?cp.calendar.events[key]:null;if(!e)return;var rows=(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'')+'</td></tr>'}).join(''),ba=getBA(e);var photos='<h3>Before / After</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+[['BEFORE',ba.before],['AFTER',ba.after]].map(function(p){var z=p[1]||{},src=z.image||z.photo;return '<div style="border:1px solid #dce8ef;border-radius:9px;padding:7px;text-align:center"><b>'+p[0]+'</b>'+(src?'<img src="'+esc(src)+'" style="display:block;width:100%;height:120px;object-fit:cover;border-radius:7px;margin-top:5px">':'<div style="padding:28px 4px;color:#8aa5a9;font-size:11px">No photo</div>')+baData(z)+'</div>'}).join('')+'</div>';var body='<h2>'+esc(e.client?.name||'Client')+'</h2><p><b>'+esc(key.replace('T',' '))+'</b> • '+esc(e.title||'Training')+'</p><div class="ptm-mirror-profile"><div><b>Goal</b>'+esc(e.client?.goal||'—')+'</div><div><b>Level</b>'+esc(e.client?.level||'—')+'</div><div><b>Workout Type</b>'+esc(e.client?.wtype||'—')+'</div><div><b>Weight</b>'+esc(e.client?.weight||'—')+'</div><div><b>Height</b>'+esc(e.client?.height||'—')+'</div><div><b>Notes</b>'+esc(e.notes||e.client?.notes||'—')+'</div></div>'+photos+'<h3>Exercises</h3><div class="tablewrap"><table class="ptv2-table"><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Load</th><th>Rest</th></tr>'+rows+'</table></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Close</button></div>';var mb=$('ptv2ModalBody');if(mb){mb.innerHTML=body;$('ptv2Modal').classList.add('open')}}open.__fjV50=true;window.fjV45OpenEvent=open}
-function patchClientSaveForBA(){var b=$('v45saveClient');if(!b||b.dataset.fjV50BAMerge)return;b.dataset.fjV50BAMerge='1';var old=b.onclick;b.onclick=function(e){var r=old?old.call(this,e):null;setTimeout(function(){try{var name=($('v45cn')||{}).value||'',pending=b.dataset.fjV50PendingBA?JSON.parse(b.dataset.fjV50PendingBA):null;if(!name||!pending||!hasBA(pending))return;var d=dirRead(),key=Object.keys(d).find(function(k){return norm(d[k]?.name)===norm(name)});if(!key)return;var c=d[key],cb=getBA(c);c.before=Object.assign({},cb.before,pending.before);c.after=Object.assign({},cb.after,pending.after);c.beforeAfter={before:clone(c.before),after:clone(c.after)};d[key]=c;dirWrite(d);enrichDirectoryFromCalendar();enrichCardsWithAllBAData()}catch(_){}},900);return r}}
-function run(){enrichDirectoryFromCalendar();ensureDeviceToolbar();enrichCardsWithAllBAData();bindClientAutofill();patchScheduleSave();patchClientSaveForBA();patchEventModal()}
-/* V51 targeted stability fix: do NOT observe the whole document. The previous PT-only observer watched its own card mutations (remove/add Before-After blocks), creating a mutation loop that could freeze the entire app. Keep the same functions, but run them on explicit refresh/load and a guarded low-frequency PT refresh only. */
-document.addEventListener('fj-v50-refresh',function(){setTimeout(run,50)});
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,1200)},{once:true});else setTimeout(run,1200);
-window.addEventListener('load',function(){setTimeout(run,1500)});
-var fjV51Busy=false;
-setInterval(function(){
-  if(fjV51Busy)return;
-  var p=$('fjPtOpsV2');
-  if(!p||!p.classList.contains('active'))return;
-  fjV51Busy=true;
-  try{run()}catch(e){}
-  setTimeout(function(){fjV51Busy=false},250);
-},3000);
-})();
-</script>
-
-<script id="fj-v53-hard-fix-runtime">
-(function(){
-'use strict';
-function isMaster(){var u=null;try{u=(typeof currentUser!=='undefined'&&currentUser)||null}catch(e){}if(!u)u=window.currentUser||null;var em=String(u&&u.email||'').trim().toLowerCase();if(em==='aldenkhafi0203@gmail.com')return true;try{return typeof fjCurrentRole==='function'&&fjCurrentRole(em).role==='MASTER_ADMIN'}catch(e){return false}}
-function run(){var old=document.getElementById('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}var nav=document.getElementById('fjPtOpsV2Nav');if(!nav||!isMaster())return;nav.style.display='';nav.textContent='▣ PT Management — Master';nav.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();if(isMaster()&&typeof window.fjPtM53Show==='function')window.fjPtM53Show()}}
-window.fjPtM53Show=function(){if(!isMaster())return;var old=document.getElementById('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}if(typeof window.fjPtM53Render==='function')window.fjPtM53Render()};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,1600)},{once:true});else setTimeout(run,1600);window.addEventListener('load',function(){setTimeout(run,1800)});setInterval(function(){if(isMaster())run()},2500);
-})();
-</script>

@@ -8701,3 +8701,103 @@ function install(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 </script>
+
+<!-- V47: MOBILE SCROLL ONLY. No other application behavior is changed. -->
+<style id="fj-v47-mobile-scroll-only">
+@media screen and (max-width:760px){
+  html,body{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:100%!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior-y:auto!important;
+    touch-action:pan-y!important;
+  }
+  body{
+    position:static!important;
+    margin:0!important;
+  }
+  .app{
+    display:block!important;
+    position:static!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+  .side{
+    position:relative!important;
+    top:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    left:auto!important;
+    float:none!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+  .main{
+    position:relative!important;
+    top:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    left:auto!important;
+    float:none!important;
+    margin:0!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    overflow-x:hidden!important;
+    overflow-y:visible!important;
+    -webkit-overflow-scrolling:auto!important;
+    touch-action:pan-y!important;
+  }
+  .panel{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
+</style>
+<script id="fj-v47-mobile-scroll-only-runtime">
+(function(){'use strict';
+  function apply(){
+    if(window.innerWidth>760)return;
+    var de=document.documentElement,body=document.body,app=document.querySelector('.app'),main=document.querySelector('.main');
+    if(!de||!body)return;
+    de.style.setProperty('height','auto','important');
+    de.style.setProperty('min-height','100%','important');
+    de.style.setProperty('overflow-y','auto','important');
+    body.style.setProperty('height','auto','important');
+    body.style.setProperty('min-height','100%','important');
+    body.style.setProperty('max-height','none','important');
+    body.style.setProperty('overflow-y','auto','important');
+    body.style.setProperty('overflow-x','hidden','important');
+    body.style.setProperty('touch-action','pan-y','important');
+    if(app){app.style.setProperty('height','auto','important');app.style.setProperty('min-height','0','important');app.style.setProperty('overflow','visible','important');}
+    if(main){main.style.setProperty('height','auto','important');main.style.setProperty('min-height','0','important');main.style.setProperty('overflow','visible','important');}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
+  window.addEventListener('load',function(){setTimeout(apply,100)});
+  window.addEventListener('resize',apply,{passive:true});
+})();
+</script>

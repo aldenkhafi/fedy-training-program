@@ -5847,7 +5847,7 @@ function filterCalendarWorkoutTypeByGoal(){
 }
 ensureRangeDialog();$('ccPrev').onclick=prevMonth;$('ccNext').onclick=nextMonth;$('ccUndoBtn').onclick=undo;$('ccRedoBtn').onclick=redo;$('ccSaveBtn').onclick=save;$('ccLoadBtn').onclick=load;$('ccResetBtn').onclick=resetCalendar;$('ccPrintBtn').onclick=openRange;$('ccDeleteEvent').onclick=deleteEvent;$('ccCancel').onclick=function(){$('ccModal').classList.remove('open')};$('ccSaveEvent').onclick=saveEditor;$('ccModalUndo').onclick=function(e){if(e){e.preventDefault();e.stopPropagation()}undoModal()};$('ccModalRedo').onclick=function(e){if(e){e.preventDefault();e.stopPropagation()}redoModal()};['ccEditGoal','ccEditWtype','ccEditAge','ccEditGender','ccEditWeight','ccEditHeight','ccEditLevel'].forEach(function(id){var e=$(id);if(e&&!e.dataset.ccRecommendBind){e.dataset.ccRecommendBind='1';e.addEventListener('change',refreshCalendarRecommendation)}});var ccGoal=$('ccEditGoal');if(ccGoal&&!ccGoal.dataset.ccWtypeFilter){ccGoal.dataset.ccWtypeFilter='1';ccGoal.addEventListener('change',filterCalendarWorkoutTypeByGoal)}filterCalendarWorkoutTypeByGoal();renderCalendar();updateHistory();addExerciseMenu()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,pushHistory:function(){pushHistory()},updateHistory:function(){updateHistory()},openEditor:function(key){openEditor(key)},openRange:function(){openRange()},printRangeWithBA:function(){if(typeof printRangeWithBA==='function')printRangeWithBA()}};
+window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,pushHistory:function(){pushHistory()},updateHistory:function(){updateHistory()}};
 })();
 </script>
 <style id="fj-v17-client-calendar-print">
@@ -6713,172 +6713,94 @@ function closeModal(){var m=$('ptm53Modal');if(m)m.classList.remove('open')}
 function printEvents(list,clientName){var old=document.getElementById('fjPtMPrintRoot');if(old)old.remove();var root=document.createElement('div');root.id='fjPtMPrintRoot';var c=getClient(clientName),h='<section class="ptm53-print-cover"><h1>FITNESS JOURNEY — PT MANAGEMENT</h1><h2>'+esc(clientName||c.name||'Client')+'</h2><p>Client Calendar Mirror — Master Admin</p><div class="ptm53-client-fields">';clientData(c).forEach(function(v){h+='<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'});h+='</div><p style="margin-top:8mm">Printed sessions: '+list.length+'</p></section>';list.forEach(function(x,idx){var e=x.event,ba=baOf(e,c);h+='<section class="ptm53-print-event"><h2>SESSION '+(idx+1)+' — '+esc(x.key.replace('T',' '))+'</h2><p><b>Workout:</b> '+esc(e.title||e.client.wtype||'Training')+' &nbsp; <b>Status:</b> '+esc(e.status||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th><th>Instruction</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td><td>'+esc(r.instruction||r.instructions||'')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Conduct / Notes:</b> '+esc(e.notes)+'</p>':'');if(hasBA(ba)){h+='<div class="ptm53-ba-print">';['before','after'].forEach(function(s){var z=ba[s]||{},src=photo(z);h+='<div class="ptm53-ba-card"><h2>'+s.toUpperCase()+'</h2><div class="ptm53-ba-photo">'+(src?'<img src="'+esc(src)+'">':'No photo')+'</div><div class="ptm53-ba-fields">'+baFields(z).map(function(v){return '<div><b>'+esc(v[0])+'</b><span>'+esc(v[1])+'</span></div>'}).join('')+'</div></div>'});h+='</div>'}h+='</section>'});root.innerHTML=h;document.body.appendChild(root);var oldTitle=document.title;document.title='PT Management — '+(clientName||'Client');document.body.classList.add('fj-ptm53-printing');function clean(){document.body.classList.remove('fj-ptm53-printing');var r=$('fjPtMPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}window.addEventListener('afterprint',clean,{once:true});try{window.print()}catch(e){clean()}}
 function openRangePrint(){var ev=events(),from=prompt('From (YYYY-MM-DD)',new Date(state.month.getFullYear(),state.month.getMonth(),1).toISOString().slice(0,10));if(!from)return;var to=prompt('To (YYYY-MM-DD)',new Date(state.month.getFullYear(),state.month.getMonth()+1,0).toISOString().slice(0,10));if(!to)return;if(from>to){alert('Tanggal From / To tidak benar.');return}var name=prompt('Client name (kosong = semua client)','');var list=ev.filter(function(x){var d=x.key.slice(0,10);return d>=from&&d<=to&&(!name||norm(x.event.client.name)===norm(name))});printEvents(list,name||'All Clients')}
 function hide(){var p=$(P);if(p)p.classList.remove('active');var n=$(NAV);if(n)n.style.display='none';var old=$('fjPtOpsV2');if(old)old.classList.remove('active')}
-async function boot(){var n=$(NAV);if(!master()){hide();return}if(n){n.style.display='';n.textContent='▣ PT Management — Master';n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();render()};}var old=$('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}/* READY: render first; online sync is background and time-limited */var before='';try{before=JSON.stringify(cal()||{})}catch(e){}render();try{await Promise.race([syncOnlineMirror(),new Promise(function(resolve){setTimeout(resolve,2500)})]);}catch(e){console.warn('PT Management background sync',e)}var after='';try{after=JSON.stringify(cal()||{})}catch(e){}if(before!==after)render()}
+async function boot(){var n=$(NAV);if(!master()){hide();return}if(n){n.style.display='';n.textContent='▣ PT Management — Master';n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();render()};}var old=$('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}/* READY: render first; online sync is background and time-limited */render();try{await Promise.race([syncOnlineMirror(),new Promise(function(resolve){setTimeout(resolve,2500)})]);}catch(e){console.warn('PT Management background sync',e)}render()}
 document.addEventListener('click',function(e){var n=e.target.closest&&e.target.closest('#'+NAV);if(n&&master()){e.preventDefault();e.stopImmediatePropagation();render()}},true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);window.addEventListener('load',function(){setTimeout(boot,1200)});
 var lastMaster='';setInterval(function(){var m=master()?'1':'0';if(m!==lastMaster){lastMaster=m;boot()}},3000);
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#ptm53Modal')){if(e.target.id==='ptm53Modal')closeModal()}},true);
-window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;window.fjPtM53GetState=function(){try{return clone(cal())}catch(e){return null}};
+window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
 })();
 </script>
 
 
 
-<!-- V54 — PT MANAGEMENT FINAL ARCHITECTURE: READ-THROUGH MIRROR OF CLIENT CALENDAR -->
-<style id="fj-ptm-v54-final">
-/* PT Management is a monitoring/mirror surface. Editing happens through the exact Client Calendar editor. */
-#fjPtMirrorMaster .ptm53-modal{display:none!important}
-#fjPtMirrorMaster .ptm53-event,#fjPtMirrorMaster .ptm53-client{cursor:pointer}
-#fjPtMirrorMaster .ptm53-event::after{content:"  • Open in Client Calendar";font-size:8px;color:#4784a5}
-</style>
-<script id="fj-ptm-v54-final-runtime">
-(function(){
-  'use strict';
-  function activateClientCalendar(){
-    var nav=document.querySelector('[data-tab="clientCalendar"]')||document.getElementById('clientCalendarNav')||document.querySelector('.navbtn[data-tab="client-calendar"]');
-    var panel=document.getElementById('clientCalendar');
-    if(nav){try{nav.click()}catch(e){}}
-    if(panel){document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p===panel)});panel.classList.add('active')}
-  }
-  function openExactClientCalendarEditor(key){
-    if(!key)return;
-    activateClientCalendar();
-    setTimeout(function(){
-      try{
-        if(window.fjClientCalendar&&typeof window.fjClientCalendar.openEditor==='function'){
-          window.fjClientCalendar.openEditor(key);
-          return;
-        }
-      }catch(e){console.error('Client Calendar editor bridge failed',e)}
-      alert('Client Calendar editor belum siap. Silakan buka Client Calendar lalu pilih session tersebut.');
-    },30);
-  }
-  function ptmEventKey(target){
-    var el=target&&target.closest?target.closest('#fjPtMirrorMaster [data-key]'):null;
-    return el?el.getAttribute('data-key'):null;
-  }
-  document.addEventListener('click',function(e){
-    var key=ptmEventKey(e.target);
-    if(key){
-      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
-      openExactClientCalendarEditor(key);
-      return;
-    }
-    var print=e.target.closest&&e.target.closest('#ptm53PrintRange');
-    if(print){
-      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
-      activateClientCalendar();
-      setTimeout(function(){
-        try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.openRange==='function'){window.fjClientCalendar.openRange();}}catch(err){console.error(err)}
-      },30);
-    }
-  },true);
-  // Keep PT Management visually stable: no periodic DOM rebuild while the user is interacting.
-  var lastPanel='';
-  setInterval(function(){
-    var p=document.getElementById('fjPtMirrorMaster');
-    if(!p)return;
-    var active=p.classList.contains('active')?'1':'0';
-    if(active!==lastPanel){lastPanel=active;}
-  },1000);
-})();
-</script>
-<!-- V55 — PT MANAGEMENT = CLIENT CALENDAR MASTER-ADMIN MIRROR -->
-<style id="fj-ptm-v55-final-css">
-  /* Master Mirror has no independent editor. The real Client Calendar editor is used. */
-  #fjPtMirrorMaster .ptm53-modal{display:none!important}
-  #fjPtMirrorMaster .ptm53-event,#fjPtMirrorMaster .ptm53-client{cursor:pointer}
-  #fjPtMirrorMaster .ptm53-event::after{content:"  • Open Client Calendar";font-size:8px;color:#4784a5}
-  #fjPtMirrorMaster .ptm53-client::after{content:"  • View in Client Calendar";font-size:8px;color:#4784a5}
-</style>
-<script id="fj-ptm-v55-final-runtime">
-(function(){
-  'use strict';
-  function isMaster(){return String(window.currentUser?.email||'').toLowerCase()==='aldenkhafi0203@gmail.com'}
-  function cc(){return window.fjClientCalendar||null}
-  function activateCC(){
-    var nav=document.getElementById('clientCalendarNav');
-    var panel=document.getElementById('trainingClientCalendar');
-    if(nav){try{nav.click()}catch(e){}}
-    if(panel){document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p===panel)});panel.classList.add('active')}
-  }
-  function openSessionInCC(key){
-    if(!isMaster()||!key)return;
-    activateCC();
-    setTimeout(function(){
-      try{
-        var api=cc();
-        if(api&&typeof api.openEditor==='function'){api.openEditor(key);return}
-      }catch(e){console.error('Client Calendar editor bridge',e)}
-    },40);
-  }
-  function openRangeInCC(){
-    if(!isMaster())return;
-    activateCC();
-    setTimeout(function(){
-      try{var api=cc();if(api&&typeof api.openRange==='function'){api.openRange();return}}catch(e){console.error('Client Calendar range bridge',e)}
-    },40);
-  }
-  document.addEventListener('click',function(e){
-    if(!isMaster())return;
-    var root=e.target.closest&&e.target.closest('#fjPtMirrorMaster');
-    if(!root)return;
-    var ev=e.target.closest&&e.target.closest('#fjPtMirrorMaster [data-key]');
-    if(ev){
-      var key=ev.getAttribute('data-key');
-      if(key){e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();openSessionInCC(key)}
-      return;
-    }
-    if(e.target.closest&&e.target.closest('#ptm53PrintRange')){
-      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();openRangeInCC();return;
-    }
-  },true);
-  /* Never allow the legacy PT Management editor/modal to become visible. */
-  function suppressLegacy(){
-    var modal=document.getElementById('ptm53Modal');
-    if(modal)modal.classList.remove('open');
-    var old=document.getElementById('fjPtOpsV2');
-    if(old){old.classList.remove('active');old.style.display='none'}
-  }
-  suppressLegacy();
-  document.addEventListener('fj-v50-refresh',function(){setTimeout(suppressLegacy,0)});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(suppressLegacy,0)},{once:true});
-window.fjOpenPtMirrorMaster=function(){if(!master())return false;var p=ensure();if(!p)return false;render();return true};
-})();
-</script>
-
-<!-- V56 CLEAN PT MANAGEMENT OPEN FIX: only replaces the broken navigation handoff. -->
-<style id="fj-ptm-v56-clean-css">
-/* Do not let the obsolete operations panel cover the Master Mirror. */
+<!-- V58: PT MANAGEMENT MASTER MIRROR - minimal isolated navigation bridge. Original base preserved. -->
+<style id="fj-v58-pt-master-bridge">
+/* Only suppress the obsolete PT Management entry/panel. No other application panel is changed. */
+#fjPtOpsV2Nav{display:none!important}
 #fjPtOpsV2{display:none!important}
-#fjPtMirrorMaster{visibility:visible!important;opacity:1!important}
+#fjPtMirrorMaster{display:none}
+#fjPtMirrorMaster.active{display:block!important;visibility:visible!important;opacity:1!important}
+#fjPtMasterNav{display:none}
+#fjPtMasterNav.fj-v58-show{display:flex!important}
 </style>
-<script id="fj-ptm-v56-clean-runtime">
+<script id="fj-v58-pt-master-bridge-runtime">
 (function(){
   'use strict';
-  function master(){var u=window.currentUser||null;return String(u&&u.email||'').trim().toLowerCase()==='aldenkhafi0203@gmail.com'}
-  function openMirror(e){
-    if(!master())return;
-    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
-    var old=document.getElementById('fjPtOpsV2');if(old)old.classList.remove('active');
-    if(typeof window.fjOpenPtMirrorMaster==='function')window.fjOpenPtMirrorMaster();
-    var p=document.getElementById('fjPtMirrorMaster');
-    if(p){document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});p.classList.add('active');p.style.display='block';p.style.visibility='visible';p.style.opacity='1';}
-    return false;
+  var NAV_ID='fjPtMasterNav', PANEL_ID='fjPtMirrorMaster', OLD_NAV='fjPtOpsV2Nav', OLD_PANEL='fjPtOpsV2';
+  function el(id){return document.getElementById(id)}
+  function isMaster(){
+    var u=null;
+    try{u=(typeof currentUser!=='undefined'&&currentUser)||null}catch(_){u=null}
+    if(!u)u=window.currentUser||null;
+    var email=String(u&&u.email||'').trim().toLowerCase();
+    if(email==='aldenkhafi0203@gmail.com')return true;
+    try{return typeof fjCurrentRole==='function'&&fjCurrentRole(email).role==='MASTER_ADMIN'}catch(_){return false}
+  }
+  function ensureNav(){
+    var side=document.querySelector('.side');
+    if(!side)return;
+    var n=el(NAV_ID);
+    if(!n){
+      n=document.createElement('button');
+      n.id=NAV_ID;
+      n.type='button';
+      n.className='navbtn';
+      n.textContent='▣ PT Management — Master';
+      n.addEventListener('click',function(e){
+        e.preventDefault();e.stopPropagation();
+        if(!isMaster())return;
+        try{if(typeof window.fjPtM53Render==='function')window.fjPtM53Render();}catch(err){console.error('PT Management render',err)}
+      });
+      var cc=document.getElementById('clientCalendarNav');
+      if(cc&&cc.parentNode)cc.parentNode.insertBefore(n,cc.nextSibling);else side.appendChild(n);
+    }
+    n.classList.toggle('fj-v58-show',isMaster());
+    if(!isMaster())return;
+    var old=el(OLD_NAV);if(old)old.style.display='none';
+    var oldPanel=el(OLD_PANEL);if(oldPanel){oldPanel.classList.remove('active');oldPanel.style.display='none'}
+  }
+  function openMirror(){
+    if(!isMaster())return;
+    var old=el(OLD_PANEL);if(old){old.classList.remove('active');old.style.display='none'}
+    try{
+      if(typeof window.fjPtM53Render==='function')window.fjPtM53Render();
+      var p=el(PANEL_ID);
+      if(p){
+        document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});
+        p.classList.add('active');
+        p.style.display='block';
+      }
+    }catch(err){console.error('PT Management open',err)}
   }
   function bind(){
-    var n=document.getElementById('fjPtOpsV2Nav');
-    if(!n||n.dataset.fjV56Bound)return;
-    n.dataset.fjV56Bound='1';
-    n.addEventListener('click',openMirror,true);
-    n.onclick=function(e){return openMirror(e)};
+    ensureNav();
+    var n=el(NAV_ID);
+    if(n&&!n.dataset.fjV58Bound){n.dataset.fjV58Bound='1';n.addEventListener('click',openMirror,true)}
   }
-  bind();
-  document.addEventListener('DOMContentLoaded',bind,{once:true});
-  window.addEventListener('load',bind);
-  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('click',function(e){
+    var n=e.target&&e.target.closest?e.target.closest('#'+NAV_ID):null;
+    if(!n)return;
+    e.preventDefault();e.stopImmediatePropagation();openMirror();
+  },true);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,100)}, {once:true});
+  else setTimeout(bind,100);
+  window.addEventListener('load',function(){setTimeout(bind,150)});
+  if(window.sb&&window.sb.auth&&window.sb.auth.onAuthStateChange){try{window.sb.auth.onAuthStateChange(function(){setTimeout(bind,50)})}catch(_){}}
+  setInterval(bind,1000);
 })();
 </script>
+
 </body></html>
 
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->

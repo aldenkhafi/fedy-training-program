@@ -6658,7 +6658,7 @@ var state={month:new Date(),tab:'calendar',search:'',selectedKey:null};
 function $(id){return document.getElementById(id)}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
-function master(){return String(window.currentUser?.email||'').toLowerCase()==='aldenkhafi0203@gmail.com'}
+function master(){var u=null;try{u=(typeof currentUser!=='undefined'&&currentUser)?currentUser:null}catch(e){};if(!u)u=window.currentUser||null;var em=String(u?.email||'').trim().toLowerCase();if(em==='aldenkhafi0203@gmail.com')return true;try{return typeof fjCurrentRole==='function'&&fjCurrentRole(em).role==='MASTER_ADMIN'}catch(e){return false}}
 function cal(){try{var p=JSON.parse(localStorage.getItem(CAL)||'null');return p&&p.calendar?p:null}catch(e){return null}}
 function dir(){try{return JSON.parse(localStorage.getItem(DIR)||'{}')||{}}catch(e){return {}}}
 function saveCal(p){try{localStorage.setItem(CAL,JSON.stringify(p));return true}catch(e){return false}}

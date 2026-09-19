@@ -6564,86 +6564,7 @@ function printRange(name,from,to){
   if(!evs.length)h+='<p>No sessions found in selected range.</p>';
   evs.forEach(function(x,i){var e=x.event||{},ba=baOf(e,ci);h+='<section class="session"><h2>'+(i+1)+'. '+esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2><p><b>Client:</b> '+esc(e.client?.name||'—')+' &nbsp; <b>Goal:</b> '+esc(e.client?.goal||ci.goal||'—')+' &nbsp; <b>Type:</b> '+esc(e.client?.wtype||ci.wtype||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe||'—')+'</td><td>'+esc(r.rir||'—')+'</td><td>'+esc(r.rest||'—')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'');
     if((ba.before&&Object.keys(ba.before).length)||(ba.after&&Object.keys(ba.after).length)){h+='<div class="ba">';['before','after'].forEach(function(side){var z=ba[side]||{},src=z.image||z.photo;h+='<div class="baCard"><h3>'+side.toUpperCase()+'</h3><div class="baPhoto">'+(src?'<img src="'+esc(src)+'" alt="'+side+'">':'<span class="muted">No photo</span>')+'</div><div class="baFields">'+fields(z).replace(/class="fj-v48[^\"]*"/g,'')+'</div></div>'});h+='</div>'}h+='</section>'});
-  h+='
-<!-- V54 — PT MANAGEMENT FINAL ARCHITECTURE: READ-THROUGH MIRROR OF CLIENT CALENDAR -->
-<style id="fj-ptm-v54-final">
-/* PT Management is a monitoring/mirror surface. Editing happens through the exact Client Calendar editor. */
-#fjPtMirrorMaster .ptm53-modal{display:none!important}
-#fjPtMirrorMaster .ptm53-event,#fjPtMirrorMaster .ptm53-client{cursor:pointer}
-#fjPtMirrorMaster .ptm53-event::after{content:"  • Open in Client Calendar";font-size:8px;color:#4784a5}
-</style>
-<script id="fj-ptm-v54-final-runtime">
-(function(){
-  'use strict';
-  function activateClientCalendar(){
-    var nav=document.getElementById('clientCalendarNav');
-    var panel=document.getElementById('trainingClientCalendar');
-    if(nav){try{nav.click()}catch(e){}}
-    if(panel){document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p===panel)});panel.classList.add('active')}
-  }
-  function mirrorIntoClientCalendar(){
-    try{
-      var src=window.fjPtM53GetState&&window.fjPtM53GetState();
-      var dst=window.fjClientCalendar&&window.fjClientCalendar.state&&window.fjClientCalendar.state();
-      if(src&&src.calendar&&src.calendar.events&&dst&&dst.events){
-        Object.keys(src.calendar.events).forEach(function(k){dst.events[k]=JSON.parse(JSON.stringify(src.calendar.events[k]))});
-      }
-    }catch(e){console.warn('PT Management mirror bridge',e)}
-  }
-  function openExactClientCalendarEditor(key){
-    if(!key)return;
-    activateClientCalendar();
-    mirrorIntoClientCalendar();
-    setTimeout(function(){
-      try{
-        if(window.fjClientCalendar&&typeof window.fjClientCalendar.openEditor==='function'){
-          window.fjClientCalendar.openEditor(key);
-          return;
-        }
-      }catch(e){console.error('Client Calendar editor bridge failed',e)}
-      alert('Client Calendar editor belum siap. Silakan buka Client Calendar lalu pilih session tersebut.');
-    },30);
-  }
-  function ptmEventKey(target){
-    var el=target&&target.closest?target.closest('#fjPtMirrorMaster [data-key]'):null;
-    return el?el.getAttribute('data-key'):null;
-  }
-  document.addEventListener('click',function(e){
-    var key=ptmEventKey(e.target);
-    if(key){
-      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
-      openExactClientCalendarEditor(key);
-      return;
-    }
-    var print=e.target.closest&&e.target.closest('#ptm53PrintRange');
-    if(print){
-      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
-      activateClientCalendar();
-      mirrorIntoClientCalendar();
-      setTimeout(function(){
-        try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.openRange==='function'){window.fjClientCalendar.openRange();}}catch(err){console.error(err)}
-      },30);
-    }
-  },true);
-  document.addEventListener('click',function(e){
-    if(e.target&&e.target.id==='ccSaveEvent'){
-      setTimeout(function(){
-        try{if(typeof window.fjV48SaveOnline==='function')window.fjV48SaveOnline();}catch(err){}
-        try{if(typeof window.fjPtM53Render==='function')window.fjPtM53Render();}catch(err){}
-      },120);
-    }
-  },true);
-  // Keep PT Management visually stable: no periodic DOM rebuild while the user is interacting.
-  var lastPanel='';
-  setInterval(function(){
-    var p=document.getElementById('fjPtMirrorMaster');
-    if(!p)return;
-    var active=p.classList.contains('active')?'1':'0';
-    if(active!==lastPanel){lastPanel=active;}
-  },1000);
-})();
-</script>
-</body></html>';
+  h+='</body></html>';
   try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
 }
 function bindPrintButton(){
@@ -6860,6 +6781,68 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;window.fjPtM53
     var active=p.classList.contains('active')?'1':'0';
     if(active!==lastPanel){lastPanel=active;}
   },1000);
+})();
+</script>
+<!-- V55 — PT MANAGEMENT = CLIENT CALENDAR MASTER-ADMIN MIRROR -->
+<style id="fj-ptm-v55-final-css">
+  /* Master Mirror has no independent editor. The real Client Calendar editor is used. */
+  #fjPtMirrorMaster .ptm53-modal{display:none!important}
+  #fjPtMirrorMaster .ptm53-event,#fjPtMirrorMaster .ptm53-client{cursor:pointer}
+  #fjPtMirrorMaster .ptm53-event::after{content:"  • Open Client Calendar";font-size:8px;color:#4784a5}
+  #fjPtMirrorMaster .ptm53-client::after{content:"  • View in Client Calendar";font-size:8px;color:#4784a5}
+</style>
+<script id="fj-ptm-v55-final-runtime">
+(function(){
+  'use strict';
+  function isMaster(){return String(window.currentUser?.email||'').toLowerCase()==='aldenkhafi0203@gmail.com'}
+  function cc(){return window.fjClientCalendar||null}
+  function activateCC(){
+    var nav=document.getElementById('clientCalendarNav');
+    var panel=document.getElementById('trainingClientCalendar');
+    if(nav){try{nav.click()}catch(e){}}
+    if(panel){document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p===panel)});panel.classList.add('active')}
+  }
+  function openSessionInCC(key){
+    if(!isMaster()||!key)return;
+    activateCC();
+    setTimeout(function(){
+      try{
+        var api=cc();
+        if(api&&typeof api.openEditor==='function'){api.openEditor(key);return}
+      }catch(e){console.error('Client Calendar editor bridge',e)}
+    },40);
+  }
+  function openRangeInCC(){
+    if(!isMaster())return;
+    activateCC();
+    setTimeout(function(){
+      try{var api=cc();if(api&&typeof api.openRange==='function'){api.openRange();return}}catch(e){console.error('Client Calendar range bridge',e)}
+    },40);
+  }
+  document.addEventListener('click',function(e){
+    if(!isMaster())return;
+    var root=e.target.closest&&e.target.closest('#fjPtMirrorMaster');
+    if(!root)return;
+    var ev=e.target.closest&&e.target.closest('#fjPtMirrorMaster [data-key]');
+    if(ev){
+      var key=ev.getAttribute('data-key');
+      if(key){e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();openSessionInCC(key)}
+      return;
+    }
+    if(e.target.closest&&e.target.closest('#ptm53PrintRange')){
+      e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();openRangeInCC();return;
+    }
+  },true);
+  /* Never allow the legacy PT Management editor/modal to become visible. */
+  function suppressLegacy(){
+    var modal=document.getElementById('ptm53Modal');
+    if(modal)modal.classList.remove('open');
+    var old=document.getElementById('fjPtOpsV2');
+    if(old){old.classList.remove('active');old.style.display='none'}
+  }
+  suppressLegacy();
+  document.addEventListener('fj-v50-refresh',function(){setTimeout(suppressLegacy,0)});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(suppressLegacy,0)},{once:true});
 })();
 </script>
 </body></html>

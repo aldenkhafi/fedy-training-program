@@ -2939,10 +2939,18 @@ async function setAccess(id,status){
   if(error){alert('Access update failed: '+error.message);return;}
   await loadAdminAccess();
 }
-function saveUserRole(email,rowId){
+async function saveUserRole(email,rowId){
   const e=String(email||'').trim().toLowerCase(), roles=fjAccessMeta();
-  roles[e]={role:document.getElementById('role_'+rowId)?.value||'PENDING_ROLE',outlet:document.getElementById('outlet_'+rowId)?.value.trim()||'',updatedAt:new Date().toISOString()};
+  const role=document.getElementById('role_'+rowId)?.value||'PENDING_ROLE';
+  const outlet=document.getElementById('outlet_'+rowId)?.value.trim()||'';
+  roles[e]={role:role,outlet:outlet,updatedAt:new Date().toISOString()};
   localStorage.setItem('fjUserRoles',JSON.stringify(roles));
+  try{
+    if(window.sb){
+      const r=await window.sb.from('user_access').update({role:role,outlet:outlet,updated_at:new Date().toISOString()}).eq('id',rowId);
+      if(r.error)throw r.error;
+    }
+  }catch(err){console.warn('Role DB sync:',err)}
   if(typeof ptmToast==='function')ptmToast('Role & Club / Outlet saved ✓');
   loadAdminAccess();
 }
@@ -7672,5 +7680,258 @@ window.fjClientDirectory={list:sortedClients,get:getClient,active:function(){ret
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
   window.addEventListener('load',function(){setTimeout(bind,100);setTimeout(bind,800);setTimeout(bind,1800);});
   setInterval(gate,1500);
+})();
+</script>
+
+<!-- FJ PT OPERATIONS V1 — requested-only: Client Calendar + Client List + Client Detail + Conduct + Package + Master monitoring -->
+<style id="fj-pt-ops-v1-style">
+html,body{overscroll-behavior-y:none}
+#fjPtOpsNav{border-left:5px solid #c0392b!important;background:linear-gradient(90deg,#fff4f4,#fff)!important;color:#9f2d2d!important;font-weight:950!important}
+#fjPtOpsNav.active{background:linear-gradient(90deg,#d9534f,#a92727)!important;color:#fff!important;box-shadow:0 7px 18px rgba(169,39,39,.25)!important}
+#fjPtOps{display:none!important}
+#fjPtOps.active{display:block!important}
+.fjpt-shell{background:linear-gradient(180deg,#fff,#f8fbff);border:1px solid #d9e5ef;border-radius:18px;padding:18px;box-shadow:0 10px 28px rgba(20,55,80,.08)}
+.fjpt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.fjpt-head h1{margin:0;color:#17364e}.fjpt-head p{margin:3px 0;color:#6d879e}
+.fjpt-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}
+.fjpt-tab{border:1px solid #d6e3ec;background:#fff;border-radius:10px;padding:10px;font-weight:900;cursor:pointer;color:#28516c}
+.fjpt-tab.active{background:#eaf6ff;border-color:#8ec5e8;color:#126eaa}
+.fjpt-view{display:none}.fjpt-view.active{display:block}
+.fjpt-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:12px}
+.fjpt-kpi{padding:12px;border:1px solid #d7e5ee;border-radius:12px;background:#fff}.fjpt-kpi b{display:block;font-size:22px;color:#17364e}.fjpt-kpi span{font-size:10px;color:#6d879e;font-weight:900}
+.fjpt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fjpt-card{background:#fff;border:1px solid #d7e5ee;border-radius:14px;padding:14px;box-shadow:0 5px 16px rgba(20,55,80,.05)}
+.fjpt-card h3{margin:0 0 9px;color:#17364e}.fjpt-muted{color:#6d879e;font-size:12px}
+.fjpt-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.fjpt-btn{border:0;border-radius:9px;padding:9px 12px;background:#1677c8;color:#fff;font-weight:900;cursor:pointer}.fjpt-btn.alt{background:#edf6fc;color:#145a89;border:1px solid #c5ddeb}.fjpt-btn.green{background:#229c78}.fjpt-btn.orange{background:#df9225}.fjpt-btn.red{background:#c0392b}
+.fjpt-field{display:flex;flex-direction:column;gap:4px}.fjpt-field label{font-size:10px;color:#5e7f94;font-weight:900}.fjpt-field input,.fjpt-field select,.fjpt-field textarea{width:100%;box-sizing:border-box;border:1px solid #c8dce8;border-radius:9px;padding:9px;background:#fff;color:#17364e}.fjpt-field textarea{min-height:80px;resize:vertical}
+.fjpt-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.fjpt-span3{grid-column:1/-1}
+.fjpt-tablewrap{width:100%;overflow:auto;border:1px solid #d7e5ee;border-radius:11px;background:#fff}.fjpt-table{width:100%;min-width:760px;border-collapse:collapse}.fjpt-table th,.fjpt-table td{padding:8px;border-bottom:1px solid #e8eff4;text-align:left;vertical-align:top;font-size:11px}.fjpt-table th{background:#edf6fb;color:#47728d;font-size:9px;text-transform:uppercase}.fjpt-click{cursor:pointer}.fjpt-click:hover{background:#f4f9fc}
+.fjpt-badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:9px;font-weight:950}.fjpt-active{background:#e5f8f0;color:#147b5d}.fjpt-expired{background:#fee8e8;color:#a32929}.fjpt-pending{background:#fff3d5;color:#936100}.fjpt-approved{background:#e7f1ff;color:#1767a6}
+.fjpt-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.fjpt-calendar-title{font-size:18px;font-weight:950;color:#17364e}
+.fjpt-month{display:grid;grid-template-columns:repeat(7,minmax(100px,1fr));border:1px solid #d7e5ee;border-radius:12px;overflow:auto;background:#fff;min-width:700px}.fjpt-dayhead{background:#edf6fb;padding:8px;text-align:center;font-size:10px;font-weight:950;color:#47728d}.fjpt-day{min-height:105px;border-right:1px solid #e4edf3;border-bottom:1px solid #e4edf3;padding:6px;background:#fff;cursor:pointer}.fjpt-day:hover{background:#f8fcff}.fjpt-day.other{background:#f7f9fb;color:#9aa9b3}.fjpt-day.today{box-shadow:inset 0 0 0 2px #58a9d8}.fjpt-daynum{font-weight:950;font-size:11px;color:#52738a}.fjpt-event{margin-top:5px;padding:5px 6px;border-radius:7px;background:#eaf6ff;border-left:3px solid #1677c8;font-size:9px;line-height:1.25}.fjpt-event.done{background:#e9f8f1;border-left-color:#229c78}.fjpt-event.cancel{opacity:.55}.fjpt-event b{display:block;color:#17364e}.fjpt-event small{color:#5d788a}
+.fjpt-client-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.fjpt-client-card{border:1px solid #d7e5ee;border-radius:12px;padding:12px;background:#fff;cursor:pointer}.fjpt-client-card:hover{border-color:#72b4dc;box-shadow:0 7px 18px rgba(20,55,80,.08)}.fjpt-client-card h3{font-size:15px;margin:0 0 4px}.fjpt-client-card p{margin:3px 0;color:#6d879e;font-size:11px}
+.fjpt-detail-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.fjpt-detail-title{font-size:23px;font-weight:950;color:#17364e}.fjpt-back{margin-bottom:10px}
+.fjpt-modal{position:fixed;inset:0;background:rgba(15,43,64,.65);display:none;align-items:center;justify-content:center;padding:14px;z-index:2147483000}.fjpt-modal.open{display:flex}.fjpt-modalbox{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:16px;box-shadow:0 25px 70px rgba(0,0,0,.28)}.fjpt-modalbox h2{margin:0 0 12px;color:#17364e}
+.fjpt-warning{padding:10px 12px;border:1px solid #efd39b;background:#fff8e8;color:#76551a;border-radius:10px;font-size:12px;margin-bottom:10px}
+.fjpt-good{padding:10px 12px;border:1px solid #c5e5d8;background:#effaf5;color:#176b51;border-radius:10px;font-size:12px;margin-bottom:10px}
+.fjpt-admin-strip{margin-bottom:12px;padding:12px;border-radius:13px;background:linear-gradient(135deg,#fff3f3,#fff);border:1px solid #edc6c6}.fjpt-admin-strip b{color:#a32929}
+.fjpt-loading{padding:18px;text-align:center;color:#6d879e}
+@media(max-width:900px){.fjpt-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.fjpt-grid{grid-template-columns:1fr}.fjpt-client-list{grid-template-columns:1fr 1fr}.fjpt-form{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.fjpt-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.fjpt-kpis{grid-template-columns:1fr 1fr}.fjpt-client-list{grid-template-columns:1fr}.fjpt-form{grid-template-columns:1fr}.fjpt-span3{grid-column:auto}.fjpt-shell{padding:12px}.fjpt-month{min-width:700px}}
+</style>
+<script id="fj-pt-ops-v1-runtime">
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var fmtDate=function(v){if(!v)return '—';try{return new Date(v).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}catch(e){return String(v)}};
+var fmtDT=function(v){if(!v)return '—';try{return new Date(v).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return String(v)}};
+var todayISO=function(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+var monthKey=function(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+var state={view:'calendar',month:new Date(new Date().getFullYear(),new Date().getMonth(),1),clients:[],packages:[],conducts:[],schedules:[],extensions:[],selectedClient:null,loading:false};
+var role=function(){try{return window.fjCurrentRole?window.fjCurrentRole(window.currentUser?.email||'').role:'PENDING_ROLE'}catch(e){return 'PENDING_ROLE'}};
+var isMaster=function(){return String(window.currentUser?.email||'').toLowerCase()==='aldenkhafi0203@gmail.com'};
+var canManage=function(){return isMaster()||role()==='MANAGER'};
+var currentPtId=function(){return window.currentUser?.id||null};
+var currentPtEmail=function(){return window.currentUser?.email||''};
+var db=function(){return window.sb||null};
+
+function expiryFor(purchase,total){var d=new Date(purchase+'T00:00:00');var weeks=Math.ceil(Math.max(1,Number(total)||1)/2);d.setDate(d.getDate()+weeks*7);d.setMonth(d.getMonth()+1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function packageStatus(p){if(!p)return 'EXPIRED';if(Number(p.used_sessions)>=Number(p.total_sessions))return 'CLOSED';if(String(p.status)==='EXTEND_REQUESTED')return 'EXTEND REQUESTED';if(String(p.status)==='APPROVED'&&p.expiry_date>=todayISO())return 'ACTIVE';return p.expiry_date>=todayISO()?'ACTIVE':'EXPIRED'}
+function activePackages(clientId){return state.packages.filter(function(p){return p.client_id===clientId && Number(p.used_sessions)<Number(p.total_sessions) && p.expiry_date>=todayISO()}).sort(function(a,b){return String(a.expiry_date).localeCompare(String(b.expiry_date))})}
+function clientById(id){return state.clients.find(function(c){return c.id===id})}
+function roleLabel(){return isMaster()?'MASTER ADMIN':role()}
+
+function navAndPanel(){
+ var side=document.querySelector('.side'),main=document.querySelector('main.main')||document.querySelector('.main');if(!side||!main)return;
+ if(!$('fjPtOpsNav')){
+  var n=document.createElement('button');n.id='fjPtOpsNav';n.className='navbtn';n.type='button';n.textContent='▣ PT Management';n.addEventListener('click',function(){activate('calendar')});var after=$('adminNav');if(after&&after.parentNode)after.parentNode.insertBefore(n,after.nextSibling);else side.appendChild(n);
+ }
+ if(!$('fjPtOps')){
+  var panel=document.createElement('section');panel.className='panel';panel.id='fjPtOps';panel.innerHTML=
+  '<div class="fjpt-shell">'+
+  '<div class="fjpt-head"><div><div class="label">PT MANAGEMENT</div><h1>Client Operations</h1><p>Calendar, client records, package balance, conduct history and package expiry.</p></div><div class="pill" id="fjPtRolePill"></div></div>'+
+  '<div id="fjPtAdminStrip"></div>'+
+  '<div class="fjpt-tabs">'+
+  '<button class="fjpt-tab active" data-fjpt-tab="calendar">Client Calendar</button>'+
+  '<button class="fjpt-tab" data-fjpt-tab="clients">Client List</button>'+
+  '<button class="fjpt-tab" data-fjpt-tab="detail">Client Detail</button>'+
+  '<button class="fjpt-tab" data-fjpt-tab="monitor">Master Monitor</button>'+
+  '</div>'+
+  '<div class="fjpt-view active" id="fjptCalendarView"></div><div class="fjpt-view" id="fjptClientsView"></div><div class="fjpt-view" id="fjptDetailView"></div><div class="fjpt-view" id="fjptMonitorView"></div>'+
+  '</div>'+
+  '<div class="fjpt-modal" id="fjptScheduleModal"><div class="fjpt-modalbox"><h2 id="fjptScheduleTitle">New Schedule</h2><div id="fjptScheduleBody"></div></div></div>'+
+  '<div class="fjpt-modal" id="fjptConductModal"><div class="fjpt-modalbox"><h2>Conduct Session</h2><div id="fjptConductBody"></div></div></div>';
+  main.appendChild(panel);
+  panel.querySelectorAll('[data-fjpt-tab]').forEach(function(b){b.addEventListener('click',function(){activate(this.dataset.fjptTab)})});
+ }
+ $('fjPtRolePill').textContent=roleLabel();
+ $('fjPtOpsNav').style.display= fjCanPTM()? 'block':'none';
+ if(!fjCanPTM())return;
+ if(isMaster()||canManage())$('fjPtAdminStrip').innerHTML='<div class="fjpt-admin-strip"><b>Master Monitor</b> — You can monitor all PT schedules, clients, packages, Conduct and extension requests.</div>';
+ else $('fjPtAdminStrip').innerHTML='';
+}
+
+function activate(v){
+ if(!fjCanPTM())return;
+ state.view=v;
+ document.querySelectorAll('#fjPtOps .fjpt-tab').forEach(function(b){b.classList.toggle('active',b.dataset.fjptTab===v)});
+ document.querySelectorAll('#fjPtOps .fjpt-view').forEach(function(x){x.classList.remove('active')});
+ var id={calendar:'fjptCalendarView',clients:'fjptClientsView',detail:'fjptDetailView',monitor:'fjptMonitorView'}[v];if($(id))$(id).classList.add('active');
+ document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.classList.remove('active')});$('fjPtOpsNav').classList.add('active');
+ document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});$('fjPtOps').classList.add('active');
+ if(v==='calendar')renderCalendar();if(v==='clients')renderClients();if(v==='detail')renderDetail();if(v==='monitor')renderMonitor();
+}
+
+async function loadAll(){
+ var s=db();if(!s)return;
+ state.loading=true;renderLoading();
+ var q1=s.from('pt_clients').select('*').order('name');
+ var q2=s.from('pt_packages').select('*').order('purchase_date',{ascending:false});
+ var q3=s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(1000);
+ var q4=s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(1000);
+ var q5=s.from('pt_extension_requests').select('*').order('created_at',{ascending:false});
+ var rs=await Promise.all([q1,q2,q3,q4,q5]);
+ if(rs.some(function(x){return x.error})){console.error(rs.map(function(x){return x.error}));state.loading=false;renderError('Data PT Management belum dapat dimuat. Pastikan schema PT Management sudah aktif.');return}
+ state.clients=rs[0].data||[];state.packages=rs[1].data||[];state.conducts=rs[2].data||[];state.schedules=rs[3].data||[];state.extensions=rs[4].data||[];
+ state.loading=false;renderAll();
+}
+
+function renderLoading(){['fjptCalendarView','fjptClientsView','fjptDetailView','fjptMonitorView'].forEach(function(id){if($(id))$(id).innerHTML='<div class="fjpt-loading">Loading PT data…</div>'})}
+function renderError(msg){if($('fjptCalendarView'))$('fjptCalendarView').innerHTML='<div class="fjpt-warning">'+esc(msg)+'</div>'}
+function renderAll(){renderCalendar();renderClients();renderDetail();renderMonitor()}
+
+function renderCalendar(){
+ var box=$('fjptCalendarView');if(!box)return;
+ var y=state.month.getFullYear(),m=state.month.getMonth(),first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),events=state.schedules.filter(function(x){var d=new Date(x.scheduled_at);return d>=new Date(y,m,1)&&d<new Date(y,m+1,1)});
+ var html='<div class="fjpt-calendar-head"><button class="fjpt-btn alt" onclick="window.fjPtPrevMonth()">←</button><div class="fjpt-calendar-title">'+state.month.toLocaleDateString('id-ID',{month:'long',year:'numeric'})+'</div><div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtNextMonth()">→</button><button class="fjpt-btn" onclick="window.fjPtNewSchedule()">＋ Schedule</button></div></div>';
+ html+='<div class="fjpt-month">'+['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(function(x){return '<div class="fjpt-dayhead">'+x+'</div>'}).join('');
+ for(var i=0;i<42;i++){var d=new Date(start);d.setDate(start.getDate()+i);var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');var dayEvents=events.filter(function(e){return String(e.scheduled_at).slice(0,10)===ds});html+='<div class="fjpt-day '+(d.getMonth()!==m?'other ':'')+(ds===todayISO()?'today':'')+'" onclick="window.fjPtNewSchedule(\''+ds+'\')"><div class="fjpt-daynum">'+d.getDate()+'</div>'+dayEvents.map(function(e){var c=clientById(e.client_id),time=fmtDT(e.scheduled_at).split(' ').pop()||'';return '<div class="fjpt-event '+(e.status==='DONE'?'done':e.status==='CANCELLED'?'cancel':'')+'" onclick="event.stopPropagation();window.fjPtOpenSchedule(\''+e.id+'\')"><b>'+esc(c?.name||'Client')+'</b><small>'+esc(time)+' • '+esc(e.schedule_type)+'</small></div>'}).join('')+'</div>'}
+ html+='</div><div class="fjpt-muted" style="margin-top:8px">Klik tanggal untuk membuat schedule. Klik schedule untuk Conduct / detail.</div>';
+ box.innerHTML=html;
+}
+window.fjPtPrevMonth=function(){state.month.setMonth(state.month.getMonth()-1);renderCalendar()}
+window.fjPtNextMonth=function(){state.month.setMonth(state.month.getMonth()+1);renderCalendar()}
+
+function clientOptions(){return state.clients.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+' — '+esc(c.pt_email||'')+'</option>'}).join('')}
+function ptOptions(){return isMaster()||canManage()?state.clients.map(function(c){return '<option value="'+esc(c.pt_user_id)+'">'+esc(c.pt_email||c.pt_user_id)+'</option>'}).filter(function(x,i,a){return a.indexOf(x)===i}).join(''):'<option value="'+esc(currentPtId())+'">'+esc(currentPtEmail())+'</option>'}
+
+window.fjPtNewSchedule=function(date){
+ var d=date||todayISO(), defaultTime='09:00';
+ $('fjptScheduleTitle').textContent='New Schedule';$('fjptScheduleBody').innerHTML=
+ '<div class="fjpt-form">'+
+ '<div class="fjpt-field"><label>Client</label><select id="fjptSchClient">'+clientOptions()+'</select></div>'+
+ '<div class="fjpt-field"><label>PT</label><select id="fjptSchPT">'+ptOptions()+'</select></div>'+
+ '<div class="fjpt-field"><label>Date</label><input id="fjptSchDate" type="date" value="'+d+'"></div>'+
+ '<div class="fjpt-field"><label>Time</label><input id="fjptSchTime" type="time" value="'+defaultTime+'"></div>'+
+ '<div class="fjpt-field"><label>Schedule Type</label><select id="fjptSchType"><option>PT Session</option><option>GO</option><option>RA</option><option>Review</option><option>PT Selling</option></select></div>'+
+ '<div class="fjpt-field fjpt-span3"><label>Notes</label><textarea id="fjptSchNotes"></textarea></div></div>'+
+ '<div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtCloseModals()">Cancel</button><button class="fjpt-btn" onclick="window.fjPtSaveSchedule()">Save Schedule</button></div>';
+ $('fjptScheduleModal').classList.add('open');
+}
+window.fjPtSaveSchedule=async function(){
+ var s=db();if(!s)return;
+ var payload={client_id:$('fjptSchClient').value,pt_user_id:$('fjptSchPT').value,scheduled_at:$('fjptSchDate').value+'T'+$('fjptSchTime').value+':00',schedule_type:$('fjptSchType').value,notes:$('fjptSchNotes').value,status:'SCHEDULED'};
+ var r=await s.from('pt_schedules').insert(payload);if(r.error){alert(r.error.message);return}closeModals();await loadAll();activate('calendar')
+}
+window.fjPtOpenSchedule=function(id){
+ var e=state.schedules.find(function(x){return x.id===id});if(!e)return;var c=clientById(e.client_id),packs=activePackages(e.client_id),canConduct=e.schedule_type==='PT Session'&&e.status==='SCHEDULED'&&packs.length>0;
+ $('fjptScheduleTitle').textContent=(c?.name||'Client')+' • '+fmtDT(e.scheduled_at);
+ $('fjptScheduleBody').innerHTML='<div class="fjpt-card"><b>PT:</b> '+esc(e.pt_user_id===currentPtId()?currentPtEmail():((c&&c.pt_email)||e.pt_user_id))+'<br><b>Type:</b> '+esc(e.schedule_type)+'<br><b>Status:</b> '+esc(e.status)+'<br><b>Notes:</b> '+esc(e.notes||'—')+'</div>'+
+ '<div class="fjpt-card" style="margin-top:10px"><h3>Session Balance</h3>'+packs.map(function(p){return '<div>'+esc(p.package_name)+' — '+(Number(p.total_sessions)-Number(p.used_sessions))+' remaining • expiry '+fmtDate(p.expiry_date)+'</div>'}).join('')+(packs.length?'':'<div class="fjpt-warning">Tidak ada package aktif. Conduct tidak dapat dilakukan.</div>')+'</div>'+
+ '<div class="fjpt-actions">'+(canConduct?'<button class="fjpt-btn green" onclick="window.fjPtOpenConduct(\''+e.id+'\')">✓ Conduct</button>':'')+(canManage()||e.pt_user_id===currentPtId()?'<button class="fjpt-btn alt" onclick="window.fjPtEditSchedule(\''+e.id+'\')">Edit</button>':'')+'<button class="fjpt-btn alt" onclick="window.fjPtCloseModals()">Close</button></div>';
+ $('fjptScheduleModal').classList.add('open');
+}
+window.fjPtEditSchedule=function(id){var e=state.schedules.find(function(x){return x.id===id});if(!e)return;var c=clientById(e.client_id),d=String(e.scheduled_at).slice(0,10),t=String(e.scheduled_at).slice(11,16);$('fjptScheduleTitle').textContent='Edit Schedule';$('fjptScheduleBody').innerHTML='<div class="fjpt-form"><div class="fjpt-field"><label>Client</label><select id="fjptSchClient">'+clientOptions()+'</select></div><div class="fjpt-field"><label>Date</label><input id="fjptSchDate" type="date" value="'+d+'"></div><div class="fjpt-field"><label>Time</label><input id="fjptSchTime" type="time" value="'+t+'"></div><div class="fjpt-field"><label>Type</label><select id="fjptSchType"><option>PT Session</option><option>GO</option><option>RA</option><option>Review</option><option>PT Selling</option></select></div><div class="fjpt-field fjpt-span3"><label>Notes</label><textarea id="fjptSchNotes">'+esc(e.notes||'')+'</textarea></div></div><div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtCloseModals()">Cancel</button><button class="fjpt-btn" onclick="window.fjPtUpdateSchedule(\''+id+'\')">Save</button></div>';setTimeout(function(){if($('fjptSchClient'))$('fjptSchClient').value=c?.id||e.client_id;if($('fjptSchType'))$('fjptSchType').value=e.schedule_type},0)}
+window.fjPtUpdateSchedule=async function(id){var s=db();if(!s)return;var r=await s.from('pt_schedules').update({client_id:$('fjptSchClient').value,scheduled_at:$('fjptSchDate').value+'T'+$('fjptSchTime').value+':00',schedule_type:$('fjptSchType').value,notes:$('fjptSchNotes').value,updated_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return}closeModals();await loadAll()}
+window.fjPtOpenConduct=function(scheduleId){
+ var e=state.schedules.find(function(x){return x.id===scheduleId}),c=clientById(e?.client_id),packs=activePackages(e?.client_id);if(!e||!c||!packs.length){alert('Tidak ada package aktif yang dapat digunakan untuk Conduct.');return}
+ $('fjptConductBody').innerHTML='<div class="fjpt-good"><b>'+esc(c.name)+'</b> • Conduct akan mengurangi 1 session dari package yang dipilih. Riwayat Conduct tetap tersimpan.</div><div class="fjpt-field"><label>Package</label><select id="fjptConductPkg">'+packs.map(function(p){return '<option value="'+p.id+'">'+esc(p.package_name)+' — '+(p.total_sessions-p.used_sessions)+' remaining — expiry '+fmtDate(p.expiry_date)+'</option>'}).join('')+'</select></div><div class="fjpt-field" style="margin-top:9px"><label>Notes</label><textarea id="fjptConductNotes"></textarea></div><div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtCloseModals()">Cancel</button><button class="fjpt-btn green" onclick="window.fjPtSaveConduct(\''+scheduleId+'\')">Confirm Conduct</button></div>';
+ $('fjptConductModal').classList.add('open');
+}
+window.fjPtSaveConduct=async function(scheduleId){
+ var s=db(),e=state.schedules.find(function(x){return x.id===scheduleId});if(!s||!e)return;
+ var pkgId=$('fjptConductPkg').value;var r=await s.from('pt_conducts').insert({client_id:e.client_id,package_id:pkgId,pt_user_id:e.pt_user_id,conducted_at:e.scheduled_at,notes:$('fjptConductNotes').value});
+ if(r.error){alert(r.error.message);return}
+ var up=await s.from('pt_schedules').update({status:'DONE',updated_at:new Date().toISOString()}).eq('id',scheduleId);if(up.error){console.warn(up.error)}
+ closeModals();await loadAll();openClient(e.client_id);activate('detail');
+}
+
+function renderClients(){
+ var box=$('fjptClientsView');if(!box)return;var list=state.clients.slice().sort(function(a,b){return String(a.name).localeCompare(String(b.name))});
+ box.innerHTML='<div class="fjpt-card"><div class="fjpt-head"><div><h3>Client List</h3><div class="fjpt-muted">'+(isMaster()?'All PT clients':'Only your clients')+'</div></div><div class="fjpt-actions"><button class="fjpt-btn" onclick="window.fjPtNewClient()">＋ Add Client</button><input id="fjptClientSearch" placeholder="Search client" style="border:1px solid #c8dce8;border-radius:9px;padding:9px"></div></div><div id="fjptClientCards" class="fjpt-client-list" style="margin-top:10px"></div></div>';
+ var draw=function(){var q=String($('fjptClientSearch')?.value||'').toLowerCase();var a=list.filter(function(c){return !q||String(c.name).toLowerCase().includes(q)||String(c.phone||'').toLowerCase().includes(q)});$('fjptClientCards').innerHTML=a.map(function(c){var ps=state.packages.filter(function(p){return p.client_id===c.id});var rem=ps.reduce(function(n,p){return n+Math.max(0,Number(p.total_sessions)-Number(p.used_sessions))},0);var active=ps.filter(function(p){return packageStatus(p)==='ACTIVE'||packageStatus(p)==='APPROVED'}).length;return '<div class="fjpt-client-card" onclick="window.fjPtOpenClient(\''+c.id+'\')"><h3>'+esc(c.name)+'</h3><p>PT: '+esc(c.pt_email||'—')+'</p><p>'+esc(c.phone||'No phone')+'</p><p><b>'+rem+'</b> remaining sessions • '+active+' active package</p></div>'}).join('')||'<div class="fjpt-muted">No clients found.</div>'};
+ $('fjptClientSearch').addEventListener('input',draw);draw();
+}
+window.fjPtNewClient=function(){openClientForm(null)}
+function openClientForm(c){
+ $('fjptScheduleModal').classList.add('open');$('fjptScheduleTitle').textContent=c?'Edit Client':'Add Client';
+ $('fjptScheduleBody').innerHTML='<div class="fjpt-form"><div class="fjpt-field"><label>Name</label><input id="fjptCName" value="'+esc(c?.name||'')+'"></div><div class="fjpt-field"><label>Phone</label><input id="fjptCPhone" value="'+esc(c?.phone||'')+'"></div><div class="fjpt-field"><label>Email</label><input id="fjptCEmail" value="'+esc(c?.email||'')+'"></div><div class="fjpt-field"><label>Age</label><input id="fjptCAge" type="number" value="'+esc(c?.profile?.age||'')+'"></div><div class="fjpt-field"><label>Gender</label><select id="fjptCGender"><option value="">—</option><option value="male">Male</option><option value="female">Female</option></select></div><div class="fjpt-field"><label>Weight kg</label><input id="fjptCWeight" type="number" value="'+esc(c?.profile?.weight||'')+'"></div><div class="fjpt-field"><label>Height cm</label><input id="fjptCHeight" type="number" value="'+esc(c?.profile?.height||'')+'"></div><div class="fjpt-field"><label>Goal</label><input id="fjptCGoal" value="'+esc(c?.profile?.goal||'')+'"></div><div class="fjpt-field"><label>Notes</label><textarea id="fjptCNotes">'+esc(c?.notes||'')+'</textarea></div></div><div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtCloseModals()">Cancel</button><button class="fjpt-btn" onclick="window.fjPtSaveClient(\''+(c?.id||'')+'\')">Save Client</button></div>';
+ setTimeout(function(){if($('fjptCGender'))$('fjptCGender').value=c?.profile?.gender||''},0);
+}
+window.fjPtSaveClient=async function(id){
+ var s=db();if(!s)return;var profile={age:$('fjptCAge').value,gender:$('fjptCGender').value,weight:$('fjptCWeight').value,height:$('fjptCHeight').value,goal:$('fjptCGoal').value};
+ var payload={name:$('fjptCName').value.trim(),phone:$('fjptCPhone').value.trim(),email:$('fjptCEmail').value.trim(),profile:profile,notes:$('fjptCNotes').value.trim(),pt_user_id:id?(clientById(id)?.pt_user_id||currentPtId()):currentPtId(),pt_email:id?(clientById(id)?.pt_email||currentPtEmail()):currentPtEmail(),updated_at:new Date().toISOString()};
+ if(!payload.name){alert('Nama client wajib diisi.');return}
+ var r=id?await s.from('pt_clients').update(payload).eq('id',id):await s.from('pt_clients').insert(payload);if(r.error){alert(r.error.message);return}
+ closeModals();await loadAll();if(id)openClient(id);activate(id?'detail':'clients');
+}
+
+window.fjPtOpenClient=function(id){state.selectedClient=id;activate('detail')}
+function openClient(id){state.selectedClient=id}
+function renderDetail(){
+ var box=$('fjptDetailView');if(!box)return;var c=clientById(state.selectedClient);
+ if(!c){box.innerHTML='<div class="fjpt-card"><h3>Client Detail</h3><div class="fjpt-muted">Pilih client dari Client List atau Calendar.</div></div>';return}
+ var ps=state.packages.filter(function(p){return p.client_id===c.id}).sort(function(a,b){return String(b.purchase_date).localeCompare(String(a.purchase_date))});
+ var cs=state.conducts.filter(function(x){return x.client_id===c.id});var sch=state.schedules.filter(function(x){return x.client_id===c.id}).sort(function(a,b){return String(b.scheduled_at).localeCompare(String(a.scheduled_at))});
+ var total=ps.reduce(function(n,p){return n+Number(p.total_sessions||0)},0),used=ps.reduce(function(n,p){return n+Number(p.used_sessions||0)},0),rem=total-used;
+ box.innerHTML='<div class="fjpt-back"><button class="fjpt-btn alt" onclick="window.fjPtActivateClients()">← Client List</button></div><div class="fjpt-card"><div class="fjpt-detail-top"><div><div class="fjpt-detail-title">'+esc(c.name)+'</div><div class="fjpt-muted">PT: '+esc(c.pt_email||'—')+' • '+esc(c.phone||'—')+'</div></div><div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtEditClient(\''+c.id+'\')">Edit</button><button class="fjpt-btn" onclick="window.fjPtNewPackage(\''+c.id+'\')">＋ New Package</button><button class="fjpt-btn orange" onclick="window.fjPtPrintClient(\''+c.id+'\')">▣ PDF</button></div></div><div class="fjpt-kpis" style="margin-top:12px"><div class="fjpt-kpi"><b>'+total+'</b><span>Total Sessions</span></div><div class="fjpt-kpi"><b>'+used+'</b><span>Used Sessions</span></div><div class="fjpt-kpi"><b>'+rem+'</b><span>Remaining</span></div><div class="fjpt-kpi"><b>'+ps.filter(function(p){return packageStatus(p)==='ACTIVE'||packageStatus(p)==='APPROVED'}).length+'</b><span>Active Packages</span></div><div class="fjpt-kpi"><b>'+cs.length+'</b><span>Conduct History</span></div></div></div>'+
+ '<div class="fjpt-grid" style="margin-top:12px"><div class="fjpt-card"><h3>Client Profile</h3><div class="fjpt-tablewrap"><table class="fjpt-table"><tr><th>Field</th><th>Value</th></tr>'+[['Age',c.profile?.age],['Gender',c.profile?.gender],['Weight',c.profile?.weight+' kg'],['Height',c.profile?.height+' cm'],['Goal',c.profile?.goal],['Notes',c.notes]].map(function(r){return '<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1]||'—')+'</td></tr>'}).join('')+'</table></div></div><div class="fjpt-card"><h3>Packages</h3><div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtLoadClient(\''+c.id+'\')">↻ Load</button></div><div class="fjpt-tablewrap" style="margin-top:8px"><table class="fjpt-table"><tr><th>Package</th><th>Sessions</th><th>Purchase</th><th>Expiry</th><th>Status</th><th>Action</th></tr>'+ps.map(function(p){var st=packageStatus(p);return '<tr><td>'+esc(p.package_name)+'</td><td>'+p.total_sessions+' / '+p.used_sessions+' used<br><b>'+(p.total_sessions-p.used_sessions)+' remaining</b></td><td>'+fmtDate(p.purchase_date)+'</td><td>'+fmtDate(p.expiry_date)+'</td><td><span class="fjpt-badge '+(st==='ACTIVE'||st==='APPROVED'?'fjpt-active':st==='EXTEND REQUESTED'?'fjpt-pending':'fjpt-expired')+'">'+esc(st)+'</span></td><td>'+(st==='ACTIVE'?'<button class="fjpt-btn alt" onclick="window.fjPtRequestExtend(\''+p.id+'\')">Request Extend</button>':'')+'</td></tr>'}).join('')+'</table></div></div></div>'+
+ '<div class="fjpt-card" style="margin-top:12px"><h3>Conduct History</h3><div class="fjpt-tablewrap"><table class="fjpt-table"><tr><th>Date</th><th>PT</th><th>Package</th><th>Notes</th></tr>'+cs.map(function(x){var p=state.packages.find(function(z){return z.id===x.package_id});return '<tr><td>'+fmtDT(x.conducted_at)+'</td><td>'+esc(x.pt_user_id===currentPtId()?currentPtEmail():x.pt_user_id)+'</td><td>'+esc(p?.package_name||'—')+'</td><td>'+esc(x.notes||'—')+'</td></tr>'}).join('')||'<tr><td colspan="4">No Conduct yet.</td></tr>'+'</table></div></div>'+
+ '<div class="fjpt-card" style="margin-top:12px"><h3>Schedule History</h3><div class="fjpt-tablewrap"><table class="fjpt-table"><tr><th>Date</th><th>Type</th><th>Status</th><th>Notes</th></tr>'+sch.map(function(x){return '<tr><td>'+fmtDT(x.scheduled_at)+'</td><td>'+esc(x.schedule_type)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.notes||'—')+'</td></tr>'}).join('')||'<tr><td colspan="4">No schedule history.</td></tr>'+'</table></div></div>';
+}
+window.fjPtActivateClients=function(){activate('clients')}
+window.fjPtEditClient=function(id){openClientForm(clientById(id))}
+window.fjPtLoadClient=async function(id){state.selectedClient=id;await loadAll();activate('detail')}
+window.fjPtNewPackage=function(clientId){
+ var purchase=todayISO();$('fjptScheduleModal').classList.add('open');$('fjptScheduleTitle').textContent='New Package';$('fjptScheduleBody').innerHTML='<div class="fjpt-form"><div class="fjpt-field"><label>Package</label><input id="fjptPkgName" placeholder="e.g. Smart Coach 18 Sessions"></div><div class="fjpt-field"><label>Total Sessions</label><input id="fjptPkgSessions" type="number" min="1" value="18"></div><div class="fjpt-field"><label>Purchase Date</label><input id="fjptPkgPurchase" type="date" value="'+purchase+'"></div><div class="fjpt-field"><label>Frequency basis</label><input value="Minimum 2× / week + 1 month" disabled></div><div class="fjpt-field fjpt-span3"><label>Calculated Expiry</label><input id="fjptPkgExpiry" disabled value="'+expiryFor(purchase,18)+'"></div></div><div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtCloseModals()">Cancel</button><button class="fjpt-btn" onclick="window.fjPtSavePackage(\''+clientId+'\')">Save Package</button></div>';
+ var rec=function(){if($('fjptPkgExpiry'))$('fjptPkgExpiry').value=expiryFor($('fjptPkgPurchase').value,$('fjptPkgSessions').value)};setTimeout(function(){$('fjptPkgPurchase').addEventListener('change',rec);$('fjptPkgSessions').addEventListener('input',rec)},0)
+}
+window.fjPtSavePackage=async function(clientId){var s=db();var purchase=$('fjptPkgPurchase').value,tot=Number($('fjptPkgSessions').value)||0;if(!tot)return;var r=await s.from('pt_packages').insert({client_id:clientId,package_name:$('fjptPkgName').value.trim()||'PT Package',total_sessions:tot,used_sessions:0,purchase_date:purchase,expiry_date:expiryFor(purchase,tot),status:'ACTIVE',source:'NEW_PURCHASE'});if(r.error){alert(r.error.message);return}closeModals();await loadAll();openClient(clientId);activate('detail')}
+window.fjPtRequestExtend=function(pkgId){
+ var p=state.packages.find(function(x){return x.id===pkgId});if(!p)return;$('fjptScheduleModal').classList.add('open');$('fjptScheduleTitle').textContent='Request Extension';$('fjptScheduleBody').innerHTML='<div class="fjpt-good">Package <b>'+esc(p.package_name)+'</b> tetap menyimpan expiry lama. Approval hanya memperpanjang package ini.</div><div class="fjpt-form"><div class="fjpt-field"><label>Current Expiry</label><input value="'+esc(p.expiry_date)+'" disabled></div><div class="fjpt-field"><label>Requested New Expiry</label><input id="fjptExtDate" type="date" min="'+todayISO()+'" value="'+esc(p.expiry_date)+'"></div><div class="fjpt-field fjpt-span3"><label>Reason</label><textarea id="fjptExtReason"></textarea></div></div><div class="fjpt-actions"><button class="fjpt-btn alt" onclick="window.fjPtCloseModals()">Cancel</button><button class="fjpt-btn orange" onclick="window.fjPtSaveExtension(\''+pkgId+'\')">Submit Request</button></div>';
+}
+window.fjPtSaveExtension=async function(pkgId){var s=db();var r=await s.from('pt_extension_requests').insert({package_id:pkgId,requested_by:currentPtId(),requested_expiry:$('fjptExtDate').value,reason:$('fjptExtReason').value,status:'PENDING_APPROVAL'});if(r.error){alert(r.message||r.error.message);return}await s.from('pt_packages').update({status:'EXTEND_REQUESTED',updated_at:new Date().toISOString()}).eq('id',pkgId);closeModals();await loadAll();activate('detail')}
+function renderMonitor(){
+ var box=$('fjptMonitorView');if(!box)return;
+ if(!isMaster()&&!canManage()){box.innerHTML='<div class="fjpt-warning">Master Monitor is only available to Master Admin / Manager.</div>';return}
+ var ptIds=[...new Set(state.clients.map(function(c){return c.pt_user_id}))],today=todayISO(),conductToday=state.conducts.filter(function(x){return String(x.conducted_at).slice(0,10)===today}).length,active=state.packages.filter(function(p){return packageStatus(p)==='ACTIVE'||packageStatus(p)==='APPROVED'}).length,pending=state.extensions.filter(function(x){return x.status==='PENDING_APPROVAL'}).length;
+ box.innerHTML='<div class="fjpt-kpis"><div class="fjpt-kpi"><b>'+ptIds.length+'</b><span>PT with Clients</span></div><div class="fjpt-kpi"><b>'+state.clients.length+'</b><span>Total Clients</span></div><div class="fjpt-kpi"><b>'+active+'</b><span>Active Packages</span></div><div class="fjpt-kpi"><b>'+conductToday+'</b><span>Conduct Today</span></div><div class="fjpt-kpi"><b>'+pending+'</b><span>Pending Extend</span></div></div>'+
+ '<div class="fjpt-card"><div class="fjpt-head"><div><h3>PT Activity Monitor</h3><div class="fjpt-muted">All activity from the same client/package/conduct records.</div></div><button class="fjpt-btn alt" onclick="window.fjPtLoadMonitor()">↻ Refresh</button></div><div class="fjpt-tablewrap" style="margin-top:10px"><table class="fjpt-table"><tr><th>PT</th><th>Clients</th><th>Upcoming</th><th>Conduct MTD</th><th>Remaining Sessions</th><th>Expired Packages</th></tr>'+ptIds.map(function(pid){var cs=state.clients.filter(function(c){return c.pt_user_id===pid}),cid=cs.map(function(c){return c.id}),up=state.schedules.filter(function(x){return x.pt_user_id===pid&&x.status==='SCHEDULED'&&String(x.scheduled_at).slice(0,10)>=today}).length,cond=state.conducts.filter(function(x){return x.pt_user_id===pid&&String(x.conducted_at).slice(0,7)===today.slice(0,7)}).length,rem=state.packages.filter(function(p){return cid.includes(p.client_id)}).reduce(function(n,p){return n+Math.max(0,p.total_sessions-p.used_sessions)},0),exp=state.packages.filter(function(p){return cid.includes(p.client_id)&&packageStatus(p)==='EXPIRED'}).length;return '<tr><td>'+esc(cs[0]?.pt_email||pid)+'</td><td>'+cs.length+'</td><td>'+up+'</td><td>'+cond+'</td><td>'+rem+'</td><td>'+exp+'</td></tr>'}).join('')||'<tr><td colspan="6">No PT activity.</td></tr>'+'</table></div></div>'+
+ '<div class="fjpt-card" style="margin-top:12px"><h3>Extension Approval Queue</h3><div class="fjpt-tablewrap"><table class="fjpt-table"><tr><th>Client</th><th>Package</th><th>Requested Expiry</th><th>Reason</th><th>Action</th></tr>'+state.extensions.filter(function(x){return x.status==='PENDING_APPROVAL'}).map(function(x){var p=state.packages.find(function(z){return z.id===x.package_id}),c=clientById(p?.client_id);return '<tr><td>'+esc(c?.name||'—')+'</td><td>'+esc(p?.package_name||'—')+'</td><td>'+fmtDate(x.requested_expiry)+'</td><td>'+esc(x.reason||'—')+'</td><td>'+ (isMaster()?'<button class="fjpt-btn green" onclick="window.fjPtApproveExtension(\''+x.id+'\',true)">Approve</button> <button class="fjpt-btn red" onclick="window.fjPtApproveExtension(\''+x.id+'\',false)">Reject</button>':'Pending Master Admin')+'</td></tr>'}).join('')||'<tr><td colspan="5">No pending requests.</td></tr>'+'</table></div></div>';
+}
+window.fjPtLoadMonitor=async function(){await loadAll();activate('monitor')}
+window.fjPtApproveExtension=async function(id,approve){if(!isMaster())return;var s=db();var r=await s.from('pt_extension_requests').update({status:approve?'APPROVED':'REJECTED',approved_by:currentPtId(),approved_at:new Date().toISOString()}).eq('id',id);if(r.error){alert(r.error.message);return}await loadAll();activate('monitor')}
+window.fjPtPrintClient=function(id){
+ var c=clientById(id);if(!c)return;var ps=state.packages.filter(function(p){return p.client_id===id}),cs=state.conducts.filter(function(x){return x.client_id===id});var root=document.createElement('div');root.id='fjPtPrintRoot';root.innerHTML='<h1>PT CLIENT DETAIL</h1><p><b>'+esc(c.name)+'</b> • PT: '+esc(c.pt_email||'—')+'</p><h2>Client Profile</h2><table><tr><td>Phone</td><td>'+esc(c.phone||'—')+'</td></tr><tr><td>Email</td><td>'+esc(c.email||'—')+'</td></tr><tr><td>Age</td><td>'+esc(c.profile?.age||'—')+'</td></tr><tr><td>Gender</td><td>'+esc(c.profile?.gender||'—')+'</td></tr><tr><td>Weight</td><td>'+esc(c.profile?.weight||'—')+'</td></tr><tr><td>Height</td><td>'+esc(c.profile?.height||'—')+'</td></tr><tr><td>Goal</td><td>'+esc(c.profile?.goal||'—')+'</td></tr></table><h2>Packages</h2><table><tr><th>Package</th><th>Total</th><th>Used</th><th>Remaining</th><th>Purchase</th><th>Expiry</th><th>Status</th></tr>'+ps.map(function(p){return '<tr><td>'+esc(p.package_name)+'</td><td>'+p.total_sessions+'</td><td>'+p.used_sessions+'</td><td>'+Math.max(0,p.total_sessions-p.used_sessions)+'</td><td>'+fmtDate(p.purchase_date)+'</td><td>'+fmtDate(p.expiry_date)+'</td><td>'+esc(packageStatus(p))+'</td></tr>'}).join('')+'</table><h2>Conduct History</h2><table><tr><th>Date</th><th>Package</th><th>Notes</th></tr>'+cs.map(function(x){var p=state.packages.find(function(z){return z.id===x.package_id});return '<tr><td>'+fmtDT(x.conducted_at)+'</td><td>'+esc(p?.package_name||'—')+'</td><td>'+esc(x.notes||'—')+'</td></tr>'}).join('')+'</table>';document.body.appendChild(root);var st=document.createElement('style');st.id='fjPtPrintStyle';st.textContent='@media screen{#fjPtPrintRoot{display:none}}@media print{body>*:not(#fjPtPrintRoot){display:none!important}#fjPtPrintRoot{display:block!important;font-family:Arial,sans-serif;color:#111;padding:12mm}#fjPtPrintRoot table{width:100%;border-collapse:collapse;margin-bottom:8mm}#fjPtPrintRoot th,#fjPtPrintRoot td{border:1px solid #999;padding:5px;text-align:left;vertical-align:top;font-size:9px}#fjPtPrintRoot th{background:#eee}#fjPtPrintRoot h1{font-size:20px}#fjPtPrintRoot h2{font-size:13px;margin-top:12px}}';document.head.appendChild(st);var clean=function(){root.remove();st.remove();window.removeEventListener('afterprint',clean)};window.addEventListener('afterprint',clean,{once:true});window.print();setTimeout(clean,5000)
+}
+window.fjPtCloseModals=function(){document.querySelectorAll('.fjpt-modal').forEach(function(x){x.classList.remove('open')})}
+function closeModals(){window.fjPtCloseModals()}
+function bindRefreshGuard(){
+ document.documentElement.style.overscrollBehaviorY='none';document.body.style.overscrollBehaviorY='none';
+ var startY=0;
+ document.addEventListener('touchstart',function(e){if(e.touches&&e.touches.length===1)startY=e.touches[0].clientY},{passive:true});
+ document.addEventListener('touchmove',function(e){if(!e.touches||e.touches.length!==1)return;var y=e.touches[0].clientY;if(y-startY>8){var t=e.target,scrollable=t&&t.closest?t.closest('.fjpt-month,.tablewrap,.fjpt-tablewrap,.modalbox,.fjpt-modalbox,.side'):null;if(!scrollable && window.scrollY<=0)e.preventDefault()}},{passive:false});
+ window.addEventListener('beforeunload',function(){try{localStorage.setItem('fj_pt_ops_last_snapshot',JSON.stringify({savedAt:new Date().toISOString(),clientId:state.selectedClient}))}catch(e){}});
+ document.addEventListener('keydown',function(e){if(e.key==='F5'||((e.ctrlKey||e.metaKey)&&String(e.key).toLowerCase()==='r')){e.preventDefault();e.stopPropagation();if(typeof window.fjPtToast==='function')window.fjPtToast('Refresh dinonaktifkan agar data PT tetap aman. Data tersimpan di database live.');else alert('Refresh dinonaktifkan agar data PT tetap aman. Data tersimpan di database live.');}},true);
+}
+async function boot(){
+ navAndPanel();bindRefreshGuard();
+ if(!fjCanPTM())return;
+ await loadAll();
+}
+window.fjPtOpsInit=boot;
+var tries=0;var timer=setInterval(function(){tries++;if(window.sb&&window.currentUser){clearInterval(timer);boot()}if(tries>60)clearInterval(timer)},500);
 })();
 </script>

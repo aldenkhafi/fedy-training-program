@@ -8801,3 +8801,281 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.addEventListener('resize',apply,{passive:true});
 })();
 </script>
+
+<!-- ============================================================= -->
+<!-- V48 — ONLINE PT SYNC + CLIENT PROFILE + BEFORE/AFTER + MOBILE UI -->
+<!-- Append-only patch. Existing functions are left intact; this patch adds
+     online sync, profile/detail overlays, range print, compact mobile UI,
+     and a refreshed logo without replacing unrelated application modules. -->
+<style id="fj-v48-online-pt-mobile-ui">
+/* ---------- MOBILE BUTTON / TOOLBAR CLEANUP — scoped only to requested panels ---------- */
+@media screen and (max-width:760px){
+  #training .actions,
+  #trainingPro .actions,
+  #trainingClientCalendar .fj-cc-toolbar,
+  #fjPtOpsV2 .ptv2-actions,
+  #fjExerciseLibrary .exl-actions,
+  #fjExerciseLibrary .exl-modal-actions,
+  #fjExerciseLibrary .actions{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    gap:6px!important;
+  }
+  #training .actions .btn,
+  #trainingPro .actions .btn,
+  #trainingClientCalendar .fj-cc-toolbar .btn,
+  #fjPtOpsV2 .ptv2-actions .ptv2-btn,
+  #fjExerciseLibrary .exl-actions .exl-btn,
+  #fjExerciseLibrary .exl-modal-actions .exl-btn,
+  #fjExerciseLibrary .actions .btn{
+    width:auto!important;
+    min-width:0!important;
+    max-width:100%!important;
+    flex:0 1 auto!important;
+    font-size:10.5px!important;
+    line-height:1.2!important;
+    padding:6px 8px!important;
+    white-space:nowrap!important;
+  }
+  #training .actions .btn,
+  #trainingPro .actions .btn{margin:0!important}
+
+  /* PT Management month grid: same compact 7-column calendar concept as Client Calendar,
+     never one long column of 30 separate days. */
+  #fjPtOpsV2 .ptv2-calendar.ptm-calendar-clickable{
+    display:grid!important;
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:3px!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  #fjPtOpsV2 .ptm-calendar-clickable .ptv2-day{
+    min-height:72px!important;
+    height:auto!important;
+    padding:4px!important;
+    border-radius:7px!important;
+    overflow:hidden!important;
+  }
+  #fjPtOpsV2 .ptm-calendar-clickable .ptv2-daynum{font-size:10px!important;margin-bottom:2px!important}
+  #fjPtOpsV2 .ptm-calendar-clickable .ptv2-event{
+    font-size:7.5px!important;
+    line-height:1.15!important;
+    padding:3px!important;
+    margin-top:2px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #fjPtOpsV2 .ptm-calendar-clickable .ptv2-event small{display:none!important}
+  #fjPtOpsV2 .ptm-calendar-clickable .ptv2-event b{font-size:7.5px!important}
+
+  /* PT profile/online toolbar stays tidy in two or more compact rows. */
+  #fjPtOpsV2 .ptv2-head{gap:8px!important}
+  #fjPtOpsV2 .ptv2-tabs{gap:5px!important;margin:9px 0!important}
+  #fjPtOpsV2 .ptv2-tab{font-size:10px!important;padding:6px 8px!important}
+  #fjPtOpsV2 .ptv2-card{padding:10px!important;border-radius:11px!important}
+  #fjPtOpsV2 .fj-v48-online-toolbar{display:flex!important;flex-wrap:wrap!important;gap:6px!important}
+  #fjPtOpsV2 .fj-v48-online-toolbar .ptv2-btn{font-size:9.5px!important;padding:6px 7px!important}
+
+  /* Exercise Library controls: keep buttons compact but preserve all actions. */
+  #fjExerciseLibrary .exl-chipset{gap:5px!important}
+  #fjExerciseLibrary .exl-chip{font-size:9px!important;padding:5px 7px!important}
+}
+
+/* ---------- refreshed FITNESS JOURNEY logo ---------- */
+.fj-v48-logo{
+  display:flex;align-items:center;gap:9px;width:100%;box-sizing:border-box;
+  color:#fff;text-decoration:none;
+}
+.fj-v48-logo-mark{width:46px;height:46px;flex:0 0 46px;display:block}
+.fj-v48-logo-copy{min-width:0;line-height:1}
+.fj-v48-logo-name{display:block;font-size:19px;font-weight:950;letter-spacing:.5px;white-space:nowrap}
+.fj-v48-logo-tag{display:block;margin-top:5px;font-size:8px;font-weight:800;letter-spacing:1.7px;opacity:.82;white-space:nowrap}
+@media(max-width:760px){
+  .side .brand{padding:10px 12px!important;margin:0!important}
+  .fj-v48-logo-mark{width:48px;height:48px;flex-basis:48px}
+  .fj-v48-logo-name{font-size:20px}
+}
+
+/* ---------- profile modal ---------- */
+#fjV48ProfileModal{position:fixed;inset:0;z-index:2147483005;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(8,35,51,.68)}
+#fjV48ProfileModal.open{display:flex}
+#fjV48ProfileModal .fj-v48-profile-box{width:min(920px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:16px;box-shadow:0 22px 70px rgba(0,0,0,.28)}
+#fjV48ProfileModal .fj-v48-profile-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#fjV48ProfileModal .fj-v48-profile-item{border:1px solid #dce8ef;border-radius:10px;padding:9px;background:#f8fbfd}
+#fjV48ProfileModal .fj-v48-profile-item b{display:block;font-size:9px;color:#6d879e;text-transform:uppercase}
+#fjV48ProfileModal .fj-v48-profile-item span{display:block;margin-top:3px;font-weight:900;color:#17364e;overflow-wrap:anywhere}
+#fjV48ProfileModal .fj-v48-ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+#fjV48ProfileModal .fj-v48-ba-card{border:1px solid #dce8ef;border-radius:12px;padding:10px;background:#fbfefe}
+#fjV48ProfileModal .fj-v48-ba-card h4{margin:0 0 7px;color:#31576f}
+#fjV48ProfileModal .fj-v48-ba-photo{width:100%;height:150px;object-fit:cover;border-radius:9px;background:#eef6f7;display:block}
+#fjV48ProfileModal .fj-v48-ba-empty{height:150px;border-radius:9px;background:#eef6f7;display:flex;align-items:center;justify-content:center;color:#8aa5a9;font-size:11px}
+#fjV48ProfileModal .fj-v48-ba-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+#fjV48ProfileModal .fj-v48-ba-fields div{font-size:10px;border:1px solid #e1ecef;border-radius:7px;padding:6px;background:#fff}
+#fjV48ProfileModal .fj-v48-ba-fields b{display:block;color:#6d879e;font-size:8px;text-transform:uppercase}
+#fjV48ProfileModal .fj-v48-section{margin-top:12px;border-top:1px solid #e7eef2;padding-top:10px}
+@media(max-width:760px){
+  #fjV48ProfileModal{padding:8px}
+  #fjV48ProfileModal .fj-v48-profile-box{width:100%;max-height:94vh;border-radius:14px;padding:11px}
+  #fjV48ProfileModal .fj-v48-profile-grid{grid-template-columns:1fr 1fr}
+  #fjV48ProfileModal .fj-v48-ba-grid{grid-template-columns:1fr}
+  #fjV48ProfileModal .fj-v48-ba-photo,#fjV48ProfileModal .fj-v48-ba-empty{height:125px}
+}
+
+/* ---------- date-range print modal ---------- */
+#fjV48RangeModal{position:fixed;inset:0;z-index:2147483006;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(8,35,51,.68)}
+#fjV48RangeModal.open{display:flex}
+#fjV48RangeModal .fj-v48-range-box{width:min(560px,96vw);background:#fff;border-radius:16px;padding:16px;box-shadow:0 22px 70px rgba(0,0,0,.28)}
+#fjV48RangeModal .fj-v48-range-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+#fjV48RangeModal label{display:block;font-size:11px;font-weight:900;color:#31576f;margin-bottom:4px}
+#fjV48RangeModal input,#fjV48RangeModal select{width:100%;box-sizing:border-box;padding:9px;border:1px solid #cfe0e9;border-radius:9px;background:#fff}
+@media(max-width:760px){#fjV48RangeModal .fj-v48-range-grid{grid-template-columns:1fr}.fj-v48-range-actions{display:flex!important;flex-wrap:wrap!important}}
+</style>
+<script id="fj-v48-online-pt-runtime">
+(function(){
+'use strict';
+var ONLINE_STATUS={last:'',busy:false};
+var EVENT_MARK='[[FJ_EVENT_JSON_V48]]';
+var DIR_STORE='fj_client_directory_v1';
+var CAL_STORE='fj_client_calendar_v1';
+function $(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function dirRead(){try{return JSON.parse(localStorage.getItem(DIR_STORE)||'{}')||{}}catch(e){return {}}}
+function dirWrite(o){try{localStorage.setItem(DIR_STORE,JSON.stringify(o));return true}catch(e){return false}}
+function calRead(){try{var p=JSON.parse(localStorage.getItem(CAL_STORE)||'null');return p&&p.calendar?p:null}catch(e){return null}}
+function calWrite(p){try{localStorage.setItem(CAL_STORE,JSON.stringify(p));return true}catch(e){return false}}
+function norm(v){return String(v==null?'':v).trim().toLowerCase()}
+function sb(){return window.sb||null}
+function user(){return window.currentUser||null}
+function toast(msg,ok){var old=document.getElementById('fjV48Toast');if(old)old.remove();var d=document.createElement('div');d.id='fjV48Toast';d.textContent=msg;d.style.cssText='position:fixed;right:14px;bottom:14px;z-index:2147483600;padding:10px 13px;border-radius:10px;background:'+(ok===false?'#b43b2f':'#147d70')+';color:#fff;font:800 12px Arial;box-shadow:0 8px 24px rgba(0,0,0,.22)';document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
+function setStatus(msg,ok){ONLINE_STATUS.last=new Date().toLocaleString('id-ID');var x=document.getElementById('fjV48SyncStatus');if(x){x.textContent=msg;x.dataset.ok=ok===false?'0':'1'};if(msg)toast(msg,ok)}
+function getLocalClients(){
+ var d=dirRead(),map={};
+ Object.keys(d).forEach(function(k){var c=d[k];if(c&&c.name)map[norm(c.name)+'|'+norm(c.phone)]=c});
+ var p=calRead(),evs=p&&p.calendar&&p.calendar.events?p.calendar.events:{};
+ Object.keys(evs).forEach(function(k){var c=evs[k]&&evs[k].client;if(c&&c.name){var key=norm(c.name)+'|'+norm(c.phone);if(!map[key])map[key]=c}});
+ return Object.keys(map).map(function(k){return map[k]});
+}
+function localEvents(){var p=calRead(),evs=p&&p.calendar&&p.calendar.events?p.calendar.events:{};return Object.keys(evs).sort().map(function(k){return {key:k,event:evs[k]}}).filter(function(x){return x.event&&x.event.client&&x.event.client.name})}
+function eventNotes(e){
+ var clean=Object.assign({},e||{});return EVENT_MARK+JSON.stringify(clean)+'\n'+String((e&&e.notes)||'');
+}
+function parseEventNotes(notes){
+ var s=String(notes||''),i=s.indexOf(EVENT_MARK);if(i<0)return null;
+ var rest=s.slice(i+EVENT_MARK.length),nl=rest.indexOf('\n'),raw=nl>=0?rest.slice(0,nl):rest;
+ try{return JSON.parse(raw)}catch(e){return null}
+}
+async function fetchOnline(){var s=sb();if(!s)throw new Error('Supabase belum terhubung. Login / koneksikan Supabase terlebih dahulu.');
+ var r=await Promise.all([
+   s.from('pt_clients').select('*').order('name'),
+   s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(5000),
+   s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(5000),
+   s.from('pt_packages').select('*').order('purchase_date',{ascending:false}).limit(5000),
+   s.from('pt_extension_requests').select('*').order('created_at',{ascending:false}).limit(2000)
+ ]);
+ var bad=r.filter(function(x){return x.error});if(bad.length)throw new Error(bad[0].error.message||'Gagal membaca data online.');
+ return {clients:r[0].data||[],schedules:r[1].data||[],conducts:r[2].data||[],packages:r[3].data||[],extensions:r[4].data||{}};
+}
+function matchClient(remote,local){
+ var n=norm(local.name),p=norm(local.phone),em=norm(local.email);
+ return remote.find(function(r){return (p&&norm(r.phone)===p)||(em&&norm(r.email)===em)||(n&&norm(r.name)===n)})||null;
+}
+async function syncClients(){
+ var s=sb();if(!s)throw new Error('Supabase belum terhubung.');
+ var existing=await s.from('pt_clients').select('*').limit(5000);if(existing.error)throw existing.error;
+ var rem=existing.data||[],locals=getLocalClients(),map={};
+ rem.forEach(function(r){map[String(r.id)]=r});
+ for(var i=0;i<locals.length;i++){
+   var c=locals[i],old=matchClient(rem,c),profile=Object.assign({},c.profile||{}, {age:c.age||c.profile?.age||'',gender:c.gender||c.profile?.gender||'',weight:c.weight||c.profile?.weight||'',height:c.height||c.profile?.height||'',goal:c.goal||c.profile?.goal||'',level:c.level||c.profile?.level||'',wtype:c.wtype||c.profile?.wtype||'',duration:c.duration||c.profile?.duration||'',freq:c.freq||c.profile?.freq||''});
+   if(c.before||c.after)profile.beforeAfter={before:c.before||{},after:c.after||{}};
+   var payload={name:c.name,phone:c.phone||null,email:c.email||null,profile:profile,notes:c.notes||'',pt_user_id:(old&&old.pt_user_id)||((user()&&user().id)||null),pt_email:(old&&old.pt_email)||((user()&&user().email)||'')};
+   var rr=old?await s.from('pt_clients').update(payload).eq('id',old.id).select().single():await s.from('pt_clients').insert(payload).select().single();
+   if(rr.error)throw rr.error;
+   if(rr.data){c.__onlineId=rr.data.id;c.__onlineRecord=rr.data}
+ }
+ return rem;
+}
+async function syncSchedules(remoteClients){
+ var s=sb();if(!s)throw new Error('Supabase belum terhubung.');
+ var sr=await s.from('pt_schedules').select('*').limit(5000);if(sr.error)throw sr.error;var remote=sr.data||[],locals=localEvents();
+ for(var i=0;i<locals.length;i++){
+   var x=locals[i],e=x.event||{},lc=e.client||{},rc=remoteClients.find(function(c){return norm(c.name)===norm(lc.name)||(lc.email&&norm(c.email)===norm(lc.email))||(lc.phone&&norm(c.phone)===norm(lc.phone))});
+   if(!rc)continue;
+   var when=String(x.key).length===16?x.key+':00':x.key;
+   var old=remote.find(function(r){return r.client_id===rc.id&&String(r.scheduled_at).slice(0,16)===when.slice(0,16)});
+   var payload={client_id:rc.id,pt_user_id:(old&&old.pt_user_id)||((user()&&user().id)||rc.pt_user_id||null),scheduled_at:when,schedule_type:'PT Session',notes:eventNotes(e),status:(old&&old.status)||'SCHEDULED'};
+   var rr=old?await s.from('pt_schedules').update(payload).eq('id',old.id).select().single():await s.from('pt_schedules').insert(payload).select().single();
+   if(rr.error)throw rr.error;
+ }
+}
+async function saveOnline(){
+ if(ONLINE_STATUS.busy)return;ONLINE_STATUS.busy=true;setStatus('Menyimpan ke online…');
+ try{await syncClients();var fresh=await sb().from('pt_clients').select('*').limit(5000);if(fresh.error)throw fresh.error;await syncSchedules(fresh.data||[]);setStatus('Semua data PT tersimpan online ✓',true);await loadOnline(true)}catch(e){console.error('V48 save online',e);setStatus('Save online gagal: '+(e.message||e),false)}finally{ONLINE_STATUS.busy=false}
+}
+async function loadOnline(silent){
+ if(ONLINE_STATUS.busy&&!silent)return;ONLINE_STATUS.busy=true;if(!silent)setStatus('Memuat data online…');
+ try{
+   var data=await fetchOnline(),d=dirRead(),cp=calRead()||{version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};
+   cp.calendar=cp.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};cp.calendar.events=cp.calendar.events||{};
+   (data.clients||[]).forEach(function(c){var key=Object.keys(d).find(function(k){return norm(d[k]?.name)===norm(c.name)&&(norm(c.phone)?norm(d[k]?.phone)===norm(c.phone):true)})||('online_'+c.id);var pr=c.profile||{};d[key]=Object.assign({},d[key]||{}, {id:key,name:c.name,phone:c.phone||'',email:c.email||'',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||'',notes:c.notes||'',before:pr.beforeAfter?.before||d[key]?.before||null,after:pr.beforeAfter?.after||d[key]?.after||null,onlineId:c.id,pt_user_id:c.pt_user_id,pt_email:c.pt_email});});
+   (data.schedules||[]).forEach(function(r){var payload=parseEventNotes(r.notes),c=(data.clients||[]).find(function(x){return x.id===r.client_id}),name=c&&c.name||'Client';var when=String(r.scheduled_at).slice(0,16);var ev=payload||{title:r.schedule_type||'PT Session',notes:String(r.notes||'').replace(EVENT_MARK,'').trim(),client:{name:name,goal:c?.profile?.goal||'',level:c?.profile?.level||'',wtype:c?.profile?.wtype||''},exercises:[]};ev.client=Object.assign({},c?.profile||{},ev.client||{},{name:name});cp.calendar.events[when]=ev;});
+   cp.savedAt=new Date().toISOString();calWrite(cp);dirWrite(d);
+   if(!silent)setStatus('Data online berhasil dimuat ✓',true);else ONLINE_STATUS.last=new Date().toLocaleString('id-ID');
+   refreshPTViews();
+ }catch(e){console.error('V48 load online',e);if(!silent)setStatus('Load online gagal: '+(e.message||e),false)}finally{ONLINE_STATUS.busy=false}
+}
+function refreshPTViews(){var p=$('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;try{var b=$('ptv2Calendar');if(b){b.dataset.fjV48Refresh='1';var now=window.__fjV45Month||new Date();/* let existing mirror renderer rebuild */if(typeof window.fjV45OpenEvent==='function'){} } }catch(e){};setTimeout(function(){decoratePT();renderOnlineActivity()},40)}
+function logo(){
+ var b=document.querySelector('.side .brand');if(!b||b.dataset.fjV48Logo)return;
+ b.dataset.fjV48Logo='1';
+ b.innerHTML='<div class="fj-v48-logo"><svg class="fj-v48-logo-mark" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="fjV48Grad" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#35e0d0"/><stop offset="1" stop-color="#11a8c9"/></linearGradient></defs><path fill="url(#fjV48Grad)" d="M11 49 23 10h12l-7 22 18-22h10L31 54H18l7-20-14 15z"/><path fill="#fff" d="M39 39h12l-5 14H34z" opacity=".96"/><circle cx="46" cy="12" r="5" fill="#fff"/><path d="M42 22c4 0 9 3 11 7" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg><div class="fj-v48-logo-copy"><span class="fj-v48-logo-name">FITNESS JOURNEY</span><span class="fj-v48-logo-tag">TRAIN • TRACK • TRANSFORM</span></div></div>';
+}
+function ensureProfileModal(){if($('fjV48ProfileModal'))return;var d=document.createElement('div');d.id='fjV48ProfileModal';d.innerHTML='<div class="fj-v48-profile-box"><div class="ptv2-actions" style="justify-content:space-between"><div><div class="label">CLIENT PROFILE</div><h2 id="fjV48ProfileTitle" style="margin:2px 0"></h2><div class="ptv2-muted" id="fjV48ProfileSub"></div></div><button type="button" class="ptv2-btn alt" id="fjV48ProfileClose">Close</button></div><div id="fjV48ProfileBody"></div></div>';document.body.appendChild(d);d.addEventListener('click',function(e){if(e.target===d)e.stopPropagation()});$('fjV48ProfileClose').onclick=function(){d.classList.remove('open')}}
+function baHtml(side,z){z=z||{};var im=z.image?'<img class="fj-v48-ba-photo" src="'+esc(z.image)+'" alt="'+side+'">':'<div class="fj-v48-ba-empty">No photo saved</div>';var vals=[['Date',z.date],['Weight',z.weight],['Body Fat',z.bodyfat],['Chest',z.chest],['Waist',z.waist],['Hip',z.hip],['Arm',z.arm],['Thigh',z.thigh],['Notes',z.notes]];return '<div class="fj-v48-ba-card"><h4>'+side.toUpperCase()+'</h4>'+im+'<div class="fj-v48-ba-fields">'+vals.map(function(v){return '<div><b>'+esc(v[0])+'</b>'+esc(v[1]||'—')+'</div>'}).join('')+'</div></div>'}
+async function openProfile(name){
+ ensureProfileModal();var d=dirRead(),c=Object.keys(d).map(function(k){return d[k]}).find(function(x){return norm(x.name)===norm(name)})||{name:name};var online=null;
+ try{var s=sb();if(s){var r=await s.from('pt_clients').select('*').eq('name',c.name).limit(1);if(!r.error&&r.data&&r.data[0])online=r.data[0]}}catch(e){}
+ var pr=(online&&online.profile)||{};var ba=(c.before||c.after)?{before:c.before||{},after:c.after||{}}:(pr.beforeAfter||{});var events=localEvents().filter(function(x){return norm(x.event.client?.name)===norm(name)});
+ $('fjV48ProfileTitle').textContent=c.name||name;$('fjV48ProfileSub').textContent='PT: '+(online?.pt_email||c.pt_email||'—')+' • '+(online?'ONLINE':'LOCAL');
+ $('fjV48ProfileBody').innerHTML='<div class="fj-v48-profile-grid">'+[['Age',pr.age||c.age],['Gender',pr.gender||c.gender],['Weight',pr.weight||c.weight],['Height',pr.height||c.height],['Goal',pr.goal||c.goal],['Fitness Level',pr.level||c.level],['Workout Type',pr.wtype||c.wtype],['Duration',pr.duration||c.duration],['Frequency',pr.freq||c.freq],['Phone',online?.phone||c.phone],['Email',online?.email||c.email],['Notes',online?.notes||c.notes]].map(function(v){return '<div class="fj-v48-profile-item"><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'}).join('')+'</div><div class="fj-v48-section"><h3>Before / After</h3><div class="fj-v48-ba-grid">'+baHtml('before',ba.before)+baHtml('after',ba.after)+'</div></div><div class="fj-v48-section"><h3>Training Sessions</h3><div class="tablewrap"><table class="ptv2-table"><tr><th>Date</th><th>Training</th><th>Exercises</th><th>Notes</th></tr>'+events.map(function(x){var e=x.event||{};return '<tr><td>'+esc(x.key.replace('T',' '))+'</td><td>'+esc(e.title||'Training')+'</td><td>'+esc((e.exercises||[]).map(function(r){return r.exercise}).filter(Boolean).join(', ')||'—')+'</td><td>'+esc(e.notes||'—')+'</td></tr>'}).join('')+'</table></div></div>';
+ $('fjV48ProfileModal').classList.add('open');
+}
+function addBeforeAfterCards(){
+ var host=$('ptv2ClientCards');if(!host)return;
+ host.querySelectorAll('.ptv2-client').forEach(function(card){if(card.dataset.fjV48Decorated)return;card.dataset.fjV48Decorated='1';var name=card.getAttribute('data-mirror-client')||card.querySelector('h3')?.textContent||'';var d=dirRead(),c=Object.keys(d).map(function(k){return d[k]}).find(function(x){return norm(x.name)===norm(name)}),before=c&&c.before,after=c&&c.after;if(!(before&&before.image)&&!(after&&after.image))return;var wrap=document.createElement('div');wrap.className='fj-v48-card-ba';wrap.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px';[['BEFORE',before],['AFTER',after]].forEach(function(pair){var x=document.createElement('div');x.style.cssText='border:1px solid #e1ecef;border-radius:7px;padding:4px;text-align:center;background:#fbfefe';if(pair[1]&&pair[1].image){var im=document.createElement('img');im.src=pair[1].image;im.alt=pair[0];im.style.cssText='width:100%;height:70px;object-fit:cover;border-radius:5px';x.appendChild(im)}else{x.innerHTML='<div style="height:70px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#8aa5a9">NO PHOTO</div>'}var sp=document.createElement('span');sp.textContent=pair[0];sp.style.cssText='display:block;margin-top:3px;font-size:8px;font-weight:900;color:#6d879e';x.appendChild(sp);wrap.appendChild(x)});card.appendChild(wrap)});
+}
+function bindClientProfileClick(){var host=$('ptv2ClientCards');if(!host||host.dataset.fjV48Click)return;host.dataset.fjV48Click='1';host.addEventListener('click',function(e){var card=e.target.closest&&e.target.closest('.ptv2-client');if(!card)return;var name=card.getAttribute('data-mirror-client')||card.querySelector('h3')?.textContent||'';if(name){e.preventDefault();e.stopPropagation();openProfile(name)}})}
+function ensureToolbar(){
+ var p=$('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;var shell=p.querySelector('.ptv2-shell');if(!shell)return;
+ var h=p.querySelector('.fj-v48-online-toolbar');if(!h){h=document.createElement('div');h.className='fj-v48-online-toolbar ptv2-actions';h.style.cssText='margin:8px 0 10px;padding:8px;border:1px solid #d9e8ef;border-radius:10px;background:#fff';h.innerHTML='<button type="button" class="ptv2-btn" id="fjV48SaveOnline">💾 Save Online</button><button type="button" class="ptv2-btn alt" id="fjV48LoadOnline">📂 Load Online</button><button type="button" class="ptv2-btn alt" id="fjV48PrintRange">▣ Print / Save PDF Range</button><button type="button" class="ptv2-btn alt" id="fjV48RefreshOnline">↻ Refresh</button><span id="fjV48SyncStatus" style="font-size:10px;color:#5d788b;align-self:center">Online sync ready</span>';var head=p.querySelector('.ptv2-head');if(head&&head.parentNode)head.parentNode.insertBefore(h,head.nextSibling);else shell.insertBefore(h,shell.firstChild);$('fjV48SaveOnline').onclick=saveOnline;$('fjV48LoadOnline').onclick=function(){loadOnline(false)};$('fjV48RefreshOnline').onclick=function(){loadOnline(false)};$('fjV48PrintRange').onclick=openRangeModal}
+}
+function openRangeModal(){
+ var old=$('fjV48RangeModal');if(old)old.remove();var m=document.createElement('div');m.id='fjV48RangeModal';m.innerHTML='<div class="fj-v48-range-box"><div class="ptv2-actions" style="justify-content:space-between"><div><div class="label">PT MANAGEMENT</div><h3 style="margin:2px 0">Print / Save PDF Range</h3></div><button type="button" class="ptv2-btn alt" id="fjV48RangeClose">Close</button></div><div class="fj-v48-range-grid"><div><label>Client</label><select id="fjV48RangeClient"><option value="">All Clients / All PT</option></select></div><div><label>From</label><input id="fjV48RangeFrom" type="date"></div><div><label>To</label><input id="fjV48RangeTo" type="date"></div></div><div class="fj-v48-range-actions ptv2-actions" style="justify-content:flex-end;margin-top:12px"><button type="button" class="ptv2-btn alt" id="fjV48RangeCancel">Cancel</button><button type="button" class="ptv2-btn" id="fjV48RangePrintNow">▣ Print / Save PDF</button></div></div>';document.body.appendChild(m);
+ var sel=$('fjV48RangeClient');var cs=getLocalClients();cs.sort(function(a,b){return String(a.name).localeCompare(String(b.name))}).forEach(function(c){var o=document.createElement('option');o.value=c.name;o.textContent=c.name;sel.appendChild(o)});var now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1);$('fjV48RangeFrom').value=first.toISOString().slice(0,10);$('fjV48RangeTo').value=now.toISOString().slice(0,10);m.classList.add('open');$('fjV48RangeClose').onclick=function(){m.remove()};$('fjV48RangeCancel').onclick=function(){m.remove()};$('fjV48RangePrintNow').onclick=function(){printRange(sel.value,$('fjV48RangeFrom').value,$('fjV48RangeTo').value);m.remove()};
+}
+function printRange(name,from,to){
+ if(!from||!to||from>to){alert('Tanggal From / To belum benar.');return}
+ var evs=localEvents().filter(function(x){var d=x.key.slice(0,10),owner=x.event.client?.name||'';return d>=from&&d<=to&&(!name||norm(owner)===norm(name))});var clients=getLocalClients();var ci=clients.find(function(c){return norm(c.name)===norm(name)})||{name:name||'All Clients'};
+ var root=document.createElement('div');root.id='fjV48PrintRoot';var h='<section><h1>FITNESS JOURNEY — PT MANAGEMENT</h1><h2>'+esc(ci.name)+'</h2><p>Periode: '+esc(from)+' s/d '+esc(to)+'</p><hr>';evs.forEach(function(x,i){var e=x.event||{},ba=e.beforeAfter||{};h+='<h3>'+(i+1)+'. '+esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training')+'</h3><p><b>Client:</b> '+esc(e.client?.name||'—')+' &nbsp; <b>Goal:</b> '+esc(e.client?.goal||'—')+' &nbsp; <b>Type:</b> '+esc(e.client?.wtype||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Load</th><th>Rest</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'');if(ba.before||ba.after){h+='<div class="ba"><div><b>BEFORE</b></div><div><b>AFTER</b></div></div>'}h+='<hr>'});if(!evs.length)h+='<p>No sessions found in selected range.</p>';h+='</section>';root.innerHTML=h;document.body.appendChild(root);var css=document.createElement('style');css.id='fjV48PrintCss';css.textContent='@media screen{#fjV48PrintRoot{display:none}}@media print{body>*:not(#fjV48PrintRoot){display:none!important}#fjV48PrintRoot{display:block!important;padding:18mm;font-family:Arial,sans-serif;color:#111}#fjV48PrintRoot h1{font-size:22px}#fjV48PrintRoot table{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:9px}#fjV48PrintRoot th,#fjV48PrintRoot td{border:1px solid #aaa;padding:5px;text-align:left;vertical-align:top}#fjV48PrintRoot .ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}#fjV48PrintRoot hr{border:0;border-top:1px solid #ddd;margin:12px 0}';document.head.appendChild(css);var old=document.title;document.title='Fitness Journey — PT Range '+from+' to '+to;window.print();setTimeout(function(){root.remove();css.remove();document.title=old},800)
+}
+async function renderOnlineActivity(){
+ var m=$('ptv2Monitor');if(!m||!m.closest('#fjPtOpsV2')||!m.parentNode)return;var s=sb();if(!s)return;
+ try{var r=await Promise.all([s.from('pt_schedules').select('*').order('scheduled_at',{ascending:false}).limit(80),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(80),s.from('pt_clients').select('id,name,pt_email')]);if(r.some(function(x){return x.error}))return;var clients=r[2].data||[],rows=[];(r[0].data||[]).forEach(function(x){var c=clients.find(function(z){return z.id===x.client_id});rows.push({date:x.scheduled_at,type:'SCHEDULE',pt:x.pt_user_id,client:c?.name||'—',detail:x.schedule_type||'PT Session',status:x.status})});(r[1].data||[]).forEach(function(x){var c=clients.find(function(z){return z.id===x.client_id});rows.push({date:x.conducted_at,type:'CONDUCT',pt:x.pt_user_id,client:c?.name||'—',detail:x.notes||'Session conducted',status:'DONE'})});rows.sort(function(a,b){return String(b.date).localeCompare(String(a.date))});var box=document.getElementById('fjV48ActivityFeed');if(!box){box=document.createElement('div');box.id='fjV48ActivityFeed';box.className='ptv2-card';m.appendChild(box)}box.innerHTML='<h3 style="margin-top:0">All PT Activity — Online</h3><div class="ptv2-muted">Activity is read directly from the shared Supabase data.</div><div class="tablewrap" style="margin-top:8px"><table class="ptv2-table"><tr><th>Date</th><th>PT</th><th>Client</th><th>Activity</th><th>Status</th></tr>'+rows.slice(0,80).map(function(x){return '<tr><td>'+esc(x.date||'—')+'</td><td>'+esc(x.pt||'—')+'</td><td>'+esc(x.client)+'</td><td>'+esc(x.type+' • '+x.detail)+'</td><td>'+esc(x.status||'—')+'</td></tr>'}).join('')+'</table></div>'}
+ catch(e){console.warn('V48 activity',e)}
+}
+function bindAutoOnlineSave(){
+ var ss=$('v45saveSchedule');if(ss&&!ss.dataset.fjV48AutoOnline){ss.dataset.fjV48AutoOnline='1';var oldS=ss.onclick;ss.onclick=function(e){if(oldS)oldS.call(this,e);setTimeout(function(){saveOnline()},450)}}
+ var sc=$('v45saveClient');if(sc&&!sc.dataset.fjV48AutoOnline){sc.dataset.fjV48AutoOnline='1';var oldC=sc.onclick;sc.onclick=function(e){var r=oldC?oldC.call(this,e):null;setTimeout(function(){saveOnline()},650);return r}}
+}
+function decoratePT(){var p=$('fjPtOpsV2');bindAutoOnlineSave();if(!p||!p.classList.contains('active'))return;ensureToolbar();bindClientProfileClick();addBeforeAfterCards();}
+function boot(){logo();decoratePT()}
+var mo=new MutationObserver(function(){logo();decoratePT();});
+try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+setInterval(function(){logo();decoratePT();var p=$('fjPtOpsV2');if(p&&p.classList.contains('active')){addBeforeAfterCards();renderOnlineActivity()}},1600);
+document.addEventListener('click',function(e){var n=e.target.closest&&e.target.closest('#fjPtOpsV2 .ptv2-client');if(n){setTimeout(function(){decoratePT()},0)}},true);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1500)},{once:true});else setTimeout(boot,1500);
+window.addEventListener('load',function(){setTimeout(boot,1700)});
+window.fjV48SaveOnline=saveOnline;window.fjV48LoadOnline=loadOnline;
+})();
+</script>

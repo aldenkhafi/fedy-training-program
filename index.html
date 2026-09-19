@@ -4047,6 +4047,8 @@ var fjV31Style=document.createElement('style');fjV31Style.id='fj-v31-print-choos
 #trainingResult img{max-width:100%!important;height:auto!important}.fj-table-scroll{max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
 .program-day-table{min-width:760px}
 #adminAccess{display:none}.panel.active#adminAccess{display:block!important}
+#fjPtOpsV2.active,#fjPtOpsV2.panel.active,#fjPtOpsV2.panel:not(#training):not(#adminAccess).active{display:block!important;visibility:visible!important;opacity:1!important}
+#fjExerciseLibrary.active,#fjExerciseLibrary.panel.active,#fjExerciseLibrary.panel:not(#training):not(#adminAccess).active{display:block!important;visibility:visible!important;opacity:1!important}
 @media(max-width:900px){.app{grid-template-columns:200px minmax(0,1fr)!important}.side{width:200px!important;min-width:200px!important;max-width:200px!important}.main{padding:22px 18px!important}}
 @media(max-width:680px){.app{display:block!important}.side{position:relative!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:0!important}.main{width:100%!important;padding:16px 12px!important}.top{display:block!important}.top h1{font-size:26px!important}.top p{font-size:13px!important}.pill{margin-top:8px!important}.nav{display:flex!important;flex-wrap:wrap!important;gap:8px!important}.navbtn{flex:1 1 140px!important}.side-footer{margin-top:12px!important}.panel{padding:0!important}.panel .grid,.panel .grid2,.panel .grid3,.panel .grid4{grid-template-columns:1fr!important}.actions{display:grid!important;grid-template-columns:1fr!important}.actions .btn{width:100%!important}.program-day-table{min-width:700px}}
 /* Print is a dedicated document: only client data + generated result. */
@@ -6420,7 +6422,7 @@ window.fjPtV2Open=function(id){var e=V.schedules.find(function(x){return x.id===
 window.fjPtV2Conduct=function(sid){var e=V.schedules.find(function(x){return x.id===sid}),ps=activeP(e.client_id);if(!ps.length){alert('Tidak ada package ACTIVE dengan session tersisa.');return}modal('<h2>Conduct Session</h2><div class="ptv2-form"><div><label>Package</label><select id="v2cp">'+ps.map(function(p){return '<option value="'+p.id+'">'+E(p.package_name)+' — '+(p.total_sessions-p.used_sessions)+' remaining</option>'}).join('')+'</select></div><div class="span3"><label>Notes</label><textarea id="v2cn"></textarea></div></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" onclick="window.fjPtV2SaveConduct(\''+sid+'\')">Confirm Conduct</button></div>')};
 window.fjPtV2SaveConduct=async function(sid){var s=sbc(),e=V.schedules.find(function(x){return x.id===sid});if(!s||!e)return;var r=await s.from('pt_conducts').insert({client_id:e.client_id,package_id:q('v2cp').value,pt_user_id:uid(),conducted_at:new Date().toISOString(),notes:q('v2cn').value.trim()});if(r.error){alert(r.error.message);return}await s.from('pt_schedules').update({status:'DONE'}).eq('id',sid);closeModal();await load();show('calendar')};window.fjPtV2Done=async function(id){var s=sbc();if(!s)return;await s.from('pt_schedules').update({status:'DONE'}).eq('id',id);closeModal();await load();show('calendar')};
 window.fjPtV2PDF=function(id){var c=client(id);if(!c)return;var ps=V.packages.filter(function(p){return p.client_id===id}),cs=V.conducts.filter(function(x){return x.client_id===id}),root=document.createElement('div');root.id='fjPtV2Print';root.innerHTML='<h1>'+E(c.name)+'</h1><p>PT: '+E(c.pt_email||'—')+'</p><h2>Client Profile</h2><p>Age: '+E(c.profile?.age||'—')+' | Gender: '+E(c.profile?.gender||'—')+' | Weight: '+E(c.profile?.weight||'—')+' | Height: '+E(c.profile?.height||'—')+' | Goal: '+E(c.profile?.goal||'—')+'</p><h2>Packages</h2><table>'+ps.map(function(p){return '<tr><td>'+E(p.package_name)+'</td><td>'+p.total_sessions+' total</td><td>'+p.used_sessions+' used</td><td>'+(p.total_sessions-p.used_sessions)+' remaining</td><td>'+E(p.purchase_date)+'</td><td>'+E(p.expiry_date)+'</td></tr>'}).join('')+'</table><h2>Conduct History</h2><table>'+cs.map(function(x){return '<tr><td>'+E(x.conducted_at)+'</td><td>'+E(x.notes||'')+'</td></tr>'}).join('')+'</table>';document.body.appendChild(root);var css=document.createElement('style');css.id='fjPtV2PrintCss';css.textContent='@media print{body>*:not(#fjPtV2Print){display:none!important}#fjPtV2Print{display:block!important;padding:25px;font-family:Arial}#fjPtV2Print table{width:100%;border-collapse:collapse}#fjPtV2Print td{border-bottom:1px solid #ddd;padding:7px}}@media screen{#fjPtV2Print{display:none}}';document.head.appendChild(css);window.print();setTimeout(function(){root.remove();css.remove()},500)};
-function protectRefresh(){document.documentElement.style.overscrollBehaviorY='none';document.body.style.overscrollBehaviorY='none';var sy=0;document.addEventListener('touchstart',function(e){sy=e.touches&&e.touches[0]?e.touches[0].clientY:0},{passive:true});document.addEventListener('touchmove',function(e){var y=e.touches&&e.touches[0]?e.touches[0].clientY:sy;if(window.scrollY<=0&&y>sy+4)e.preventDefault()},{passive:false});document.addEventListener('keydown',function(e){if(e.key==='F5'||((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='r')){e.preventDefault();e.stopPropagation();alert('Refresh dinonaktifkan agar data tidak hilang.');return false}} ,true);window.addEventListener('beforeunload',function(){try{var p=JSON.parse(localStorage.getItem('fj_client_calendar_v1')||'null');if(p){p.autoBackupAt=new Date().toISOString();localStorage.setItem('fj_client_calendar_v1_autobackup',JSON.stringify(p))}}catch(_){}});}
+function protectRefresh(){if(window.__fjRefreshProtected)return;window.__fjRefreshProtected=true;document.documentElement.style.overscrollBehaviorY='none';document.body.style.overscrollBehaviorY='none';var sy=0;document.addEventListener('touchstart',function(e){sy=e.touches&&e.touches[0]?e.touches[0].clientY:0},{passive:true});document.addEventListener('touchmove',function(e){var y=e.touches&&e.touches[0]?e.touches[0].clientY:sy;if(window.scrollY<=0&&y>sy+4)e.preventDefault()},{passive:false});document.addEventListener('keydown',function(e){if(e.key==='F5'||((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='r')){e.preventDefault();e.stopPropagation();alert('Refresh dinonaktifkan agar data tidak hilang.');return false}} ,true);window.addEventListener('beforeunload',function(){try{var p=JSON.parse(localStorage.getItem('fj_client_calendar_v1')||'null');if(p){p.autoBackupAt=new Date().toISOString();localStorage.setItem('fj_client_calendar_v1_autobackup',JSON.stringify(p))}}catch(_){}});}
 function boot(){protectRefresh();nav();build();if(can())load();}
 var __ptmBootTries=0;function retryBoot(){boot();__ptmBootTries++;if(__ptmBootTries<40 && !q('fjPtOpsV2Nav'))setTimeout(retryBoot,500)};setTimeout(retryBoot,300);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);window.addEventListener('load',function(){setTimeout(boot,1100)});window.addEventListener('focus',function(){if(can())load()});
@@ -7720,5 +7722,499 @@ window.fjClientDirectory={list:sortedClients,get:getClient,active:function(){ret
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
   window.addEventListener('load',function(){setTimeout(bind,100);setTimeout(bind,800);setTimeout(bind,1800);});
   setInterval(gate,1500);
+})();
+</script>
+
+<!-- EXERCISE LIBRARY: comprehensive exercise database + anatomy/knowledge + automatic program generator. Standalone module, does not touch other panels. -->
+<style id="fj-exlib-css">
+#fjExerciseLibrary{padding-bottom:28px}
+#fjExerciseLibrary .exl-shell{background:#f7fbf9;border:1px solid #d9efe3;border-radius:18px;padding:16px}
+.exl-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.exl-head h2{margin:2px 0;color:#144b3d}
+.exl-muted{color:#6d8f80;font-size:12px}
+.exl-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.exl-tab{border:1px solid #cfe6da;background:#fff;color:#2f6a54;border-radius:10px;padding:9px 13px;font-weight:900;cursor:pointer}
+.exl-tab.active{background:#e9fbf1;color:#0a8a54;border-color:#8cdeb2}
+.exl-view{display:none}
+.exl-view.active{display:block}
+.exl-card{background:#fff;border:1px solid #dcece3;border-radius:14px;padding:14px;box-shadow:0 7px 18px rgba(20,75,60,.06);margin-bottom:12px}
+.exl-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.exl-filters .field label{font-size:10px;font-weight:900;color:#3f7a63;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.exl-filters select,.exl-filters input{width:100%;box-sizing:border-box;border:1px solid #cfe6da;border-radius:9px;padding:9px;background:#fff}
+.exl-search{grid-column:1/-1}
+.exl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-top:12px}
+.exl-ex{border:1px solid #d7e9e0;border-radius:13px;background:#fff;padding:12px;cursor:pointer;transition:transform .12s}
+.exl-ex:hover{border-color:#7ed3a9;box-shadow:0 8px 18px rgba(15,60,45,.09);transform:translateY(-1px)}
+.exl-ex .exl-emoji{font-size:26px}
+.exl-ex h4{margin:6px 0 3px;color:#144b3d;font-size:14.5px}
+.exl-ex .exl-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.exl-badge{font-size:9.5px;font-weight:900;padding:3px 7px;border-radius:999px;background:#eefaf3;color:#118a55;border:1px solid #bdeccf}
+.exl-badge.eq{background:#eef5fb;color:#1a6fa0;border-color:#bfe0f2}
+.exl-badge.lv1{background:#eefaf3;color:#118a55;border-color:#bdeccf}
+.exl-badge.lv2{background:#fff8e9;color:#9a6c07;border-color:#f3dda0}
+.exl-badge.lv3{background:#fdecea;color:#b3382b;border-color:#f4c3bd}
+.exl-empty{padding:30px;text-align:center;color:#7c9a8c}
+.exl-modal{position:fixed;inset:0;background:rgba(10,40,28,.68);display:none;align-items:center;justify-content:center;padding:14px;z-index:2147483000}
+.exl-modal.open{display:flex}
+.exl-modalbox{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:20px}
+.exl-modalbox h2{margin:0 0 3px;color:#144b3d}
+.exl-modalbox .exl-badges{margin-bottom:10px}
+.exl-modalbox h3{color:#144b3d;font-size:14px;margin:16px 0 6px}
+.exl-modalbox ul{margin:0;padding-left:18px}
+.exl-modalbox li{margin:4px 0;font-size:13px;line-height:1.5}
+.exl-anatomy{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.exl-anatomy .box{border:1px solid #e0eee7;border-radius:10px;padding:10px;background:#f8fdfa}
+.exl-anatomy .box b{display:block;font-size:11px;text-transform:uppercase;color:#3f7a63;margin-bottom:4px}
+.exl-setsreps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:6px}
+.exl-setsreps div{border:1px solid #e0eee7;border-radius:9px;padding:8px;background:#f8fdfa;font-size:11.5px}
+.exl-setsreps b{display:block;font-size:10px;color:#3f7a63;text-transform:uppercase;margin-bottom:3px}
+.exl-modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.exl-btn{border:0;border-radius:9px;padding:9px 13px;background:#0f9e63;color:#fff;font-weight:900;cursor:pointer}
+.exl-btn.alt{background:#fff;color:#2f6a54;border:1px solid #cfe6da}
+.exl-btn.danger{background:#c0392b}
+.exl-gen-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.exl-gen-form .span3{grid-column:1/-1}
+.exl-gen-form label{display:block;font-size:11px;font-weight:900;color:#3f7a63;margin-bottom:4px}
+.exl-gen-form select,.exl-gen-form input{width:100%;box-sizing:border-box;border:1px solid #cfe6da;border-radius:9px;padding:9px;background:#fff}
+.exl-chipset{display:flex;flex-wrap:wrap;gap:6px}
+.exl-chip{border:1px solid #cfe6da;border-radius:999px;padding:6px 11px;font-size:11.5px;font-weight:800;color:#3f7a63;cursor:pointer;background:#fff;user-select:none}
+.exl-chip.on{background:#0f9e63;color:#fff;border-color:#0f9e63}
+.exl-day{border:1px solid #dcece3;border-radius:13px;padding:12px;margin-bottom:12px;background:#fff}
+.exl-day h3{margin:0 0 3px;color:#144b3d}
+.exl-day .exl-muted{margin-bottom:8px}
+.exl-row{display:grid;grid-template-columns:1.6fr .8fr 1fr 32px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #eef5f1}
+.exl-row:last-child{border-bottom:0}
+.exl-row .exl-rowname{font-weight:800;color:#144b3d;font-size:13px}
+.exl-row .exl-rowcat{font-size:10.5px;color:#6d8f80}
+.exl-row .exl-swap{border:0;background:#eefaf3;color:#0f9e63;border-radius:7px;width:30px;height:30px;cursor:pointer;font-weight:900}
+.exl-selected-bar{position:sticky;bottom:0;background:#fff;border-top:1px solid #dcece3;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-radius:0 0 14px 14px;flex-wrap:wrap}
+@media(max-width:1100px){.exl-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.exl-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.exl-gen-form{grid-template-columns:repeat(2,minmax(0,1fr))}.exl-anatomy{grid-template-columns:1fr}}
+@media(max-width:700px){.exl-grid{grid-template-columns:1fr}.exl-filters{grid-template-columns:1fr}.exl-gen-form{grid-template-columns:1fr}.exl-setsreps{grid-template-columns:1fr}.exl-row{grid-template-columns:1fr;gap:2px}.exl-row .exl-swap{justify-self:end}}
+</style>
+
+<script id="fj-exlib-data">
+window.__fjExerciseData = [
+{id:'ex01',name:'Barbell Bench Press',cat:'Dada',equip:'Barbell',level:'Menengah',move:'push',emoji:'🏋️',primary:['Dada (Pectoralis Major)'],secondary:['Trisep','Bahu depan (Deltoid anterior)'],desc:'Gerakan dasar untuk membangun kekuatan dan massa otot dada menggunakan barbel di bangku datar.',steps:['Berbaring di bench, kaki menapak lantai, grip sedikit lebih lebar dari bahu.','Turunkan barbel terkontrol ke tengah dada.','Dorong barbel ke atas hingga lengan lurus, jaga siku tidak mengunci penuh.','Jaga tulang belikat tetap tertarik ke belakang (retracted) sepanjang gerakan.'],tips:['Jaga pergelangan tangan lurus, jangan menekuk ke belakang.','Gunakan spotter untuk beban berat.'],mistakes:['Memantulkan barbel di dada.','Mengangkat pinggul dari bench.'],sets:{kekuatan:'4-5 x 3-6, istirahat 2-3 menit',hipertrofi:'3-4 x 8-12, istirahat 60-90 detik',ketahanan:'2-3 x 15-20, istirahat 30-45 detik'}},
+{id:'ex02',name:'Incline Dumbbell Press',cat:'Dada',equip:'Dumbbell',level:'Menengah',move:'push',emoji:'🏋️',primary:['Dada atas (Pectoralis Major bagian klavikula)'],secondary:['Bahu depan','Trisep'],desc:'Variasi bench press pada bangku miring untuk menekankan bagian atas otot dada.',steps:['Atur bangku pada sudut 30-45 derajat.','Pegang dumbbell di sisi dada atas, telapak menghadap depan.','Dorong dumbbell ke atas hingga hampir bertemu di atas dada.','Turunkan kembali secara terkontrol.'],tips:['Jangan mengatur sudut bangku terlalu curam agar beban tetap di dada, bukan bahu.','Kontrol tempo, hindari momentum.'],mistakes:['Sudut bangku terlalu tinggi sehingga jadi gerakan bahu.','Rentang gerak terlalu pendek.'],sets:{kekuatan:'4 x 5-6, istirahat 2 menit',hipertrofi:'3-4 x 8-12, istirahat 60-90 detik',ketahanan:'2-3 x 15-20, istirahat 30-45 detik'}},
+{id:'ex03',name:'Push Up',cat:'Dada',equip:'Tanpa Alat',level:'Pemula',move:'push',emoji:'🤸',primary:['Dada'],secondary:['Trisep','Core','Bahu'],desc:'Latihan beban tubuh klasik untuk dada, trisep, dan stabilitas core.',steps:['Posisi plank, tangan sedikit lebih lebar dari bahu.','Turunkan badan hingga dada mendekati lantai, siku sekitar 45 derajat dari badan.','Dorong kembali ke posisi awal, jaga badan tetap lurus.'],tips:['Kencangkan perut dan glutes agar pinggul tidak turun.','Atur jarak tangan untuk menyesuaikan intensitas.'],mistakes:['Pinggul turun atau naik terlalu tinggi.','Rentang gerak setengah (tidak turun penuh).'],sets:{kekuatan:'4 x AMRAP (maksimal repetisi), istirahat 2 menit',hipertrofi:'3-4 x 12-15, istirahat 60 detik',ketahanan:'3 x 20-25, istirahat 30 detik'}},
+{id:'ex04',name:'Cable Fly',cat:'Dada',equip:'Kabel',level:'Menengah',move:'push',emoji:'🔗',primary:['Dada (bagian tengah)'],secondary:['Bahu depan'],desc:'Gerakan isolasi untuk membentuk dan meregangkan otot dada secara maksimal.',steps:['Berdiri di tengah cable crossover, pegang handle di kedua sisi.','Condongkan badan sedikit ke depan, siku sedikit ditekuk.','Tarik kedua tangan ke depan dada dalam gerakan busur.','Kembali perlahan hingga terasa peregangan di dada.'],tips:['Fokus pada kontraksi otot dada, bukan mendorong dengan bahu.','Jaga siku tetap sedikit ditekuk sepanjang gerakan.'],mistakes:['Menekuk siku terlalu banyak sehingga menjadi gerakan press.','Menggunakan momentum tubuh.'],sets:{kekuatan:'3 x 6-8, istirahat 90 detik',hipertrofi:'3-4 x 10-15, istirahat 60 detik',ketahanan:'3 x 15-20, istirahat 30-45 detik'}},
+{id:'ex05',name:'Dips (Chest Focus)',cat:'Dada',equip:'Tanpa Alat',level:'Lanjutan',move:'push',emoji:'🤸',primary:['Dada bawah','Trisep'],secondary:['Bahu depan'],desc:'Dips dengan badan condong ke depan menekankan bagian bawah otot dada.',steps:['Pegang parallel bar, angkat badan hingga lengan lurus.','Condongkan badan ke depan, siku sedikit keluar.','Turunkan badan hingga bahu sedikit di bawah siku.','Dorong kembali ke atas.'],tips:['Condongkan badan ke depan untuk lebih menekan dada.','Tambahkan beban dengan dip belt jika sudah kuat.'],mistakes:['Turun terlalu dalam sehingga membebani bahu berlebihan.','Badan tegak lurus membuat fokus bergeser ke trisep saja.'],sets:{kekuatan:'4 x 5-8, istirahat 2 menit',hipertrofi:'3-4 x 8-12, istirahat 90 detik',ketahanan:'3 x 12-15, istirahat 45 detik'}},
+
+{id:'ex06',name:'Deadlift',cat:'Punggung',equip:'Barbell',level:'Lanjutan',move:'pull',emoji:'🏋️',primary:['Punggung bawah (Erector Spinae)','Hamstring','Glutes'],secondary:['Trapezius','Forearm','Core'],desc:'Gerakan compound paling menyeluruh, melatih hampir seluruh rantai posterior tubuh.',steps:['Berdiri dengan kaki selebar pinggul, barbel di atas pertengahan kaki.','Tekuk pinggul dan lutut, pegang barbel selebar bahu.','Angkat barbel dengan mendorong lantai melalui kaki, punggung tetap netral.','Kunci pinggul di puncak, lalu turunkan kembali terkontrol.'],tips:['Jaga barbel selalu dekat dengan tulang kering/paha sepanjang gerakan.','Ambil napas dan tahan (brace) sebelum mengangkat.'],mistakes:['Punggung membulat saat mengangkat.','Barbel menjauh dari tubuh.'],sets:{kekuatan:'4-5 x 3-5, istirahat 3 menit',hipertrofi:'3-4 x 6-10, istirahat 2 menit',ketahanan:'2-3 x 12-15, istirahat 90 detik'}},
+{id:'ex07',name:'Pull Up',cat:'Punggung',equip:'Tanpa Alat',level:'Lanjutan',move:'pull',emoji:'🤸',primary:['Latissimus Dorsi (punggung lebar)'],secondary:['Bisep','Core'],desc:'Latihan tarikan beban tubuh untuk membangun lebar punggung.',steps:['Gantung di pull up bar, grip sedikit lebih lebar dari bahu.','Tarik badan ke atas hingga dagu melewati bar.','Turunkan terkontrol hingga lengan lurus penuh.'],tips:['Fokus menarik siku ke bawah dan belakang, bukan hanya tangan.','Gunakan resistance band untuk bantuan jika belum kuat.'],mistakes:['Menggunakan ayunan/momentum berlebihan (kipping tidak terkontrol).','Rentang gerak tidak penuh.'],sets:{kekuatan:'4 x 3-6, istirahat 2-3 menit',hipertrofi:'3-4 x 6-10, istirahat 90 detik',ketahanan:'3 x AMRAP, istirahat 60 detik'}},
+{id:'ex08',name:'Bent Over Barbell Row',cat:'Punggung',equip:'Barbell',level:'Menengah',move:'pull',emoji:'🏋️',primary:['Punggung tengah','Latissimus Dorsi'],secondary:['Bisep','Bahu belakang'],desc:'Gerakan tarikan compound untuk ketebalan otot punggung.',steps:['Pegang barbel, tekuk pinggul hingga badan sekitar 45 derajat.','Jaga punggung netral, tarik barbel ke arah perut bawah.','Remas tulang belikat di puncak gerakan.','Turunkan terkontrol.'],tips:['Jaga leher netral, pandangan ke lantai sedikit di depan.','Hindari menggunakan hentakan pinggul untuk mengangkat beban.'],mistakes:['Punggung membulat.','Berdiri terlalu tegak sehingga menjadi gerakan upright row.'],sets:{kekuatan:'4 x 5-6, istirahat 2 menit',hipertrofi:'3-4 x 8-12, istirahat 90 detik',ketahanan:'3 x 15, istirahat 45 detik'}},
+{id:'ex09',name:'Lat Pulldown',cat:'Punggung',equip:'Mesin',level:'Pemula',move:'pull',emoji:'🖥️',primary:['Latissimus Dorsi'],secondary:['Bisep'],desc:'Alternatif mesin dari pull up, cocok untuk pemula membangun kekuatan tarikan.',steps:['Duduk, pegang bar selebar lebih dari bahu.','Tarik bar ke dada atas sambil membusungkan dada.','Kembali terkontrol hingga lengan hampir lurus.'],tips:['Hindari menarik dengan membungkuk ke belakang berlebihan.','Fokus pada gerakan siku turun ke bawah.'],mistakes:['Menggunakan badan untuk mengayun beban.','Rentang gerak terlalu pendek.'],sets:{kekuatan:'4 x 6-8, istirahat 90 detik',hipertrofi:'3-4 x 10-12, istirahat 60 detik',ketahanan:'3 x 15-20, istirahat 30-45 detik'}},
+{id:'ex10',name:'Seated Cable Row',cat:'Punggung',equip:'Kabel',level:'Pemula',move:'pull',emoji:'🔗',primary:['Punggung tengah'],secondary:['Bisep','Trapezius'],desc:'Gerakan tarikan horizontal untuk ketebalan punggung tengah.',steps:['Duduk dengan lutut sedikit ditekuk, pegang handle.','Tarik handle ke perut sambil menarik bahu ke belakang.','Kembali terkontrol dengan sedikit condong ke depan.'],tips:['Jaga punggung tetap tegak, jangan membungkuk berlebihan saat menarik.','Fokus pada kontraksi tulang belikat.'],mistakes:['Menggunakan momentum badan maju-mundur berlebihan.','Bahu naik ke telinga saat menarik.'],sets:{kekuatan:'4 x 6-8, istirahat 90 detik',hipertrofi:'3-4 x 10-12, istirahat 60 detik',ketahanan:'3 x 15-20, istirahat 30-45 detik'}},
+{id:'ex11',name:'Single Arm Dumbbell Row',cat:'Punggung',equip:'Dumbbell',level:'Pemula',move:'pull',emoji:'🏋️',primary:['Latissimus Dorsi','Punggung tengah'],secondary:['Bisep'],desc:'Latihan unilateral untuk mengoreksi ketidakseimbangan kekuatan kiri-kanan.',steps:['Letakkan satu lutut dan tangan di bench untuk penyangga.','Pegang dumbbell dengan tangan lainnya, lengan lurus ke bawah.','Tarik dumbbell ke arah pinggang, siku dekat badan.','Turunkan terkontrol.'],tips:['Hindari memutar badan saat menarik beban.','Jaga punggung tetap netral/flat.'],mistakes:['Memutar torso untuk membantu mengangkat beban.','Menarik terlalu tinggi ke arah bahu.'],sets:{kekuatan:'4 x 6-8/sisi, istirahat 90 detik',hipertrofi:'3-4 x 10-12/sisi, istirahat 60 detik',ketahanan:'3 x 15/sisi, istirahat 30-45 detik'}},
+
+{id:'ex12',name:'Back Squat',cat:'Kaki',equip:'Barbell',level:'Menengah',move:'legs',emoji:'🏋️',primary:['Quadriceps','Glutes'],secondary:['Hamstring','Core'],desc:'Gerakan compound utama untuk kekuatan dan massa otot kaki secara keseluruhan.',steps:['Letakkan barbel di punggung atas, kaki selebar bahu.','Turunkan badan dengan menekuk lutut dan pinggul bersamaan, dada tetap tegak.','Turun hingga paha sejajar lantai atau lebih dalam sesuai mobilitas.','Dorong kembali ke posisi berdiri melalui tumit.'],tips:['Jaga lutut sejalan dengan arah jari kaki.','Jaga inti (core) tetap kencang sepanjang gerakan.'],mistakes:['Lutut jatuh ke dalam (valgus).','Tumit terangkat dari lantai.'],sets:{kekuatan:'4-5 x 3-6, istirahat 2-3 menit',hipertrofi:'3-4 x 8-12, istirahat 90 detik',ketahanan:'3 x 15-20, istirahat 60 detik'}},
+{id:'ex13',name:'Romanian Deadlift',cat:'Kaki',equip:'Barbell',level:'Menengah',move:'legs',emoji:'🏋️',primary:['Hamstring','Glutes'],secondary:['Punggung bawah'],desc:'Gerakan hip-hinge untuk menargetkan hamstring dan glutes dengan lutut yang minim tertekuk.',steps:['Pegang barbel setinggi paha, kaki selebar pinggul.','Dorong pinggul ke belakang, turunkan barbel menyusuri kaki.','Turun hingga terasa peregangan penuh di hamstring.','Dorong pinggul maju untuk kembali berdiri.'],tips:['Jaga lutut sedikit ditekuk, tidak terkunci.','Barbel tetap dekat dengan kaki sepanjang gerakan.'],mistakes:['Menekuk lutut terlalu banyak sehingga menjadi squat.','Punggung membulat.'],sets:{kekuatan:'4 x 5-6, istirahat 2 menit',hipertrofi:'3-4 x 8-12, istirahat 90 detik',ketahanan:'3 x 15, istirahat 45 detik'}},
+{id:'ex14',name:'Leg Press',cat:'Kaki',equip:'Mesin',level:'Pemula',move:'legs',emoji:'🖥️',primary:['Quadriceps','Glutes'],secondary:['Hamstring'],desc:'Alternatif mesin dari squat, cocok untuk pemula atau menambah volume kaki dengan aman.',steps:['Duduk di mesin, kaki di platform selebar bahu.','Turunkan platform dengan menekuk lutut hingga sekitar 90 derajat.','Dorong kembali hingga lutut hampir lurus, jangan mengunci penuh.'],tips:['Jaga posisi kaki agar lutut sejalan dengan jari kaki.','Jangan mengangkat pinggul dari sandaran.'],mistakes:['Rentang gerak terlalu pendek.','Mengunci lutut penuh di puncak gerakan.'],sets:{kekuatan:'4 x 6-8, istirahat 2 menit',hipertrofi:'3-4 x 10-12, istirahat 90 detik',ketahanan:'3 x 15-20, istirahat 45 detik'}},
+{id:'ex15',name:'Walking Lunges',cat:'Kaki',equip:'Dumbbell',level:'Pemula',move:'legs',emoji:'🏋️',primary:['Quadriceps','Glutes'],secondary:['Hamstring','Core'],desc:'Gerakan unilateral yang melatih kekuatan kaki sekaligus keseimbangan.',steps:['Berdiri tegak, pegang dumbbell di kedua sisi.','Langkahkan satu kaki ke depan, turunkan hingga lutut belakang mendekati lantai.','Dorong dari kaki depan untuk melangkah maju dengan kaki lainnya.'],tips:['Jaga langkah cukup panjang agar lutut depan tidak melewati jari kaki berlebihan.','Jaga badan tetap tegak.'],mistakes:['Langkah terlalu pendek sehingga membebani lutut.','Badan condong ke depan berlebihan.'],sets:{kekuatan:'3 x 8/sisi, istirahat 2 menit',hipertrofi:'3-4 x 10-12/sisi, istirahat 90 detik',ketahanan:'3 x 15-20/sisi, istirahat 45 detik'}},
+{id:'ex16',name:'Leg Curl',cat:'Kaki',equip:'Mesin',level:'Pemula',move:'legs',emoji:'🖥️',primary:['Hamstring'],secondary:[],desc:'Gerakan isolasi untuk hamstring, melengkapi latihan compound seperti squat.',steps:['Berbaring/duduk di mesin, posisikan pad di atas tumit.','Tekuk lutut untuk menarik pad ke arah bokong.','Kembali terkontrol hingga hampir lurus.'],tips:['Hindari mengangkat pinggul dari bantalan.','Kontrol fase turun (eccentric) untuk hasil maksimal.'],mistakes:['Menggunakan hentakan untuk mengangkat beban.','Rentang gerak tidak penuh.'],sets:{kekuatan:'3 x 6-8, istirahat 90 detik',hipertrofi:'3-4 x 10-15, istirahat 60 detik',ketahanan:'3 x 15-20, istirahat 30-45 detik'}},
+{id:'ex17',name:'Leg Extension',cat:'Kaki',equip:'Mesin',level:'Pemula',move:'legs',emoji:'🖥️',primary:['Quadriceps'],secondary:[],desc:'Gerakan isolasi quadriceps, baik untuk finisher maupun pemanasan sendi lutut.',steps:['Duduk di mesin, pad di atas pergelangan kaki.','Luruskan lutut hingga kaki terangkat penuh.','Turunkan terkontrol tanpa membanting beban.'],tips:['Gunakan beban sedang, hindari mengunci lutut secara paksa dengan beban berat.','Jaga punggung tetap menempel sandaran.'],mistakes:['Menggunakan beban berlebihan sehingga gerakan tersentak.','Mengunci lutut secara paksa di puncak.'],sets:{kekuatan:'3 x 8-10, istirahat 60-90 detik',hipertrofi:'3-4 x 12-15, istirahat 60 detik',ketahanan:'3 x 15-20, istirahat 30 detik'}},
+{id:'ex18',name:'Standing Calf Raise',cat:'Kaki',equip:'Mesin',level:'Pemula',move:'legs',emoji:'🖥️',primary:['Betis (Gastrocnemius)'],secondary:[],desc:'Gerakan isolasi untuk membangun kekuatan dan ukuran otot betis.',steps:['Berdiri dengan bola kaki di tepi platform.','Turunkan tumit di bawah platform untuk peregangan penuh.','Angkat tumit setinggi mungkin, tahan sejenak di puncak.'],tips:['Gunakan rentang gerak penuh, jangan setengah-setengah.','Tahan kontraksi 1-2 detik di puncak.'],mistakes:['Rentang gerak terlalu pendek.','Menggunakan momentum memantul.'],sets:{kekuatan:'4 x 8-10, istirahat 60 detik',hipertrofi:'4 x 12-15, istirahat 45 detik',ketahanan:'3 x 20-25, istirahat 30 detik'}},
+{id:'ex19',name:'Hip Thrust',cat:'Kaki',equip:'Barbell',level:'Menengah',move:'legs',emoji:'🏋️',primary:['Glutes'],secondary:['Hamstring'],desc:'Gerakan terbaik untuk isolasi dan penguatan otot glutes secara maksimal.',steps:['Sandarkan punggung atas di bench, barbel di atas pinggul.','Tekuk lutut, telapak kaki menapak lantai.','Dorong pinggul ke atas hingga badan lurus dari lutut ke bahu.','Turunkan terkontrol tanpa menyentuh lantai sepenuhnya.'],tips:['Remas glutes maksimal di puncak gerakan.','Gunakan padding pada barbel untuk kenyamanan pinggul.'],mistakes:['Hiperekstensi punggung bawah berlebihan di puncak.','Mendorong dengan paha, bukan pinggul.'],sets:{kekuatan:'4 x 5-8, istirahat 2 menit',hipertrofi:'3-4 x 10-12, istirahat 90 detik',ketahanan:'3 x 15-20, istirahat 45 detik'}},
+
+{id:'ex20',name:'Overhead Press',cat:'Bahu',equip:'Barbell',level:'Menengah',move:'push',emoji:'🏋️',primary:['Bahu depan (Deltoid anterior)'],secondary:['Trisep','Core'],desc:'Gerakan compound utama untuk kekuatan dan ukuran bahu secara keseluruhan.',steps:['Pegang barbel selebar bahu, setinggi tulang selangka.','Kencangkan core dan glutes.','Dorong barbel lurus ke atas hingga lengan terkunci.','Turunkan terkontrol kembali ke posisi awal.'],tips:['Jaga rusuk tidak terbuka (flare) berlebihan.','Dorong kepala sedikit ke depan saat barbel melewati wajah.'],mistakes:['Menggunakan lutut untuk membantu mendorong (push press tanpa disadari).','Punggung bawah melengkung berlebihan.'],sets:{kekuatan:'4-5 x 3-6, istirahat 2-3 menit',hipertrofi:'3-4 x 8-10, istirahat 90 detik',ketahanan:'3 x 12-15, istirahat 60 detik'}},
+{id:'ex21',name:'Lateral Raise',cat:'Bahu',equip:'Dumbbell',level:'Pemula',move:'push',emoji:'🏋️',primary:['Bahu tengah (Deltoid lateral)'],secondary:[],desc:'Gerakan isolasi untuk membentuk lebar bahu.',steps:['Berdiri tegak, pegang dumbbell di kedua sisi badan.','Angkat lengan ke samping hingga sejajar bahu, siku sedikit ditekuk.','Turunkan terkontrol kembali ke bawah.'],tips:['Gunakan beban ringan-sedang, fokus pada teknik bukan berat beban.','Hindari mengayun badan untuk membantu mengangkat.'],mistakes:['Mengangkat terlalu tinggi melewati bahu.','Menggunakan momentum tubuh (badan mengayun).'],sets:{kekuatan:'3 x 8-10, istirahat 60-90 detik',hipertrofi:'3-4 x 12-15, istirahat 45-60 detik',ketahanan:'3 x 15-20, istirahat 30 detik'}},
+{id:'ex22',name:'Rear Delt Fly',cat:'Bahu',equip:'Dumbbell',level:'Pemula',move:'pull',emoji:'🏋️',primary:['Bahu belakang (Deltoid posterior)'],secondary:['Punggung atas'],desc:'Gerakan isolasi penting untuk keseimbangan otot bahu dan postur tubuh.',steps:['Condongkan badan ke depan, pegang dumbbell menggantung ke bawah.','Angkat lengan ke samping seperti membuka sayap, siku sedikit ditekuk.','Remas tulang belikat di puncak, lalu turunkan terkontrol.'],tips:['Fokus mengangkat dengan siku, bukan tangan.','Gunakan beban ringan agar teknik tetap terjaga.'],mistakes:['Menggunakan momentum badan naik-turun.','Badan terlalu tegak sehingga beban tidak fokus ke bahu belakang.'],sets:{kekuatan:'3 x 8-10, istirahat 60 detik',hipertrofi:'3-4 x 12-15, istirahat 45 detik',ketahanan:'3 x 15-20, istirahat 30 detik'}},
+{id:'ex23',name:'Face Pull',cat:'Bahu',equip:'Kabel',level:'Pemula',move:'pull',emoji:'🔗',primary:['Bahu belakang','Rotator Cuff'],secondary:['Trapezius'],desc:'Gerakan penting untuk kesehatan bahu dan postur, sering digunakan sebagai prehab/rehab.',steps:['Atur kabel setinggi wajah, pegang rope attachment.','Tarik rope ke arah wajah sambil membuka siku ke samping.','Rotasi eksternal bahu di akhir gerakan, lalu kembali terkontrol.'],tips:['Gunakan beban ringan, prioritaskan kontrol dan rentang gerak.','Lakukan secara rutin untuk menjaga kesehatan bahu.'],mistakes:['Menarik terlalu berat sehingga postur memburuk.','Tidak melakukan rotasi eksternal di akhir gerakan.'],sets:{kekuatan:'3 x 10-12, istirahat 45-60 detik',hipertrofi:'3-4 x 15, istirahat 45 detik',ketahanan:'3 x 20, istirahat 30 detik'}},
+
+{id:'ex24',name:'Barbell Curl',cat:'Lengan',equip:'Barbell',level:'Pemula',move:'pull',emoji:'🏋️',primary:['Bisep'],secondary:['Forearm'],desc:'Gerakan dasar untuk membangun kekuatan dan ukuran otot bisep.',steps:['Berdiri, pegang barbel dengan grip supinasi selebar bahu.','Tekuk siku untuk mengangkat barbel ke arah dada, siku tetap diam di sisi badan.','Turunkan terkontrol hingga lengan hampir lurus.'],tips:['Jaga siku tetap diam, jangan bergerak maju-mundur.','Hindari mengayun badan (cheat curl) kecuali disengaja untuk overload.'],mistakes:['Mengayun badan untuk membantu mengangkat beban.','Rentang gerak tidak penuh.'],sets:{kekuatan:'4 x 6-8, istirahat 90 detik',hipertrofi:'3-4 x 10-12, istirahat 60 detik',ketahanan:'3 x 15, istirahat 30-45 detik'}},
+{id:'ex25',name:'Hammer Curl',cat:'Lengan',equip:'Dumbbell',level:'Pemula',move:'pull',emoji:'🏋️',primary:['Bisep','Brachialis'],secondary:['Forearm'],desc:'Variasi curl dengan grip netral untuk menekankan brachialis dan lengan bawah.',steps:['Berdiri, pegang dumbbell dengan grip netral (telapak saling berhadapan).','Tekuk siku mengangkat dumbbell ke arah bahu.','Turunkan terkontrol kembali ke bawah.'],tips:['Jaga pergelangan tangan netral sepanjang gerakan.','Bisa dilakukan bergantian atau bersamaan.'],mistakes:['Mengayun bahu untuk membantu mengangkat.','Menggunakan beban terlalu berat sehingga rentang gerak berkurang.'],sets:{kekuatan:'4 x 6-8, istirahat 90 detik',hipertrofi:'3-4 x 10-12, istirahat 60 detik',ketahanan:'3 x 15, istirahat 30-45 detik'}},
+{id:'ex26',name:'Triceps Pushdown',cat:'Lengan',equip:'Kabel',level:'Pemula',move:'push',emoji:'🔗',primary:['Trisep'],secondary:[],desc:'Gerakan isolasi populer untuk membentuk trisep dengan bantuan kabel.',steps:['Berdiri menghadap cable machine, pegang bar/rope setinggi dada.','Dorong bar ke bawah hingga lengan lurus, siku tetap diam di sisi badan.','Kembali terkontrol hingga siku sekitar 90 derajat.'],tips:['Jaga siku tetap menempel di sisi badan.','Fokus pada kontraksi penuh di bagian bawah gerakan.'],mistakes:['Siku bergerak maju menjauh dari badan.','Menggunakan badan untuk membantu mendorong beban.'],sets:{kekuatan:'3 x 8-10, istirahat 60-90 detik',hipertrofi:'3-4 x 12-15, istirahat 60 detik',ketahanan:'3 x 15-20, istirahat 30 detik'}},
+{id:'ex27',name:'Skull Crusher',cat:'Lengan',equip:'Barbell',level:'Menengah',move:'push',emoji:'🏋️',primary:['Trisep'],secondary:[],desc:'Gerakan isolasi trisep yang dilakukan sambil berbaring untuk fokus penuh pada otot target.',steps:['Berbaring di bench, pegang EZ bar/barbel lurus di atas dada.','Tekuk siku menurunkan bar ke arah dahi, siku tetap diam.','Luruskan kembali lengan dengan kontraksi trisep.'],tips:['Jaga siku tetap diam mengarah ke langit-langit sepanjang gerakan.','Gunakan beban ringan-sedang untuk menjaga kontrol.'],mistakes:['Siku bergerak keluar/ke belakang.','Menurunkan bar terlalu cepat/tidak terkontrol.'],sets:{kekuatan:'3 x 6-8, istirahat 90 detik',hipertrofi:'3-4 x 10-12, istirahat 60 detik',ketahanan:'3 x 15, istirahat 30-45 detik'}},
+{id:'ex28',name:'Close Grip Bench Press',cat:'Lengan',equip:'Barbell',level:'Menengah',move:'push',emoji:'🏋️',primary:['Trisep'],secondary:['Dada','Bahu depan'],desc:'Variasi bench press dengan grip sempit untuk menekankan kerja trisep.',steps:['Berbaring di bench, pegang barbel dengan grip selebar bahu atau sedikit lebih sempit.','Turunkan barbel ke dada bawah, siku dekat badan.','Dorong kembali ke atas dengan fokus kontraksi trisep.'],tips:['Jangan gunakan grip terlalu sempit agar pergelangan tangan tidak cedera.','Jaga siku tetap dekat badan sepanjang gerakan.'],mistakes:['Siku terbuka lebar seperti bench press biasa.','Grip terlalu sempit sehingga membebani pergelangan tangan.'],sets:{kekuatan:'4 x 5-6, istirahat 2 menit',hipertrofi:'3-4 x 8-12, istirahat 90 detik',ketahanan:'3 x 15, istirahat 45 detik'}},
+
+{id:'ex29',name:'Plank',cat:'Perut/Core',equip:'Tanpa Alat',level:'Pemula',move:'core',emoji:'🧘',primary:['Core (Rectus Abdominis, Transverse Abdominis)'],secondary:['Bahu','Glutes'],desc:'Latihan isometrik fundamental untuk stabilitas dan kekuatan inti tubuh.',steps:['Posisi bertumpu pada lengan bawah dan ujung kaki.','Jaga badan lurus dari kepala hingga tumit.','Kencangkan perut dan glutes, tahan posisi.'],tips:['Jangan menahan napas, bernapas normal selama menahan posisi.','Jaga pinggul tidak turun atau naik terlalu tinggi.'],mistakes:['Pinggul turun (punggung melengkung).','Kepala mendongak/menunduk berlebihan.'],sets:{kekuatan:'4 x tahan 30-45 detik, istirahat 60 detik',hipertrofi:'3-4 x tahan 45-60 detik, istirahat 45 detik',ketahanan:'3 x tahan 60-90 detik, istirahat 30 detik'}},
+{id:'ex30',name:'Hanging Leg Raise',cat:'Perut/Core',equip:'Tanpa Alat',level:'Lanjutan',move:'core',emoji:'🤸',primary:['Perut bawah (Rectus Abdominis)'],secondary:['Hip Flexor'],desc:'Gerakan lanjutan untuk perut bagian bawah, membutuhkan kekuatan grip dan core yang baik.',steps:['Gantung di pull up bar, lengan lurus.','Angkat kedua kaki lurus (atau lutut ditekuk untuk pemula) hingga sejajar pinggang.','Turunkan terkontrol tanpa mengayun badan.'],tips:['Hindari mengayun badan, gunakan kontrol penuh.','Mulai dengan versi lutut ditekuk jika belum kuat.'],mistakes:['Mengayun badan (menggunakan momentum).','Tidak menurunkan kaki secara terkontrol.'],sets:{kekuatan:'4 x 6-8, istirahat 90 detik',hipertrofi:'3-4 x 10-12, istirahat 60 detik',ketahanan:'3 x 15, istirahat 45 detik'}},
+{id:'ex31',name:'Cable Crunch',cat:'Perut/Core',equip:'Kabel',level:'Menengah',move:'core',emoji:'🔗',primary:['Perut (Rectus Abdominis)'],secondary:[],desc:'Gerakan crunch dengan beban tambahan menggunakan kabel untuk overload progresif pada perut.',steps:['Berlutut menghadap cable machine, pegang rope di belakang kepala.','Tekuk pinggang membungkukkan badan ke bawah, kontraksikan perut.','Kembali terkontrol ke posisi awal.'],tips:['Gerakkan dari pinggang, bukan menarik dengan tangan/lengan.','Jaga pinggul tetap diam, hanya tulang belakang yang menekuk.'],mistakes:['Menarik menggunakan lengan, bukan kontraksi perut.','Pinggul ikut bergerak maju-mundur.'],sets:{kekuatan:'3 x 8-10, istirahat 60-90 detik',hipertrofi:'3-4 x 12-15, istirahat 60 detik',ketahanan:'3 x 20, istirahat 30 detik'}},
+{id:'ex32',name:'Russian Twist',cat:'Perut/Core',equip:'Dumbbell',level:'Pemula',move:'core',emoji:'🧘',primary:['Oblique (Perut samping)'],secondary:['Core'],desc:'Gerakan rotasi untuk melatih otot perut samping (oblique).',steps:['Duduk, lutut ditekuk, badan sedikit condong ke belakang.','Pegang dumbbell/beban dengan kedua tangan di depan dada.','Putar badan ke kanan dan kiri secara bergantian.'],tips:['Jaga punggung tetap lurus, jangan membungkuk.','Angkat kaki dari lantai untuk intensitas lebih tinggi.'],mistakes:['Gerakan terlalu cepat sehingga kehilangan kontrol.','Hanya menggerakkan lengan, bukan memutar torso.'],sets:{kekuatan:'3 x 10/sisi, istirahat 60 detik',hipertrofi:'3-4 x 15/sisi, istirahat 45 detik',ketahanan:'3 x 20/sisi, istirahat 30 detik'}},
+{id:'ex33',name:'Dead Bug',cat:'Perut/Core',equip:'Tanpa Alat',level:'Pemula',move:'core',emoji:'🧘',primary:['Core (stabilisasi tulang belakang)'],secondary:[],desc:'Latihan core anti-rotasi yang aman untuk punggung, sering dipakai untuk rehabilitasi dan pemanasan.',steps:['Berbaring telentang, angkat lengan lurus ke atas dan lutut 90 derajat.','Turunkan lengan kanan dan kaki kiri secara bersamaan mendekati lantai.','Kembali ke posisi awal, ulangi sisi berlawanan.'],tips:['Jaga punggung bawah tetap menempel lantai sepanjang gerakan.','Gerakkan perlahan dan terkontrol.'],mistakes:['Punggung bawah terangkat dari lantai.','Gerakan terlalu cepat tanpa kontrol.'],sets:{kekuatan:'3 x 8/sisi, istirahat 45-60 detik',hipertrofi:'3-4 x 10-12/sisi, istirahat 45 detik',ketahanan:'3 x 15/sisi, istirahat 30 detik'}},
+
+{id:'ex34',name:'Jumping Rope',cat:'Kardio',equip:'Tanpa Alat',level:'Pemula',move:'cardio',emoji:'🤾',primary:['Jantung & Paru-paru (kardiovaskular)'],secondary:['Betis','Koordinasi'],desc:'Latihan kardio efisien untuk daya tahan jantung-paru dan koordinasi.',steps:['Pegang tali skipping, posisikan di belakang tumit.','Putar tali dan lompat dengan pergelangan kaki, bukan lutut tinggi.','Jaga ritme konsisten.'],tips:['Mulai dengan interval pendek jika baru memulai.','Gunakan alas kaki yang mendukung untuk mengurangi impak.'],mistakes:['Melompat terlalu tinggi (boros energi).','Menggunakan lutut, bukan pergelangan kaki, untuk melompat.'],sets:{kekuatan:'Interval 30 detik kerja / 30 detik istirahat x 8-10',hipertrofi:'3-4 menit kontinu x 3-4 set, istirahat 60 detik',ketahanan:'10-20 menit kontinu, intensitas sedang'}},
+{id:'ex35',name:'Treadmill Running',cat:'Kardio',equip:'Mesin',level:'Pemula',move:'cardio',emoji:'🏃',primary:['Jantung & Paru-paru'],secondary:['Quadriceps','Betis'],desc:'Latihan kardio dasar yang mudah diatur intensitasnya melalui kecepatan dan kemiringan.',steps:['Mulai dengan pemanasan jalan cepat 3-5 menit.','Tingkatkan kecepatan/kemiringan sesuai target intensitas.','Akhiri dengan pendinginan jalan santai.'],tips:['Gunakan monitor detak jantung untuk menjaga target zona latihan.','Variasikan kecepatan (interval) untuk hasil lebih optimal.'],mistakes:['Berpegangan pada pegangan mesin sehingga postur lari salah.','Melompat langsung ke intensitas tinggi tanpa pemanasan.'],sets:{kekuatan:'Sprint interval 20-30 detik x 8, istirahat 90 detik',hipertrofi:'Interval sedang 3 menit x 5, istirahat 90 detik',ketahanan:'20-40 menit kontinu, intensitas sedang (zona 2)'}},
+{id:'ex36',name:'Rowing Machine',cat:'Kardio',equip:'Mesin',level:'Menengah',move:'cardio',emoji:'🚣',primary:['Full Body','Jantung & Paru-paru'],secondary:['Punggung','Kaki','Core'],desc:'Latihan kardio low-impact yang melibatkan hampir seluruh kelompok otot besar.',steps:['Duduk, kaki terpasang di footplate, pegang handle.','Dorong dengan kaki, lalu tarik handle ke perut sambil condong sedikit ke belakang.','Kembali dengan urutan terbalik: lengan-badan-kaki.'],tips:['Ingat urutan: kaki-badan-lengan saat menarik, lengan-badan-kaki saat kembali.','Jaga punggung tetap netral, jangan membulat.'],mistakes:['Menarik dengan lengan terlebih dahulu sebelum kaki mendorong.','Punggung membulat saat menarik handle.'],sets:{kekuatan:'Interval 250m x 6-8, istirahat 90 detik',hipertrofi:'Interval 500m x 4-5, istirahat 2 menit',ketahanan:'15-25 menit kontinu, intensitas sedang'}},
+{id:'ex37',name:'Burpees',cat:'Kardio',equip:'Tanpa Alat',level:'Menengah',move:'cardio',emoji:'🤸',primary:['Full Body','Jantung & Paru-paru'],secondary:['Core','Dada','Kaki'],desc:'Gerakan full-body intensitas tinggi yang menggabungkan kekuatan dan kardio.',steps:['Mulai berdiri, jongkok dan letakkan tangan di lantai.','Lompat kaki ke belakang ke posisi plank, opsional push up.','Lompat kaki kembali ke depan, lalu melompat ke atas dengan tangan terangkat.'],tips:['Jaga inti kencang saat transisi ke posisi plank untuk melindungi punggung bawah.','Atur ritme sesuai kemampuan, kualitas gerakan lebih penting dari kecepatan.'],mistakes:['Punggung bawah melengkung saat plank.','Mendarat dengan lutut terkunci saat lompat.'],sets:{kekuatan:'5 x 8-10, istirahat 90 detik',hipertrofi:'4 x 12-15, istirahat 60 detik',ketahanan:'Interval 40 detik kerja/20 detik istirahat x 8-10'}},
+
+{id:'ex38',name:'Cat-Cow Stretch',cat:'Mobilitas',equip:'Tanpa Alat',level:'Pemula',move:'mobility',emoji:'🧘',primary:['Tulang belakang (mobilitas)'],secondary:['Core'],desc:'Gerakan mobilitas lembut untuk melenturkan dan menghangatkan tulang belakang.',steps:['Posisi merangkak, tangan di bawah bahu, lutut di bawah pinggul.','Lengkungkan punggung ke atas (cat) sambil menunduk.','Turunkan perut, angkat dada dan kepala (cow).'],tips:['Gerakkan mengikuti napas: buang napas saat cat, tarik napas saat cow.','Lakukan perlahan dan terkontrol.'],mistakes:['Gerakan terlalu cepat tanpa mengikuti napas.','Rentang gerak terlalu kecil.'],sets:{kekuatan:'2 x 10 repetisi sebagai pemanasan',hipertrofi:'2-3 x 10-12 repetisi',ketahanan:'3 x 45-60 detik gerakan kontinu'}},
+{id:'ex39',name:"World's Greatest Stretch",cat:'Mobilitas',equip:'Tanpa Alat',level:'Menengah',move:'mobility',emoji:'🧘',primary:['Hip (mobilitas)','Thoracic Spine'],secondary:['Hamstring'],desc:'Gerakan mobilitas dinamis menyeluruh, sering dipakai sebagai pemanasan sebelum latihan berat.',steps:['Mulai posisi push up, langkahkan satu kaki ke depan di samping tangan.','Putar badan dan angkat tangan sisi kaki depan ke atas (rotasi thoracic).','Kembali dan ulangi di sisi lain.'],tips:['Jaga kaki belakang tetap lurus untuk peregangan hip flexor maksimal.','Lakukan dengan perlahan untuk kontrol rotasi yang baik.'],mistakes:['Rotasi terlalu cepat tanpa kontrol.','Kaki depan tidak cukup maju sehingga peregangan kurang optimal.'],sets:{kekuatan:'2 x 5/sisi sebagai pemanasan',hipertrofi:'2-3 x 6-8/sisi',ketahanan:'3 x 8-10/sisi'}},
+{id:'ex40',name:'90/90 Hip Stretch',cat:'Mobilitas',equip:'Tanpa Alat',level:'Pemula',move:'mobility',emoji:'🧘',primary:['Hip (rotasi internal & eksternal)'],secondary:[],desc:'Gerakan peregangan untuk meningkatkan rotasi pinggul, bermanfaat untuk squat dan lunges.',steps:['Duduk dengan satu kaki di depan membentuk sudut 90 derajat, kaki lain di belakang juga 90 derajat.','Condongkan badan ke depan di atas kaki depan untuk peregangan lebih dalam.','Tahan, lalu ganti sisi.'],tips:['Jaga punggung tetap panjang/lurus saat condong ke depan.','Tahan 20-30 detik tiap sisi untuk hasil optimal.'],mistakes:['Memaksakan rentang gerak yang menyebabkan nyeri lutut.','Punggung membulat saat condong ke depan.'],sets:{kekuatan:'2 x tahan 20 detik/sisi',hipertrofi:'2-3 x tahan 30 detik/sisi',ketahanan:'3 x tahan 30-45 detik/sisi'}},
+{id:'ex41',name:'Foam Rolling Quad',cat:'Mobilitas',equip:'Alat Foam Roller',level:'Pemula',move:'mobility',emoji:'🧘',primary:['Quadriceps (pelepasan miofasial)'],secondary:[],desc:'Teknik self-myofascial release untuk mengurangi ketegangan otot paha depan.',steps:['Posisikan foam roller di bawah paha depan, bertumpu pada lengan bawah.','Gulingkan badan perlahan dari pinggul hingga atas lutut.','Berhenti sejenak di titik yang terasa tegang (trigger point).'],tips:['Bernapas normal dan rileks selama rolling.','Hindari rolling langsung di atas sendi lutut.'],mistakes:['Rolling terlalu cepat sehingga kurang efektif.','Menahan napas karena menahan sakit.'],sets:{kekuatan:'1-2 x 30-45 detik/sisi',hipertrofi:'2 x 45-60 detik/sisi',ketahanan:'2-3 x 60 detik/sisi'}}
+];
+</script>
+
+<script id="fj-exlib-runtime">
+(function(){'use strict';
+function q(id){return document.getElementById(id)}
+function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var DATA=window.__fjExerciseData||[];
+var F={cat:'',equip:'',level:'',move:'',q:''};
+var SELECTED=[]; // ids
+var LAST_PROGRAM=null;
+
+function can(){return true} // exercise library is informational; available to any logged-in user of the app
+
+function main(){return document.querySelector('main.main')||document.querySelector('.main')}
+
+function nav(){var side=document.querySelector('.side');if(!side)return;if(q('fjExLibNav'))return;
+  var n=document.createElement('button');n.id='fjExLibNav';n.className='navbtn';n.type='button';
+  n.textContent='📚 Exercise Library';
+  n.onclick=function(){show('browse')};
+  var anchor=document.getElementById('fjPtOpsV2Nav')||document.getElementById('clientCalendarNav');
+  if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
+}
+
+function catList(){var s={};DATA.forEach(function(d){s[d.cat]=1});return Object.keys(s)}
+function equipList(){var s={};DATA.forEach(function(d){s[d.equip]=1});return Object.keys(s)}
+
+function build(){
+  if(q('fjExerciseLibrary'))return;
+  var m=main();if(!m)return;
+  var sec=document.createElement('section');sec.className='panel';sec.id='fjExerciseLibrary';
+  sec.innerHTML=''+
+  '<div class="exl-shell">'+
+    '<div class="exl-head"><div><div class="label">EXERCISE LIBRARY</div><h2>Basis Data Latihan &amp; Program Otomatis</h2>'+
+    '<div class="exl-muted">Database Gerakan • Pengetahuan Anatomi • Generator Program Otomatis</div></div></div>'+
+    '<div class="exl-tabs">'+
+      '<button class="exl-tab active" data-v="browse">Cari Exercise</button>'+
+      '<button class="exl-tab" data-v="selected">Pilihan Saya (<span id="exlSelCount">0</span>)</button>'+
+      '<button class="exl-tab" data-v="generator">Generator Program Otomatis</button>'+
+      '<button class="exl-tab" data-v="materi">📖 Materi &amp; Edukasi</button>'+
+    '</div>'+
+    '<div id="exlBrowse" class="exl-view active"></div>'+
+    '<div id="exlSelected" class="exl-view"></div>'+
+    '<div id="exlGenerator" class="exl-view"></div>'+
+    '<div id="exlMateri" class="exl-view"></div>'+
+  '</div>'+
+  '<div id="exlModal" class="exl-modal"><div class="exl-modalbox" id="exlModalBody"></div></div>';
+  m.appendChild(sec);
+  sec.querySelectorAll('.exl-tab').forEach(function(b){b.onclick=function(){show(b.dataset.v)}});
+}
+
+function show(v){
+  nav();build();
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+  q('fjExerciseLibrary').classList.add('active');
+  document.querySelectorAll('#fjExerciseLibrary .exl-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v===v)});
+  document.querySelectorAll('#fjExerciseLibrary .exl-view').forEach(function(x){x.classList.remove('active')});
+  var map={browse:'exlBrowse',selected:'exlSelected',generator:'exlGenerator',materi:'exlMateri'};
+  q(map[v]).classList.add('active');
+  if(v==='browse')renderBrowse();
+  if(v==='selected')renderSelected();
+  if(v==='generator')renderGenerator();
+  if(v==='materi')renderMateri();
+}
+
+function filterData(){
+  var z=F.q.trim().toLowerCase();
+  return DATA.filter(function(d){
+    if(F.cat&&d.cat!==F.cat)return false;
+    if(F.equip&&d.equip!==F.equip)return false;
+    if(F.level&&d.level!==F.level)return false;
+    if(z&&!(d.name.toLowerCase().indexOf(z)>-1||d.primary.join(' ').toLowerCase().indexOf(z)>-1||d.cat.toLowerCase().indexOf(z)>-1))return false;
+    return true;
+  });
+}
+
+function lvClass(lv){return lv==='Pemula'?'lv1':(lv==='Menengah'?'lv2':'lv3')}
+
+function renderBrowse(){
+  var b=q('exlBrowse');if(!b)return;
+  var cats=catList(),equips=equipList();
+  b.innerHTML=''+
+  '<div class="exl-card">'+
+    '<div class="exl-filters">'+
+      '<div class="field exl-search"><label>Cari Nama / Otot / Kategori</label><input id="exlSearch" placeholder="mis. dada, deadlift, bisep..." value="'+E(F.q)+'"></div>'+
+      '<div class="field"><label>Kategori</label><select id="exlFCat"><option value="">Semua Kategori</option>'+cats.map(function(c){return '<option value="'+E(c)+'"'+(F.cat===c?' selected':'')+'>'+E(c)+'</option>'}).join('')+'</select></div>'+
+      '<div class="field"><label>Alat</label><select id="exlFEquip"><option value="">Semua Alat</option>'+equips.map(function(c){return '<option value="'+E(c)+'"'+(F.equip===c?' selected':'')+'>'+E(c)+'</option>'}).join('')+'</select></div>'+
+      '<div class="field"><label>Level</label><select id="exlFLevel"><option value="">Semua Level</option>'+['Pemula','Menengah','Lanjutan'].map(function(c){return '<option value="'+c+'"'+(F.level===c?' selected':'')+'>'+c+'</option>'}).join('')+'</select></div>'+
+    '</div>'+
+    '<div id="exlGridWrap"></div>'+
+  '</div>';
+  drawGrid();
+  q('exlSearch').oninput=function(){F.q=this.value;drawGrid()};
+  q('exlFCat').onchange=function(){F.cat=this.value;drawGrid()};
+  q('exlFEquip').onchange=function(){F.equip=this.value;drawGrid()};
+  q('exlFLevel').onchange=function(){F.level=this.value;drawGrid()};
+}
+
+function drawGrid(){
+  var wrap=q('exlGridWrap');if(!wrap)return;
+  var list=filterData();
+  if(!list.length){wrap.innerHTML='<div class="exl-empty">Tidak ada exercise yang cocok dengan filter/pencarian ini.</div>';return}
+  wrap.innerHTML='<div class="exl-grid">'+list.map(function(d){
+    return '<div class="exl-ex" onclick="window.fjExlOpen(\''+d.id+'\')"><div class="exl-emoji">'+d.emoji+'</div><h4>'+E(d.name)+'</h4>'+
+    '<div class="exl-muted">'+E(d.primary[0]||'')+'</div>'+
+    '<div class="exl-badges"><span class="exl-badge">'+E(d.cat)+'</span><span class="exl-badge eq">'+E(d.equip)+'</span><span class="exl-badge '+lvClass(d.level)+'">'+E(d.level)+'</span></div></div>';
+  }).join('')+'</div>';
+}
+
+window.fjExlOpen=function(id){
+  var d=DATA.find(function(x){return x.id===id});if(!d)return;
+  var inSel=SELECTED.indexOf(id)>-1;
+  var html=''+
+  '<h2>'+d.emoji+' '+E(d.name)+'</h2>'+
+  '<div class="exl-badges"><span class="exl-badge">'+E(d.cat)+'</span><span class="exl-badge eq">'+E(d.equip)+'</span><span class="exl-badge '+lvClass(d.level)+'">'+E(d.level)+'</span></div>'+
+  '<p class="exl-muted">'+E(d.desc)+'</p>'+
+  '<div class="exl-anatomy"><div class="box"><b>Otot Utama (Primary)</b>'+E(d.primary.join(', ')||'—')+'</div><div class="box"><b>Otot Sekunder (Secondary)</b>'+E(d.secondary.join(', ')||'—')+'</div></div>'+
+  '<h3>Cara Melakukan</h3><ul>'+d.steps.map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul>'+
+  '<h3>Tips</h3><ul>'+d.tips.map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul>'+
+  '<h3>Kesalahan Umum</h3><ul>'+d.mistakes.map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul>'+
+  '<h3>Rekomendasi Sets &amp; Reps (per tujuan)</h3>'+
+  '<div class="exl-setsreps"><div><b>Kekuatan</b>'+E(d.sets.kekuatan)+'</div><div><b>Hipertrofi (Massa Otot)</b>'+E(d.sets.hipertrofi)+'</div><div><b>Ketahanan Otot</b>'+E(d.sets.ketahanan)+'</div></div>'+
+  '<div class="exl-modal-actions">'+
+    '<button class="exl-btn'+(inSel?' danger':'')+'" onclick="window.fjExlToggleSelect(\''+d.id+'\')">'+(inSel?'✕ Hapus dari Pilihan':'＋ Tambah ke Pilihan')+'</button>'+
+    '<button class="exl-btn alt" onclick="window.fjExlCloseModal()">Tutup</button>'+
+  '</div>';
+  q('exlModalBody').innerHTML=html;q('exlModal').classList.add('open');
+};
+window.fjExlCloseModal=function(){q('exlModal').classList.remove('open')};
+
+window.fjExlToggleSelect=function(id){
+  var i=SELECTED.indexOf(id);
+  if(i>-1)SELECTED.splice(i,1);else SELECTED.push(id);
+  var c=q('exlSelCount');if(c)c.textContent=SELECTED.length;
+  if(q('exlModal').classList.contains('open'))window.fjExlOpen(id);
+  if(q('exlSelected')&&q('exlSelected').classList.contains('active'))renderSelected();
+};
+
+function renderSelected(){
+  var b=q('exlSelected');if(!b)return;
+  var list=SELECTED.map(function(id){return DATA.find(function(x){return x.id===id})}).filter(Boolean);
+  b.innerHTML='<div class="exl-card"><div class="exl-actions" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">Exercise Pilihan Saya</h3><div class="exl-muted">Kumpulkan exercise favorit lalu gunakan di Generator Program Otomatis.</div></div>'+(list.length?'<button class="exl-btn alt" onclick="window.fjExlClearSelected()">Kosongkan Semua</button>':'')+'</div>'+
+  (list.length?('<div class="exl-grid" style="margin-top:12px">'+list.map(function(d){
+    return '<div class="exl-ex"><div class="exl-emoji">'+d.emoji+'</div><h4>'+E(d.name)+'</h4><div class="exl-muted">'+E(d.primary[0]||'')+'</div>'+
+    '<div class="exl-badges"><span class="exl-badge">'+E(d.cat)+'</span></div>'+
+    '<div style="margin-top:8px;display:flex;gap:6px"><button class="exl-btn alt" style="flex:1" onclick="window.fjExlOpen(\''+d.id+'\')">Detail</button><button class="exl-btn danger" onclick="window.fjExlToggleSelect(\''+d.id+'\')">Hapus</button></div></div>';
+  }).join('')+'</div>'):'<div class="exl-empty">Belum ada exercise yang dipilih. Buka tab "Cari Exercise" lalu klik salah satu exercise untuk menambahkannya.</div>')+
+  '</div>';
+}
+window.fjExlClearSelected=function(){SELECTED=[];var c=q('exlSelCount');if(c)c.textContent=0;renderSelected()};
+
+// ---- AUTOMATIC PROGRAM GENERATOR ----
+var GEN={goal:'hipertrofi',level:'Menengah',days:3,equip:{}};
+
+function renderGenerator(){
+  var b=q('exlGenerator');if(!b)return;
+  var equips=equipList();
+  equips.forEach(function(e){if(!(e in GEN.equip))GEN.equip[e]=true});
+  b.innerHTML='<div class="exl-card">'+
+    '<h3 style="margin-top:0">Generator Program Latihan Otomatis</h3>'+
+    '<div class="exl-muted">Isi preferensi, sistem akan otomatis menyusun program mingguan lengkap dengan pembagian hari, exercise, serta sets &amp; reps.</div>'+
+    '<div class="exl-gen-form" style="margin-top:12px">'+
+      '<div><label>Tujuan Latihan</label><select id="exlGoal">'+
+        '<option value="hipertrofi"'+(GEN.goal==='hipertrofi'?' selected':'')+'>Pembentukan Otot (Hipertrofi)</option>'+
+        '<option value="kekuatan"'+(GEN.goal==='kekuatan'?' selected':'')+'>Kekuatan Maksimal</option>'+
+        '<option value="ketahanan"'+(GEN.goal==='ketahanan'?' selected':'')+'>Penurunan Berat / Ketahanan</option>'+
+      '</select></div>'+
+      '<div><label>Level Pengalaman</label><select id="exlLevel">'+
+        ['Pemula','Menengah','Lanjutan'].map(function(l){return '<option value="'+l+'"'+(GEN.level===l?' selected':'')+'>'+l+'</option>'}).join('')+
+      '</select></div>'+
+      '<div><label>Hari Latihan / Minggu</label><select id="exlDays">'+
+        [2,3,4,5,6].map(function(n){return '<option value="'+n+'"'+(GEN.days===n?' selected':'')+'>'+n+' hari</option>'}).join('')+
+      '</select></div>'+
+      '<div class="span3"><label>Alat yang Tersedia</label><div class="exl-chipset" id="exlEquipChips">'+equips.map(function(e){return '<span class="exl-chip'+(GEN.equip[e]?' on':'')+'" data-eq="'+E(e)+'">'+E(e)+'</span>'}).join('')+'</div></div>'+
+    '</div>'+
+    '<div class="exl-modal-actions"><button class="exl-btn" id="exlGenBtn">⚡ Buat Program Otomatis</button>'+(SELECTED.length?'<button class="exl-btn alt" id="exlGenFromSelBtn">Gunakan Exercise Pilihan Saya ('+SELECTED.length+')</button>':'')+'</div>'+
+  '</div><div id="exlProgramOut"></div>';
+
+  q('exlGoal').onchange=function(){GEN.goal=this.value};
+  q('exlLevel').onchange=function(){GEN.level=this.value};
+  q('exlDays').onchange=function(){GEN.days=Number(this.value)};
+  q('exlEquipChips').querySelectorAll('.exl-chip').forEach(function(c){c.onclick=function(){var e=this.dataset.eq;GEN.equip[e]=!GEN.equip[e];this.classList.toggle('on',GEN.equip[e])}});
+  q('exlGenBtn').onclick=function(){generateProgram(false)};
+  var fb=q('exlGenFromSelBtn');if(fb)fb.onclick=function(){generateProgram(true)};
+
+  if(LAST_PROGRAM)drawProgram(LAST_PROGRAM);
+}
+
+function levelRank(l){return l==='Pemula'?1:(l==='Menengah'?2:3)}
+
+function pool(fromSelectedOnly){
+  var allowedEquip=Object.keys(GEN.equip).filter(function(e){return GEN.equip[e]});
+  var src=fromSelectedOnly?DATA.filter(function(d){return SELECTED.indexOf(d.id)>-1}):DATA;
+  return src.filter(function(d){
+    if(levelRank(d.level)>levelRank(GEN.level))return false;
+    if(!fromSelectedOnly&&allowedEquip.length&&allowedEquip.indexOf(d.equip)===-1)return false;
+    return true;
+  });
+}
+
+function pick(list,move,n,used){
+  var c=list.filter(function(d){return d.move===move&&used.indexOf(d.id)===-1});
+  c=c.sort(function(){return Math.random()-0.5});
+  var out=c.slice(0,n);
+  out.forEach(function(d){used.push(d.id)});
+  return out;
+}
+
+function splitPlan(days){
+  if(days<=3)return Array(days).fill('Full Body');
+  if(days===4)return ['Upper Body','Lower Body','Upper Body','Lower Body'];
+  if(days===5)return ['Push','Pull','Legs','Upper Body','Lower Body'];
+  return ['Push','Pull','Legs','Push','Pull','Legs'];
+}
+
+function buildDay(type,list,used){
+  var items=[];
+  if(type==='Full Body'){items=items.concat(pick(list,'push',1,used),pick(list,'pull',1,used),pick(list,'legs',1,used),pick(list,'core',1,used));}
+  else if(type==='Upper Body'){items=items.concat(pick(list,'push',2,used),pick(list,'pull',2,used));}
+  else if(type==='Lower Body'){items=items.concat(pick(list,'legs',4,used),pick(list,'core',1,used));}
+  else if(type==='Push'){items=items.concat(pick(list,'push',4,used));}
+  else if(type==='Pull'){items=items.concat(pick(list,'pull',4,used));}
+  else if(type==='Legs'){items=items.concat(pick(list,'legs',4,used),pick(list,'core',1,used));}
+  if(GEN.goal==='ketahanan'){var c=pick(list,'cardio',1,used);items=items.concat(c);}
+  var m=pick(list,'mobility',1,[]);items=items.concat(m);
+  return items;
+}
+
+function generateProgram(fromSelectedOnly){
+  var list=pool(fromSelectedOnly);
+  if(list.length<4){alert('Data exercise yang cocok dengan filter ini terlalu sedikit. Coba tambah alat yang tersedia atau naikkan level.');return}
+  var plan=splitPlan(GEN.days);
+  var used=[];
+  var days=plan.map(function(type,i){var ex=buildDay(type,list,fromSelectedOnly?[]:used);return {day:i+1,type:type,exercises:ex}});
+  LAST_PROGRAM={goal:GEN.goal,level:GEN.level,days:days};
+  drawProgram(LAST_PROGRAM);
+}
+
+function goalLabel(g){return g==='kekuatan'?'Kekuatan':(g==='ketahanan'?'Ketahanan/Penurunan Berat':'Hipertrofi (Massa Otot)')}
+
+function drawProgram(prog){
+  var out=q('exlProgramOut');if(!out)return;
+  var html='<div class="exl-card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">Program Mingguan — '+goalLabel(prog.goal)+'</h3><div class="exl-muted">Level: '+E(prog.level)+' • '+prog.days.length+' hari/minggu • disusun otomatis, bisa diacak ulang per exercise</div></div>'+
+  '<div class="exl-actions"><button class="exl-btn alt" id="exlPrintBtn">🖨️ Cetak / PDF</button></div></div></div>';
+  html+=prog.days.map(function(d,di){
+    return '<div class="exl-day"><h3>Hari '+d.day+' — '+E(d.type)+'</h3><div class="exl-muted">'+d.exercises.length+' exercise</div>'+
+    d.exercises.map(function(ex,ei){
+      var g=q?null:null;
+      var setsTxt=ex.sets[prog.goal];
+      return '<div class="exl-row"><div><div class="exl-rowname">'+E(ex.name)+'</div><div class="exl-rowcat">'+E(ex.cat)+' • '+E(ex.equip)+'</div></div><div>'+E(setsTxt)+'</div><div class="exl-rowcat">Target: '+E(ex.primary[0]||'')+'</div><button class="exl-swap" title="Ganti exercise" onclick="window.fjExlSwap('+di+','+ei+')">⟳</button></div>';
+    }).join('')+
+    '</div>';
+  }).join('');
+  out.innerHTML=html;
+  var pb=q('exlPrintBtn');if(pb)pb.onclick=printProgram;
+}
+
+window.fjExlSwap=function(dayIdx,exIdx){
+  if(!LAST_PROGRAM)return;
+  var day=LAST_PROGRAM.days[dayIdx];var cur=day.exercises[exIdx];if(!cur)return;
+  var list=pool(false).filter(function(d){return d.move===cur.move&&d.id!==cur.id});
+  if(!list.length){alert('Tidak ada alternatif exercise lain untuk kategori ini pada filter saat ini.');return}
+  var rep=list[Math.floor(Math.random()*list.length)];
+  day.exercises[exIdx]=rep;
+  drawProgram(LAST_PROGRAM);
+};
+
+function printProgram(){
+  if(!LAST_PROGRAM)return;
+  var root=document.createElement('div');root.id='fjExlPrintRoot';
+  var html='<h1>FITNESS JOURNEY — Program Latihan Otomatis</h1><p>Tujuan: '+E(goalLabel(LAST_PROGRAM.goal))+' | Level: '+E(LAST_PROGRAM.level)+'</p>';
+  LAST_PROGRAM.days.forEach(function(d){
+    html+='<h2>Hari '+d.day+' — '+E(d.type)+'</h2><table><tr><th>Exercise</th><th>Kategori</th><th>Sets &amp; Reps</th><th>Target Otot</th></tr>'+
+    d.exercises.map(function(ex){return '<tr><td>'+E(ex.name)+'</td><td>'+E(ex.cat)+'</td><td>'+E(ex.sets[LAST_PROGRAM.goal])+'</td><td>'+E(ex.primary[0]||'')+'</td></tr>'}).join('')+'</table>';
+  });
+  root.innerHTML=html;
+  document.body.appendChild(root);
+  var css=document.createElement('style');css.id='fjExlPrintCss';
+  css.textContent='@media print{body>*:not(#fjExlPrintRoot){display:none!important}#fjExlPrintRoot{display:block!important;padding:20px;font-family:Arial}#fjExlPrintRoot table{width:100%;border-collapse:collapse;margin-bottom:14px}#fjExlPrintRoot th,#fjExlPrintRoot td{border-bottom:1px solid #ccc;padding:6px;font-size:11px;text-align:left}}@media screen{#fjExlPrintRoot{display:none}}';
+  document.head.appendChild(css);
+  window.print();
+  setTimeout(function(){root.remove();css.remove()},500);
+}
+
+// ---- MATERI & EDUKASI (Types of Exercise, Methods, Movement Patterns, Warm-Up, Stretching, Muscles, Joints, Bones) ----
+var MATERI_TOPIC='jenis';
+var MATERI_DATA={
+  jenis:{label:'Jenis-Jenis Latihan',sections:[
+    {h:'Latihan Kardio / Aerobik',p:'Latihan berintensitas ringan-sedang yang dilakukan secara terus-menerus dalam durasi cukup lama untuk melatih sistem jantung dan paru-paru.',items:['Contoh: jalan cepat, jogging, bersepeda, berenang, rowing, jump rope.','Manfaat: meningkatkan VO2 max, membakar kalori, menyehatkan jantung.']},
+    {h:'Latihan Kekuatan (Resistance / Strength Training)',p:'Latihan yang membebani otot melawan tahanan untuk meningkatkan kekuatan dan/atau ukuran otot.',items:['Contoh: barbel, dumbbell, mesin beban, resistance band, beban tubuh (bodyweight).','Manfaat: meningkatkan massa otot, kepadatan tulang, metabolisme istirahat.']},
+    {h:'Latihan Fleksibilitas',p:'Latihan yang bertujuan meningkatkan rentang gerak (range of motion) sendi dan elastisitas otot.',items:['Contoh: static stretching, yoga, Pilates.','Manfaat: mengurangi kekakuan otot, memperbaiki postur, menurunkan risiko cedera.']},
+    {h:'Latihan Keseimbangan (Balance)',p:'Latihan yang melatih kontrol tubuh dan stabilitas, penting untuk pencegahan jatuh dan performa fungsional.',items:['Contoh: single-leg stance, bosu ball, latihan proprioseptif.','Manfaat: meningkatkan koordinasi otot-saraf dan stabilitas sendi.']},
+    {h:'Latihan Anaerobik / HIIT',p:'Latihan intensitas tinggi dalam waktu singkat yang mengandalkan energi tanpa oksigen (sistem energi ATP-PC dan glikolitik).',items:['Contoh: sprint, HIIT, Tabata, latihan plyometric.','Manfaat: meningkatkan power, kapasitas anaerobik, efisiensi pembakaran lemak.']},
+    {h:'Latihan Fungsional',p:'Latihan yang meniru pola gerak aktivitas sehari-hari, melibatkan banyak sendi dan otot sekaligus.',items:['Contoh: farmer carry, squat-to-press, lunge with rotation.','Manfaat: meningkatkan kemampuan gerak yang aplikatif di kehidupan nyata.']},
+    {h:'Latihan Koordinasi & Kelincahan (Agility)',p:'Latihan yang melatih kecepatan reaksi, perubahan arah, dan koordinasi neuromuskular.',items:['Contoh: ladder drill, cone drill, reaction ball.','Manfaat: penting untuk performa olahraga dan aktivitas dinamis.']}
+  ]},
+  metode:{label:'Metode Latihan',sections:[
+    {h:'Straight Sets',p:'Metode dasar: melakukan sejumlah set dan repetisi untuk satu gerakan dengan istirahat penuh di antara set, sebelum berpindah ke gerakan berikutnya.'},
+    {h:'Superset',p:'Dua gerakan dilakukan berurutan tanpa istirahat, biasanya menargetkan otot berlawanan (agonis-antagonis) atau otot yang sama untuk meningkatkan intensitas.'},
+    {h:'Circuit Training',p:'Beberapa gerakan disusun dalam satu rangkaian (circuit) dan dilakukan berurutan dengan istirahat minimal, lalu diulang beberapa putaran. Efektif untuk kekuatan dan daya tahan kardio sekaligus.'},
+    {h:'Drop Set',p:'Setelah mencapai kegagalan otot pada satu beban, beban langsung diturunkan dan repetisi dilanjutkan tanpa istirahat, untuk memaksimalkan kelelahan otot.'},
+    {h:'Pyramid / Ladder Training',p:'Beban ditambah secara bertahap sambil repetisi dikurangi (ascending), atau sebaliknya (descending), pada gerakan yang sama.'},
+    {h:'Cluster Set',p:'Set dipecah menjadi beberapa mini-set kecil dengan jeda singkat (10-20 detik) di antaranya, memungkinkan beban lebih berat dengan kualitas gerak terjaga.'},
+    {h:'HIIT (High-Intensity Interval Training)',p:'Interval kerja intensitas maksimal/submaksimal diselingi periode istirahat atau intensitas rendah, dalam siklus berulang.'},
+    {h:'Tabata',p:'Format interval spesifik: 20 detik kerja maksimal, 10 detik istirahat, diulang 8 putaran (total 4 menit per gerakan).'},
+    {h:'EMOM (Every Minute on the Minute)',p:'Sejumlah repetisi diselesaikan di awal tiap menit, sisa waktu dalam menit tersebut menjadi istirahat.'},
+    {h:'AMRAP (As Many Rounds/Reps As Possible)',p:'Menyelesaikan sebanyak mungkin putaran atau repetisi dalam batas waktu yang ditentukan.'},
+    {h:'Giant Set / Tri-Set',p:'Tiga atau lebih gerakan dilakukan berurutan tanpa istirahat sebelum jeda, biasanya menargetkan satu kelompok otot yang sama.'},
+    {h:'Contrast / Complex Training',p:'Menggabungkan gerakan beban berat (strength) dengan gerakan eksplosif (power/plyometric) secara berpasangan untuk meningkatkan output tenaga.'},
+    {h:'Tempo Training',p:'Mengontrol kecepatan tiap fase gerakan (eksentrik-isometrik-konsentrik), misalnya tempo 3-1-1, untuk meningkatkan time under tension.'}
+  ]},
+  pola:{label:'Pola Gerak (Movement Patterns)',sections:[
+    {h:'Squat (Jongkok)',p:'Gerakan menekuk lutut dan pinggul secara bersamaan pada bidang vertikal. Contoh: back squat, goblet squat, leg press.'},
+    {h:'Hinge (Engsel Pinggul)',p:'Gerakan menekuk dari sendi pinggul dengan lutut relatif minim tertekuk, menekankan hamstring & glutes. Contoh: deadlift, hip thrust, kettlebell swing.'},
+    {h:'Push (Dorong)',p:'Mendorong beban menjauhi tubuh, dibagi horizontal (contoh: bench press, push up) dan vertikal (contoh: overhead press).'},
+    {h:'Pull (Tarik)',p:'Menarik beban mendekati tubuh, dibagi horizontal (contoh: row) dan vertikal (contoh: pull up, lat pulldown).'},
+    {h:'Lunge (Langkah / Split Stance)',p:'Gerakan unilateral (satu sisi kaki) menekuk lutut dan pinggul dalam posisi kaki terbelah. Contoh: walking lunge, split squat, step up.'},
+    {h:'Carry (Membawa Beban)',p:'Membawa beban sambil berjalan untuk melatih grip, core, dan stabilitas postur. Contoh: farmer carry, suitcase carry.'},
+    {h:'Rotation / Anti-Rotation',p:'Gerakan memutar tubuh (rotation) atau menahan agar tubuh tidak berputar (anti-rotation) untuk melatih core. Contoh: cable rotation, pallof press, wood chop.'},
+    {h:'Gait (Pola Berjalan / Berlari)',p:'Pola gerak dasar manusia untuk berpindah tempat, menjadi fondasi latihan kardio dan olahraga lari.'}
+  ]},
+  warmup:{label:'Pemanasan (Warm-Up)',sections:[
+    {h:'Tujuan Pemanasan',p:'Meningkatkan suhu tubuh dan aliran darah ke otot, mempersiapkan sistem saraf-otot, meningkatkan mobilitas sendi, serta menurunkan risiko cedera sebelum latihan inti.'},
+    {h:'General Warm-Up',p:'Aktivitas kardio ringan selama 5-10 menit (contoh: jalan cepat, jogging ringan, sepeda statis) untuk menaikkan suhu tubuh dan detak jantung secara bertahap.'},
+    {h:'Specific / Dynamic Warm-Up',p:'Gerakan dinamis yang meniru pola gerak latihan utama, dilakukan dengan intensitas meningkat bertahap.',items:['Contoh gerakan: arm circle, leg swing, walking lunge, high knee, butt kick, hip opener, inchworm, bodyweight squat.','Durasi: sekitar 5-10 menit, 8-12 repetisi per gerakan.']},
+    {h:'Urutan yang Disarankan',items:['1) General warm-up (kardio ringan).','2) Dynamic stretching / mobility drill sesuai area yang akan dilatih.','3) Set pemanasan spesifik dengan beban ringan sebelum set kerja utama (ramp-up set).']}
+  ]},
+  stretching:{label:'Peregangan (Stretching)',sections:[
+    {h:'Static Stretching',p:'Menahan posisi peregangan otot tanpa gerakan selama 15-30 detik. Lebih cocok dilakukan setelah latihan (cooldown) karena menahan posisi statis sebelum latihan dapat sedikit menurunkan output kekuatan/power.'},
+    {h:'Dynamic Stretching',p:'Peregangan melalui gerakan aktif dan terkontrol dengan rentang gerak meningkat bertahap. Ideal dilakukan sebagai bagian dari pemanasan sebelum latihan.'},
+    {h:'PNF Stretching (Proprioceptive Neuromuscular Facilitation)',p:'Teknik kontraksi-relaksasi: otot dikontraksikan isometrik terlebih dahulu (contoh 5-10 detik), lalu direlaksasikan dan diregangkan lebih dalam. Efektif meningkatkan fleksibilitas jangka panjang, umumnya dengan bantuan partner.'},
+    {h:'Ballistic Stretching',p:'Peregangan dengan gerakan memantul/menghentak di titik akhir rentang gerak. Berisiko cedera lebih tinggi karena tidak memberi waktu otot beradaptasi, umumnya hanya untuk atlet terlatih.'},
+    {h:'Kapan Menggunakan Masing-Masing',items:['Sebelum latihan: dynamic stretching.','Setelah latihan: static stretching untuk relaksasi otot dan pemulihan.','Program fleksibilitas jangka panjang: PNF atau static stretching konsisten di luar sesi latihan.']}
+  ]},
+  otot:{label:'Sistem Otot (Muscular System)',sections:[
+    {h:'Jenis Otot',items:['Otot Rangka (Skeletal) — melekat pada tulang, bekerja secara sadar (voluntary), berperan dalam gerakan tubuh.','Otot Jantung (Cardiac) — bekerja tanpa sadar (involuntary), khusus memompa darah di jantung.','Otot Polos (Smooth) — bekerja tanpa sadar, ditemukan pada organ dalam seperti usus dan pembuluh darah.']},
+    {h:'Kelompok Otot Rangka Utama',items:['Dada: Pectoralis Major & Minor.','Punggung: Latissimus Dorsi, Trapezius, Rhomboid, Erector Spinae.','Bahu: Deltoid (anterior, medial, posterior).','Lengan: Biceps Brachii, Triceps Brachii, otot lengan bawah (forearm).','Core / Perut: Rectus Abdominis, Obliques (internal & eksternal), Transverse Abdominis.','Pinggul & Paha: Gluteus Maximus/Medius/Minimus, Quadriceps, Hamstrings, Hip Flexors, Adductors, Abductors.','Betis: Gastrocnemius, Soleus.']},
+    {h:'Peran Otot dalam Gerakan',items:['Agonis (Prime Mover) — otot utama yang menghasilkan gerakan.','Antagonis — otot yang berlawanan fungsi dengan agonis dan berelaksasi saat agonis berkontraksi.','Sinergis — otot pembantu yang bekerja sama dengan agonis.','Stabilizer — otot yang menjaga postur/sendi tetap stabil selama gerakan berlangsung.']}
+  ]},
+  sendi:{label:'Sistem Sendi (Joint System)',sections:[
+    {h:'Jenis Sendi Sinovial (paling berperan dalam olahraga)',items:['Ball-and-Socket (Sendi Peluru) — gerak paling bebas ke segala arah. Contoh: bahu, pinggul.','Hinge (Sendi Engsel) — gerak satu bidang (fleksi-ekstensi). Contoh: siku, lutut.','Pivot (Sendi Putar) — gerak rotasi. Contoh: sendi antara tulang leher atas (atlas-axis).','Gliding (Sendi Luncur) — gerak geser terbatas. Contoh: pergelangan tangan dan kaki.','Saddle (Sendi Pelana) — gerak dua bidang. Contoh: pangkal ibu jari.','Condyloid — gerak dua bidang tanpa rotasi penuh. Contoh: pergelangan tangan.']},
+    {h:'Range of Motion (ROM)',p:'Rentang gerak maksimal yang bisa dicapai sebuah sendi. Mobilitas sendi yang baik penting agar gerakan latihan dapat dilakukan dengan teknik penuh dan aman.'},
+    {h:'Mobilitas vs Stabilitas',p:'Beberapa sendi (bahu, pinggul, pergelangan kaki) cenderung membutuhkan lebih banyak mobilitas, sedangkan sendi lain (tulang belakang, lutut) membutuhkan lebih banyak stabilitas — konsep ini mendasari pemilihan latihan mobility & core stability dalam program.'},
+    {h:'Sendi Utama yang Terlibat dalam Latihan',p:'Bahu, siku, pergelangan tangan, tulang belakang (spine), pinggul, lutut, dan pergelangan kaki adalah sendi-sendi yang paling sering terlibat dan perlu diperhatikan tekniknya saat latihan beban.'}
+  ]},
+  tulang:{label:'Sistem Tulang (Skeletal System)',sections:[
+    {h:'Fungsi Tulang',items:['Penyangga struktur tubuh.','Pelindung organ vital (contoh: tengkorak melindungi otak, tulang rusuk melindungi jantung & paru).','Tempat melekatnya otot melalui tendon, menjadi pengungkit (lever) untuk gerakan.','Tempat penyimpanan mineral (kalsium & fosfor).','Tempat produksi sel darah (sumsum tulang).']},
+    {h:'Kategori Tulang',items:['Tulang Panjang (Long Bones) — contoh: femur, humerus, tibia; berperan besar dalam gerakan dan pengungkit.','Tulang Pendek (Short Bones) — contoh: tulang pergelangan tangan (carpal) dan kaki (tarsal).','Tulang Pipih (Flat Bones) — contoh: tengkorak, sternum, scapula; berfungsi melindungi organ.','Tulang Tak Beraturan (Irregular Bones) — contoh: ruas tulang belakang (vertebra), tulang panggul (pelvis).']},
+    {h:'Struktur Tulang Belakang (Spine)',p:'Tulang belakang tersusun dari 7 ruas cervical (leher), 12 ruas thoracic (punggung atas), 5 ruas lumbar (punggung bawah), sacrum, dan coccyx. Menjaga posisi netral tulang belakang (spinal alignment) sangat penting saat mengangkat beban untuk mencegah cedera.'},
+    {h:'Latihan Beban dan Kepadatan Tulang',p:'Latihan beban (resistance training) memberikan stimulus mekanis pada tulang yang secara bertahap dapat meningkatkan kepadatan mineral tulang (bone density), sehingga bermanfaat untuk kesehatan tulang jangka panjang.'}
+  ]}
+};
+function renderMateri(){
+  var b=q('exlMateri');if(!b)return;
+  var order=['jenis','metode','pola','warmup','stretching','otot','sendi','tulang'];
+  var chips=order.map(function(k){return '<span class="exl-chip'+(MATERI_TOPIC===k?' on':'')+'" data-mt="'+k+'">'+E(MATERI_DATA[k].label)+'</span>'}).join('');
+  var topic=MATERI_DATA[MATERI_TOPIC];
+  var body=topic.sections.map(function(s){
+    var html='<div class="exl-card"><h3 style="margin-top:0">'+E(s.h)+'</h3>';
+    if(s.p)html+='<p class="exl-muted" style="margin:0 0 6px">'+E(s.p)+'</p>';
+    if(s.items&&s.items.length)html+='<ul>'+s.items.map(function(i){return '<li>'+E(i)+'</li>'}).join('')+'</ul>';
+    html+='</div>';
+    return html;
+  }).join('');
+  b.innerHTML='<div class="exl-card"><div class="label">MATERI &amp; EDUKASI</div><h3 style="margin:4px 0 8px">'+E(topic.label)+'</h3>'+
+    '<div class="exl-chipset" id="exlMateriChips">'+chips+'</div></div>'+body;
+  q('exlMateriChips').querySelectorAll('.exl-chip').forEach(function(c){c.onclick=function(){MATERI_TOPIC=this.dataset.mt;renderMateri()}});
+}
+
+function boot(){nav();}
+var tries=0;function retryBoot(){boot();tries++;if(tries<40&&!q('fjExLibNav'))setTimeout(retryBoot,500)}
+setTimeout(retryBoot,300);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);
+window.addEventListener('load',function(){setTimeout(boot,1100)});
 })();
 </script>

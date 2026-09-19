@@ -6843,6 +6843,40 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;window.fjPtM53
   suppressLegacy();
   document.addEventListener('fj-v50-refresh',function(){setTimeout(suppressLegacy,0)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(suppressLegacy,0)},{once:true});
+window.fjOpenPtMirrorMaster=function(){if(!master())return false;var p=ensure();if(!p)return false;render();return true};
+})();
+</script>
+
+<!-- V56 CLEAN PT MANAGEMENT OPEN FIX: only replaces the broken navigation handoff. -->
+<style id="fj-ptm-v56-clean-css">
+/* Do not let the obsolete operations panel cover the Master Mirror. */
+#fjPtOpsV2{display:none!important}
+#fjPtMirrorMaster{visibility:visible!important;opacity:1!important}
+</style>
+<script id="fj-ptm-v56-clean-runtime">
+(function(){
+  'use strict';
+  function master(){var u=window.currentUser||null;return String(u&&u.email||'').trim().toLowerCase()==='aldenkhafi0203@gmail.com'}
+  function openMirror(e){
+    if(!master())return;
+    if(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
+    var old=document.getElementById('fjPtOpsV2');if(old)old.classList.remove('active');
+    if(typeof window.fjOpenPtMirrorMaster==='function')window.fjOpenPtMirrorMaster();
+    var p=document.getElementById('fjPtMirrorMaster');
+    if(p){document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});p.classList.add('active');p.style.display='block';p.style.visibility='visible';p.style.opacity='1';}
+    return false;
+  }
+  function bind(){
+    var n=document.getElementById('fjPtOpsV2Nav');
+    if(!n||n.dataset.fjV56Bound)return;
+    n.dataset.fjV56Bound='1';
+    n.addEventListener('click',openMirror,true);
+    n.onclick=function(e){return openMirror(e)};
+  }
+  bind();
+  document.addEventListener('DOMContentLoaded',bind,{once:true});
+  window.addEventListener('load',bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 </body></html>

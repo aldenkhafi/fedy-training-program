@@ -8582,3 +8582,122 @@ window.addEventListener('load',function(){setTimeout(boot,1400)});
 setInterval(function(){activeNavFix();var p=$('fjPtOpsV2');if(p&&p.classList.contains('active')){renderMirrorCalendar();renderMirrorClients()}},1500);
 })();
 </script>
+
+<!-- V46 FINAL TARGETED FIX: interactive Exercise Library + Education + phone scrolling -->
+<style id="fj-v46-final-targeted">
+*{box-sizing:border-box}
+@media (max-width:760px){
+  html,body{width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;}
+  body{touch-action:pan-y!important;overscroll-behavior-y:auto!important;}
+  .app{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:100vh!important;overflow:visible!important;}
+  .side{position:relative!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;}
+  .main{position:relative!important;margin:0!important;left:auto!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:0!important;overflow:visible!important;overflow-x:hidden!important;overflow-y:visible!important;}
+  .panel{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
+  #fjExerciseLibrary{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
+  #fjExerciseLibrary .exl-shell{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
+  #fjExerciseLibrary .exl-card{width:100%!important;min-width:0!important;max-width:100%!important;}
+  #fjExerciseLibrary .exl-filters{grid-template-columns:1fr!important;width:100%!important;min-width:0!important;}
+  #fjExerciseLibrary input,#fjExerciseLibrary select,#fjExerciseLibrary textarea{max-width:100%!important;min-width:0!important;}
+  #exlGridWrap{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
+  #exlGridWrap .exl-grid{grid-template-columns:1fr!important;width:100%!important;min-width:0!important;max-width:100%!important;}
+  #exlGridWrap .exl-ex{width:100%!important;min-width:0!important;max-width:100%!important;}
+  #exlSelected .exl-grid{grid-template-columns:1fr!important;width:100%!important;}
+  #exlSelected .exl-ex{min-width:0!important;max-width:100%!important;}
+  #exlGenerator,#exlMateri{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
+  #exlGenerator .exl-gen-form,#exlMateri .exl-gen-form{grid-template-columns:1fr!important;width:100%!important;}
+  #exlMateri .exl-chipset{display:flex!important;flex-wrap:wrap!important;width:100%!important;gap:7px!important;}
+  #exlMateri .exl-chip{max-width:100%!important;}
+  #exlModal{overflow:auto!important;-webkit-overflow-scrolling:touch!important;}
+  #exlModalBody{width:calc(100vw - 24px)!important;max-width:calc(100vw - 24px)!important;min-width:0!important;max-height:calc(100vh - 24px)!important;overflow-y:auto!important;overflow-x:hidden!important;}
+}
+@media (min-width:761px){
+  html,body{overflow-x:hidden!important;}
+  .main{min-width:0!important;overflow-x:hidden!important;}
+}
+.fj-v46-edu-card{border:1px solid #cfe4ef;border-radius:14px;padding:14px;background:#fff;margin-top:12px}
+.fj-v46-edu-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.fj-v46-edu-form .span2{grid-column:1/-1}
+.fj-v46-edu-form label{display:block;font-weight:800;font-size:12px;margin-bottom:5px}
+.fj-v46-edu-form input,.fj-v46-edu-form select,.fj-v46-edu-form textarea{width:100%;padding:9px;border:1px solid #cfe0e9;border-radius:9px;background:#fff}
+.fj-v46-reco{margin-top:12px;padding:12px;border-radius:12px;background:#eef8ff;border:1px solid #bdd9e9}
+.fj-v46-exercise-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.fj-v46-ex-card{border:1px solid #d8e5eb;border-radius:12px;padding:11px;background:#fff;cursor:pointer}
+.fj-v46-ex-card h4{margin:7px 0 5px}
+.fj-v46-tags{display:flex;flex-wrap:wrap;gap:5px}.fj-v46-tag{font-size:10px;font-weight:800;padding:4px 7px;border-radius:999px;background:#eef5f8}
+@media(max-width:760px){.fj-v46-edu-form{grid-template-columns:1fr}.fj-v46-exercise-grid{grid-template-columns:1fr}}
+</style>
+<script id="fj-v46-final-targeted-runtime">
+(function(){'use strict';
+var V46={eduTopic:'jenis',eduShown:false};
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function exerciseData(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
+function activeExerciseLibrary(){var p=q('fjExerciseLibrary');return p&&p.classList.contains('active')}
+function edu(){
+ var b=q('exlMateri');if(!b)return;
+ var D=exerciseData();
+ var groups={Compound:D.filter(function(x){return String(x.type||'').toLowerCase()==='compound'}),Isolation:D.filter(function(x){return String(x.type||'').toLowerCase()==='isolation'})};
+ var topic=V46.eduTopic;
+ var topics={
+  jenis:{title:'Jenis Exercise',desc:'Pilih tujuan, level, jenis gerakan, dan alat. Sistem menyaring latihan yang sesuai.',focus:'Pilihan latihan berdasarkan kebutuhan client.'},
+  metode:{title:'Metode Latihan',desc:'Bandingkan pendekatan latihan berdasarkan tujuan dan pengalaman.',focus:'Metode yang mudah dikontrol sebelum progresi.'},
+  pola:{title:'Pola Gerak',desc:'Belajar dari squat, hinge, push, pull, lunge, carry, dan core.',focus:'Pola gerak yang perlu dilatih seimbang.'},
+  warmup:{title:'Warm Up',desc:'Pilih area tubuh dan intensitas untuk membuat urutan pemanasan.',focus:'Persiapan sebelum sesi utama.'},
+  stretching:{title:'Stretching',desc:'Pilih area tubuh dan kebutuhan mobilitas.',focus:'Mobilitas yang relevan dengan latihan.'},
+  otot:{title:'Otot',desc:'Pilih otot target untuk melihat latihan yang menargetkannya.',focus:'Primary dan secondary muscle.'},
+  sendi:{title:'Sendi',desc:'Pilih area sendi dan gerakan yang relevan.',focus:'Kontrol gerak dan rentang gerak.'},
+  tulang:{title:'Tulang',desc:'Pahami hubungan latihan beban dengan struktur tubuh secara umum.',focus:'Latihan yang dapat dilakukan dengan teknik terkontrol.'}
+ }[topic]||{};
+ var chips=Object.keys({jenis:1,metode:1,pola:1,warmup:1,stretching:1,otot:1,sendi:1,tulang:1}).map(function(k){return '<button type="button" class="exl-chip '+(k===topic?'on':'')+'" data-v46-topic="'+k+'">'+topicsLabel(k)+'</button>'}).join('');
+ b.innerHTML='<div class="exl-card"><div class="label">MATERI &amp; EDUKASI</div><h3 style="margin:4px 0">'+esc(topics.title)+'</h3><p class="exl-muted">'+esc(topics.desc)+'</p><div class="exl-chipset" id="fjV46EduTopics">'+chips+'</div></div>'+
+ '<div class="fj-v46-edu-card"><div class="exl-auto-badge">INTERAKTIF • AUTOMATION • REKOMENDASI</div><h3>Isi kondisi → sistem rekomendasikan</h3><div class="fj-v46-edu-form">'+
+ '<div><label>Tujuan</label><select id="v46EduGoal"><option>Fat Loss</option><option>Hypertrophy / Bodybuilding</option><option>Strength & Power</option><option>General Fitness</option><option>Endurance</option></select></div>'+ 
+ '<div><label>Level</label><select id="v46EduLevel"><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select></div>'+ 
+ '<div><label>Jenis</label><select id="v46EduType"><option value="">Compound + Isolation</option><option>Compound</option><option>Isolation</option></select></div>'+ 
+ '<div><label>Alat</label><select id="v46EduEquip"><option value="">Semua alat</option>'+Array.from(new Set(D.map(function(x){return x.equip}).filter(Boolean))).sort().map(function(x){return '<option>'+esc(x)+'</option>'}).join('')+'</select></div>'+ 
+ '<div><label>Fokus / area</label><input id="v46EduFocus" placeholder="contoh: glute, hamstring, shoulder, squat"></div>'+ 
+ '<div><label>Catatan / kondisi</label><input id="v46EduNote" placeholder="contoh: baru mulai, waktu 45 menit"></div>'+ 
+ '<div class="span2"><label>Pilihan latihan</label><select id="v46EduExercise" multiple size="5">'+D.slice(0,120).map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>'}).join('')+'</select><small class="exl-muted">Boleh pilih beberapa exercise.</small></div>'+ 
+ '</div><div style="margin-top:10px"><button type="button" class="exl-btn" id="v46EduRun">⚡ Buat Rekomendasi</button></div><div id="v46EduOut" class="fj-v46-reco"><span class="exl-muted">Belum ada rekomendasi. Isi pilihan lalu tekan tombol.</span></div></div>'+
+ '<div class="exl-card"><h3>Variasi Exercise yang Tersedia</h3><p class="exl-muted">Daftar dibersihkan dari ikon kecil yang tidak sesuai nama latihan. Klik kartu untuk detail.</p><div id="fjV46EduExercises" class="fj-v46-exercise-grid"></div></div>';
+ b.querySelectorAll('[data-v46-topic]').forEach(function(x){x.onclick=function(){V46.eduTopic=this.dataset.v46Topic;edu()}});
+ q('v46EduRun').onclick=function(){
+   var goal=q('v46EduGoal').value,level=q('v46EduLevel').value,type=q('v46EduType').value,equip=q('v46EduEquip').value,focus=q('v46EduFocus').value.toLowerCase().trim(),note=q('v46EduNote').value.trim();
+   var selected=Array.from(q('v46EduExercise').selectedOptions).map(function(o){return o.value});
+   var list=D.filter(function(x){if(type&&x.type!==type)return false;if(equip&&x.equip!==equip)return false;if(level&&x.level!==level)return false;if(focus){var hay=(x.name+' '+(x.primary||[]).join(' ')+' '+(x.secondary||[]).join(' ')+' '+(x.movement||'')+' '+(x.cat||'')).toLowerCase();if(hay.indexOf(focus)<0)return false}return true}).slice(0,12);
+   var chosen=selected.map(function(id){return D.find(function(x){return x.id===id})}).filter(Boolean);
+   var finalList=chosen.length?chosen:list;
+   var names=finalList.slice(0,6).map(function(x){return '<b>'+esc(x.name)+'</b> ('+esc(x.type||'')+')'}).join(', ')||'Tidak ada yang cocok';
+   q('v46EduOut').innerHTML='<b>Rekomendasi otomatis</b><p>Tujuan: '+esc(goal)+' • Level: '+esc(level)+' • Jenis: '+esc(type||'Compound + Isolation')+(equip?' • Alat: '+esc(equip):'')+'</p><p>'+names+'</p><p class="exl-muted">Fokus: '+esc(focus||'umum')+'. '+esc(note||'Gunakan teknik terkontrol dan progresi bertahap sesuai kemampuan.')+'</p>';
+   renderEduExercises(finalList);
+ };
+ renderEduExercises(D.slice(0,18));
+}
+function topicsLabel(k){return {jenis:'Jenis Exercise',metode:'Metode Latihan',pola:'Pola Gerak',warmup:'Warm Up',stretching:'Stretching',otot:'Otot',sendi:'Sendi',tulang:'Tulang'}[k]||k}
+function renderEduExercises(list){var b=q('fjV46EduExercises');if(!b)return;b.innerHTML=list.map(function(d){return '<div class="fj-v46-ex-card" data-v46-id="'+esc(d.id)+'"><div class="fj-v46-tags"><span class="fj-v46-tag">'+esc(d.type||'Compound')+'</span><span class="fj-v46-tag">'+esc(d.level||'')+'</span></div><h4>'+esc(d.name)+'</h4><div class="exl-muted">'+esc((d.primary||[]).join(', '))+'</div><div class="fj-v46-tags" style="margin-top:6px"><span class="fj-v46-tag">'+esc(d.movement||d.move||'')+'</span><span class="fj-v46-tag">'+esc(d.equip||'')+'</span></div></div>'}).join('');b.querySelectorAll('[data-v46-id]').forEach(function(c){c.onclick=function(){if(window.fjExlOpen)window.fjExlOpen(c.dataset.v46Id)}})}
+function refreshBrowse(){
+ var b=q('exlBrowse');if(!b)return;
+ /* Remove misleading tiny emoji/icon blocks from all exercise-library cards. */
+ b.querySelectorAll('.exl-emoji').forEach(function(x){x.remove()});
+ b.querySelectorAll('.exl-ex').forEach(function(x){x.style.minWidth='0';x.style.maxWidth='100%'});
+}
+function install(){
+ /* Force the phone to use the document's normal vertical scroll. */
+ if(window.innerWidth<=760){document.documentElement.style.overflowY='auto';document.body.style.overflowY='auto';document.body.style.height='auto';document.body.style.minHeight='100%';}
+ document.addEventListener('click',function(e){
+   var b=e.target.closest&&e.target.closest('.side .navbtn');
+   if(b && /Exercise Library/i.test(b.textContent||'')){setTimeout(function(){refreshBrowse()},80)}
+   var t=e.target.closest&&e.target.closest('#fjExerciseLibrary .exl-tab');
+   if(t && /Materi|Edukasi/i.test(t.textContent||'')){setTimeout(function(){edu()},100)}
+ },true);
+ var obs=new MutationObserver(function(){
+   if(activeExerciseLibrary()){
+     refreshBrowse();
+     if(q('exlMateri')&&q('exlMateri').classList.contains('active')&&!q('fjV46EduTopics'))edu();
+   }
+ });
+ obs.observe(document.body,{childList:true,subtree:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+})();
+</script>

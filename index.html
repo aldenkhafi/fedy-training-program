@@ -1421,8 +1421,6 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #fjPtOpsV2 .ptv2-calendar-scroll .ptv2-day{min-height:86px}
 @media(max-width:760px){#fjPtPublicDirectory .fj-pd-form{grid-template-columns:1fr 1fr}#fjPtPublicDirectory .fj-pd-form .wide{grid-column:1/-1}.fj-pcu-list{grid-template-columns:1fr}.fj-pcu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fj-pcu-detailgrid{grid-template-columns:1fr}.fj-pcu-shell{padding:10px}#fjPtOpsV2 .ptv2-calendar-scroll{max-width:100vw}.fj-pcu-table{font-size:10px}}
 </style></head><body>
-&lt;!-- FJ V60 CLEAN ONLINE MASTER: consolidated online/PT directory/PT&amp;Client controller; redundant runtime patches removed. --&gt;
-
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
 <div class="brand">FITNESS JOURNEY<small>TRAINING PROGRAM</small></div>
@@ -5851,7 +5849,16 @@ async function saveEditor(){
    alert('Training berhasil disimpan dan dikirim online.');
  }catch(err){console.error('Save Training failed',err);alert('Save Training gagal: '+(err&&err.message?err.message:err))}
 }
-function deleteEvent(){var k=$('ccEditKey').value;if(ccState.events[k]){pushHistory();delete ccState.events[k]}$('ccModal').classList.remove('open');renderCalendar();ccAutoPersist()}
+async function deleteEvent(){
+ var k=$('ccEditKey').value,st=ccState,e=st&&st.events&&st.events[k];if(!e)return;
+ if(!confirm('Hapus training ini dari Client Calendar dan PT Tracker?'))return;
+ var remoteId=e._fjOnlineScheduleId||null;
+ try{
+   if(remoteId&&window.sb){var rr=await window.sb.from('pt_schedules').delete().eq('id',remoteId);if(rr.error)throw rr.error}
+   pushHistory();delete st.events[k];ccState=st;ccAutoPersist();$('ccModal').classList.remove('open');renderCalendar();updateHistory();
+   if(window.fjLivePull)await window.fjLivePull();
+ }catch(err){alert('Training tidak dihapus karena sinkronisasi online gagal: '+(err.message||err))}
+}
 function prevMonth(){ccState.month--;if(ccState.month<0){ccState.month=11;ccState.year--}renderCalendar();ccAutoPersist()}
 function nextMonth(){ccState.month++;if(ccState.month>11){ccState.month=0;ccState.year++}renderCalendar();ccAutoPersist()}
 function resetCalendar(){var has=Object.keys(ccState.events||{}).length>0;if(has&&!window.confirm('Reset Calendar akan mengosongkan kalender yang sedang tampil. Data yang sudah di-Save/tersimpan tidak akan dihapus. Lanjutkan?'))return;pushHistory();ccState.events={};renderCalendar();updateHistory()}
@@ -6780,7 +6787,7 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
     var side=document.querySelector('.side');if(!side)return;
     var n=el(NAV_ID);
     if(!n){
-      n=document.createElement('button');n.id=NAV_ID;n.type='button';n.className='navbtn';n.textContent='▣ PT Tracker Management';
+      n=document.createElement('button');n.id=NAV_ID;n.type='button';n.className='navbtn';n.textContent='▣ PT Tracker';
       n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openTracker()};
       var cc=document.getElementById('clientCalendarNav');
       if(cc&&cc.parentNode)cc.parentNode.insertBefore(n,cc.nextSibling);else side.appendChild(n);
@@ -6989,10 +6996,29 @@ async function pushCalendar(){var s=sb();if(!s)throw new Error('Supabase belum t
   var when=String(x.key).length===16?x.key+':00':x.key;var old=remote.find(function(z){var p=parseNotes(z.notes);return (p&&p._fjSyncId===e._fjSyncId)||(e._fjOnlineScheduleId&&z.id===e._fjOnlineScheduleId)});var sp={client_id:rc.id,pt_user_id:e.pt_user_id||rc.pt_user_id||null,scheduled_at:when,schedule_type:'PT Session',notes:eventNotes(e),status:(old&&old.status)||'SCHEDULED'};var wr=old?await s.from('pt_schedules').update(sp).eq('id',old.id).select().single():await s.from('pt_schedules').insert(sp).select().single();if(wr.error)throw wr.error;e._fjOnlineScheduleId=wr.data.id;remote=remote.filter(function(z){return z.id!==wr.data.id}).concat([wr.data]);
  }
  var p=cal();if(p)write(CAL,p);return true}
-function mergeRemoteCalendar(clients,schedules){var p=cal()||{version:'CLIENT_CALENDAR_V1',calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};p.calendar=p.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};p.calendar.events=p.calendar.events||{};var seen={};
- schedules.forEach(function(r){var when=String(r.scheduled_at||'').slice(0,16);if(!when)return;var pe=parseNotes(r.notes),c=clients.find(function(z){return String(z.id)===String(r.client_id)}),pr=c&&c.profile||{};var e=pe||{title:r.schedule_type||'PT Session',notes:String(r.notes||''),exercises:[]};e._fjOnlineScheduleId=r.id;e._fjOnlineClientId=r.client_id;e._fjSyncId=e._fjSyncId||('remote_'+r.id);e.pt_user_id=e.pt_user_id||r.pt_user_id||(c&&c.pt_user_id)||null;e.pt_name=e.pt_name||(pr.pt_name||c&&c.pt_name)||'';e.pt_email=e.pt_email||(c&&c.pt_email)||'';e.client=Object.assign({name:c&&c.name||'Client',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||''},e.client||{});p.calendar.events[when]=e;seen[String(r.id)]=1});
- Object.keys(p.calendar.events).forEach(function(k){var e=p.calendar.events[k];if(e&&e._fjOnlineScheduleId&&!seen[String(e._fjOnlineScheduleId)])delete p.calendar.events[k]});p.savedAt=new Date().toISOString();write(CAL,p);
- var d=dir();clients.forEach(function(c){var pr=c.profile||{},key=Object.keys(d).find(function(k){return d[k]&&((c.id&&d[k].onlineId===c.id)||(norm(d[k].name)===norm(c.name)&&(!c.phone||norm(d[k].phone)===norm(c.phone))))})||('online_'+c.id);d[key]=Object.assign({},d[key]||{},{id:key,name:c.name,phone:c.phone||'',email:c.email||'',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||'',notes:c.notes||'',onlineId:c.id,pt_user_id:c.pt_user_id||'',pt_email:c.pt_email||'',pt_name:pr.pt_name||d[key]?.pt_name||'',before:pr.beforeAfter?.before||d[key]?.before||null,after:pr.beforeAfter?.after||d[key]?.after||null});});write(DIR,d);return p}
+function mergeRemoteCalendar(clients,schedules){
+ var p=cal()||{version:'CLIENT_CALENDAR_V1',calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};
+ p.calendar=p.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};
+ p.calendar.events=p.calendar.events||{};var seen={};
+ schedules.forEach(function(r){
+   var when=String(r.scheduled_at||'').slice(0,16);if(!when)return;
+   var pe=parseNotes(r.notes),c=clients.find(function(z){return String(z.id)===String(r.client_id)}),pr=c&&c.profile||{};
+   var e=pe||{title:r.schedule_type||'PT Session',notes:'',exercises:[]};
+   e._fjOnlineScheduleId=r.id;e._fjOnlineClientId=r.client_id;e._fjSyncId=e._fjSyncId||('remote_'+r.id);
+   e.pt_user_id=e.pt_user_id||r.pt_user_id||(c&&c.pt_user_id)||null;
+   e.pt_name=e.pt_name||(pr.pt_name||c&&c.pt_name)||'';e.pt_email=e.pt_email||(c&&c.pt_email)||'';
+   e.client=Object.assign({name:c&&c.name||'Client',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||''},e.client||{});
+   p.calendar.events[when]=e;seen[String(r.id)]=1;
+ });
+ Object.keys(p.calendar.events).forEach(function(k){var e=p.calendar.events[k];if(e&&e._fjOnlineScheduleId&&!seen[String(e._fjOnlineScheduleId)])delete p.calendar.events[k]});
+ p.savedAt=new Date().toISOString();write(CAL,p);
+ var d=dir(),remoteIds={};
+ clients.forEach(function(c){remoteIds[String(c.id)]=1;var pr=c.profile||{},key=Object.keys(d).find(function(k){return d[k]&&((c.id&&d[k].onlineId===c.id)||(norm(d[k].name)===norm(c.name)&&(!c.phone||norm(d[k].phone)===norm(c.phone))))})||('online_'+c.id);
+   d[key]=Object.assign({},d[key]||{},{id:key,name:c.name,phone:c.phone||'',email:c.email||'',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||'',notes:c.notes||'',onlineId:c.id,pt_user_id:c.pt_user_id||'',pt_email:c.pt_email||'',pt_name:pr.pt_name||c.pt_name||d[key]?.pt_name||'',before:pr.beforeAfter?.before||d[key]?.before||null,after:pr.beforeAfter?.after||d[key]?.after||null});
+ });
+ Object.keys(d).forEach(function(k){var x=d[k];if(x&&x.onlineId&&!remoteIds[String(x.onlineId)])delete d[k]});
+ write(DIR,d);return p;
+}
 function renderAll(){try{var p=cal(),api=window.fjClientCalendar;if(api&&typeof api.state==='function'&&p){var st=api.state();st.events=p.calendar.events||{};if(typeof p.calendar.year==='number')st.year=p.calendar.year;if(typeof p.calendar.month==='number')st.month=p.calendar.month;if(typeof api.render==='function')api.render()}}catch(e){}try{if(window.fjPtV2Refresh)window.fjPtV2Refresh()}catch(e){}}
 async function pullRemote(silent){var s=sb();if(!s||pullBusy)return;pullBusy=true;try{var rs=await Promise.all([s.from('pt_clients').select('*').order('name'),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(5000),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(5000),s.from('pt_packages').select('*').order('purchase_date',{ascending:false}).limit(5000)]);var bad=rs.find(function(x){return x.error});if(bad)throw bad.error;mergeRemoteCalendar(rs[0].data||[],rs[1].data||[]);renderAll();if(!silent)badge('ONLINE • data terbaru','live')}catch(e){console.error('V60 pull',e);badge('ONLINE ERROR • '+(e.message||e),'err')}finally{pullBusy=false}}
 async function pushNow(){if(pushBusy)return;pushBusy=true;badge('Menyimpan online…','sync');try{await pushCalendar();await pullRemote(true);badge('ONLINE • tersimpan','live')}catch(e){console.error('V60 push',e);badge('ONLINE ERROR • '+(e.message||e),'err')}finally{pushBusy=false}}
@@ -7016,9 +7042,15 @@ function showClients(ptid){var pt=U.pts.find(function(x){return String(x.user_id
 function showClient(cid,ptid){var c=U.clients.find(function(x){return String(x.id)===String(cid)}),pt=U.pts.find(function(x){return String(x.user_id)===String(ptid)}),d=q('fjPcuDetail');if(!c||!d)return;var pr=c.profile||{},sch=U.schedules.filter(function(x){return String(x.client_id)===String(cid)}),co=U.conducts.filter(function(x){return String(x.client_id)===String(cid)}),packs=U.packages.filter(function(x){return String(x.client_id)===String(cid)}),ba=pr.beforeAfter||{};var hist=sch.map(function(x){var z=parseNotes(x.notes)||{};return '<tr><td>'+esc(x.scheduled_at||'')+'</td><td>'+esc(z.title||x.schedule_type||'PT Session')+'</td><td>'+esc(Array.isArray(z.exercises)?z.exercises.length:0)+'</td><td>'+esc(x.status||'')+'</td></tr>'}).join('')||'<tr><td colspan="4">Belum ada training.</td></tr>';var pack=packs.map(function(x){return '<tr><td>'+esc(x.package_name||'')+'</td><td>'+esc(x.total_sessions||0)+'</td><td>'+esc(x.used_sessions||0)+'</td><td>'+Math.max(0,Number(x.total_sessions||0)-Number(x.used_sessions||0))+'</td><td>'+esc(x.expiry_date||'')+'</td></tr>'}).join('')||'<tr><td colspan="5">Belum ada package.</td></tr>';var cond=co.map(function(x){return '<tr><td>'+esc(x.conducted_at||'')+'</td><td>'+esc(x.notes||'')+'</td></tr>'}).join('')||'<tr><td colspan="2">Belum ada conduct.</td></tr>';d.innerHTML='<div class="fj-pcu-detail"><button type="button" class="ptv2-btn alt" data-pcu-back-client>← Kembali</button><h3>'+esc(c.name)+'</h3><p><b>PT:</b> '+esc(ptLabel(pt))+' &nbsp; <b>Training:</b> '+sch.length+' &nbsp; <b>Conduct:</b> '+co.length+' &nbsp; <b>Sisa:</b> '+remaining(c.id)+'</p><div class="fj-pcu-detailgrid"><div><b>Profile</b><table class="fj-pcu-table"><tr><th>Age</th><td>'+esc(pr.age||'—')+'</td><th>Gender</th><td>'+esc(pr.gender||'—')+'</td></tr><tr><th>Weight</th><td>'+esc(pr.weight||'—')+'</td><th>Height</th><td>'+esc(pr.height||'—')+'</td></tr><tr><th>Goal</th><td>'+esc(pr.goal||'—')+'</td><th>Level</th><td>'+esc(pr.level||'—')+'</td></tr><tr><th>Workout</th><td colspan="3">'+esc(pr.wtype||'—')+'</td></tr></table></div><div><b>Before / After</b><div class="fj-pcu-detailgrid"><div>'+(ba.before&&(ba.before.image||ba.before.photo)?'<img class="fj-pcu-photo" src="'+esc(ba.before.image||ba.before.photo)+'">':'—')+'</div><div>'+(ba.after&&(ba.after.image||ba.after.photo)?'<img class="fj-pcu-photo" src="'+esc(ba.after.image||ba.after.photo)+'">':'—')+'</div></div></div></div><h4>Training History</h4><table class="fj-pcu-table"><tr><th>Date</th><th>Training</th><th>Exercise</th><th>Status</th></tr>'+hist+'</table><h4>Packages / Sesi</h4><table class="fj-pcu-table"><tr><th>Package</th><th>Total</th><th>Used</th><th>Remaining</th><th>Expiry</th></tr>'+pack+'</table><h4>Conduct History</h4><table class="fj-pcu-table"><tr><th>Date</th><th>Notes</th></tr>'+cond+'</table></div>'}
 async function loadUnified(){var p=q('fjPtOpsV2');if(!p)return;var v=q('fjPtClientUnified');if(!v){v=document.createElement('div');v.id='fjPtClientUnified';v.className='ptv2-view';v.innerHTML='<div class="fj-pcu-shell"><div class="fj-pcu-head"><div><h2>PT & Client</h2><div class="fj-pcu-muted">Cari PT → lihat client, conduct, sisa sesi, Before/After, dan riwayat training.</div></div><span id="fjPcuStatus" class="fj-pcu-muted"></span></div><input id="fjPcuSearch" class="fj-pcu-search" placeholder="Cari nama PT..."><div id="fjPcuList" class="fj-pcu-list"></div><div id="fjPcuDetail"></div></div>';p.appendChild(v)}var tabs=p.querySelector('.ptv2-tabs'),b=tabs&&tabs.querySelector('[data-v="pt-client"]');if(!b){b=document.createElement('button');b.type='button';b.className='ptv2-tab';b.dataset.v='pt-client';b.textContent='PT & Client';tabs.appendChild(b)}p.querySelectorAll('.ptv2-view').forEach(function(x){x.classList.remove('active')});v.classList.add('active');p.querySelectorAll('.ptv2-tab').forEach(function(x){x.classList.toggle('active',x===b)});var s=sb();if(!s)return;var rs=await Promise.all([getPTs(),s.from('pt_clients').select('*').order('name'),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:false}).limit(5000),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(5000),s.from('pt_packages').select('*').order('purchase_date',{ascending:false}).limit(5000)]);var bad=rs.slice(1).find(function(x){return x.error});if(bad){alert('PT & Client gagal memuat: '+bad.error.message);return}U={pts:rs[0]||[],clients:rs[1].data||[],schedules:rs[2].data||[],conducts:rs[3].data||[],packages:rs[4].data||[]};q('fjPcuSearch').oninput=renderPTCards;renderPTCards();q('fjPcuStatus').textContent='ONLINE • '+U.clients.length+' client'}
 
-function bind(){ptOpenObserver();var save=q('ccSaveEvent');if(save&&!save.dataset.fj60){save.dataset.fj60='1';save.addEventListener('click',function(){queue(250)},true)}var del=q('ccDeleteEvent');if(del&&!del.dataset.fj60){del.dataset.fj60='1';del.addEventListener('click',function(){var k=(q('ccEditKey')||{}).value,p=cal(),e=p&&p.calendar&&p.calendar.events&&p.calendar.events[k],id=e&&e._fjOnlineScheduleId;setTimeout(function(){if(id)deleteRemoteSchedule(id)},200)},true)}
- var side=document.querySelector('.side');if(side&&!q('fjV60PtDirectoryNav')){var n=document.createElement('button');n.id='fjV60PtDirectoryNav';n.type='button';n.className='navbtn';n.textContent='PT & Client';n.onclick=function(){if(window.fjPtM53Show)window.fjPtM53Show();setTimeout(function(){var p=q('fjPtOpsV2');if(p){p.classList.add('active');var tab=p.querySelector('[data-v="pt-client"]');if(tab)tab.click()}},100)};side.appendChild(n)}
- if(q('fjPtOpsV2')){renderDirectory();}
+function bind(){
+ ptOpenObserver();
+ var side=document.querySelector('.side');
+ if(side&&!q('fjV60PtDirectoryNav')){
+   var n=document.createElement('button');n.id='fjV60PtDirectoryNav';n.type='button';n.className='navbtn';n.textContent='PT & Client';
+   n.onclick=function(){if(window.fjPtM53Show)window.fjPtM53Show();setTimeout(function(){var p=q('fjPtOpsV2');if(p){p.classList.add('active');var tab=p.querySelector('[data-v="pt-client"]');if(tab)tab.click()}},100)};
+   side.appendChild(n);
+ }
+ if(q('fjPtOpsV2'))renderDirectory();
 }
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('[data-pt]'):null;if(a&&a.closest&&a.closest('#fjPcuList')){showClients(a.dataset.pt)}var c=e.target&&e.target.closest?e.target.closest('[data-client]'):null;if(c&&c.closest&&c.closest('#fjPcuClients')){showClient(c.dataset.client,c.dataset.pt)}var b=e.target&&e.target.closest?e.target.closest('[data-pcu-back-client]'):null;if(b){showClients(b.dataset.pt||'')}} ,true);
 async function boot(){bind();if(sb()){await pullRemote(true);try{channel=sb().channel('fj-v60-online').on('postgres_changes',{event:'*',schema:'public',table:'pt_clients'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_conducts'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){pullRemote(true)}).subscribe()}catch(e){console.warn('Realtime subscribe',e)}}}
@@ -7027,6 +7059,20 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 // Exercise de-duplication: one display item per normalized exercise name.
 try{var a=window.__fjExerciseData||[],seen={};for(var i=a.length-1;i>=0;i--){var key=norm(a[i]&&a[i].name).replace(/[^a-z0-9]+/g,'');if(seen[key])a.splice(i,1);else seen[key]=1}}catch(e){}
 })();
+</script><style id="fj-v61-clean-mobile-ui">
+@media(max-width:760px){
+ .side .navbtn{white-space:normal!important;overflow:hidden!important;text-overflow:clip!important;line-height:1.15!important;word-break:break-word!important;min-height:38px!important}
+ #fjExerciseLibrary .exl-grid>.exl-card,#exlGridWrap .exl-grid>.exl-card,#exlSelected .exl-grid>.exl-card{overflow:hidden!important;min-width:0!important}
+ #fjExerciseLibrary .exl-level,#fjExerciseLibrary .exl-type,#exlGridWrap .exl-level,#exlGridWrap .exl-type{display:inline-flex!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.15!important}
+ #fjExerciseLibrary .exl-ex-top{display:flex!important;flex-wrap:wrap!important;gap:4px!important;min-width:0!important}
+ #fjExerciseLibrary .exl-ex-top>*{min-width:0!important;max-width:100%!important}
+ #fjPtOpsV2 .ptv2-tabs{overflow-x:auto!important;white-space:nowrap!important;-webkit-overflow-scrolling:touch!important;padding-bottom:3px!important}
+ #fjPtOpsV2 .ptv2-tab{white-space:nowrap!important;flex:0 0 auto!important}
+}
+</style><script id="fj-v61-activity-master">
+(function(){'use strict';function q(id){return document.getElementById(id)}function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}function master(){var u=window.currentUser||{};return String(u.email||'').toLowerCase()==='aldenkhafi0203@gmail.com'}function sb(){return window.sb||null}function setup(){if(!master())return;var p=q('fjPtOpsV2');if(!p)return;var tabs=p.querySelector('.ptv2-tabs');if(!tabs)return;var b=tabs.querySelector('[data-v="activity-log"]');if(!b){b=document.createElement('button');b.type='button';b.className='ptv2-tab';b.dataset.v='activity-log';b.textContent='Activity Tracking';tabs.appendChild(b)}var v=q('fjActivityLog');if(!v){v=document.createElement('div');v.id='fjActivityLog';v.className='ptv2-view';v.innerHTML='<div class="ptv2-card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">ONLINE ACTIVITY TRACKING</h3><div class="ptv2-muted">Perubahan online Client, Training, Conduct, Package, PT Directory, dan Extension Request.</div></div><button type="button" class="ptv2-btn alt" id="fjActivityRefresh">Refresh</button></div><div id="fjActivityStatus" class="ptv2-muted" style="margin:8px 0"></div><div style="overflow:auto"><table class="ptv2-table" style="width:100%;min-width:720px"><thead><tr><th>Waktu</th><th>User</th><th>Aksi</th><th>Data</th><th>PT</th><th>Client</th></tr></thead><tbody id="fjActivityRows"></tbody></table></div></div>';p.appendChild(v)}async function refresh(){var s=sb(),rows=q('fjActivityRows'),st=q('fjActivityStatus');if(!s||!rows)return;st.textContent='Memuat aktivitas online…';var r=await s.from('pt_activity_log').select('*').order('created_at',{ascending:false}).limit(300);if(r.error){st.textContent='ONLINE ERROR • '+r.error.message;rows.innerHTML='';return}rows.innerHTML=(r.data||[]).map(function(x){var d=x.details||{};return '<tr><td>'+esc(x.created_at?new Date(x.created_at).toLocaleString():'')+'</td><td>'+esc(x.actor_email||'')+'</td><td>'+esc(x.action||'')+'</td><td>'+esc(x.entity_table||'')+' • '+esc(x.entity_id||'')+'</td><td>'+esc(d.pt_name||x.pt_user_id||'')+'</td><td>'+esc(d.name||x.client_id||'')+'</td></tr>'}).join('')||'<tr><td colspan="6">Belum ada aktivitas.</td></tr>';st.textContent='ONLINE • '+(r.data||[]).length+' aktivitas terakhir'}b.onclick=function(){p.querySelectorAll('.ptv2-view').forEach(function(x){x.classList.remove('active')});v.classList.add('active');p.querySelectorAll('.ptv2-tab').forEach(function(x){x.classList.toggle('active',x===b)});refresh()};if(q('fjActivityRefresh'))q('fjActivityRefresh').onclick=refresh}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(setup,1200)},{once:true});else setTimeout(setup,1200)})();
+</script><script id="fj-v61-materi-dependent-library">
+(function(){'use strict';function q(id){return document.getElementById(id)}function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}function rebuild(){var m=q('exlMateri');if(!m)return;var data=window.__fjExerciseData||[],muscle=q('eduMuscle')?.value||'',joint=q('eduJoint')?.value||'',pattern=q('eduPattern')?.value||'',level=q('eduLevel')?.value||'';var mm=null;try{if(typeof EDU_MUSCLES!=='undefined')mm=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return x.name===muscle})}catch(_){}function meta(d){return typeof fjExMeta==='function'?fjExMeta(d):{primary:d.primary||[],secondary:d.secondary||[],joints:d.joints||'',pattern:d.pattern||d.move||''}}function compatible(d){var z=meta(d),txt=[z.primary,z.secondary,z.joints,z.pattern,d.name,d.cat].join(' ').toLowerCase();if(mm&&!mm.keywords.some(function(k){return txt.indexOf(String(k).toLowerCase())>=0}))return false;if(pattern&&String(z.pattern||'')!==pattern)return false;if(joint&&String(z.joints||'').toLowerCase().indexOf(joint.toLowerCase())<0)return false;if(level&&d.level!==level)return false;return true}var ex=data.filter(compatible).map(function(d){return d.name}).sort(),el=q('eduExercise'),old=el&&el.value;if(el){el.innerHTML='<option value="">Pilih latihan</option>'+ex.map(function(x){return '<option value="'+E(x)+'">'+E(x)+'</option>'}).join('');if(ex.indexOf(old)>=0)el.value=old}if(mm){var j=q('eduJoint'),jl=mm.joints||[];if(j){var ov=j.value;j.innerHTML='<option value="">Pilih nama sendi</option>'+jl.map(function(x){return '<option value="'+E(x)+'">'+E(x)+'</option>'}).join('');if(jl.indexOf(ov)>=0)j.value=ov}var b=q('eduBone'),bl=mm.bones||[];if(b){var ob=b.value;b.innerHTML='<option value="">Pilih tulang</option>'+bl.map(function(x){return '<option value="'+E(x)+'">'+E(x)+'</option>'}).join('');if(bl.indexOf(ob)>=0)b.value=ob}}}function boot(){setTimeout(rebuild,1000);document.addEventListener('change',function(e){if(e.target&&/^edu(Muscle|Exercise|Pattern|Joint|Bone|Sport|Goal|Level)$/.test(e.target.id))setTimeout(rebuild,20)},true)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot()})();
 </script></body></html>
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -8518,7 +8564,19 @@ window.__fjExerciseData.push(
 (function(){'use strict';
 function q(id){return document.getElementById(id)}
 function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-var DATA=window.__fjExerciseData||[];
+var DATA=(function(src){
+  var out=[],seen={};
+  (Array.isArray(src)?src:[]).forEach(function(d){
+    var key=String(d&&d.name||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'');
+    if(!key)return;
+    if(!seen[key]){seen[key]=1;out.push(d);}
+    else{
+      var i=out.findIndex(function(x){return String(x&&x.name||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'')===key});
+      if(i>=0 && (!out[i].steps||!out[i].desc) && (d.steps||d.desc))out[i]=d;
+    }
+  });
+  return out;
+})(window.__fjExerciseData||[]);
 var F={cat:'',equip:'',level:'',move:'',q:'',type:''};
 var SELECTED=[]; // ids
 
@@ -9116,7 +9174,9 @@ window.addEventListener('load',function(){setTimeout(boot,1100)});
   #exlSelected .exl-grid>.exl-card .exl-meta-line,
   #fjExerciseLibrary .exl-grid>.exl-card .exl-meta-line span,
   #exlGridWrap .exl-grid>.exl-card .exl-meta-line span,
-  #exlSelected .exl-grid>.exl-card .exl-meta-line span,
+  #exlSelected .exl-grid>.exl-card .exl-meta-line span{
+    min-width:0!important;max-width:100%!important;overflow-wrap:anywhere!important;word-break:break-word!important;white-space:normal!important;box-sizing:border-box!important;
+  }
 }
 /* PT Management device toolbar remains compact and wraps naturally on phones. */
 #fjPtOpsV2 .fj-v50-device-toolbar{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin:6px 0 10px!important;padding:7px!important;border:1px solid #d9e8ef!important;border-radius:10px!important;background:#fbfefe!important}

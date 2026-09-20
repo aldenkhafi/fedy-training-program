@@ -1388,6 +1388,18 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
  #ccRangeModal .fj-cc-range-actions .btn{width:100%;}
 }
 </style>
+<style id="fj-pt-tracker-only-bridge-css">
+#fjPtMirrorMaster,#fjPtMasterNav{display:none!important}
+#fjPtTrackerNav{display:flex!important}
+#fjPtOpsV2Nav{display:none!important}
+#fjPtOpsV2.fj-pt-tracker-open{display:block!important}
+</style>
+<style id="fj-pt-tracker-final-overrides">
+/* PT Tracker keeps the complete PT Management feature set. */
+#fjPtOpsV2.fj-pt-tracker-open .ptv2-tab[data-v="detail"]{display:inline-flex!important}
+#fjPtOpsV2.fj-pt-tracker-open #ptv2Detail{display:block!important}
+#fjPtOpsV2.fj-pt-tracker-open{display:block!important}
+</style>
 </head><body>
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
@@ -6423,7 +6435,7 @@ window.fjPtV2Conduct=function(sid){var e=V.schedules.find(function(x){return x.i
 window.fjPtV2SaveConduct=async function(sid){var s=sbc(),e=V.schedules.find(function(x){return x.id===sid});if(!s||!e)return;var r=await s.from('pt_conducts').insert({client_id:e.client_id,package_id:q('v2cp').value,pt_user_id:uid(),conducted_at:new Date().toISOString(),notes:q('v2cn').value.trim()});if(r.error){alert(r.error.message);return}await s.from('pt_schedules').update({status:'DONE'}).eq('id',sid);closeModal();await load();show('calendar')};window.fjPtV2Done=async function(id){var s=sbc();if(!s)return;await s.from('pt_schedules').update({status:'DONE'}).eq('id',id);closeModal();await load();show('calendar')};
 window.fjPtV2PDF=function(id){var c=client(id);if(!c)return;var ps=V.packages.filter(function(p){return p.client_id===id}),cs=V.conducts.filter(function(x){return x.client_id===id}),root=document.createElement('div');root.id='fjPtV2Print';root.innerHTML='<h1>'+E(c.name)+'</h1><p>PT: '+E(c.pt_email||'—')+'</p><h2>Client Profile</h2><p>Age: '+E(c.profile?.age||'—')+' | Gender: '+E(c.profile?.gender||'—')+' | Weight: '+E(c.profile?.weight||'—')+' | Height: '+E(c.profile?.height||'—')+' | Goal: '+E(c.profile?.goal||'—')+'</p><h2>Packages</h2><table>'+ps.map(function(p){return '<tr><td>'+E(p.package_name)+'</td><td>'+p.total_sessions+' total</td><td>'+p.used_sessions+' used</td><td>'+(p.total_sessions-p.used_sessions)+' remaining</td><td>'+E(p.purchase_date)+'</td><td>'+E(p.expiry_date)+'</td></tr>'}).join('')+'</table><h2>Conduct History</h2><table>'+cs.map(function(x){return '<tr><td>'+E(x.conducted_at)+'</td><td>'+E(x.notes||'')+'</td></tr>'}).join('')+'</table>';document.body.appendChild(root);var css=document.createElement('style');css.id='fjPtV2PrintCss';css.textContent='@media print{body>*:not(#fjPtV2Print){display:none!important}#fjPtV2Print{display:block!important;padding:25px;font-family:Arial}#fjPtV2Print table{width:100%;border-collapse:collapse}#fjPtV2Print td{border-bottom:1px solid #ddd;padding:7px}}@media screen{#fjPtV2Print{display:none}}';document.head.appendChild(css);window.print();setTimeout(function(){root.remove();css.remove()},500)};
 function protectRefresh(){if(window.__fjRefreshProtected)return;window.__fjRefreshProtected=true;document.documentElement.style.overscrollBehaviorY='none';document.body.style.overscrollBehaviorY='none';var sy=0;document.addEventListener('touchstart',function(e){sy=e.touches&&e.touches[0]?e.touches[0].clientY:0},{passive:true});document.addEventListener('touchmove',function(e){var y=e.touches&&e.touches[0]?e.touches[0].clientY:sy;if(window.scrollY<=0&&y>sy+4)e.preventDefault()},{passive:false});document.addEventListener('keydown',function(e){if(e.key==='F5'||((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='r')){e.preventDefault();e.stopPropagation();alert('Refresh dinonaktifkan agar data tidak hilang.');return false}} ,true);window.addEventListener('beforeunload',function(){try{var p=JSON.parse(localStorage.getItem('fj_client_calendar_v1')||'null');if(p){p.autoBackupAt=new Date().toISOString();localStorage.setItem('fj_client_calendar_v1_autobackup',JSON.stringify(p))}}catch(_){}});}
-function boot(){protectRefresh();nav();build();if(can())load();}
+function boot(){window.fjPtV2Show=show;window.fjPtV2Build=build;protectRefresh();nav();build();if(can())load();}
 var __ptmBootTries=0;function retryBoot(){boot();__ptmBootTries++;if(__ptmBootTries<40 && !q('fjPtOpsV2Nav'))setTimeout(retryBoot,500)};setTimeout(retryBoot,300);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);window.addEventListener('load',function(){setTimeout(boot,1100)});window.addEventListener('focus',function(){if(can())load()});
 })();
@@ -6726,154 +6738,73 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
 
 <!-- V58: PT MANAGEMENT MASTER MIRROR - minimal isolated navigation bridge. Original base preserved. -->
 <style id="fj-v58-pt-master-bridge">
-/* Only suppress the obsolete PT Management entry/panel. No other application panel is changed. */
+/* PT Tracker Management replaces the obsolete PT Management entry while reusing the original PT feature engine. */
 #fjPtOpsV2Nav{display:none!important}
 #fjPtOpsV2{display:none!important}
-#fjPtMirrorMaster{display:none}
-#fjPtMirrorMaster.active{display:block!important;visibility:visible!important;opacity:1!important}
-#fjPtMasterNav{display:none}
-#fjPtMasterNav.fj-v58-show{display:flex!important}
+#fjPtOpsV2.fj-pt-tracker-open{display:block!important;visibility:visible!important;opacity:1!important}
+#fjPtMirrorMaster{display:none!important}
+#fjPtMasterNav{display:none!important}
+#fjPtTrackerNav{display:flex!important}
 </style>
 <script id="fj-v58-pt-master-bridge-runtime">
 (function(){
   'use strict';
-  var NAV_ID='fjPtMasterNav', PANEL_ID='fjPtMirrorMaster', OLD_NAV='fjPtOpsV2Nav', OLD_PANEL='fjPtOpsV2';
+  var NAV_ID='fjPtTrackerNav', OLD_NAV='fjPtOpsV2Nav', OLD_PANEL='fjPtOpsV2';
   function el(id){return document.getElementById(id)}
-  function isMaster(){
-    var u=null;
-    try{u=(typeof currentUser!=='undefined'&&currentUser)||null}catch(_){u=null}
-    if(!u)u=window.currentUser||null;
-    var email=String(u&&u.email||'').trim().toLowerCase();
-    if(email==='aldenkhafi0203@gmail.com')return true;
-    try{return typeof fjCurrentRole==='function'&&fjCurrentRole(email).role==='MASTER_ADMIN'}catch(_){return false}
+  function user(){try{return (typeof currentUser!=='undefined'&&currentUser)||window.currentUser||null}catch(_){return window.currentUser||null}}
+  function role(){
+    var u=user(),email=String(u&&u.email||'').trim().toLowerCase();
+    try{if(email==='aldenkhafi0203@gmail.com')return 'MASTER_ADMIN';if(typeof fjCurrentRole==='function')return String(fjCurrentRole(email).role||'').toUpperCase()}catch(_){ }
+    return '';
   }
+  function allowed(){return ['MASTER_ADMIN','PT','MANAGER','ADMIN'].includes(role())}
   function ensureNav(){
-    var side=document.querySelector('.side');
-    if(!side)return;
+    var side=document.querySelector('.side');if(!side)return;
     var n=el(NAV_ID);
     if(!n){
-      n=document.createElement('button');
-      n.id=NAV_ID;
-      n.type='button';
-      n.className='navbtn';
-      n.textContent='▣ PT Management — Master';
-      n.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        if(!isMaster())return;
-        try{if(typeof window.fjPtM53Render==='function')window.fjPtM53Render();}catch(err){console.error('PT Management render',err)}
-      });
+      n=document.createElement('button');n.id=NAV_ID;n.type='button';n.className='navbtn';n.textContent='▣ PT Tracker Management';
+      n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openTracker()};
       var cc=document.getElementById('clientCalendarNav');
       if(cc&&cc.parentNode)cc.parentNode.insertBefore(n,cc.nextSibling);else side.appendChild(n);
     }
-    n.classList.toggle('fj-v58-show',isMaster());
-    if(!isMaster())return;
+    n.style.display=allowed()?'flex':'none';
     var old=el(OLD_NAV);if(old)old.style.display='none';
-    var oldPanel=el(OLD_PANEL);if(oldPanel){oldPanel.classList.remove('active');oldPanel.style.display='none'}
   }
-  function openMirror(){
-    if(!isMaster())return;
-    var old=el(OLD_PANEL);if(old){old.classList.remove('active');old.style.display='none'}
-    try{
-      if(typeof window.fjPtM53Render==='function')window.fjPtM53Render();
-      var p=el(PANEL_ID);
-      if(p){
-        document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});
-        p.classList.add('active');
-        p.style.display='block';
-      }
-    }catch(err){console.error('PT Management open',err)}
+  function renameUI(){
+    var p=el(OLD_PANEL);if(!p)return;
+    p.classList.add('fj-pt-tracker-open');p.style.display='block';
+    var label=p.querySelector('.ptv2-head .label');if(label)label.textContent='PT TRACKER MANAGEMENT';
+    var h=p.querySelector('.ptv2-head h2');if(h)h.textContent='PT Tracker Management';
+    var sub=p.querySelector('.ptv2-head .ptv2-muted');if(sub)sub.textContent='Client Calendar Mirror • Client List • Client Detail • Package • Conduct • Master Monitor • PT Operations';
+    var tabs=p.querySelectorAll('.ptv2-tab');tabs.forEach(function(t){if(t.dataset.v==='calendar')t.textContent='Client Calendar Mirror';if(t.dataset.v==='clients')t.textContent='Client List';if(t.dataset.v==='detail')t.textContent='Client Detail';if(t.dataset.v==='monitor')t.textContent='Master Monitor'});
+    var dt=p.querySelector('.ptv2-tab[data-v="detail"]');if(dt)dt.style.display='';
+  }
+  function refreshMirror(){
+    try{if(typeof window.renderMirrorCalendar==='function')window.renderMirrorCalendar()}catch(_){ }
+    try{if(typeof window.renderMirrorClients==='function')window.renderMirrorClients()}catch(_){ }
+  }
+  function openTracker(){
+    if(!allowed())return;
+    var p=el(OLD_PANEL);if(!p){try{window.fjPtV2Build&&window.fjPtV2Build()}catch(_){ }p=el(OLD_PANEL)}
+    if(!p)return;
+    try{if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar')}catch(err){console.error('PT Tracker open',err)}
+    renameUI();
+    document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});
+    p.classList.add('active');p.classList.add('fj-pt-tracker-open');p.style.display='block';
+    document.querySelectorAll('.side .navbtn').forEach(function(x){x.classList.toggle('active',x.id===NAV_ID)});
+    setTimeout(refreshMirror,30);setTimeout(refreshMirror,500);
   }
   function bind(){
     ensureNav();
-    var n=el(NAV_ID);
-    if(n&&!n.dataset.fjV58Bound){n.dataset.fjV58Bound='1';n.addEventListener('click',openMirror,true)}
+    var p=el(OLD_PANEL);if(p)renameUI();
+    var n=el(NAV_ID);if(n&&!n.dataset.bound){n.dataset.bound='1';n.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();openTracker()},true)}
   }
-  document.addEventListener('click',function(e){
-    var n=e.target&&e.target.closest?e.target.closest('#'+NAV_ID):null;
-    if(!n)return;
-    e.preventDefault();e.stopImmediatePropagation();openMirror();
-  },true);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,100)}, {once:true});
-  else setTimeout(bind,100);
-  window.addEventListener('load',function(){setTimeout(bind,150)});
-  if(window.sb&&window.sb.auth&&window.sb.auth.onAuthStateChange){try{window.sb.auth.onAuthStateChange(function(){setTimeout(bind,50)})}catch(_){}}
-  setInterval(bind,1000);
+  var tries=0;function boot(){bind();tries++;if(tries<40&&!el(NAV_ID))setTimeout(boot,500)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);
+  window.addEventListener('load',function(){setTimeout(boot,1100)});
+  setInterval(function(){bind();var p=el(OLD_PANEL);if(p&&p.classList.contains('active')){renameUI();refreshMirror()}},1800);
 })();
 </script>
-
-<style id="fj-pt-tracker-replacement-css">
-/* PT TRACKER MANAGEMENT — replacement for the broken PT Management only.
-   It deliberately reuses the existing Client Calendar engine as the single source of truth. */
-#fjPtOpsV2,#fjPtMirrorMaster,#fjPtOpsV2Nav,#fjPtMasterNav{display:none!important}
-#fjPtTrackerNav{position:relative}
-</style>
-<script id="fj-pt-tracker-replacement-runtime">
-(function(){
-'use strict';
-var NAV='fjPtTrackerNav', CCNAV='clientCalendarNav', CCPANEL='trainingClientCalendar';
-function q(id){return document.getElementById(id)}
-function side(){return document.querySelector('.side')}
-function main(){return document.querySelector('main.main')||document.querySelector('.main')}
-function hideLegacy(){
-  ['fjPtOpsV2Nav','fjPtMasterNav','fjPtOpsV2','fjPtMirrorMaster'].forEach(function(id){var e=q(id);if(e){e.style.setProperty('display','none','important');e.classList.remove('active')}});
-}
-function setTitle(tracker){
-  var p=q(CCPANEL);if(!p)return;
-  var h=p.querySelector('.top h1');
-  var sub=p.querySelector('.top p');
-  if(!p.dataset.fjPtTrackerOriginalTitle){
-    p.dataset.fjPtTrackerOriginalTitle=h?h.textContent:'Client Calendar';
-    p.dataset.fjPtTrackerOriginalSub=sub?sub.textContent:'Monthly client training calendar — 24-hour schedule';
-  }
-  if(h)h.textContent=tracker?'PT TRACKER MANAGEMENT':(p.dataset.fjPtTrackerOriginalTitle||'Client Calendar');
-  if(sub)sub.textContent=tracker?'100% MIRROR — sumber data dan sistem berasal dari Client Calendar':(p.dataset.fjPtTrackerOriginalSub||'Monthly client training calendar — 24-hour schedule');
-}
-function activateCC(tracker){
-  var cc=q(CCNAV),p=q(CCPANEL);
-  if(cc && typeof cc.click==='function'){
-    try{cc.click()}catch(e){}
-  }
-  setTimeout(function(){
-    p=q(CCPANEL);if(!p)return;
-    document.querySelectorAll('.panel').forEach(function(x){x.classList.toggle('active',x===p)});
-    document.querySelectorAll('.side .navbtn').forEach(function(n){n.classList.toggle('active',n===q(tracker?NAV:CCNAV))});
-    p.classList.add('active');
-    setTitle(tracker);
-    try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.render==='function')window.fjClientCalendar.render()}catch(e){console.warn('PT Tracker calendar render',e)}
-  },0);
-}
-function ensure(){
-  var s=side();if(!s)return false;
-  hideLegacy();
-  var n=q(NAV);
-  if(!n){
-    n=document.createElement('button');
-    n.id=NAV;n.type='button';n.className='navbtn';n.textContent='▣ PT Tracker Management';
-    var cc=q(CCNAV);
-    if(cc&&cc.parentNode)cc.parentNode.insertBefore(n,cc.nextSibling);else s.appendChild(n);
-  }
-  n.style.removeProperty('display');
-  n.onclick=function(e){
-    e.preventDefault();e.stopImmediatePropagation();
-    hideLegacy();
-    activateCC(true);
-  };
-  var cc=q(CCNAV);
-  if(cc&&!cc.dataset.fjPtTrackerRestore){
-    cc.dataset.fjPtTrackerRestore='1';
-    cc.addEventListener('click',function(){setTimeout(function(){setTitle(false);var n=q(NAV);if(n)n.classList.remove('active')},20)},true);
-  }
-  return true;
-}
-function boot(){ensure();setTimeout(ensure,250);setTimeout(ensure,1000);setTimeout(ensure,2500)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-window.addEventListener('load',function(){setTimeout(boot,300)});
-// Legacy PT Management code in this build can attempt to recreate its old button.
-// Keep that obsolete entry hidden, without changing any Client Calendar code.
-setInterval(function(){hideLegacy();var n=q(NAV);if(n)n.style.removeProperty('display')},1200);
-})();
-</script>
-
 
 </body></html>
 
@@ -9482,8 +9413,8 @@ setInterval(function(){
 (function(){
 'use strict';
 function isMaster(){var u=null;try{u=(typeof currentUser!=='undefined'&&currentUser)||null}catch(e){}if(!u)u=window.currentUser||null;var em=String(u&&u.email||'').trim().toLowerCase();if(em==='aldenkhafi0203@gmail.com')return true;try{return typeof fjCurrentRole==='function'&&fjCurrentRole(em).role==='MASTER_ADMIN'}catch(e){return false}}
-function run(){var old=document.getElementById('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}var nav=document.getElementById('fjPtOpsV2Nav');if(!nav||!isMaster())return;nav.style.display='';nav.textContent='▣ PT Management — Master';nav.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();if(isMaster()&&typeof window.fjPtM53Show==='function')window.fjPtM53Show()}}
-window.fjPtM53Show=function(){if(!isMaster())return;var old=document.getElementById('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}if(typeof window.fjPtM53Render==='function')window.fjPtM53Render()};
+function run(){var old=document.getElementById('fjPtOpsV2');if(old&&!old.classList.contains('fj-pt-tracker-open')){old.classList.remove('active');old.style.display='none'}var nav=document.getElementById('fjPtOpsV2Nav');if(nav)nav.style.display='none';var tracker=document.getElementById('fjPtTrackerNav');if(tracker)tracker.style.display=isMaster()?'flex':'none'}
+window.fjPtM53Show=function(){if(!isMaster())return;var old=document.getElementById('fjPtOpsV2');if(old&&old.classList.contains('fj-pt-tracker-open'))return;if(typeof window.fjPtM53Render==='function')window.fjPtM53Render()};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,1600)},{once:true});else setTimeout(run,1600);window.addEventListener('load',function(){setTimeout(run,1800)});setInterval(function(){if(isMaster())run()},2500);
 })();
 </script>

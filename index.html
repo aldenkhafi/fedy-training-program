@@ -5812,7 +5812,7 @@ function refreshCalendarRecommendation(){var c=readModalClient(),rows=calendarGe
 function bindCalendarRecommendation(){['ccEditGoal','ccEditWtype'].forEach(function(id){var e=$(id);if(e&&!e.dataset.ccRecommend){e.dataset.ccRecommend='1';e.addEventListener('change',refreshCalendarRecommendation)}});['ccEditAge','ccEditGender','ccEditWeight','ccEditHeight','ccEditLevel'].forEach(function(id){var e=$(id);if(e&&!e.dataset.ccRecommendBlur){e.dataset.ccRecommendBlur='1';e.addEventListener('change',function(){if(readModalClient().goal&&readModalClient().wtype)refreshCalendarRecommendation()})}})}
 function openEditor(k){var ev=ccState.events[k]||null,c=calendarClientFromEvent(ev);if(!c.name)c=calendarCurrentClient();var rows=ev&&ev.exercises&&ev.exercises.length?ev.exercises:calendarGeneratedRows(c);if(!rows.length){var p=calendarRecommendedPool(c);rows=[{exercise:p[0]?p[0].name:'',sets:'3',reps:'8–12',load:'',rest:'60–90s'}]}$('ccEditKey').value=k;$('ccEditTitle').value=ev&&ev.title?ev.title:((c.name||'Client')+' • Training');$('ccEditNotes').value=ev&&ev.notes?ev.notes:'';renderModalClient(c);renderEditorExercises(rows,c,'recommended');bindCalendarRecommendation();addExerciseMenu();bindModalHistory();$('ccModal').classList.add('open');beginModalHistory();$('ccEditClientName')?.focus()}
 function ccAutoPersist(){try{localStorage.setItem(STORE,JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:ccState,auto:true}))}catch(e){console.warn('Client Calendar auto-save failed',e)}}
-function saveEditor(){var k=$('ccEditKey').value,title=$('ccEditTitle').value.trim()||'Training',notes=$('ccEditNotes').value.trim(),c=readModalClient(),rows=collectRows();if(!rows.length){pushHistory();delete ccState.events[k]}else{pushHistory();var pte=q('ccEditPT'),pto=pte&&pte.options[pte.selectedIndex],ptUser=pte?String(pte.value||'').trim():'',ptEmail=pto?String(pto.dataset.email||pto.textContent||'').trim():'';if(!ptUser){alert('Pilih PT terlebih dahulu sebelum menyimpan Client Calendar.');return}ccState.events[k]={title:title,notes:notes,day:(new Date(k.split('T')[0])).toLocaleDateString(undefined,{weekday:'long'}),time:k.split('T')[1]||'00:00',client:c,pt_user_id:ptUser,pt_email:ptEmail,exercises:rows}}$('ccModal').classList.remove('open');modalUndo=[];modalRedo=[];renderCalendar();updateHistory();ccAutoPersist()}
+function saveEditor(){var k=$('ccEditKey').value,title=$('ccEditTitle').value.trim()||'Training',notes=$('ccEditNotes').value.trim(),c=readModalClient(),rows=collectRows();if(!rows.length){pushHistory();delete ccState.events[k]}else{pushHistory();var pte=q('ccEditPT'),pto=pte&&pte.options[pte.selectedIndex],ptUser=pte?String(pte.value||'').trim():'',ptEmail=pto?String(pto.dataset.email||pto.textContent||'').trim():'';if(!ptUser){alert('Pilih PT terlebih dahulu sebelum menyimpan Client Calendar.');return}ccState.events[k]={title:title,notes:notes,day:(new Date(k.split('T')[0])).toLocaleDateString(undefined,{weekday:'long'}),time:k.split('T')[1]||'00:00',client:c,pt_user_id:ptUser,pt_email:ptEmail,exercises:rows}}$('ccModal').classList.remove('open');modalUndo=[];modalRedo=[];renderCalendar();updateHistory();ccAutoPersist();try{if(window.fjLivePush)setTimeout(function(){window.fjLivePush()},120)}catch(_){} }
 function deleteEvent(){var k=$('ccEditKey').value;if(ccState.events[k]){pushHistory();delete ccState.events[k]}$('ccModal').classList.remove('open');renderCalendar();ccAutoPersist()}
 function prevMonth(){ccState.month--;if(ccState.month<0){ccState.month=11;ccState.year--}renderCalendar();ccAutoPersist()}
 function nextMonth(){ccState.month++;if(ccState.month>11){ccState.month=0;ccState.year++}renderCalendar();ccAutoPersist()}
@@ -6872,12 +6872,15 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
         var s=sb();if(!s)return;
         var cid=q('pttClient').value,day=q('pttDate').value,time=q('pttTime').value||'09:00';
         if(!cid||!day){alert('Client dan tanggal wajib diisi.');return}
-        var u=window.currentUser||{};
-        var row={client_id:cid,pt_user_id:u.id||null,scheduled_at:day+'T'+time+':00',schedule_type:'PT Session',notes:q('pttNotes').value.trim(),status:'SCHEDULED'};
-        var r=await s.from('pt_schedules').insert(row);
+        var u=window.currentUser||{}, selected=cs.find(function(c){return String(c.id)===String(cid)})||{}, pr=selected.profile||{};
+        var event={title:'PT Session',notes:q('pttNotes').value.trim(),day:new Date(day+'T00:00:00').toLocaleDateString(undefined,{weekday:'long'}),time:time,client:{name:selected.name||'Client',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||''},pt_user_id:u.id||selected.pt_user_id||null,pt_email:u.email||selected.pt_email||'',exercises:[]};
+        var row={client_id:cid,pt_user_id:u.id||selected.pt_user_id||null,scheduled_at:day+'T'+time+':00',schedule_type:'PT Session',notes:'[[FJ_EVENT_JSON_V48]]'+JSON.stringify(event)+'\n'+event.notes,status:'SCHEDULED'};
+        var r=await s.from('pt_schedules').insert(row).select().single();
         if(r.error){alert(r.error.message);return}
+        event._fjOnlineScheduleId=r.data&&r.data.id||null;event._fjSyncId='remote_'+(r.data&&r.data.id||Date.now().toString(36));event._fjOnlineClientId=cid;
         q('ptv2Modal').classList.remove('open');
-        if(typeof window.fjPtV2Refresh==='function')await window.fjPtV2Refresh();
+        if(typeof window.fjLivePull==='function')await window.fjLivePull();
+        else if(typeof window.fjPtV2Refresh==='function')await window.fjPtV2Refresh();
         if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar');
       };
     })();
@@ -6966,7 +6969,19 @@ async function pullRemote(silent){
  try{
   var rs=await Promise.all([s.from('pt_clients').select('*').order('name'),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(5000),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(5000),s.from('pt_packages').select('*').order('purchase_date',{ascending:false}).limit(5000),s.from('pt_extension_requests').select('*').order('created_at',{ascending:false}).limit(2000)]);var bad=rs.find(function(x){return x.error});if(bad)throw bad.error;
   var clients=rs[0].data||[],schedules=rs[1].data||[],d=localDir();clients.forEach(function(c){var pr=c.profile||{},key=Object.keys(d).find(function(k){return norm(d[k]?.name)===norm(c.name)&&(norm(c.phone)?norm(d[k]?.phone)===norm(c.phone):true)})||('online_'+c.id);d[key]=Object.assign({},d[key]||{},{id:key,name:c.name,phone:c.phone||'',email:c.email||'',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||'',notes:c.notes||'',onlineId:c.id,pt_user_id:c.pt_user_id,pt_email:c.pt_email,before:pr.beforeAfter?.before||d[key]?.before||null,after:pr.beforeAfter?.after||d[key]?.after||null});mergeClientIntoCalendar(c)});writeJSON(DIR,d);
-  schedules.forEach(function(r){mergeScheduleIntoCalendar(r,clients)});/* keep local events until their online write is confirmed */
+  schedules.forEach(function(r){
+    var rc=clients.find(function(c){return String(c.id)===String(r.client_id)})||null;
+    var pe=parseNotes(r.notes),when=String(r.scheduled_at||'').slice(0,16);
+    if(!when)return;
+    if(pe){
+      mergeScheduleIntoCalendar(r,clients);
+    }else{
+      /* Legacy PT Tracker schedules without the canonical marker must still appear in Client Calendar. */
+      var pr=rc&&rc.profile||{};
+      var legacy={title:r.schedule_type||'PT Session',notes:String(r.notes||''),day:new Date(when.split('T')[0]+'T00:00:00').toLocaleDateString(undefined,{weekday:'long'}),time:when.slice(11,16)||'00:00',client:{name:rc&&rc.name||'Client',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||''},pt_user_id:r.pt_user_id||(rc&&rc.pt_user_id)||null,pt_email:(rc&&rc.pt_email)||user()?.email||'',exercises:[] ,_fjOnlineScheduleId:r.id,_fjOnlineClientId:r.client_id,_fjSyncId:'legacy_'+r.id};
+      var lp=localCal()||{version:'CLIENT_CALENDAR_V1',calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};lp.calendar=lp.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};lp.calendar.events=lp.calendar.events||{};lp.calendar.events[when]=legacy;lp.savedAt=new Date().toISOString();writeCal(lp);
+    }
+  });/* keep local events until their online write is confirmed */
   renderLocal();
   if(!silent)badge('ONLINE • data terbaru','live');else badge('LIVE • update diterima','live');
  }catch(e){console.error('FJ realtime pull',e);badge('ONLINE ERROR • '+(e.message||e),'err')}finally{applyingRemote=false;pullBusy=false}

@@ -6457,11 +6457,11 @@ function show(v){if(!can())return;nav();build();document.querySelectorAll('.pane
 async function load(){var s=sbc();if(!s||!can())return;build();var qs=await Promise.all([s.from('pt_clients').select('*').order('name'),s.from('pt_packages').select('*').order('purchase_date',{ascending:false}),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(2000),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(2000),s.from('pt_extension_requests').select('*').order('created_at',{ascending:false})]);if(qs.some(function(r){return r.error})){console.warn('PT Management load',qs.map(function(r){return r.error}));return}V.clients=qs[0].data||[];V.packages=qs[1].data||[];V.conducts=qs[2].data||[];V.schedules=qs[3].data||[];V.extensions=qs[4].data||[];renderCalendar();}
 function renderCalendar(){var b=q('ptv2Calendar');if(!b)return;var y=V.month.getFullYear(),m=V.month.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate(),events=V.schedules.filter(function(x){var d=String(x.scheduled_at).slice(0,10);return d.slice(0,7)===y+'-'+String(m+1).padStart(2,'0')});var html='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><button class="ptv2-btn alt" onclick="window.fjPtV2Prev()">←</button><b>'+first.toLocaleDateString('id-ID',{month:'long',year:'numeric'})+'</b><div class="ptv2-actions"><button class="ptv2-btn alt" onclick="window.fjPtV2Next()">→</button><button class="ptv2-btn" onclick="window.fjPtV2NewSchedule()">＋ Schedule</button></div></div></div><div class="ptv2-calendar-scroll"><div class="ptv2-calendar ptm-calendar-clickable">';for(var d=1;d<=days;d++){var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');html+='<div class="ptv2-day"><div class="ptv2-daynum">'+d+'</div>'+events.filter(function(e){return String(e.scheduled_at).slice(0,10)===ds}).map(function(e){var c=client(e.client_id),st=e.status==='DONE'?'done':'',pt=e.pt_name||e.pt_email||'';return '<div class="ptv2-event '+st+'" onclick="window.fjPtV2Open(\''+e.id+'\')"><b>'+E(c?.name||'Client')+'</b><br>'+E(String(e.scheduled_at).slice(11,16))+' • '+E(e.schedule_type||'PT Session')+(pt?'<small style="display:block;margin-top:2px">PT: '+E(pt)+'</small>':'')+'</div>'}).join('')+'</div>'}html+='</div></div>';b.innerHTML=html}
 function renderClients(){var b=q('ptv2Clients');if(!b)return;var a=clients(),pts={};a.forEach(function(c){var id=c.pt_user_id||'unassigned',label=c.pt_email||c.pt_name||'Unassigned';if(!pts[id])pts[id]={id:id,label:label}});var ptOpts=Object.values(pts).sort(function(x,y){return x.label.localeCompare(y.label)}).map(function(x){return '<option value="'+E(x.id)+'">'+E(x.label)+'</option>'}).join('');b.innerHTML='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><div><h3 style="margin:0">Client List</h3><div class="ptv2-muted">'+(master()?'All PT clients':'Only clients assigned to you')+'</div></div></div><div class="ptv2-form" style="margin-top:10px;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr)"><div><label>PT</label><select id="ptv2PtFilter"><option value="">All PT</option>'+ptOpts+'</select></div><div><label>Search Client</label><input id="ptv2Search" placeholder="Search client"></div></div></div><div id="ptv2ClientCards" class="ptv2-client-list"></div>';function draw(){var z=String(q('ptv2Search')?.value||'').toLowerCase(),pf=String(q('ptv2PtFilter')?.value||'');q('ptv2ClientCards').innerHTML=a.filter(function(c){return (!pf||String(c.pt_user_id||'unassigned')===pf)&&(!z||String(c.name).toLowerCase().includes(z)||String(c.phone||'').toLowerCase().includes(z))}).map(function(c){var ps=V.packages.filter(function(p){return p.client_id===c.id}),rem=ps.reduce(function(n,p){return n+Math.max(0,p.total_sessions-p.used_sessions)},0);return '<div class="ptv2-client" onclick="window.fjPtV2OpenClient(\''+c.id+'\')"><h3>'+E(c.name)+'</h3><div class="ptv2-muted">PT: '+E(c.profile?.pt_name||c.pt_name||c.pt_email||'—')+'</div><div style="margin-top:7px"><b>'+rem+'</b> remaining sessions</div></div>'}).join('')||'<div class="ptv2-muted">No clients found.</div>'}q('ptv2Search').oninput=draw;q('ptv2PtFilter').onchange=draw;draw()}
-function renderDetail(){var b=q('ptv2Detail');if(!b)return;var c=client(V.selected);if(!c){b.innerHTML='<div class="ptv2-card">Select a client from Client List.</div>';return}var ps=V.packages.filter(function(p){return p.client_id===c.id}).sort(function(a,b){return String(b.purchase_date).localeCompare(String(a.purchase_date))}),cs=V.conducts.filter(function(x){return x.client_id===c.id}).sort(function(a,b){return String(b.conducted_at).localeCompare(String(a.conducted_at))});b.innerHTML='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><div><h2 style="margin:0">'+E(c.name)+'</h2><div class="ptv2-muted">PT: '+E(c.pt_email||'—')+'</div></div><div class="ptv2-actions"><button class="ptv2-btn alt" onclick="window.fjPtV2NewPackage(\''+c.id+'\')">＋ New Package</button><button class="ptv2-btn alt" onclick="window.fjPtV2PDF(\''+c.id+'\')">▣ PDF</button></div></div><div class="ptv2-kpis" style="margin-top:12px"><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.total_sessions||0)},0)+'</b><span>Total Sessions</span></div><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.used_sessions||0)},0)+'</b><span>Used</span></div><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.total_sessions-p.used_sessions)},0)+'</b><span>Remaining</span></div><div class="ptv2-kpi"><b>'+activeP(c.id).length+'</b><span>Active Package</span></div><div class="ptv2-kpi"><b>'+cs.length+'</b><span>Conduct History</span></div></div></div><div class="ptv2-grid"><div class="ptv2-card"><h3>Client Profile</h3><table class="ptv2-table"><tr><th>Field</th><th>Value</th></tr>'+[['Age',c.profile?.age],['Gender',c.profile?.gender],['Weight',c.profile?.weight],['Height',c.profile?.height],['Goal',c.profile?.goal],['Notes',c.notes]].map(function(r){return '<tr><td>'+E(r[0])+'</td><td>'+E(r[1]||'—')+'</td></tr>'}).join('')+'</table></div><div class="ptv2-card"><h3>Packages</h3><table class="ptv2-table"><tr><th>Package</th><th>Sessions</th><th>Purchase</th><th>Expiry</th><th>Status</th><th>Action</th></tr>'+ps.map(function(p){var st=status(p);return '<tr><td>'+E(p.package_name)+'</td><td>'+p.total_sessions+' / '+p.used_sessions+'<br><b>'+(p.total_sessions-p.used_sessions)+'</b> remaining</td><td>'+E(p.purchase_date)+'</td><td>'+E(p.expiry_date)+'</td><td><span class="ptv2-badge '+(st==='ACTIVE'?'ptv2-active':st==='EXTEND REQUESTED'?'ptv2-pending':'ptv2-expired')+'">'+E(st)+'</span></td><td>'+(st!=='CLOSED'?'<button class="ptv2-btn alt" onclick="window.fjPtV2Extend(\''+p.id+'\')">Request Extend</button>':'')+'</td></tr>'}).join('')+'</table></div></div><div class="ptv2-card"><h3>Conduct History</h3><table class="ptv2-table"><tr><th>Date</th><th>PT</th><th>Package</th><th>Notes</th></tr>'+cs.map(function(x){var p=V.packages.find(function(z){return z.id===x.package_id});return '<tr><td>'+E(x.conducted_at)+'</td><td>'+E(x.pt_user_id===uid()?email():x.pt_user_id)+'</td><td>'+E(p?.package_name||'—')+'</td><td>'+E(x.notes||'—')+'</td></tr>'}).join('')||'<tr><td colspan="4">No Conduct yet.</td></tr>'+'</table></div>'}
+function renderDetail(){var b=q('ptv2Detail');if(!b)return;var c=client(V.selected);if(!c){b.innerHTML='<div class="ptv2-card">Select a client from Client List.</div>';return}var ps=V.packages.filter(function(p){return p.client_id===c.id}).sort(function(a,b){return String(b.purchase_date).localeCompare(String(a.purchase_date))}),cs=V.conducts.filter(function(x){return x.client_id===c.id}).sort(function(a,b){return String(b.conducted_at).localeCompare(String(a.conducted_at))});b.innerHTML='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><div><h2 style="margin:0">'+E(c.name)+'</h2><div class="ptv2-muted">PT: '+E(c.profile?.pt_name||c.pt_name||c.pt_email||'—')+'</div></div><div class="ptv2-actions"><button class="ptv2-btn alt" onclick="window.fjPtV2NewPackage(\''+c.id+'\')">＋ New Package</button><button class="ptv2-btn alt" onclick="window.fjPtV2PDF(\''+c.id+'\')">▣ PDF</button></div></div><div class="ptv2-kpis" style="margin-top:12px"><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.total_sessions||0)},0)+'</b><span>Total Sessions</span></div><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.used_sessions||0)},0)+'</b><span>Used</span></div><div class="ptv2-kpi"><b>'+ps.reduce(function(n,p){return n+Number(p.total_sessions-p.used_sessions)},0)+'</b><span>Remaining</span></div><div class="ptv2-kpi"><b>'+activeP(c.id).length+'</b><span>Active Package</span></div><div class="ptv2-kpi"><b>'+cs.length+'</b><span>Conduct History</span></div></div></div><div class="ptv2-grid"><div class="ptv2-card"><h3>Client Profile</h3><table class="ptv2-table"><tr><th>Field</th><th>Value</th></tr>'+[['Age',c.profile?.age],['Gender',c.profile?.gender],['Weight',c.profile?.weight],['Height',c.profile?.height],['Goal',c.profile?.goal],['Notes',c.notes]].map(function(r){return '<tr><td>'+E(r[0])+'</td><td>'+E(r[1]||'—')+'</td></tr>'}).join('')+'</table></div><div class="ptv2-card"><h3>Packages</h3><table class="ptv2-table"><tr><th>Package</th><th>Sessions</th><th>Purchase</th><th>Expiry</th><th>Status</th><th>Action</th></tr>'+ps.map(function(p){var st=status(p);return '<tr><td>'+E(p.package_name)+'</td><td>'+p.total_sessions+' / '+p.used_sessions+'<br><b>'+(p.total_sessions-p.used_sessions)+'</b> remaining</td><td>'+E(p.purchase_date)+'</td><td>'+E(p.expiry_date)+'</td><td><span class="ptv2-badge '+(st==='ACTIVE'?'ptv2-active':st==='EXTEND REQUESTED'?'ptv2-pending':'ptv2-expired')+'">'+E(st)+'</span></td><td>'+(st!=='CLOSED'?'<button class="ptv2-btn alt" onclick="window.fjPtV2Extend(\''+p.id+'\')">Request Extend</button>':'')+'</td></tr>'}).join('')+'</table></div></div><div class="ptv2-card"><h3>Conduct History</h3><table class="ptv2-table"><tr><th>Date</th><th>PT</th><th>Package</th><th>Notes</th></tr>'+cs.map(function(x){var p=V.packages.find(function(z){return z.id===x.package_id});return '<tr><td>'+E(x.conducted_at)+'</td><td>'+E(x.pt_user_id===uid()?email():x.pt_user_id)+'</td><td>'+E(p?.package_name||'—')+'</td><td>'+E(x.notes||'—')+'</td></tr>'}).join('')||'<tr><td colspan="4">No Conduct yet.</td></tr>'+'</table></div>'}
 window.fjPtV2OpenClient=function(id){V.selected=id;show('detail')};
 function modal(html){q('ptv2ModalBody').innerHTML=html;q('ptv2Modal').classList.add('open')}function closeModal(){q('ptv2Modal').classList.remove('open')}
 window.fjPtV2NewClient=function(){modal('<h2>Add Client</h2><div class="ptv2-form"><div><label>Name</label><input id="v2n"></div><div><label>Phone</label><input id="v2p"></div><div><label>Email</label><input id="v2e"></div><div><label>Age</label><input id="v2a" type="number"></div><div><label>Gender</label><select id="v2g"><option value="">—</option><option>male</option><option>female</option></select></div><div><label>Weight</label><input id="v2w" type="number"></div><div><label>Height</label><input id="v2h" type="number"></div><div><label>Goal</label><input id="v2goal"></div><div class="span3"><label>Notes</label><textarea id="v2notes"></textarea></div></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" onclick="window.fjPtV2SaveClient()">Save Client</button></div>')};window.fjPtV2Close=closeModal;
-window.fjPtV2SaveClient=async function(){var s=sbc();if(!s)return;var name=q('v2n').value.trim();if(!name){alert('Nama client wajib diisi');return}var payload={name:name,phone:q('v2p').value.trim(),email:q('v2e').value.trim(),profile:{age:q('v2a').value,gender:q('v2g').value,weight:q('v2w').value,height:q('v2h').value,goal:q('v2goal').value},notes:q('v2notes').value.trim(),pt_user_id:uid(),pt_email:email()};var r=await s.from('pt_clients').insert(payload).select().single();if(r.error){alert(r.error.message);return}closeModal();await load();show('clients')};
+window.fjPtV2SaveClient=async function(){var s=sbc();if(!s)return;var name=q('v2n').value.trim();if(!name){alert('Nama client wajib diisi');return}var me=window.currentUser||{},ptName=String(me.full_name||me.name||'').trim();try{var dr=await s.from('pt_directory').select('pt_name').eq('user_id',uid()).maybeSingle();if(dr.data&&dr.data.pt_name)ptName=dr.data.pt_name}catch(e){}if(!ptName){try{var ur=await s.from('user_access').select('full_name,email').eq('user_id',uid()).maybeSingle();if(ur.data)ptName=ur.data.full_name||ur.data.email||email()}catch(e){}}var payload={name:name,phone:q('v2p').value.trim(),email:q('v2e').value.trim(),profile:{age:q('v2a').value,gender:q('v2g').value,weight:q('v2w').value,height:q('v2h').value,goal:q('v2goal').value,pt_name:ptName,pt_email:email()},notes:q('v2notes').value.trim(),pt_user_id:uid(),pt_email:email()};var r=await s.from('pt_clients').insert(payload).select().single();if(r.error){alert(r.error.message);return}try{await s.from('pt_directory').upsert({user_id:uid(),pt_name:ptName||email(),email:email(),status:'active'},{onConflict:'user_id'})}catch(e){}closeModal();await load();show('clients')};
 window.fjPtV2NewPackage=function(id){modal('<h2>New Package</h2><div class="ptv2-form"><div><label>Package</label><input id="v2pn"></div><div><label>Total Sessions</label><input id="v2ps" type="number" min="1"></div><div><label>Purchase Date</label><input id="v2pd" type="date" value="'+today()+'"></div></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" onclick="window.fjPtV2SavePackage(\''+id+'\')">Save Package</button></div>')};window.fjPtV2SavePackage=async function(id){var s=sbc(),n=q('v2pn').value.trim(),t=Number(q('v2ps').value),d=q('v2pd').value;if(!s||!n||!t||!d)return;var r=await s.from('pt_packages').insert({client_id:id,package_name:n,total_sessions:t,purchase_date:d,expiry_date:expFor(d,t),status:'ACTIVE',source:'NEW_PURCHASE'});if(r.error){alert(r.error.message);return}closeModal();await load();show('detail')};
 window.fjPtV2Extend=function(pid){var p=V.packages.find(function(x){return x.id===pid});if(!p)return;var def=p.expiry_date>today()?p.expiry_date:today();modal('<h2>Request Package Extension</h2><div class="ptv2-form"><div><label>New Expiry</label><input id="v2ed" type="date" value="'+def+'"></div><div class="span3"><label>Reason</label><textarea id="v2er"></textarea></div></div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" onclick="window.fjPtV2SubmitExtend(\''+pid+'\')">Submit Request</button></div>')};window.fjPtV2SubmitExtend=async function(pid){var s=sbc(),d=q('v2ed').value;if(!s||!d)return;var r=await s.from('pt_extension_requests').insert({package_id:pid,requested_by:uid(),requested_expiry:d,reason:q('v2er').value.trim(),status:'PENDING_APPROVAL'});if(r.error){alert(r.error.message);return}await s.from('pt_packages').update({status:'EXTEND_REQUESTED'}).eq('id',pid);closeModal();await load();show('detail')};
 function renderMonitor(){var b=q('ptv2Monitor');if(!b||!(master()||manager()))return;var pending=V.extensions.filter(function(x){return x.status==='PENDING_APPROVAL'}),todayC=V.conducts.filter(function(x){return String(x.conducted_at).slice(0,10)===today()});b.innerHTML='<div class="ptv2-kpis"><div class="ptv2-kpi"><b>'+V.clients.length+'</b><span>Total Clients</span></div><div class="ptv2-kpi"><b>'+V.packages.filter(function(p){return status(p)==='ACTIVE'}).length+'</b><span>Active Packages</span></div><div class="ptv2-kpi"><b>'+todayC.length+'</b><span>Conduct Today</span></div><div class="ptv2-kpi"><b>'+pending.length+'</b><span>Pending Extend</span></div><div class="ptv2-kpi"><b>'+V.schedules.filter(function(x){return x.status==='SCHEDULED'}).length+'</b><span>Scheduled</span></div></div><div class="ptv2-monitor-grid" style="margin-top:12px"><div class="ptv2-card"><h3>PT Activity</h3><table class="ptv2-table"><tr><th>PT</th><th>Clients</th><th>Conduct MTD</th><th>Schedules</th></tr>'+Object.values(V.clients.reduce(function(a,c){var k=c.pt_user_id;a[k]||(a[k]={id:k,email:c.pt_email,pt_name:(c.profile&&c.profile.pt_name)||c.pt_name||'',clients:0});a[k].clients++;return a},{})).map(function(x){var cs=V.conducts.filter(function(c){return c.pt_user_id===x.id&&String(c.conducted_at).slice(0,7)===today().slice(0,7)}).length,sc=V.schedules.filter(function(c){return c.pt_user_id===x.id}).length;return '<tr><td>'+E(x.email||x.id)+'</td><td>'+x.clients+'</td><td>'+cs+'</td><td>'+sc+'</td></tr>'}).join('')+'</table></div><div class="ptv2-card"><h3>Extension Approval Queue</h3><table class="ptv2-table"><tr><th>Client / Package</th><th>Requested</th><th>New Expiry</th><th>Action</th></tr>'+pending.map(function(x){var p=V.packages.find(function(z){return z.id===x.package_id}),c=p&&client(p.client_id);return '<tr><td>'+E(c?.name||'—')+'<br>'+E(p?.package_name||'—')+'</td><td>'+E(x.created_at)+'</td><td>'+E(x.requested_expiry)+'</td><td><button class="ptv2-btn" onclick="window.fjPtV2Approve(\''+x.id+'\',true)">Approve</button> <button class="ptv2-btn danger" onclick="window.fjPtV2Approve(\''+x.id+'\',false)">Reject</button></td></tr>'}).join('')||'<tr><td colspan="4">No pending request.</td></tr>'+'</table></div></div>'}
@@ -6609,7 +6609,7 @@ function printRange(name,from,to){
   if(!evs.length)h+='<p>No sessions found in selected range.</p>';
   evs.forEach(function(x,i){var e=x.event||{},ba=baOf(e,ci);h+='<section class="session"><h2>'+(i+1)+'. '+esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2><p><b>Client:</b> '+esc(e.client?.name||'—')+' &nbsp; <b>Goal:</b> '+esc(e.client?.goal||ci.goal||'—')+' &nbsp; <b>Type:</b> '+esc(e.client?.wtype||ci.wtype||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe||'—')+'</td><td>'+esc(r.rir||'—')+'</td><td>'+esc(r.rest||'—')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'');
     if((ba.before&&Object.keys(ba.before).length)||(ba.after&&Object.keys(ba.after).length)){h+='<div class="ba">';['before','after'].forEach(function(side){var z=ba[side]||{},src=z.image||z.photo;h+='<div class="baCard"><h3>'+side.toUpperCase()+'</h3><div class="baPhoto">'+(src?'<img src="'+esc(src)+'" alt="'+side+'">':'<span class="muted">No photo</span>')+'</div><div class="baFields">'+fields(z).replace(/class="fj-v48[^\"]*"/g,'')+'</div></div>'});h+='</div>'}h+='</section>'});
-  h+='</body></html>';
+h+='</body></html>';
   try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
 
   try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
@@ -6985,9 +6985,9 @@ function cal(){var p=read(CAL,null);return p&&p.calendar?p:null}
 function dir(){return read(DIR,{})||{}}
 function badge(msg,kind){var b=q('fjLiveOnlineBadge');if(!b){b=document.createElement('div');b.id='fjLiveOnlineBadge';document.body.appendChild(b)}b.textContent=msg;b.className=kind||'sync';b.style.display='block';if(kind==='live')setTimeout(function(){if(b.className==='live')b.style.display='none'},1800)}
 function ptRows(){var a=read(PTD,[]);return Array.isArray(a)?a:[]}
-async function getPTs(){var rows=[],s=sb();if(s){try{var r=await s.from('pt_directory').select('id,user_id,pt_name,email,status,outlet').eq('status','active').order('pt_name');if(!r.error)rows=r.data||[]}catch(e){}}
- if(!rows.length&&s){try{var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').in('role',['PT','MANAGER']).order('email');if(!u.error)(u.data||[]).forEach(function(x){if(!rows.some(function(y){return y.user_id===x.user_id}))rows.push({user_id:x.user_id,email:x.email||'',pt_name:x.full_name||x.email||x.user_id,status:'active',outlet:x.outlet||''})})}catch(e){}}
- return rows;
+async function getPTs(){var rows=[],s=sb();if(s){try{var r=await s.from('pt_directory').select('id,user_id,pt_name,email,status,outlet').eq('status','active').order('pt_name');if(!r.error)rows=r.data||[]}catch(e){}
+ try{var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').order('email');if(!u.error)(u.data||[]).forEach(function(x){if(!rows.some(function(y){return String(y.user_id)===String(x.user_id)}))rows.push({user_id:x.user_id,email:x.email||'',pt_name:x.full_name||x.email||x.user_id,status:'active',outlet:x.outlet||''})})}catch(e){}}
+ rows.sort(function(a,b){return String(a.pt_name||a.full_name||a.email||'').localeCompare(String(b.pt_name||b.full_name||b.email||''))});return rows;
 }
 function ensurePTField(){var modal=q('ccModal');if(!modal)return null;var el=q('ccEditPT');if(el)return el;var anchor=q('ccEditClientName');if(!anchor)return null;var host=anchor.closest('.field')||anchor.parentElement;var wrap=document.createElement('div');wrap.className='field';wrap.innerHTML='<label>PT</label><select id="ccEditPT" required><option value="">Pilih PT</option></select>';if(host&&host.parentNode)host.parentNode.insertBefore(wrap,host);else modal.querySelector('.modal-body')?.prepend(wrap);return q('ccEditPT')}
 async function fillPT(selected){var el=ensurePTField();if(!el)return;var rows=await getPTs();var html='<option value="">Pilih PT</option>'+rows.map(function(x){return '<option value="'+esc(x.user_id||'')+'" data-name="'+esc(x.pt_name||x.email||x.user_id||'')+'" data-email="'+esc(x.email||'')+'">'+esc(x.pt_name||x.email||x.user_id)+(x.outlet?' • '+esc(x.outlet):'')+'</option>'}).join('');el.innerHTML=html;if(selected){el.value=selected;if(!el.value){for(var i=0;i<el.options.length;i++)if(el.options[i].dataset.email===selected){el.value=el.options[i].value;break}}}}
@@ -7042,7 +7042,7 @@ if(!masterUser){
 U={pts:allPts,clients:allClients,schedules:allSchedules,conducts:allConducts,packages:allPackages};q('fjPcuSearch').oninput=renderPTCards;renderPTCards();q('fjPcuStatus').textContent='ONLINE • '+U.clients.length+' client'}
 
 function bind(){ptOpenObserver();var save=q('ccSaveEvent');if(save&&!save.dataset.fj60){save.dataset.fj60='1';save.addEventListener('click',function(){queue(250)},true)}var del=q('ccDeleteEvent');if(del&&!del.dataset.fj60){del.dataset.fj60='1';del.addEventListener('click',function(){var k=(q('ccEditKey')||{}).value,p=cal(),e=p&&p.calendar&&p.calendar.events&&p.calendar.events[k],id=e&&e._fjOnlineScheduleId;setTimeout(function(){if(id)deleteRemoteSchedule(id)},200)},true)}
- var side=document.querySelector('.side');if(side&&!q('fjV60PtDirectoryNav')){var n=document.createElement('button');n.id='fjV60PtDirectoryNav';n.type='button';n.className='navbtn';n.textContent='PT & Client';n.onclick=function(){if(window.fjPtM53Show)window.fjPtM53Show();setTimeout(function(){var p=q('fjPtOpsV2');if(p){p.classList.add('active');var tab=p.querySelector('[data-v="pt-client"]');if(tab)tab.click()}},100)};side.appendChild(n)}
+ var side=document.querySelector('.side');if(false&&side&&!q('fjV60PtDirectoryNav')){var n=document.createElement('button');n.id='fjV60PtDirectoryNav';n.type='button';n.className='navbtn';n.textContent='PT & Client';n.onclick=function(){if(window.fjPtM53Show)window.fjPtM53Show();setTimeout(function(){var p=q('fjPtOpsV2');if(p){p.classList.add('active');var tab=p.querySelector('[data-v="pt-client"]');if(tab)tab.click()}},100)};side.appendChild(n)}
  if(q('fjPtOpsV2')){renderDirectory();}
 }
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('[data-pt]'):null;if(a&&a.closest&&a.closest('#fjPcuList')){showClients(a.dataset.pt)}var c=e.target&&e.target.closest?e.target.closest('[data-client]'):null;if(c&&c.closest&&c.closest('#fjPcuClients')){showClient(c.dataset.client,c.dataset.pt)}var b=e.target&&e.target.closest?e.target.closest('[data-pcu-back-client]'):null;if(b){showClients(b.dataset.pt||'')}} ,true);
@@ -7118,21 +7118,7 @@ async function refreshPTAccess(){
   return ok;
 }
 
-function ensurePTClientNav(){
-  var side=document.querySelector('.side'),tracker=q('fjPtTrackerNav');
-  if(!side||!tracker)return;
-  var n=q('fjPtClientNav');
-  if(!n){
-    n=document.createElement('button');
-    n.id='fjPtClientNav';n.type='button';n.className='navbtn';
-    n.textContent='▣ PT & Client';
-    tracker.parentNode.insertBefore(n,tracker.nextSibling);
-    n.addEventListener('click',function(e){
-      e.preventDefault();e.stopImmediatePropagation();
-      openPTClient();
-    },true);
-  }
-}
+function ensurePTClientNav(){return}
 async function openPTClient(){
   if(!(await refreshPTAccess()))return;
   var p=q('fjPtOpsV2');
@@ -7643,9 +7629,9 @@ function cal(){var p=read(CAL,null);return p&&p.calendar?p:null}
 function dir(){return read(DIR,{})||{}}
 function badge(msg,kind){var b=q('fjLiveOnlineBadge');if(!b){b=document.createElement('div');b.id='fjLiveOnlineBadge';document.body.appendChild(b)}b.textContent=msg;b.className=kind||'sync';b.style.display='block';if(kind==='live')setTimeout(function(){if(b.className==='live')b.style.display='none'},1800)}
 function ptRows(){var a=read(PTD,[]);return Array.isArray(a)?a:[]}
-async function getPTs(){var rows=[],s=sb();if(s){try{var r=await s.from('pt_directory').select('id,user_id,pt_name,email,status,outlet').eq('status','active').order('pt_name');if(!r.error)rows=r.data||[]}catch(e){}}
- if(!rows.length&&s){try{var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').in('role',['PT','MANAGER']).order('email');if(!u.error)(u.data||[]).forEach(function(x){if(!rows.some(function(y){return y.user_id===x.user_id}))rows.push({user_id:x.user_id,email:x.email||'',pt_name:x.full_name||x.email||x.user_id,status:'active',outlet:x.outlet||''})})}catch(e){}}
- return rows;
+async function getPTs(){var rows=[],s=sb();if(s){try{var r=await s.from('pt_directory').select('id,user_id,pt_name,email,status,outlet').eq('status','active').order('pt_name');if(!r.error)rows=r.data||[]}catch(e){}
+ try{var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').order('email');if(!u.error)(u.data||[]).forEach(function(x){if(!rows.some(function(y){return String(y.user_id)===String(x.user_id)}))rows.push({user_id:x.user_id,email:x.email||'',pt_name:x.full_name||x.email||x.user_id,status:'active',outlet:x.outlet||''})})}catch(e){}}
+ rows.sort(function(a,b){return String(a.pt_name||a.full_name||a.email||'').localeCompare(String(b.pt_name||b.full_name||b.email||''))});return rows;
 }
 function ensurePTField(){var modal=q('ccModal');if(!modal)return null;var el=q('ccEditPT');if(el)return el;var anchor=q('ccEditClientName');if(!anchor)return null;var host=anchor.closest('.field')||anchor.parentElement;var wrap=document.createElement('div');wrap.className='field';wrap.innerHTML='<label>PT</label><select id="ccEditPT" required><option value="">Pilih PT</option></select>';if(host&&host.parentNode)host.parentNode.insertBefore(wrap,host);else modal.querySelector('.modal-body')?.prepend(wrap);return q('ccEditPT')}
 async function fillPT(selected){var el=ensurePTField();if(!el)return;var rows=await getPTs();var html='<option value="">Pilih PT</option>'+rows.map(function(x){return '<option value="'+esc(x.user_id||'')+'" data-name="'+esc(x.pt_name||x.email||x.user_id||'')+'" data-email="'+esc(x.email||'')+'">'+esc(x.pt_name||x.email||x.user_id)+(x.outlet?' • '+esc(x.outlet):'')+'</option>'}).join('');el.innerHTML=html;if(selected){el.value=selected;if(!el.value){for(var i=0;i<el.options.length;i++)if(el.options[i].dataset.email===selected){el.value=el.options[i].value;break}}}}
@@ -7700,7 +7686,7 @@ if(!masterUser){
 U={pts:allPts,clients:allClients,schedules:allSchedules,conducts:allConducts,packages:allPackages};q('fjPcuSearch').oninput=renderPTCards;renderPTCards();q('fjPcuStatus').textContent='ONLINE • '+U.clients.length+' client'}
 
 function bind(){ptOpenObserver();var save=q('ccSaveEvent');if(save&&!save.dataset.fj60){save.dataset.fj60='1';save.addEventListener('click',function(){queue(250)},true)}var del=q('ccDeleteEvent');if(del&&!del.dataset.fj60){del.dataset.fj60='1';del.addEventListener('click',function(){var k=(q('ccEditKey')||{}).value,p=cal(),e=p&&p.calendar&&p.calendar.events&&p.calendar.events[k],id=e&&e._fjOnlineScheduleId;setTimeout(function(){if(id)deleteRemoteSchedule(id)},200)},true)}
- var side=document.querySelector('.side');if(side&&!q('fjV60PtDirectoryNav')){var n=document.createElement('button');n.id='fjV60PtDirectoryNav';n.type='button';n.className='navbtn';n.textContent='PT & Client';n.onclick=function(){if(window.fjPtM53Show)window.fjPtM53Show();setTimeout(function(){var p=q('fjPtOpsV2');if(p){p.classList.add('active');var tab=p.querySelector('[data-v="pt-client"]');if(tab)tab.click()}},100)};side.appendChild(n)}
+ var side=document.querySelector('.side');if(false&&side&&!q('fjV60PtDirectoryNav')){var n=document.createElement('button');n.id='fjV60PtDirectoryNav';n.type='button';n.className='navbtn';n.textContent='PT & Client';n.onclick=function(){if(window.fjPtM53Show)window.fjPtM53Show();setTimeout(function(){var p=q('fjPtOpsV2');if(p){p.classList.add('active');var tab=p.querySelector('[data-v="pt-client"]');if(tab)tab.click()}},100)};side.appendChild(n)}
  if(q('fjPtOpsV2')){renderDirectory();}
 }
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('[data-pt]'):null;if(a&&a.closest&&a.closest('#fjPcuList')){showClients(a.dataset.pt)}var c=e.target&&e.target.closest?e.target.closest('[data-client]'):null;if(c&&c.closest&&c.closest('#fjPcuClients')){showClient(c.dataset.client,c.dataset.pt)}var b=e.target&&e.target.closest?e.target.closest('[data-pcu-back-client]'):null;if(b){showClients(b.dataset.pt||'')}} ,true);
@@ -7776,21 +7762,7 @@ async function refreshPTAccess(){
   return ok;
 }
 
-function ensurePTClientNav(){
-  var side=document.querySelector('.side'),tracker=q('fjPtTrackerNav');
-  if(!side||!tracker)return;
-  var n=q('fjPtClientNav');
-  if(!n){
-    n=document.createElement('button');
-    n.id='fjPtClientNav';n.type='button';n.className='navbtn';
-    n.textContent='▣ PT & Client';
-    tracker.parentNode.insertBefore(n,tracker.nextSibling);
-    n.addEventListener('click',function(e){
-      e.preventDefault();e.stopImmediatePropagation();
-      openPTClient();
-    },true);
-  }
-}
+function ensurePTClientNav(){return}
 async function openPTClient(){
   if(!(await refreshPTAccess()))return;
   var p=q('fjPtOpsV2');
@@ -7920,6 +7892,12 @@ setInterval(function(){ensurePTClientNav();refreshPTAccess()},4000);
 #fjV617AssignModal select{width:100%;padding:10px;border:1px solid #cfe0e9;border-radius:9px;background:#fff}
 #fjV617AssignStatus{min-height:18px;margin-top:8px;font-size:12px;color:#6d879e}
 </style>
+<style id="fj-v619-pt-sidebar-authoritative">
+/* Final PT sidebar authority: exactly one Tracker and one PT & Client entry. */
+.side #fjPtTrackerNav,.side #fjPtClientNav{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+.side #fjPtTrackerNav{margin-top:0!important}
+.side #fjPtClientNav{margin-top:0!important}
+</style>
 <script id="fj-v617-clean-pt-runtime">
 (function(){
 'use strict';
@@ -7942,20 +7920,20 @@ async function activePTs(){
   var s=supa();if(!s)return [];
   var d=await s.from('pt_directory').select('id,user_id,pt_name,email,status,outlet').eq('status','active').order('pt_name');
   if(d.error)throw d.error;
-  var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').in('role',['PT','MANAGER']).order('email');
+  var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').order('email');
   if(u.error)throw u.error;
   return mergePTRows(d.data||[],(u.data||[]));
 }
 function ensureModal(){
   var m=$('fjV617AssignModal');if(m)return m;
   m=document.createElement('div');m.id='fjV617AssignModal';
-  m.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><div style="font-size:11px;font-weight:900;color:#1687c9">PT ASSIGNMENT</div><h3 id="fjV617AssignTitle" style="margin:3px 0;color:#17364e">Assign PT</h3></div><button type="button" class="ptv2-btn alt" id="fjV617AssignClose">Tutup</button></div><label>PT yang menangani client</label><select id="fjV617AssignSelect"><option value="">Pilih PT</option></select><div id="fjV617AssignStatus"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button type="button" class="ptv2-btn alt" id="fjV617AssignCancel">Batal</button><button type="button" class="ptv2-btn" id="fjV617AssignSave">Save Assignment</button></div></div>';
+  m.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><div style="font-size:11px;font-weight:900;color:#1687c9">PT ASSIGNMENT</div><h3 id="fjV617AssignTitle" style="margin:3px 0;color:#17364e">Assign PT</h3></div><button type="button" class="ptv2-btn alt" id="fjV617AssignClose">Tutup</button></div><label>Akun / email akses</label><select id="fjV617AssignSelect"><option value="">Pilih akun</option></select><label>Nama PT</label><input id="fjV617AssignName" type="text" placeholder="Nama PT yang tampil di sistem"><div id="fjV617AssignStatus"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button type="button" class="ptv2-btn alt" id="fjV617AssignCancel">Batal</button><button type="button" class="ptv2-btn" id="fjV617AssignSave">Save Assignment</button></div></div>';
   document.body.appendChild(m);
   $('fjV617AssignClose').onclick=closeAssign;$('fjV617AssignCancel').onclick=closeAssign;$('fjV617AssignSave').onclick=saveAssign;
   return m;
 }
 var assignClientId='';
-function closeAssign(){var m=$('fjV617AssignModal');if(m)m.classList.remove('open');assignClientId=''}
+function closeAssign(){var m=$('fjV617AssignModal');if(m)m.classList.remove('open');assignClientId='';var n=$('fjV617AssignName');if(n)n.value=''}
 async function resolveCurrentPT(id,current){
   if(current)return current;
   var s=supa();if(!s||!id)return '';
@@ -7965,13 +7943,16 @@ async function openAssign(id,name,current){
   var m=ensureModal();assignClientId=id;$('fjV617AssignTitle').textContent='Assign PT — '+(name||'Client');$('fjV617AssignStatus').textContent='Memuat daftar PT…';
   try{
     var rows=await activePTs(),cur=await resolveCurrentPT(id,current||''),sel=$('fjV617AssignSelect');
-    sel.innerHTML='<option value="">Pilih PT</option>'+rows.map(function(x){return '<option value="'+esc(x.user_id)+'" data-name="'+esc(x.pt_name||x.email||x.user_id)+'" data-email="'+esc(x.email||'')+'">'+esc(x.pt_name||x.email||x.user_id)+(x.outlet?' • '+esc(x.outlet):'')+'</option>'}).join('');
-    sel.value=cur||'';$('fjV617AssignStatus').textContent=rows.length?rows.length+' PT aktif/approved tersedia.':'Belum ada PT aktif/approved. Daftarkan akun PT melalui PT Public Directory.';m.classList.add('open');
+    sel.innerHTML='<option value="">Pilih akun</option>'+rows.map(function(x){return '<option value="'+esc(x.user_id)+'" data-name="'+esc(x.pt_name||x.full_name||x.email||x.user_id)+'" data-email="'+esc(x.email||'')+'">'+esc(x.email||x.pt_name||x.user_id)+'</option>'}).join('');
+    sel.value=cur||'';
+    var chosen=sel.options[sel.selectedIndex];$('fjV617AssignName').value=chosen?((chosen.dataset&&chosen.dataset.name)||''):'';
+    sel.onchange=function(){var o=sel.options[sel.selectedIndex];$('fjV617AssignName').value=o?((o.dataset&&o.dataset.name)||''):''};
+    $('fjV617AssignStatus').textContent=rows.length?rows.length+' akun approved tersedia untuk dijadikan PT.':'Belum ada akun approved.';m.classList.add('open');
   }catch(e){$('fjV617AssignStatus').textContent='Gagal memuat PT: '+(e.message||e);m.classList.add('open')}
 }
 async function saveAssign(){
   var id=assignClientId,sel=$('fjV617AssignSelect'),ptid=sel&&sel.value||'';if(!id||!ptid){alert('Pilih PT terlebih dahulu.');return}
-  var opt=sel.options[sel.selectedIndex],name=opt&&opt.dataset.name||opt&&opt.textContent||'',email=opt&&opt.dataset.email||'',s=supa();if(!s){alert('Supabase belum terhubung.');return}
+  var opt=sel.options[sel.selectedIndex],email=opt&&opt.dataset.email||'',name=String(($('fjV617AssignName')||{}).value||'').trim()||(opt&&opt.dataset.name)||opt&&opt.textContent||'',s=supa();if(!s){alert('Supabase belum terhubung.');return}
   var st=$('fjV617AssignStatus');st.textContent='Menyimpan assignment…';
   try{
     var old=await s.from('pt_clients').select('profile').eq('id',id).single();if(old.error)throw old.error;
@@ -7991,13 +7972,25 @@ function decorate(){
   var pd=$('fjPcuClients');if(pd)pd.querySelectorAll('.fj-pcu-client').forEach(function(c){addAssignButton(c,c.dataset.client,c.querySelector('b')?.textContent||'Client',c.dataset.pt||'')})
 }
 function canonicalNav(){
-  var s=side(),ex=exercise();if(!s||!ex||!ex.parentNode)return;
+  var s=side();if(!s)return;
   ['fjV616PtTracker','fjV616PtClient','fjV615PtTracker','fjV615PtClient','fjV60PtDirectoryNav','fjPtOpsV2Nav','fjPtMasterNav','fjPtMirrorMaster'].forEach(function(id){var x=$(id);if(x)x.remove()});
-  var t=$('fjPtTrackerNav'),c=$('fjPtClientNav');
+  var t=$('fjPtTrackerNav'),c=$('fjPtClientNav'),ex=exercise();
   if(!t){t=document.createElement('button');t.id='fjPtTrackerNav';t.type='button';t.className='navbtn';t.textContent='▣ PT Tracker Management'}
   if(!c){c=document.createElement('button');c.id='fjPtClientNav';c.type='button';c.className='navbtn';c.textContent='▣ PT & Client'}
-  if(t.parentNode!==ex.parentNode||t.previousElementSibling!==ex)ex.parentNode.insertBefore(t,ex.nextSibling);
-  if(c.parentNode!==t.parentNode||c.previousElementSibling!==t)t.parentNode.insertBefore(c,t.nextSibling);
+  /* The PT buttons are authoritative sidebar entries. Do not depend on Exercise Library
+     being rendered first; that dependency was the reason the sidebar could disappear. */
+  var anchor=ex&&ex.parentNode===s?ex:null;
+  if(!anchor){
+    var candidates=s.querySelectorAll('.navbtn');
+    for(var i=0;i<candidates.length;i++){
+      var txt=String(candidates[i].textContent||'').toLowerCase();
+      if(txt.indexOf('exercise library')>=0){anchor=candidates[i];break}
+    }
+  }
+  if(anchor){
+    if(t.parentNode!==s||t.previousElementSibling!==anchor)s.insertBefore(t,anchor.nextSibling);
+  }else if(t.parentNode!==s){s.appendChild(t)}
+  if(c.parentNode!==s||c.previousElementSibling!==t)s.insertBefore(c,t.nextSibling);
   t.style.display='flex';c.style.display='flex';t.style.pointerEvents='auto';c.style.pointerEvents='auto';
   if(!t.dataset.fj617Bound){t.dataset.fj617Bound='1';t.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openTracker()}}
   if(!c.dataset.fj617Bound){c.dataset.fj617Bound='1';c.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openClient()}}
@@ -8019,7 +8012,8 @@ function boot(){canonicalNav();removeDuplicatePTClientTab();decorate()}
 var obs=new MutationObserver(function(){canonicalNav();removeDuplicatePTClientTab();decorate()});
 if(document.body)obs.observe(document.body,{childList:true,subtree:true});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500)},{once:true});else setTimeout(boot,500);
-window.addEventListener('load',function(){setTimeout(boot,900)});setInterval(boot,3000);
+window.addEventListener('load',function(){setTimeout(boot,900)});
+setInterval(boot,3000);
 })();
 </script>
 </body></html>
@@ -10171,3 +10165,5 @@ window.addEventListener('load',function(){setTimeout(boot,1100)});
 <!-- ROOT SAVE TRAINING FIX: final isolated handler. It supersedes broken/stacked Save Training handlers only. -->
 
 <!-- V61.6 SURGICAL CONSOLIDATION: navigation presentation only; existing engines remain authoritative. -->
+
+<!-- V63 TARGETED: PT access-name assignment + PT-owned client flow + single PT sidebar navigation; no other engines changed. -->

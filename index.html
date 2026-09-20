@@ -9577,12 +9577,18 @@ window.__fjExerciseData.push(
 #exlMateri img,#exlMateri .prescard-icon,#exlMateri .edu-icon,#exlMateri .icon,#exlMateri [class*="icon"]{display:none!important}
 #exlMateri .edu-ex-title b{display:block}
 </style>
+<style id="fj-v72-exercise-focus-reset">
+.exl-search-mode{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.exl-reset-focus{border:1px solid #cbdde5;background:#fff;color:#49636f;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
+.exl-focus-status{margin:10px 0 8px;padding:8px 10px;border-radius:9px;background:#f4f8fa;border:1px solid #dbe8ed;color:#234d5e;font-size:12px}
+@media(max-width:760px){.exl-search-mode{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.exl-search-mode .exl-mode,.exl-reset-focus{width:100%;min-height:38px}.exl-search-mode .exl-mode[data-mode="exercise"]{grid-column:1 / -1}.exl-reset-focus{grid-column:1 / -1}}
+</style>
 <script id="fj-exlib-runtime">
 (function(){'use strict';
 function q(id){return document.getElementById(id)}
 function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 var DATA=window.__fjExerciseData||[];
-var F={cat:'',equip:'',level:'',move:'',q:'',type:''};
+var F={cat:'',equip:'',level:'',move:'',q:'',type:'',focus:'',pattern:''};
 var SELECTED=[]; // ids
 
 function can(){return true} // exercise library is informational; available to any logged-in user of the app
@@ -9695,18 +9701,81 @@ function drawGrid(){
   wrap.innerHTML='<div class="exl-library-summary"><b>'+list.length+'</b> exercise cocok • prioritas dihitung dari Goal + Level + Pola + Alat + Fokus</div><div class="exl-grid">'+list.slice(0,120).map(function(x){var d=x.d,m=x.meta;return '<div class="exl-ex exl-ex-clean" onclick="window.fjExlOpen(\''+d.id+'\')"><div class="exl-ex-top"><span class="exl-type '+(m.type==='Isolation'?'iso':'comp')+'">'+E(m.type)+'</span><span class="exl-level">'+E(d.level)+'</span></div><h4>'+E(d.name)+'</h4><div class="exl-muted">Otot: '+E(m.primary)+'</div><div class="exl-meta-line"><span>Pattern: '+E(m.pattern)+'</span><span>Sendi: '+E(m.joints)+'</span><span>Alat: '+E(d.equip)+'</span></div><div class="exl-open-hint">Lihat library detail →</div></div>'}).join('')+'</div>';
 }
 function renderBrowse(){
-  var b=q('exlBrowse');if(!b)return;var cats=catList(),equips=equipList(),muscles=[];DATA.forEach(function(d){(d.primary||[]).forEach(function(m){if(m&&!muscles.includes(m))muscles.push(m)});});muscles.sort();
-  b.innerHTML='<div class="exl-card"><div class="exl-filters">'+
-    '<div class="field"><label>Tujuan / Goal</label><select id="exlGoalReco">'+['General Fitness','Fat Loss','Hypertrophy / Bodybuilding','Strength','Power','Endurance'].map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+ 
-    '<div class="field"><label>Level</label><select id="exlFLevel"><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select></div>'+ 
-    '<div class="field"><label>Jenis</label><select id="exlFType"><option value="">Compound + Isolation</option><option>Compound</option><option>Isolation</option></select></div>'+ 
-    '<div class="field"><label>Alat</label><select id="exlFEquip"><option value="">Semua alat</option>'+equips.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+ 
-    '<div class="field"><label>Pola Gerak</label><select id="exlFPattern"><option value="">Semua pattern</option>'+['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation','Cardio','Mobility','General'].map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+ 
-    '<div class="field"><label>Otot utama</label><select id="exlFMuscle"><option value="">Semua otot</option>'+muscles.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+ 
-    '<div class="field exl-search"><label>Cari Exercise / Otot / Pattern</label><input id="exlSearch" placeholder="contoh: squat, glute, hamstring, push..." value="'+E(F.q)+'"></div>'+ 
-    '<div class="field"><label>Fokus tambahan</label><input id="exlFocus" placeholder="contoh: glute, shoulder, knee control"></div>'+ 
-    '</div><div class="exl-library-note">Library ini memisahkan <b>data anatomi exercise</b> dari <b>aturan programming</b>. Goal menentukan prioritas pola; level menentukan prioritas variasi/alat; filter tidak mengubah data asli.</div><div id="exlPrescriptionBox"></div><div id="exlGridWrap"></div></div>';
-  q('exlSearch').oninput=function(){F.q=this.value;drawGrid()};q('exlFEquip').onchange=function(){F.equip=this.value;drawGrid()};q('exlFLevel').onchange=function(){F.level=this.value;drawGrid();drawPrescription()};q('exlFType').onchange=function(){F.type=this.value;drawGrid()};['exlGoalReco','exlFPattern','exlFMuscle','exlFocus'].forEach(function(id){var el=q(id);if(el)el.oninput=el.onchange=function(){drawGrid();drawPrescription()}});drawPrescription();drawGrid();
+  var b=q('exlBrowse');if(!b)return;
+  var equips=equipList(),muscles=[];
+  DATA.forEach(function(d){(d.primary||[]).concat(d.secondary||[]).forEach(function(m){if(m&&!muscles.includes(m))muscles.push(m)});});
+  muscles.sort();
+  var currentGoal=(q('programGoal')||{}).value||'General Fitness';
+  var currentLevel=(q('programLevel')||{}).value||'Pemula';
+  var patterns=['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation','Cardio','Mobility','General'];
+  b.innerHTML='<div class="exl-card exl-smart-search-card">'+
+    '<div class="exl-smart-head"><div><div class="label">CARI EXERCISE</div><h2 style="margin:3px 0">Pilih SATU fokus pencarian</h2><p class="exl-muted">Jangan isi semua filter. Pilih <b>Otot</b> atau <b>Pattern</b> atau <b>Nama Exercise</b>. Sistem akan mengisi rekomendasi lainnya otomatis.</p></div><div class="exl-auto-badge">AUTO RECOMMENDATION</div></div>'+
+    '<div class="exl-search-mode" role="tablist" aria-label="Fokus pencarian">'+
+      '<button type="button" class="exl-mode active" data-mode="muscle">OTOT</button>'+
+      '<button type="button" class="exl-mode" data-mode="pattern">PATTERN</button>'+
+      '<button type="button" class="exl-mode" data-mode="exercise">NAMA EXERCISE</button>'+
+      '<button type="button" class="exl-reset-focus" id="exlResetFocus" type="button">RESET FOKUS</button>'+
+    '</div>'+
+    '<div class="exl-focus-status" id="exlFocusStatus"><b>Fokus aktif:</b> OTOT</div>'+
+    '<div class="exl-smart-input" id="exlSmartInput"></div>'+
+    '<div class="exl-auto-context"><div><b>Goal</b><span id="exlAutoGoal">'+E(currentGoal||'General Fitness')+'</span></div><div><b>Level</b><span id="exlAutoLevel">'+E(currentLevel||'Pemula')+'</span></div><div><b>Alat</b><span id="exlAutoEquip">Semua alat</span></div><div><b>Mode</b><span>Rekomendasi otomatis</span></div></div>'+
+    '<div class="exl-smart-note">Goal, level, pola pendukung, alat, otot sekunder, sendi, dan programming <b>bukan wajib diisi</b>. Semuanya dipakai sebagai peringkat/rekomendasi setelah fokus utama dipilih.</div>'+
+    '<details class="exl-advanced"><summary>Pengaturan tambahan (opsional)</summary><div class="exl-advanced-grid">'+
+      '<div class="field"><label>Goal rekomendasi</label><select id="exlGoalReco">'+['General Fitness','Fat Loss','Hypertrophy / Bodybuilding','Strength','Power','Endurance'].map(function(x){return '<option '+(x===currentGoal?'selected':'')+'>'+E(x)+'</option>'}).join('')+'</select></div>'+
+      '<div class="field"><label>Level</label><select id="exlFLevel">'+['Pemula','Menengah','Lanjutan'].map(function(x){return '<option '+(x===currentLevel?'selected':'')+'>'+x+'</option>'}).join('')+'</select></div>'+
+      '<div class="field"><label>Alat (opsional)</label><select id="exlFEquip"><option value="">Semua alat</option>'+equips.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+
+    '</div></details>'+
+    '<div id="exlPrescriptionBox"></div><div id="exlGridWrap"></div>'+
+  '</div>';
+
+  var state={mode:'muscle'};
+  function clearFocusValues(){
+    // One focus only: changing OTOT/PATTERN/NAMA automatically releases the previous focus.
+    F.q='';F.cat='';F.type='';F.pattern='';
+    var ms=q('exlFMuscle'),pt=q('exlFPattern'),sx=q('exlSearch');
+    if(ms)ms.value='';if(pt)pt.value='';if(sx)sx.value='';
+  }
+  function focusLabel(mode){return mode==='muscle'?'OTOT':(mode==='pattern'?'PATTERN':'NAMA EXERCISE')}
+  function updateFocusStatus(){var st=q('exlFocusStatus');if(st)st.innerHTML='<b>Fokus aktif:</b> '+focusLabel(state.mode)+' <span class="exl-muted">• fokus lain otomatis di-reset</span>';}
+  function renderInput(){
+    var box=q('exlSmartInput');if(!box)return;
+    if(state.mode==='muscle'){
+      box.innerHTML='<label class="exl-smart-label">Pilih otot yang mau dicari</label><select id="exlFMuscle"><option value="">Pilih otot</option>'+muscles.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select>';
+    }else if(state.mode==='pattern'){
+      box.innerHTML='<label class="exl-smart-label">Pilih pola gerak</label><select id="exlFPattern"><option value="">Pilih pattern</option>'+patterns.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select>';
+    }else{
+      box.innerHTML='<label class="exl-smart-label">Ketik nama exercise</label><input id="exlSearch" placeholder="contoh: squat, row, press, curl..." value="'+E(F.q||'')+'">';
+    }
+    updateFocusStatus();
+    var el=state.mode==='muscle'?q('exlFMuscle'):(state.mode==='pattern'?q('exlFPattern'):q('exlSearch'));
+    if(el)el.oninput=el.onchange=function(){
+      var val=this.value;
+      clearFocusValues();
+      if(state.mode==='muscle'){F.level=(q('exlFLevel')||{}).value||currentLevel;F.focus=val;F.pattern='';}
+      if(state.mode==='pattern'){F.level=(q('exlFLevel')||{}).value||currentLevel;F.pattern=val;F.focus='';}
+      if(state.mode==='exercise'){F.q=val;F.focus=val;F.pattern='';}
+      // Restore the current input after clearing the other focus values.
+      if(state.mode==='muscle' && q('exlFMuscle'))q('exlFMuscle').value=val;
+      if(state.mode==='pattern' && q('exlFPattern'))q('exlFPattern').value=val;
+      if(state.mode==='exercise' && q('exlSearch'))q('exlSearch').value=val;
+      drawPrescription();drawGrid();
+    };
+  }
+  function setMode(mode){
+    state.mode=mode;
+    clearFocusValues();
+    F.focus='';
+    b.querySelectorAll('.exl-mode').forEach(function(x){x.classList.toggle('active',x.dataset.mode===mode)});
+    renderInput();drawPrescription();drawGrid();
+  }
+  b.querySelectorAll('.exl-mode').forEach(function(btn){btn.onclick=function(){setMode(btn.dataset.mode)}});
+  var resetFocus=q('exlResetFocus');
+  if(resetFocus)resetFocus.onclick=function(){setMode('muscle')};
+  var goal=q('exlGoalReco'),level=q('exlFLevel'),equip=q('exlFEquip');
+  if(goal)goal.onchange=function(){drawPrescription();drawGrid();q('exlAutoGoal').textContent=this.value};
+  if(level)level.onchange=function(){F.level=this.value;drawPrescription();drawGrid();q('exlAutoLevel').textContent=this.value};
+  if(equip)equip.onchange=function(){F.equip=this.value;drawGrid();q('exlAutoEquip').textContent=this.value||'Semua alat'};
+  renderInput();drawPrescription();drawGrid();
 }
 function drawPrescription(){var b=q('exlPrescriptionBox');if(!b)return;var f=fjBrowseFilters(),p=fjGoalPrescription(f.goal);b.innerHTML='<div class="exl-prescription"><div><b>Prescription Library</b><span>Goal: '+E(f.goal)+'</span></div><div><b>Sets × Reps</b><span>'+E(p.sets)+' × '+E(p.reps)+'</span></div><div><b>Rest</b><span>'+E(p.rest)+'</span></div><div><b>Tempo</b><span>'+E(p.tempo)+'</span></div><div><b>RIR</b><span>'+E(p.rir)+'</span></div><div><b>Load</b><span>'+E(p.load)+'</span></div></div>'}
 window.fjExlOpen=function(id){var d=DATA.find(function(x){return x.id===id});if(!d)return;var m=fjExMeta(d),p=fjGoalPrescription((q('exlGoalReco')||{}).value||'General Fitness'),inSel=SELECTED.indexOf(id)>-1;var html='<h2>'+E(d.name)+'</h2><div class="exl-badges"><span class="exl-badge type">'+E(m.type)+'</span><span class="exl-badge">'+E(d.level)+'</span><span class="exl-badge">'+E(d.equip)+'</span><span class="exl-badge">'+E(m.pattern)+'</span></div><div class="exl-detail-grid"><div><b>Otot utama</b><span>'+E(m.primary)+'</span></div><div><b>Otot sekunder</b><span>'+E(m.secondary)+'</span></div><div><b>Sendi yang bekerja</b><span>'+E(m.joints)+'</span></div><div><b>Pattern</b><span>'+E(m.pattern)+'</span></div><div><b>Level</b><span>'+E(d.level)+'</span></div><div><b>Alat</b><span>'+E(d.equip)+'</span></div></div><p class="exl-muted">'+E(d.desc)+'</p><h3>Programming untuk Goal yang dipilih</h3><div class="exl-setsreps"><div><b>Sets × Reps</b>'+E(p.sets+' × '+p.reps)+'</div><div><b>Rest</b>'+E(p.rest)+'</div><div><b>Tempo</b>'+E(p.tempo)+'</div><div><b>RIR</b>'+E(p.rir)+'</div></div><h3>Cara melakukan</h3><ul>'+(d.steps||[]).map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul><h3>Tips & risiko teknik</h3><ul>'+(d.mistakes||[]).map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul><div class="exl-source-note"><b>Basis:</b> ACSM 2026 untuk penyesuaian goal/load/volume; NASM untuk RPE/RIR dan progressive programming; WHO untuk konteks frekuensi aktivitas penguatan otot. Ini adalah panduan library untuk healthy adults, bukan diagnosis atau resep medis.</div><div class="exl-modal-actions"><button class="exl-btn'+(inSel?' danger':'')+'" onclick="window.fjExlToggleSelect(\''+d.id+'\')">'+(inSel?'✕ Hapus dari Pilihan':'＋ Tambah ke Pilihan')+'</button><button class="exl-btn alt" onclick="window.fjExlCloseModal()">Tutup</button></div>';q('exlModalBody').innerHTML=html;q('exlModal').classList.add('open')};
@@ -9869,6 +9938,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 window.addEventListener('load',function(){setTimeout(boot,1100)});
 })();
 </script>
+<style id="fj-v71-smart-exercise-search">
+/* V71: Exercise Library simplified to one primary search intent. Existing data/ranking engines remain intact. */
+.exl-smart-search-card{padding:18px!important}
+.exl-smart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.exl-smart-head h2{color:#154442}
+.exl-search-mode{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 10px}
+.exl-mode{border:1px solid #cfe2df;background:#f5fbfa;color:#376c67;border-radius:10px;padding:11px 10px;font-weight:900;font-size:11px;cursor:pointer}
+.exl-mode.active{background:#0dbfab;color:#fff;border-color:#0dbfab;box-shadow:0 4px 12px rgba(13,191,171,.18)}
+.exl-smart-input{margin-top:8px}
+.exl-smart-input select,.exl-smart-input input{width:100%;box-sizing:border-box;border:1px solid #c6e2e0;background:#fff;border-radius:10px;padding:12px 13px;font-size:14px;color:#154442;min-height:46px}
+.exl-smart-label{display:block;font-size:10px;text-transform:uppercase;font-weight:900;color:#5e8d89;margin-bottom:6px}
+.exl-auto-context{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.exl-auto-context>div{padding:9px 10px;border:1px solid #d5e9e7;border-radius:10px;background:#f8fcfc;min-width:0}
+.exl-auto-context b,.exl-auto-context span{display:block}.exl-auto-context b{font-size:9px;text-transform:uppercase;color:#6c918d}.exl-auto-context span{margin-top:3px;font-size:11px;font-weight:800;color:#154442;overflow-wrap:anywhere}
+.exl-smart-note{margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef9f7;border:1px solid #cfe9e5;color:#4d7772;font-size:11px;line-height:1.5}
+.exl-advanced{margin-top:10px;border:1px solid #d9eae8;border-radius:10px;background:#fbfefe}.exl-advanced summary{cursor:pointer;padding:10px 12px;font-size:11px;font-weight:900;color:#3f706b}.exl-advanced-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px 12px}
+.exl-advanced-grid .field{margin:0}.exl-advanced-grid select{width:100%;box-sizing:border-box}
+@media(max-width:700px){.exl-smart-head{display:block}.exl-auto-badge{margin-top:8px}.exl-search-mode{grid-template-columns:1fr}.exl-auto-context{grid-template-columns:1fr 1fr}.exl-advanced-grid{grid-template-columns:1fr}}
+</style>
 <style id="fj-v45-targeted-only">
 /* V45 — scoped only to requested modules. No global layout rewrite. */
 .exl-ex-clean{cursor:pointer;padding:14px!important}

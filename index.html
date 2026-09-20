@@ -2836,7 +2836,7 @@ async function initSupabase(){
    try{
      const {data,error}=await sb.auth.getSession();
      if(error) throw error;
-     await handleSession(data.session);
+     handleSession(data.session);
    }catch(sessionErr){
      if(auth)auth.style.display='flex';
      if(login)login.style.display='block';
@@ -2910,54 +2910,40 @@ function fjApplyAccessUI(){
 function fjEscape(v){
   return String(v??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
 }
+async function fjWithTimeout(promise,ms,label){var timer;return Promise.race([promise,new Promise(function(_,rej){timer=setTimeout(function(){rej(new Error(label||'Request timeout'))},ms)})]).finally(function(){clearTimeout(timer)})}
 async function handleSession(session){
-  currentUser=session?.user||null;
-  window.currentSession=session||null;
-  fjCurrentAccess=null;
+  currentUser=session?.user||null; window.currentSession=session||null; fjCurrentAccess=null;
   const auth=document.getElementById('auth'), app=document.querySelector('.app');
-  if(!currentUser){
-    if(app)app.style.display='none';
-    if(auth)auth.style.display='flex';
-    return;
-  }
+  if(!currentUser){if(app)app.style.display='none';if(auth)auth.style.display='flex';return;}
   const email=String(currentUser.email||'').trim().toLowerCase();
+  if(auth)auth.style.display='none'; if(app)app.style.display='grid';
+  showAuth('Checking account access…');
   let row=null;
   try{
-    const q=await sb.from('user_access')
-      .select('id,user_id,email,full_name,role,status,outlet,created_at,approved_by,approved_at,updated_at')
-      .eq('user_id',currentUser.id).maybeSingle();
-    if(q.error) throw q.error;
-    row=q.data;
+    const q=await fjWithTimeout(sb.from('user_access').select('id,user_id,email,full_name,role,status,outlet,created_at,approved_by,approved_at,updated_at').eq('user_id',currentUser.id).maybeSingle(),8000,'Access check timed out');
+    if(q.error)throw q.error; row=q.data;
     if(!row && email!=='aldenkhafi0203@gmail.com'){
-      const ins=await sb.from('user_access')
-        .insert({user_id:currentUser.id,email,status:'pending',role:'PT'})
-        .select('id,user_id,email,full_name,role,status,outlet,created_at,approved_by,approved_at,updated_at').single();
-      if(ins.error) throw ins.error;
-      row=ins.data;
+      const ins=await fjWithTimeout(sb.from('user_access').insert({user_id:currentUser.id,email,status:'pending',role:'PT'}).select('id,user_id,email,full_name,role,status,outlet,created_at,approved_by,approved_at,updated_at').single(),8000,'Access request timed out');
+      if(ins.error)throw ins.error; row=ins.data;
     }
   }catch(e){
-    if(app)app.style.display='none';
-    if(auth)auth.style.display='flex';
-    showAuth('Unable to read access approval: '+(e.message||e),'warn');
-    return;
+    if(email==='aldenkhafi0203@gmail.com'){
+      fjCurrentAccess={user_id:currentUser.id,email:email,role:'MASTER_ADMIN',status:'approved',outlet:'ALL'};
+      const name=document.getElementById('sideUserName'),role=document.getElementById('sideUserRole');
+      if(name)name.textContent=currentUser.user_metadata?.full_name||currentUser.email||'Master Admin'; if(role)role.textContent='Master Admin'; fjApplyAccessUI();
+      showAuth('Online access check is slow. App opened; sync continues in background.','warn');
+    }else{
+      if(app)app.style.display='none'; if(auth)auth.style.display='flex'; showAuth('Login berhasil, tetapi verifikasi access timeout. Coba lagi.','warn'); return;
+    }
   }
-  const approved=email==='aldenkhafi0203@gmail.com' || String(row?.status||'').toLowerCase()==='approved';
-  if(!approved){
-    if(app)app.style.display='none';
-    if(auth)auth.style.display='flex';
-    const st=String(row?.status||'pending').toLowerCase();
-    showAuth(st==='rejected'?'Access rejected by Master Admin.':'Access request is waiting for Master Admin approval.','warn');
-    return;
-  }
+  const approved=email==='aldenkhafi0203@gmail.com'||String(row?.status||'').toLowerCase()==='approved';
+  if(!approved){if(app)app.style.display='none';if(auth)auth.style.display='flex';const st=String(row?.status||'pending').toLowerCase();showAuth(st==='rejected'?'Access rejected by Master Admin.':'Access request is waiting for Master Admin approval.','warn');return;}
   fjCurrentAccess=row||{user_id:currentUser.id,email:currentUser.email,role:'MASTER_ADMIN',status:'approved',outlet:'ALL'};
-  if(auth)auth.style.display='none';
-  if(app)app.style.display='grid';
-  const name=document.getElementById('sideUserName'), role=document.getElementById('sideUserRole');
-  if(name)name.textContent=row?.full_name||currentUser.user_metadata?.full_name||currentUser.email||'User';
-  if(role)role.textContent=email==='aldenkhafi0203@gmail.com'?'Master Admin':String(row?.role||'PT');
-  fjApplyAccessUI();
-  if(email==='aldenkhafi0203@gmail.com') await loadAdminAccess();
-  if(typeof window.fjLivePull==='function') setTimeout(function(){window.fjLivePull()},250);
+  if(auth)auth.style.display='none'; if(app)app.style.display='grid';
+  const name=document.getElementById('sideUserName'),role=document.getElementById('sideUserRole');
+  if(name)name.textContent=row?.full_name||currentUser.user_metadata?.full_name||currentUser.email||'User'; if(role)role.textContent=email==='aldenkhafi0203@gmail.com'?'Master Admin':String(row?.role||'PT'); fjApplyAccessUI();
+  if(email==='aldenkhafi0203@gmail.com')setTimeout(loadAdminAccess,0);
+  if(typeof window.fjLivePull==='function')setTimeout(function(){window.fjLivePull()},250);
 }
 async function loadAdminAccess(){
   const box=document.getElementById('adminAccessResult');
@@ -7071,7 +7057,7 @@ function bind(){ptOpenObserver();var save=q('ccSaveEvent');if(save&&!save.datase
  if(q('fjPtOpsV2')){renderDirectory();}
 }
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('[data-pt]'):null;if(a&&a.closest&&a.closest('#fjPcuList')){showClients(a.dataset.pt)}var c=e.target&&e.target.closest?e.target.closest('[data-client]'):null;if(c&&c.closest&&c.closest('#fjPcuClients')){showClient(c.dataset.client,c.dataset.pt)}var b=e.target&&e.target.closest?e.target.closest('[data-pcu-back-client]'):null;if(b){showClients(b.dataset.pt||'')}} ,true);
-async function boot(){bind();if(sb()){await pullRemote(true);try{channel=sb().channel('fj-v61-online').on('postgres_changes',{event:'*',schema:'public',table:'user_access'},function(){handleSession(window.currentSession||null);loadAdminAccess()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_directory'},function(){pullRemote(true);if(typeof fillPT==='function')fillPT()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_clients'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_conducts'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){pullRemote(true)}).subscribe()}catch(e){console.warn('Realtime subscribe',e)}}}
+async function boot(){bind();if(sb()){setTimeout(function(){pullRemote(true)},0);try{channel=sb().channel('fj-v61-online').on('postgres_changes',{event:'*',schema:'public',table:'user_access'},function(){handleSession(window.currentSession||null);loadAdminAccess()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_directory'},function(){pullRemote(true);if(typeof fillPT==='function')fillPT()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_clients'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_conducts'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){pullRemote(true)}).subscribe()}catch(e){console.warn('Realtime subscribe',e)}}}
 window.fjLivePush=pushNow;window.fjLivePull=function(){return pullRemote(false)};window.fjCanonicalSync=pushNow;window.fjRefreshOnline=boot;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,600)},{once:true});else setTimeout(boot,600);window.addEventListener('load',function(){setTimeout(boot,800)});window.addEventListener('online',function(){queue(300)});window.addEventListener('focus',function(){pullRemote(true)});document.addEventListener('visibilitychange',function(){if(!document.hidden)pullRemote(true)});
 // Exercise de-duplication: one display item per normalized exercise name.
@@ -9569,6 +9555,49 @@ window.__fjExerciseData.push(
   extra.forEach(function(x){if(!names[String(x.name).toLowerCase()])a.push(x)});
 })();
 </script>
+<script id="fj-v74-exercise-catalog-expansion">
+(function(){var a=window.__fjExerciseData=window.__fjExerciseData||[],names={};a.forEach(function(x){names[String(x.name||'').toLowerCase()]=1});
+var X=[
+['Incline Barbell Bench Press','Dada','Barbell','Menengah','push',['Dada atas (Pectoralis Major bagian klavikula)'],['Trisep','Bahu depan']],
+['Incline Dumbbell Fly','Dada','Dumbbell','Menengah','push',['Dada atas (Pectoralis Major bagian klavikula)'],['Bahu depan']],
+['Incline Cable Fly','Dada','Kabel','Pemula','push',['Dada atas (Pectoralis Major bagian klavikula)'],['Bahu depan']],
+['Incline Machine Chest Press','Dada','Mesin','Pemula','push',['Dada atas (Pectoralis Major bagian klavikula)'],['Trisep','Bahu depan']],
+['Incline Smith Machine Press','Dada','Smith Machine','Menengah','push',['Dada atas (Pectoralis Major bagian klavikula)'],['Trisep','Bahu depan']],
+['Reverse-Grip Incline Bench Press','Dada','Barbell','Lanjutan','push',['Dada atas (Pectoralis Major bagian klavikula)'],['Trisep','Bahu depan']],
+['Low-to-High Cable Fly','Dada','Kabel','Pemula','push',['Dada atas (Pectoralis Major bagian klavikula)'],['Bahu depan']],
+['Decline Push Up','Dada','Tanpa Alat','Pemula','push',['Dada bawah'],['Trisep','Bahu depan','Core']],
+['Feet-Elevated Push Up','Dada','Bench','Menengah','push',['Dada atas'],['Trisep','Bahu depan','Core']],
+['Decline Barbell Bench Press','Dada','Barbell','Menengah','push',['Dada bawah'],['Trisep','Bahu depan']],
+['Decline Dumbbell Press','Dada','Dumbbell','Menengah','push',['Dada bawah'],['Trisep','Bahu depan']],
+['Flat Dumbbell Chest Press','Dada','Dumbbell','Pemula','push',['Dada (Pectoralis Major)'],['Trisep','Bahu depan']],
+['Chest Press Machine','Dada','Mesin','Pemula','push',['Dada (Pectoralis Major)'],['Trisep','Bahu depan']],
+['Pec Deck Fly','Dada','Mesin','Pemula','push',['Dada (Pectoralis Major)'],['Bahu depan']],
+['Cable Crossover','Dada','Kabel','Pemula','push',['Dada (Pectoralis Major)'],['Bahu depan']],
+['High-to-Low Cable Fly','Dada','Kabel','Pemula','push',['Dada bawah'],['Bahu depan']],
+['Wide Push Up','Dada','Tanpa Alat','Pemula','push',['Dada'],['Trisep','Bahu depan','Core']],
+['Close-Grip Push Up','Dada','Tanpa Alat','Pemula','push',['Trisep','Dada'],['Bahu depan','Core']],
+['Assisted Dip Chest Focus','Dada','Mesin','Pemula','push',['Dada bawah'],['Trisep','Bahu depan']],
+['Ring Push Up','Dada','Rings','Menengah','push',['Dada'],['Trisep','Core','Bahu depan']],
+['Landmine Press','Dada','Landmine','Menengah','push',['Dada atas','Bahu depan'],['Trisep','Core']],
+['Single-Arm Incline Dumbbell Chest Press','Dada','Dumbbell','Lanjutan','push',['Dada atas (Pectoralis Major bagian klavikula)'],['Trisep','Bahu depan','Core']],
+['Single-Arm Dumbbell Chest Press','Dada','Dumbbell','Menengah','push',['Dada'],['Trisep','Bahu depan','Core']],
+['Two-Arm Dumbbell Chest Press With Band','Dada','Dumbbell + Band','Lanjutan','push',['Dada'],['Trisep','Bahu depan','Core']],
+['Incline Plate-Loaded Chest Press','Dada','Mesin','Menengah','push',['Dada atas'],['Trisep','Bahu depan']],
+['Hammer Strength Incline Press','Dada','Mesin','Menengah','push',['Dada atas'],['Trisep','Bahu depan']],
+['Barbell Bench Press With Bands','Dada','Barbell + Band','Lanjutan','push',['Dada'],['Trisep','Bahu depan','Core']],
+['Spoto Press','Dada','Barbell','Lanjutan','push',['Dada'],['Trisep','Bahu depan']],
+['Paused Bench Press','Dada','Barbell','Menengah','push',['Dada'],['Trisep','Bahu depan']],
+['Tempo Push Up','Dada','Tanpa Alat','Pemula','push',['Dada'],['Trisep','Core','Bahu depan']],
+['Banded Push Up','Dada','Band','Menengah','push',['Dada'],['Trisep','Bahu depan','Core']],
+['Deficit Push Up','Dada','Bench','Menengah','push',['Dada'],['Trisep','Bahu depan','Core']],
+['Incline Cable Press','Dada','Kabel','Menengah','push',['Dada atas'],['Trisep','Bahu depan']],
+['Standing Cable Chest Press','Dada','Kabel','Pemula','push',['Dada'],['Trisep','Bahu depan','Core']],
+['Svend Press','Dada','Plate','Pemula','push',['Dada'],['Bahu depan','Trisep']],
+['Plate Squeeze Press','Dada','Plate','Pemula','push',['Dada'],['Trisep','Bahu depan']]
+];
+X.forEach(function(x,i){var n=x[0];if(names[n.toLowerCase()])return;a.push({id:'v74-'+String(i+1).padStart(2,'0'),name:n,cat:x[1],equip:x[2],level:x[3],move:x[4],pattern:'Push',primary:x[5],secondary:x[6],desc:n+' untuk variasi pemrograman dada sesuai goal, level dan alat yang tersedia.',steps:['Atur posisi dan alat sesuai variasi.','Lakukan fase turun dengan kontrol.','Dorong/tarik sesuai pola gerak sambil mempertahankan teknik.'],mistakes:['Beban terlalu berat.','ROM atau posisi kehilangan kontrol.'],sets:{kekuatan:'2-4 x 3-8',hipertrofi:'2-4 x 6-12',ketahanan:'2-3 x 12-20'}})});
+})();
+</script>
 <script id="fj-exlib-data-normalize">
 (function(){
   var a=window.__fjExerciseData||[];
@@ -9616,6 +9645,7 @@ window.__fjExerciseData.push(
 .exl-focus-status{margin:10px 0 8px;padding:8px 10px;border-radius:9px;background:#f4f8fa;border:1px solid #dbe8ed;color:#234d5e;font-size:12px}
 @media(max-width:760px){.exl-search-mode{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.exl-search-mode .exl-mode,.exl-reset-focus{width:100%;min-height:38px}.exl-search-mode .exl-mode[data-mode="exercise"]{grid-column:1 / -1}.exl-reset-focus{grid-column:1 / -1}}
 </style>
+<style id="fj-v74-exlib-controls">.exl-control-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}.exl-control-row .field{margin:0}.exl-control-row select{width:100%}@media(max-width:760px){.exl-control-row{grid-template-columns:1fr}}</style>
 <script id="fj-exlib-runtime">
 (function(){'use strict';
 function q(id){return document.getElementById(id)}
@@ -9708,7 +9738,7 @@ function fjEquipmentScore(d,level){var e=String(d.equip||'').toLowerCase(),l=Str
 function fjGoalPatternScore(meta,goal){var g=fjCanonGoal(goal),p=meta.pattern;var pref={Strength:['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation'],Hypertrophy:['Squat','Hinge','Push','Pull','Lunge','Isolation / Adduction','Core / Anti-Rotation'],Power:['Squat','Hinge','Push','Lunge','Pull'],Endurance:['Squat','Lunge','Push','Pull','Carry','Core / Anti-Rotation','Cardio'], 'Fat Loss':['Squat','Lunge','Hinge','Push','Pull','Carry','Cardio','Core / Anti-Rotation'],'General Fitness':['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation']}[g]||[];var i=pref.indexOf(p);return i<0?0:10-i}
 function fjFocusScore(d,focus){var f=String(focus||'').trim().toLowerCase();if(!f)return 0;var hay=[d.name,d.cat,d.move,d.movement].concat(d.primary||[],d.secondary||[]).join(' ').toLowerCase();return f.split(/[,;]+/).map(function(x){return x.trim()}).filter(Boolean).reduce(function(a,x){return a+(hay.indexOf(x)>-1?20:0)},0)}
 function fjMuscleMatch(d,muscle){if(!muscle)return false;var target=String(muscle).toLowerCase().trim();var hay=(d.primary||[]).concat(d.secondary||[]).join(' ').toLowerCase();var aliases={'adductors':['adductor','paha dalam','gracilis','adductors'],'calves / betis':['calf','calves','betis','gastrocnemius','soleus'],'forearm / lengan bawah':['forearm','lengan bawah','brachioradialis'],'glutes':['glute','gluteus'],'quadriceps':['quadriceps','quad'],'hamstrings':['hamstring']};var keys=[target].concat(aliases[target]||[]);return keys.some(function(k){return hay.indexOf(k)>-1})}
-function fjRankExercise(d,filters){var meta=fjExMeta(d),score=fjGoalPatternScore(meta,filters.goal)+fjLevelScore(d,filters.level)+fjEquipmentScore(d,filters.level)+fjFocusScore(d,filters.focus);if(filters.equip&&String(d.equip||'')!==String(filters.equip))return {d:d,meta:meta,score:-999,available:false};return {d:d,meta:meta,score:score,available:true}}
+function fjRankExercise(d,filters){var meta=fjExMeta(d),lr={Pemula:1,Menengah:2,Lanjutan:3},dl=lr[d.level]||1,fl=lr[filters.level]||1,g=String(filters.goal||'').toLowerCase(),score=fjGoalPatternScore(meta,filters.goal)+fjLevelScore(d,filters.level)+fjEquipmentScore(d,filters.level)+fjFocusScore(d,filters.focus);if(/hypertrophy|bodybuilding|muscle gain|recomposition/.test(g)&&meta.type==='Isolation')score+=7;if(/strength/.test(g)&&meta.type==='Compound')score+=7;if(/power/.test(g)&&/squat|hinge|push|lunge/.test(meta.pattern))score+=5;if(fl===1&&dl===3)score-=18;if(fl===2&&dl===3)score-=7;if(filters.equip&&String(d.equip||'')!==String(filters.equip))return {d:d,meta:meta,score:-999,available:false};return {d:d,meta:meta,score:score,available:Math.abs(dl-fl)<=1}}
 function fjBrowseFilters(){return {goal:(q('exlGoalReco')||{}).value||((q('programGoal')||{}).value||'General Fitness'),level:(q('exlFLevel')||{}).value||((q('programLevel')||{}).value||'Pemula'),equip:(q('exlFEquip')||{}).value||'',pattern:(q('exlFPattern')||{}).value||'',muscle:(q('exlFMuscle')||{}).value||'',focus:(q('exlFocus')||{}).value||F.q||''}}
 function filterData(){
   var z=F.q.trim().toLowerCase();
@@ -9720,13 +9750,16 @@ function filterData(){
 function drawGrid(){
   var wrap=q('exlGridWrap');if(!wrap)return;var f=fjBrowseFilters(),base=filterData();
   var direct=base.filter(function(d){if(f.equip&&String(d.equip||'')!==String(f.equip))return false;if(f.pattern&&fjExMeta(d).pattern!==f.pattern)return false;if(f.muscle&&!fjMuscleMatch(d,f.muscle))return false;return true});
-  var list=direct.map(function(d){return fjRankExercise(d,f)}).sort(function(a,b){return b.score-a.score||String(a.d.name).localeCompare(String(b.d.name))});
+  var ranked=direct.map(function(d){return fjRankExercise(d,f)});
+  var list=ranked.filter(function(x){return x.available}).sort(function(a,b){return b.score-a.score||String(a.d.name).localeCompare(String(b.d.name))});
+  var incompatible=ranked.filter(function(x){return !x.available}).sort(function(a,b){return b.score-a.score}).slice(0,18);
   var focus=f.muscle||f.pattern||f.focus||f.q||'';
   var related=[];
   if(!list.length&&focus){related=base.map(function(d){var m=fjExMeta(d),s=fjFocusScore(d,focus);if(f.pattern&&m.pattern===f.pattern)s+=8;if(f.muscle&&fjMuscleMatch(d,f.muscle))s+=15;return {d:d,meta:m,score:s}}).filter(function(x){return x.score>0}).sort(function(a,b){return b.score-a.score}).slice(0,24);}
   if(!list.length&&!related.length){wrap.innerHTML='<div class="exl-empty"><b>Belum ada direct match.</b><br>Gunakan <b>Reset Fokus</b>, pilih fokus lain, atau hapus filter alat.</div>';return}
   var html='';
   if(list.length){html+='<div class="exl-result-head"><div><b>'+list.length+'</b> direct match</div><span>Diurutkan berdasarkan level, goal, pattern, dan kesesuaian konteks</span></div><div class="exl-grid">'+list.slice(0,120).map(function(x){var d=x.d,m=x.meta;return '<div class="exl-ex exl-ex-clean" onclick="window.fjExlOpen(\''+d.id+'\')"><div class="exl-ex-top"><span class="exl-type '+(m.type==='Isolation'?'iso':'comp')+'">'+E(m.type)+'</span><span class="exl-level">'+E(d.level)+'</span></div><h4>'+E(d.name)+'</h4><div class="exl-muted">Otot: '+E(m.primary)+'</div><div class="exl-meta-line"><span>Pattern: '+E(m.pattern)+'</span><span>Alat: '+E(d.equip)+'</span></div><div class="exl-open-hint">Lihat detail →</div></div>'}).join('')+'</div>'}
+  if(incompatible.length){html+='<div class="exl-related-head"><b>Alternatif sesuai level</b><span>Library tidak memaksakan latihan yang terlalu jauh dari level aktif.</span></div><div class="exl-grid">'+incompatible.map(function(x){var d=x.d,m=x.meta;return '<div class="exl-ex exl-ex-clean exl-related-card" onclick="window.fjExlOpen(\''+d.id+'\')"><div class="exl-ex-top"><span class="exl-type comp">ALTERNATIF</span><span class="exl-level">'+E(d.level)+'</span></div><h4>'+E(d.name)+'</h4><div class="exl-muted">Otot: '+E(m.primary)+'</div><div class="exl-meta-line"><span>Pattern: '+E(m.pattern)+'</span><span>Alat: '+E(d.equip)+'</span></div></div>'}).join('')+'</div>'}
   if(related.length){html+='<div class="exl-related-head"><b>Alternatif / related exercise</b><span>Dipakai bila direct match terbatas atau alat berbeda.</span></div><div class="exl-grid">'+related.map(function(x){var d=x.d,m=x.meta;return '<div class="exl-ex exl-ex-clean exl-related-card" onclick="window.fjExlOpen(\''+d.id+'\')"><div class="exl-ex-top"><span class="exl-type comp">RELATED</span><span class="exl-level">'+E(d.level)+'</span></div><h4>'+E(d.name)+'</h4><div class="exl-muted">Otot: '+E(m.primary)+'</div><div class="exl-meta-line"><span>Pattern: '+E(m.pattern)+'</span><span>Alat: '+E(d.equip)+'</span></div></div>'}).join('')+'</div>'}
   wrap.innerHTML=html;
 }
@@ -9735,7 +9768,7 @@ function renderBrowse(){
   var equips=equipList(),muscles=[];DATA.forEach(function(d){(d.primary||[]).concat(d.secondary||[]).forEach(function(m){if(m&&!muscles.includes(m))muscles.push(m)})});muscles.sort();
   var currentGoal=(q('programGoal')||{}).value||'General Fitness',currentLevel=(q('programLevel')||{}).value||'Pemula';
   var patterns=['Squat','Hinge','Push','Pull','Lunge','Lunge / Lateral','Carry','Core / Anti-Rotation','Core / Rotation','Core / Adduction','Isolation / Adduction','Cardio','Mobility','General'];
-  b.innerHTML='<div class="exl-card exl-smart-search-card"><div class="exl-smart-head"><div><div class="label">CARI EXERCISE</div><h2 style="margin:3px 0">Pilih satu fokus utama</h2><p class="exl-muted">PT cukup memilih <b>OTOT</b>, <b>PATTERN</b>, atau <b>NAMA EXERCISE</b>. Data lain bekerja otomatis sebagai konteks dan rekomendasi.</p></div><div class="exl-auto-badge">SMART LIBRARY</div></div><div class="exl-search-mode" role="tablist"><button type="button" class="exl-mode active" data-mode="muscle">OTOT</button><button type="button" class="exl-mode" data-mode="pattern">PATTERN</button><button type="button" class="exl-mode" data-mode="exercise">NAMA EXERCISE</button><button class="exl-reset-focus" id="exlResetFocus" type="button">RESET FOKUS</button></div><div class="exl-focus-status" id="exlFocusStatus"><b>Fokus aktif:</b> OTOT</div><div class="exl-smart-input" id="exlSmartInput"></div><div class="exl-auto-context"><div><b>Goal client</b><span id="exlAutoGoal">'+E(currentGoal)+'</span></div><div><b>Level client</b><span id="exlAutoLevel">'+E(currentLevel)+'</span></div><div><b>Alat</b><span id="exlAutoEquip">Semua alat</span></div><div><b>Programming</b><span>Otomatis dari konteks</span></div></div><div class="exl-smart-note"><b>Goal bukan filter.</b> Goal hanya memengaruhi ranking dan programming. <b>Level bukan filter.</b> Level menentukan prioritas variasi, alat yang disarankan, dan programming. <b>Alat</b> boleh dipilih sebagai filter nyata.</div><details class="exl-advanced"><summary>Pengaturan PT (opsional)</summary><div class="exl-advanced-grid"><div class="field"><label>Level client</label><select id="exlFLevel">'+['Pemula','Menengah','Lanjutan'].map(function(x){return '<option '+(x===currentLevel?'selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div class="field"><label>Alat yang tersedia</label><select id="exlFEquip"><option value="">Semua alat</option>'+equips.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div></div></details><div id="exlPrescriptionBox"></div><div id="exlGridWrap"></div></div>';
+  b.innerHTML='<div class="exl-card exl-smart-search-card"><div class="exl-smart-head"><div><div class="label">CARI EXERCISE</div><h2 style="margin:3px 0">Pilih satu fokus utama</h2><p class="exl-muted">PT cukup memilih <b>OTOT</b>, <b>PATTERN</b>, atau <b>NAMA EXERCISE</b>. Data lain bekerja otomatis sebagai konteks dan rekomendasi.</p></div><div class="exl-auto-badge">SMART LIBRARY</div></div><div class="exl-search-mode" role="tablist"><button type="button" class="exl-mode active" data-mode="muscle">OTOT</button><button type="button" class="exl-mode" data-mode="pattern">PATTERN</button><button type="button" class="exl-mode" data-mode="exercise">NAMA EXERCISE</button><button class="exl-reset-focus" id="exlResetFocus" type="button">RESET FOKUS</button></div><div class="exl-focus-status" id="exlFocusStatus"><b>Fokus aktif:</b> OTOT</div><div class="exl-smart-input" id="exlSmartInput"></div><div class="exl-control-row"><div class="field"><label>Goal</label><select id="exlGoalReco"></select></div><div class="field"><label>Level</label><select id="exlFLevel">'+['Pemula','Menengah','Lanjutan'].map(function(x){return '<option '+(x===currentLevel?'selected':'')+'>'+x+'</option>'}).join('')+'</select></div><div class="field"><label>Alat</label><select id="exlFEquip"><option value="">Semua alat</option>'+equips.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div></div><div class="exl-auto-context"><div><b>Goal aktif</b><span id="exlAutoGoal">'+E(currentGoal)+'</span></div><div><b>Level aktif</b><span id="exlAutoLevel">'+E(currentLevel)+'</span></div><div><b>Alat aktif</b><span id="exlAutoEquip">Semua alat</span></div><div><b>Recommendation</b><span>Otomatis</span></div></div><details class="exl-advanced"><summary>Pengaturan PT (opsional)</summary><div class="exl-advanced-grid"><div class="exl-muted">Goal, level, dan alat langsung terhubung ke hasil rekomendasi.</div></div></details><div id="exlPrescriptionBox"></div><div id="exlGridWrap"></div></div>';
   var state={mode:'muscle'};
   function clearFocusValues(){F.q='';F.cat='';F.type='';F.pattern='';F.focus='';var ms=q('exlFMuscle'),pt=q('exlFPattern'),sx=q('exlSearch');if(ms)ms.value='';if(pt)pt.value='';if(sx)sx.value='';}
   function focusLabel(mode){return mode==='muscle'?'OTOT':(mode==='pattern'?'PATTERN':'NAMA EXERCISE')}
@@ -9751,8 +9784,8 @@ function renderBrowse(){
   }
   function setMode(mode){state.mode=mode;clearFocusValues();b.querySelectorAll('.exl-mode').forEach(function(x){x.classList.toggle('active',x.dataset.mode===mode)});renderInput();drawPrescription();drawGrid();}
   b.querySelectorAll('.exl-mode').forEach(function(btn){btn.onclick=function(){setMode(btn.dataset.mode)}});var resetFocus=q('exlResetFocus');if(resetFocus)resetFocus.onclick=function(){setMode('muscle')};
-  var level=q('exlFLevel'),equip=q('exlFEquip');if(level)level.onchange=function(){F.level=this.value;q('exlAutoLevel').textContent=this.value;drawPrescription();drawGrid()};if(equip)equip.onchange=function(){F.equip=this.value;q('exlAutoEquip').textContent=this.value||'Semua alat';drawGrid()};
-  F.level=currentLevel;F.equip='';renderInput();drawPrescription();drawGrid();
+  var goal=q('exlGoalReco'),level=q('exlFLevel'),equip=q('exlFEquip');if(goal){var pg=q('programGoal');goal.innerHTML=pg?Array.from(pg.options).map(function(o){return '<option value="'+E(o.value||o.text)+'">'+E(o.text)+'</option>'}).join(''):'<option>General Fitness</option>';goal.value=currentGoal;goal.onchange=function(){F.goal=this.value;q('exlAutoGoal').textContent=this.value;drawPrescription();drawGrid()}}if(level)level.onchange=function(){F.level=this.value;q('exlAutoLevel').textContent=this.value;drawPrescription();drawGrid()};if(equip)equip.onchange=function(){F.equip=this.value;q('exlAutoEquip').textContent=this.value||'Semua alat';drawGrid()};
+  F.goal=currentGoal;F.level=currentLevel;F.equip='';renderInput();drawPrescription();drawGrid();
 }
 function drawPrescription(){var b=q('exlPrescriptionBox');if(!b)return;var f=fjBrowseFilters(),p=fjGoalPrescription(f.goal);b.innerHTML='<div class="exl-prescription"><div><b>PROGRAMMING OTOMATIS</b><span>Goal: '+E(f.goal)+'</span></div><div><b>Sets × Reps</b><span>'+E(p.sets)+' × '+E(p.reps)+'</span></div><div><b>Rest</b><span>'+E(p.rest)+'</span></div><div><b>Tempo</b><span>'+E(p.tempo)+'</span></div><div><b>RIR</b><span>'+E(p.rir)+'</span></div><div><b>Load</b><span>'+E(p.load)+'</span></div></div>';}
 window.fjExlOpen=function(id){var d=DATA.find(function(x){return x.id===id});if(!d)return;var m=fjExMeta(d),p=fjGoalPrescription(fjBrowseFilters().goal),inSel=SELECTED.indexOf(id)>-1;var html='<h2>'+E(d.name)+'</h2><div class="exl-badges"><span class="exl-badge type">'+E(m.type)+'</span><span class="exl-badge">'+E(d.level)+'</span><span class="exl-badge">'+E(d.equip)+'</span><span class="exl-badge">'+E(m.pattern)+'</span></div><div class="exl-detail-grid"><div><b>Otot utama</b><span>'+E(m.primary)+'</span></div><div><b>Otot sekunder</b><span>'+E(m.secondary)+'</span></div><div><b>Sendi yang bekerja</b><span>'+E(m.joints)+'</span></div><div><b>Pattern</b><span>'+E(m.pattern)+'</span></div><div><b>Level</b><span>'+E(d.level)+'</span></div><div><b>Alat</b><span>'+E(d.equip)+'</span></div></div><p class="exl-muted">'+E(d.desc)+'</p><h3>Programming otomatis dari konteks client</h3><div class="exl-setsreps"><div><b>Sets × Reps</b>'+E(p.sets+' × '+p.reps)+'</div><div><b>Rest</b>'+E(p.rest)+'</div><div><b>Tempo</b>'+E(p.tempo)+'</div><div><b>RIR</b>'+E(p.rir)+'</div></div><h3>Cara melakukan</h3><ul>'+(d.steps||[]).map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul><h3>Tips & risiko teknik</h3><ul>'+(d.mistakes||[]).map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul><div class="exl-source-note"><b>Basis:</b> ACSM 2026 untuk penyesuaian goal/load/volume; NASM untuk RPE/RIR dan progressive programming; WHO untuk konteks frekuensi aktivitas penguatan otot. Ini adalah panduan library untuk healthy adults, bukan diagnosis atau resep medis.</div><div class="exl-modal-actions"><button class="exl-btn'+(inSel?' danger':'')+'" onclick="window.fjExlToggleSelect(\''+d.id+'\')">'+(inSel?'✕ Hapus dari Pilihan':'＋ Tambah ke Pilihan')+'</button><button class="exl-btn alt" onclick="window.fjExlCloseModal()">Tutup</button></div>';q('exlModalBody').innerHTML=html;q('exlModal').classList.add('open')};

@@ -8269,6 +8269,14 @@ window.__fjExerciseData.push(
   });
 })();
 </script>
+<style id="fj-exlib-rebuilt-css">
+.exl-library-summary{margin:10px 0;padding:9px 11px;border:1px solid #d5e7ef;border-radius:10px;background:#f7fbfd;color:#53758a;font-size:11px}
+.exl-prescription{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:10px 0;padding:10px;border:1px solid #cfe4ef;border-radius:12px;background:#f5fbff}
+.exl-prescription>div{min-width:0}.exl-prescription b,.exl-prescription span{display:block}.exl-prescription b{font-size:10px;color:#2e627d}.exl-prescription span{font-size:11px;color:#143d57;margin-top:3px;line-height:1.3}
+.exl-source-note{margin-top:12px;padding:10px;border:1px solid #dbe7ec;border-radius:10px;background:#f8fbfc;color:#587384;font-size:10px;line-height:1.45}
+.edu-topic-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.edu-topic-tabs .exl-chip{cursor:pointer}.edu-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}.edu-library-card{border:1px solid #d5e6eb;border-radius:14px;background:#fff;padding:13px}.edu-library-card h3{margin:0 0 10px;color:#174f72}.edu-library-card>div{border-top:1px solid #edf2f4;padding-top:7px;margin-top:7px}.edu-library-card b{font-size:11px;color:#315f73}.edu-library-card p{font-size:12px;line-height:1.45;color:#5c7480;margin:3px 0 0}
+@media(max-width:760px){.exl-prescription{grid-template-columns:1fr 1fr}.edu-library-grid{grid-template-columns:1fr}}
+</style>
 <script id="fj-exlib-runtime">
 (function(){'use strict';
 function q(id){return document.getElementById(id)}
@@ -8276,7 +8284,6 @@ function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return 
 var DATA=window.__fjExerciseData||[];
 var F={cat:'',equip:'',level:'',move:'',q:'',type:''};
 var SELECTED=[]; // ids
-var LAST_PROGRAM=null;
 
 function can(){return true} // exercise library is informational; available to any logged-in user of the app
 
@@ -8300,16 +8307,14 @@ function build(){
   sec.innerHTML=''+
   '<div class="exl-shell">'+
     '<div class="exl-head"><div><div class="label">EXERCISE LIBRARY</div><h2>Basis Data Latihan &amp; Program Otomatis</h2>'+
-    '<div class="exl-muted">Database Gerakan • Pengetahuan Anatomi • Generator Program Otomatis</div></div></div>'+
+    '<div class="exl-muted">Database Gerakan • Anatomi • Pemrograman Resistance Training • Materi Edukasi</div></div></div>'+
     '<div class="exl-tabs">'+
       '<button class="exl-tab active" data-v="browse">Cari Exercise</button>'+
       '<button class="exl-tab" data-v="selected">Pilihan Saya (<span id="exlSelCount">0</span>)</button>'+
-      '<button class="exl-tab" data-v="generator">Generator Program Otomatis</button>'+
       '<button class="exl-tab" data-v="materi">📖 Materi &amp; Edukasi</button>'+
     '</div>'+
     '<div id="exlBrowse" class="exl-view active"></div>'+
     '<div id="exlSelected" class="exl-view"></div>'+
-    '<div id="exlGenerator" class="exl-view"></div>'+
     '<div id="exlMateri" class="exl-view"></div>'+
   '</div>'+
   '<div id="exlModal" class="exl-modal"><div class="exl-modalbox" id="exlModalBody"></div></div>';
@@ -8323,11 +8328,10 @@ function show(v){
   q('fjExerciseLibrary').classList.add('active');
   document.querySelectorAll('#fjExerciseLibrary .exl-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v===v)});
   document.querySelectorAll('#fjExerciseLibrary .exl-view').forEach(function(x){x.classList.remove('active')});
-  var map={browse:'exlBrowse',selected:'exlSelected',generator:'exlGenerator',materi:'exlMateri'};
+  var map={browse:'exlBrowse',selected:'exlSelected',materi:'exlMateri'};
   q(map[v]).classList.add('active');
   if(v==='browse')renderBrowse();
   if(v==='selected')renderSelected();
-  if(v==='generator')renderGenerator();
   if(v==='materi')renderMateri();
 }
 
@@ -8344,76 +8348,74 @@ function filterData(){
 
 function lvClass(lv){return lv==='Pemula'?'lv1':(lv==='Menengah'?'lv2':'lv3')}
 
-function renderBrowse(){
-  var b=q('exlBrowse');if(!b)return;
-  var cats=catList(),equips=equipList();
-  b.innerHTML=''+
-  '<div class="exl-card">'+
-    '<div class="exl-filters">'+
-      '<div class="field exl-search"><label>Cari Exercise / Otot / Gerakan</label><input id="exlSearch" placeholder="mis. squat, deadlift, dada, hamstring..." value="'+E(F.q)+'"></div>'+
-      '<div class="field"><label>Kategori</label><select id="exlFCat"><option value="">Semua Kategori</option>'+cats.map(function(c){return '<option value="'+E(c)+'"'+(F.cat===c?' selected':'')+'>'+E(c)+'</option>'}).join('')+'</select></div>'+
-      '<div class="field"><label>Alat</label><select id="exlFEquip"><option value="">Semua Alat</option>'+equips.map(function(c){return '<option value="'+E(c)+'"'+(F.equip===c?' selected':'')+'>'+E(c)+'</option>'}).join('')+'</select></div>'+
-      '<div class="field"><label>Level</label><select id="exlFLevel"><option value="">Semua Level</option>'+['Pemula','Menengah','Lanjutan'].map(function(c){return '<option value="'+c+'"'+(F.level===c?' selected':'')+'>'+c+'</option>'}).join('')+'</select></div>'+
-      '<div class="field"><label>Jenis Gerakan</label><select id="exlFType"><option value="">Compound + Isolation</option><option value="Compound">Compound</option><option value="Isolation">Isolation</option></select></div>'+
-    '</div>'+
-    '<div class="exl-library-note">Gunakan filter untuk menyaring gerakan. Detail teknik, otot, kesalahan umum, dan rekomendasi volume tersedia pada setiap exercise.</div>'+
-    '<div id="exlGridWrap"></div>'+
-  '</div>';
-  drawGrid();
-  q('exlSearch').oninput=function(){F.q=this.value;drawGrid();if(typeof renderReco==='function')renderReco()};
-  q('exlFCat').onchange=function(){F.cat=this.value;drawGrid();if(typeof renderReco==='function')renderReco()};
-  q('exlFEquip').onchange=function(){F.equip=this.value;drawGrid();if(typeof renderReco==='function')renderReco()};
-  q('exlFLevel').onchange=function(){F.level=this.value;drawGrid();if(typeof renderReco==='function')renderReco()};
-  q('exlFType').onchange=function(){F.type=this.value;drawGrid();if(typeof renderReco==='function')renderReco()};
+function fjExMeta(d){
+  var n=String(d.name||'').toLowerCase(),m=String(d.move||d.movement||'').toLowerCase();
+  var patternMap={squat:'Squat',hinge:'Hinge',push:'Push',pull:'Pull',lunge:'Lunge',carry:'Carry',core:'Core / Anti-Rotation',cardio:'Cardio',mobility:'Mobility'};
+  var pattern=patternMap[m]||(/deadlift|rdl|hip thrust|good morning|swing/.test(n)?'Hinge':/squat|leg press/.test(n)?'Squat':/lunge|split squat|step up/.test(n)?'Lunge':/row|pulldown|pull-up|chin-up/.test(n)?'Pull':/press|push-up|push up|dip|fly/.test(n)?'Push':/carry|farmer/.test(n)?'Carry':/plank|dead bug|pallof|wood chop|crunch/.test(n)?'Core / Anti-Rotation':'General');
+  var type=String(d.type||'').trim();
+  if(!type){
+    type=/curl|extension|raise|fly|kickback|calf raise|triceps|biceps|lateral raise/.test(n)?'Isolation':'Compound';
+  }
+  var joints={
+    'Squat':'Hip • Knee • Ankle','Hinge':'Hip • Spine','Push':'Shoulder • Elbow • Wrist','Pull':'Shoulder • Elbow • Wrist',
+    'Lunge':'Hip • Knee • Ankle','Carry':'Shoulder • Elbow • Wrist • Hip • Knee • Ankle',
+    'Core / Anti-Rotation':'Spine • Hip • Rib cage',Cardio:'Hip • Knee • Ankle',Mobility:'Joint-specific'
+  };
+  var primary=(d.primary||[]).join(', ')||d.cat||'—', secondary=(d.secondary||[]).join(', ')||'—';
+  return {pattern:pattern,type:type,joints:joints[pattern]||'—',primary:primary,secondary:secondary};
+}
+function fjCanonGoal(v){var x=String(v||'General Fitness');if(/hypertrophy|bodybuilding|muscle gain|recomposition/i.test(x))return 'Hypertrophy';if(/strength/i.test(x))return 'Strength';if(/power/i.test(x))return 'Power';if(/endurance|ketahanan/i.test(x))return 'Endurance';if(/fat loss|weight/i.test(x))return 'Fat Loss';return 'General Fitness'}
+function fjGoalPrescription(goal){
+  goal=fjCanonGoal(goal);
+  var p={
+    Strength:{sets:'2–3',reps:'3–6',rest:'2–3 menit',tempo:'kontrol; concentric kuat/cepat sesuai teknik',rir:'2–3 RIR',load:'beban relatif berat; ACSM 2026 memberi contoh ≥80% 1RM'},
+    Hypertrophy:{sets:'2–4',reps:'6–12',rest:'60–120 detik',tempo:'kontrol; sekitar 2–3 detik fase turun',rir:'1–3 RIR',load:'beban yang memungkinkan target repetisi dengan teknik baik'},
+    Power:{sets:'3–5',reps:'2–5',rest:'2–3 menit',tempo:'concentric eksplosif; teknik tetap prioritas',rir:'2–3 RIR',load:'beban moderat; ACSM 2026 30–70% 1RM untuk power'},
+    Endurance:{sets:'2–3',reps:'12–20+',rest:'30–90 detik',tempo:'terkontrol dan konsisten',rir:'2–4 RIR',load:'ringan–sedang'},
+    'Fat Loss':{sets:'2–3',reps:'8–15',rest:'45–90 detik',tempo:'terkontrol',rir:'2–4 RIR',load:'moderat; dipilih agar volume dapat dipertahankan'},
+    'General Fitness':{sets:'2–3',reps:'8–12',rest:'60–120 detik',tempo:'terkontrol',rir:'2–4 RIR',load:'ringan–sedang sampai moderat'}
+  };return p[goal]||p['General Fitness'];
+}
+function fjLevelScore(d,level){var r={Pemula:1,Menengah:2,Lanjutan:3};var a=r[d.level]||1,b=r[level]||1;return a===b?5:(a<b?2:-20)}
+function fjEquipmentScore(d,level){var e=String(d.equip||'').toLowerCase(),l=String(level||'Pemula');var beginner=/tanpa alat|bodyweight|band|resistance|mesin|dumbbell|kettlebell/.test(e);var intermediate=/dumbbell|kettlebell|kabel|cable|mesin|barbell/.test(e);var advanced=/barbell|olympic|specialty/.test(e);return l==='Pemula'?(beginner?4:(intermediate?1:0)):(l==='Menengah'?(intermediate?4:(beginner?2:(advanced?1:0))):(advanced?4:(intermediate?3:1)))}
+function fjGoalPatternScore(meta,goal){var g=fjCanonGoal(goal),p=meta.pattern;var pref={Strength:['Squat','Hinge','Push','Pull','Lunge','Core / Anti-Rotation'],Hypertrophy:['Squat','Hinge','Push','Pull','Lunge','Core / Anti-Rotation'],Power:['Squat','Hinge','Push','Lunge','Pull'],Endurance:['Squat','Lunge','Push','Pull','Carry','Core / Anti-Rotation','Cardio'],'Fat Loss':['Squat','Lunge','Hinge','Push','Pull','Carry','Cardio','Core / Anti-Rotation'],'General Fitness':['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation']}[g]||[];var i=pref.indexOf(p);return i<0?0:12-i*1.2}
+function fjFocusScore(d,focus){var f=String(focus||'').trim().toLowerCase();if(!f)return 0;var hay=[d.name,d.cat,d.move,d.movement].concat(d.primary||[],d.secondary||[]).join(' ').toLowerCase();return f.split(/[,;]+/).map(function(x){return x.trim()}).filter(Boolean).reduce(function(a,x){return a+(hay.indexOf(x)>-1?10:0)},0)}
+function fjRankExercise(d,filters){var meta=fjExMeta(d),score=fjGoalPatternScore(meta,filters.goal)+fjLevelScore(d,filters.level)+fjEquipmentScore(d,filters.level)+fjFocusScore(d,filters.focus);if(filters.type&&meta.type!==filters.type)score-=100;return {d:d,meta:meta,score:score}}
+function fjBrowseFilters(){return {goal:(q('exlGoalReco')||{}).value||'General Fitness',level:(q('exlFLevel')||{}).value||'Pemula',equip:(q('exlFEquip')||{}).value||'',type:(q('exlFType')||{}).value||'',pattern:(q('exlFPattern')||{}).value||'',muscle:(q('exlFMuscle')||{}).value||'',focus:(q('exlFocus')||{}).value||F.q||''}}
+function filterData(){
+  var z=F.q.trim().toLowerCase(),base=DATA.filter(function(d){
+    if(F.cat&&d.cat!==F.cat)return false;if(F.equip&&d.equip!==F.equip)return false;if(F.level&&d.level!==F.level)return false;
+    var meta=fjExMeta(d);if(F.type&&meta.type!==F.type)return false;
+    if(z){var hay=[d.name,d.cat,d.move,d.movement].concat(d.primary||[],d.secondary||[],meta.pattern).join(' ').toLowerCase();if(hay.indexOf(z)<0)return false}return true;
+  });return base;
 }
 function drawGrid(){
-  var wrap=q('exlGridWrap');if(!wrap)return;
-  var list=filterData().filter(function(d){return !F.type||d.type===F.type});
-  if(!list.length){wrap.innerHTML='<div class="exl-empty">Tidak ada exercise yang cocok dengan filter/pencarian ini.</div>';return}
-  wrap.innerHTML='<div class="exl-grid">'+list.map(function(d){
-    return '<div class="exl-ex exl-ex-clean" onclick="window.fjExlOpen(\''+d.id+'\')">'+
-      '<div class="exl-ex-top"><span class="exl-type '+(d.type==='Isolation'?'iso':'comp')+'">'+E(d.type)+'</span><span class="exl-level">'+E(d.level)+'</span></div>'+
-      '<h4>'+E(d.name)+'</h4>'+
-      '<div class="exl-muted">'+E(d.primary.join(', ')||'Target belum diisi')+'</div>'+
-      '<div class="exl-meta-line"><span>'+E(d.cat)+'</span><span>'+E(d.equip)+'</span><span>'+E(d.movement)+'</span></div>'+
-      '<div class="exl-open-hint">Lihat detail →</div>'+
-    '</div>';
-  }).join('')+'</div>';
+  var wrap=q('exlGridWrap');if(!wrap)return;var f=fjBrowseFilters();var list=filterData().filter(function(d){var m=fjExMeta(d);if(f.pattern&&m.pattern!==f.pattern)return false;if(f.muscle&&!(String((d.primary||[]).concat(d.secondary||[]).join(' ')).toLowerCase().indexOf(f.muscle.toLowerCase())>-1))return false;return true}).map(function(d){return fjRankExercise(d,f)}).sort(function(a,b){return b.score-a.score||String(a.d.name).localeCompare(String(b.d.name))});
+  if(!list.length){wrap.innerHTML='<div class="exl-empty">Tidak ada exercise yang cocok. Longgarkan filter alat, level, pola, atau fokus.</div>';return}
+  wrap.innerHTML='<div class="exl-library-summary"><b>'+list.length+'</b> exercise cocok • prioritas dihitung dari Goal + Level + Pola + Alat + Fokus</div><div class="exl-grid">'+list.slice(0,120).map(function(x){var d=x.d,m=x.meta;return '<div class="exl-ex exl-ex-clean" onclick="window.fjExlOpen(\''+d.id+'\')"><div class="exl-ex-top"><span class="exl-type '+(m.type==='Isolation'?'iso':'comp')+'">'+E(m.type)+'</span><span class="exl-level">'+E(d.level)+'</span></div><h4>'+E(d.name)+'</h4><div class="exl-muted">Otot: '+E(m.primary)+'</div><div class="exl-meta-line"><span>Pattern: '+E(m.pattern)+'</span><span>Sendi: '+E(m.joints)+'</span><span>Alat: '+E(d.equip)+'</span></div><div class="exl-open-hint">Lihat library detail →</div></div>'}).join('')+'</div>';
 }
-window.fjExlOpen=function(id){
-  var d=DATA.find(function(x){return x.id===id});if(!d)return;
-  var inSel=SELECTED.indexOf(id)>-1;
-  var html=''+
-  '<h2>'+E(d.name)+'</h2>'+
-  '<div class="exl-badges"><span class="exl-badge type">'+E(d.type||'Compound')+'</span><span class="exl-badge">'+E(d.cat)+'</span><span class="exl-badge eq">'+E(d.equip)+'</span><span class="exl-badge '+lvClass(d.level)+'">'+E(d.level)+'</span><span class="exl-badge">'+E(d.movement||d.move||'General')+'</span></div>'+
-  '<div class="exl-detail-grid"><div><b>Jenis</b><span>'+E(d.type||'Compound')+'</span></div><div><b>Pola Gerak</b><span>'+E(d.movement||d.move||'General')+'</span></div><div><b>Level</b><span>'+E(d.level)+'</span></div><div><b>Alat</b><span>'+E(d.equip)+'</span></div></div>'+
-  '<p class="exl-muted">'+E(d.desc)+'</p>'+
-  '<div class="exl-anatomy"><div class="box"><b>Otot Utama (Primary)</b>'+E(d.primary.join(', ')||'—')+'</div><div class="box"><b>Otot Sekunder (Secondary)</b>'+E(d.secondary.join(', ')||'—')+'</div></div>'+
-  '<h3>Cara Melakukan</h3><ul>'+d.steps.map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul>'+
-  '<h3>Tips</h3><ul>'+d.tips.map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul>'+
-  '<h3>Kesalahan Umum</h3><ul>'+d.mistakes.map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul>'+
-  '<h3>Rekomendasi Sets &amp; Reps (per tujuan)</h3>'+
-  '<div class="exl-setsreps"><div><b>Kekuatan</b>'+E(d.sets.kekuatan)+'</div><div><b>Hipertrofi (Massa Otot)</b>'+E(d.sets.hipertrofi)+'</div><div><b>Ketahanan Otot</b>'+E(d.sets.ketahanan)+'</div></div>'+
-  '<div class="exl-modal-actions">'+
-    '<button class="exl-btn'+(inSel?' danger':'')+'" onclick="window.fjExlToggleSelect(\''+d.id+'\')">'+(inSel?'✕ Hapus dari Pilihan':'＋ Tambah ke Pilihan')+'</button>'+
-    '<button class="exl-btn alt" onclick="window.fjExlCloseModal()">Tutup</button>'+
-  '</div>';
-  q('exlModalBody').innerHTML=html;q('exlModal').classList.add('open');
-};
+function renderBrowse(){
+  var b=q('exlBrowse');if(!b)return;var cats=catList(),equips=equipList(),muscles=[];DATA.forEach(function(d){(d.primary||[]).forEach(function(m){if(m&&!muscles.includes(m))muscles.push(m)});});muscles.sort();
+  b.innerHTML='<div class="exl-card"><div class="exl-filters">'+
+    '<div class="field"><label>Tujuan / Goal</label><select id="exlGoalReco">'+['General Fitness','Fat Loss','Hypertrophy / Bodybuilding','Strength','Power','Endurance'].map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+ 
+    '<div class="field"><label>Level</label><select id="exlFLevel"><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select></div>'+ 
+    '<div class="field"><label>Jenis</label><select id="exlFType"><option value="">Compound + Isolation</option><option>Compound</option><option>Isolation</option></select></div>'+ 
+    '<div class="field"><label>Alat</label><select id="exlFEquip"><option value="">Semua alat</option>'+equips.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+ 
+    '<div class="field"><label>Pola Gerak</label><select id="exlFPattern"><option value="">Semua pattern</option>'+['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation','Cardio','Mobility','General'].map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+ 
+    '<div class="field"><label>Otot utama</label><select id="exlFMuscle"><option value="">Semua otot</option>'+muscles.map(function(x){return '<option>'+E(x)+'</option>'}).join('')+'</select></div>'+ 
+    '<div class="field exl-search"><label>Cari Exercise / Otot / Pattern</label><input id="exlSearch" placeholder="contoh: squat, glute, hamstring, push..." value="'+E(F.q)+'"></div>'+ 
+    '<div class="field"><label>Fokus tambahan</label><input id="exlFocus" placeholder="contoh: glute, shoulder, knee control"></div>'+ 
+    '</div><div class="exl-library-note">Library ini memisahkan <b>data anatomi exercise</b> dari <b>aturan programming</b>. Goal menentukan prioritas pola; level menentukan prioritas variasi/alat; filter tidak mengubah data asli.</div><div id="exlPrescriptionBox"></div><div id="exlGridWrap"></div></div>';
+  q('exlSearch').oninput=function(){F.q=this.value;drawGrid()};q('exlFEquip').onchange=function(){F.equip=this.value;drawGrid()};q('exlFLevel').onchange=function(){F.level=this.value;drawGrid();drawPrescription()};q('exlFType').onchange=function(){F.type=this.value;drawGrid()};['exlGoalReco','exlFPattern','exlFMuscle','exlFocus'].forEach(function(id){var el=q(id);if(el)el.oninput=el.onchange=function(){drawGrid();drawPrescription()}});drawPrescription();drawGrid();
+}
+function drawPrescription(){var b=q('exlPrescriptionBox');if(!b)return;var f=fjBrowseFilters(),p=fjGoalPrescription(f.goal);b.innerHTML='<div class="exl-prescription"><div><b>Prescription Library</b><span>Goal: '+E(f.goal)+'</span></div><div><b>Sets × Reps</b><span>'+E(p.sets)+' × '+E(p.reps)+'</span></div><div><b>Rest</b><span>'+E(p.rest)+'</span></div><div><b>Tempo</b><span>'+E(p.tempo)+'</span></div><div><b>RIR</b><span>'+E(p.rir)+'</span></div><div><b>Load</b><span>'+E(p.load)+'</span></div></div>'}
+window.fjExlOpen=function(id){var d=DATA.find(function(x){return x.id===id});if(!d)return;var m=fjExMeta(d),p=fjGoalPrescription((q('exlGoalReco')||{}).value||'General Fitness'),inSel=SELECTED.indexOf(id)>-1;var html='<h2>'+E(d.name)+'</h2><div class="exl-badges"><span class="exl-badge type">'+E(m.type)+'</span><span class="exl-badge">'+E(d.level)+'</span><span class="exl-badge">'+E(d.equip)+'</span><span class="exl-badge">'+E(m.pattern)+'</span></div><div class="exl-detail-grid"><div><b>Otot utama</b><span>'+E(m.primary)+'</span></div><div><b>Otot sekunder</b><span>'+E(m.secondary)+'</span></div><div><b>Sendi yang bekerja</b><span>'+E(m.joints)+'</span></div><div><b>Pattern</b><span>'+E(m.pattern)+'</span></div><div><b>Level</b><span>'+E(d.level)+'</span></div><div><b>Alat</b><span>'+E(d.equip)+'</span></div></div><p class="exl-muted">'+E(d.desc)+'</p><h3>Programming untuk Goal yang dipilih</h3><div class="exl-setsreps"><div><b>Sets × Reps</b>'+E(p.sets+' × '+p.reps)+'</div><div><b>Rest</b>'+E(p.rest)+'</div><div><b>Tempo</b>'+E(p.tempo)+'</div><div><b>RIR</b>'+E(p.rir)+'</div></div><h3>Cara melakukan</h3><ul>'+(d.steps||[]).map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul><h3>Tips & risiko teknik</h3><ul>'+(d.mistakes||[]).map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul><div class="exl-source-note"><b>Basis:</b> ACSM 2026 untuk penyesuaian goal/load/volume; NASM untuk RPE/RIR dan progressive programming; WHO untuk konteks frekuensi aktivitas penguatan otot. Ini adalah panduan library untuk healthy adults, bukan diagnosis atau resep medis.</div><div class="exl-modal-actions"><button class="exl-btn'+(inSel?' danger':'')+'" onclick="window.fjExlToggleSelect(\''+d.id+'\')">'+(inSel?'✕ Hapus dari Pilihan':'＋ Tambah ke Pilihan')+'</button><button class="exl-btn alt" onclick="window.fjExlCloseModal()">Tutup</button></div>';q('exlModalBody').innerHTML=html;q('exlModal').classList.add('open')};
 window.fjExlCloseModal=function(){q('exlModal').classList.remove('open')};
-
-window.fjExlToggleSelect=function(id){
-  var i=SELECTED.indexOf(id);
-  if(i>-1)SELECTED.splice(i,1);else SELECTED.push(id);
-  var c=q('exlSelCount');if(c)c.textContent=SELECTED.length;
-  if(q('exlModal').classList.contains('open'))window.fjExlOpen(id);
-  if(q('exlSelected')&&q('exlSelected').classList.contains('active'))renderSelected();
-};
 
 function renderSelected(){
   var b=q('exlSelected');if(!b)return;
   var list=SELECTED.map(function(id){return DATA.find(function(x){return x.id===id})}).filter(Boolean);
-  b.innerHTML='<div class="exl-card"><div class="exl-actions" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">Exercise Pilihan Saya</h3><div class="exl-muted">Kumpulkan exercise favorit lalu gunakan di Generator Program Otomatis.</div></div>'+(list.length?'<button class="exl-btn alt" onclick="window.fjExlClearSelected()">Kosongkan Semua</button>':'')+'</div>'+
+  b.innerHTML='<div class="exl-card"><div class="exl-actions" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">Exercise Pilihan Saya</h3><div class="exl-muted">Kumpulkan exercise favorit untuk digunakan saat memilih latihan di program client.</div></div>'+(list.length?'<button class="exl-btn alt" onclick="window.fjExlClearSelected()">Kosongkan Semua</button>':'')+'</div>'+
   (list.length?('<div class="exl-grid" style="margin-top:12px">'+list.map(function(d){
     return '<div class="exl-ex"><div class="exl-emoji">'+d.emoji+'</div><h4>'+E(d.name)+'</h4><div class="exl-muted">'+E(d.primary[0]||'')+'</div>'+
     '<div class="exl-badges"><span class="exl-badge">'+E(d.cat)+'</span></div>'+
@@ -8423,371 +8425,73 @@ function renderSelected(){
 }
 window.fjExlClearSelected=function(){SELECTED=[];var c=q('exlSelCount');if(c)c.textContent=0;renderSelected()};
 
-// ---- AUTOMATIC PROGRAM GENERATOR ----
-var GEN={goal:'hipertrofi',level:'Menengah',days:3,equip:{}};
-
-function renderGenerator(){
-  var b=q('exlGenerator');if(!b)return;
-  var equips=equipList();
-  equips.forEach(function(e){if(!(e in GEN.equip))GEN.equip[e]=true});
-  b.innerHTML='<div class="exl-card">'+
-    '<h3 style="margin-top:0">Generator Program Latihan Otomatis</h3>'+
-    '<div class="exl-muted">Isi preferensi, sistem akan otomatis menyusun program mingguan lengkap dengan pembagian hari, exercise, serta sets &amp; reps.</div>'+
-    '<div class="exl-gen-form" style="margin-top:12px">'+
-      '<div><label>Tujuan Latihan</label><select id="exlGoal">'+
-        '<option value="hipertrofi"'+(GEN.goal==='hipertrofi'?' selected':'')+'>Pembentukan Otot (Hipertrofi)</option>'+
-        '<option value="kekuatan"'+(GEN.goal==='kekuatan'?' selected':'')+'>Kekuatan Maksimal</option>'+
-        '<option value="ketahanan"'+(GEN.goal==='ketahanan'?' selected':'')+'>Penurunan Berat / Ketahanan</option>'+
-      '</select></div>'+
-      '<div><label>Level Pengalaman</label><select id="exlLevel">'+
-        ['Pemula','Menengah','Lanjutan'].map(function(l){return '<option value="'+l+'"'+(GEN.level===l?' selected':'')+'>'+l+'</option>'}).join('')+
-      '</select></div>'+
-      '<div><label>Hari Latihan / Minggu</label><select id="exlDays">'+
-        [2,3,4,5,6].map(function(n){return '<option value="'+n+'"'+(GEN.days===n?' selected':'')+'>'+n+' hari</option>'}).join('')+
-      '</select></div>'+
-      '<div class="span3"><label>Alat yang Tersedia</label><div class="exl-chipset" id="exlEquipChips">'+equips.map(function(e){return '<span class="exl-chip'+(GEN.equip[e]?' on':'')+'" data-eq="'+E(e)+'">'+E(e)+'</span>'}).join('')+'</div></div>'+
-    '</div>'+
-    '<div class="exl-modal-actions"><button class="exl-btn" id="exlGenBtn">⚡ Buat Program Otomatis</button>'+(SELECTED.length?'<button class="exl-btn alt" id="exlGenFromSelBtn">Gunakan Exercise Pilihan Saya ('+SELECTED.length+')</button>':'')+'</div>'+
-  '</div><div id="exlProgramOut"></div>';
-
-  q('exlGoal').onchange=function(){GEN.goal=this.value};
-  q('exlLevel').onchange=function(){GEN.level=this.value};
-  q('exlDays').onchange=function(){GEN.days=Number(this.value)};
-  q('exlEquipChips').querySelectorAll('.exl-chip').forEach(function(c){c.onclick=function(){var e=this.dataset.eq;GEN.equip[e]=!GEN.equip[e];this.classList.toggle('on',GEN.equip[e])}});
-  q('exlGenBtn').onclick=function(){generateProgram(false)};
-  var fb=q('exlGenFromSelBtn');if(fb)fb.onclick=function(){generateProgram(true)};
-
-  if(LAST_PROGRAM)drawProgram(LAST_PROGRAM);
-}
-
-function levelRank(l){return l==='Pemula'?1:(l==='Menengah'?2:3)}
-
-function pool(fromSelectedOnly){
-  var allowedEquip=Object.keys(GEN.equip).filter(function(e){return GEN.equip[e]});
-  var src=fromSelectedOnly?DATA.filter(function(d){return SELECTED.indexOf(d.id)>-1}):DATA;
-  return src.filter(function(d){
-    if(levelRank(d.level)>levelRank(GEN.level))return false;
-    if(!fromSelectedOnly&&allowedEquip.length&&allowedEquip.indexOf(d.equip)===-1)return false;
-    return true;
-  });
-}
-
-function pick(list,move,n,used){
-  var c=list.filter(function(d){return d.move===move&&used.indexOf(d.id)===-1});
-  c=c.sort(function(){return Math.random()-0.5});
-  var out=c.slice(0,n);
-  out.forEach(function(d){used.push(d.id)});
-  return out;
-}
-
-function splitPlan(days){
-  if(days<=3)return Array(days).fill('Full Body');
-  if(days===4)return ['Upper Body','Lower Body','Upper Body','Lower Body'];
-  if(days===5)return ['Push','Pull','Legs','Upper Body','Lower Body'];
-  return ['Push','Pull','Legs','Push','Pull','Legs'];
-}
-
-function buildDay(type,list,used){
-  var items=[];
-  if(type==='Full Body'){items=items.concat(pick(list,'push',1,used),pick(list,'pull',1,used),pick(list,'legs',1,used),pick(list,'core',1,used));}
-  else if(type==='Upper Body'){items=items.concat(pick(list,'push',2,used),pick(list,'pull',2,used));}
-  else if(type==='Lower Body'){items=items.concat(pick(list,'legs',4,used),pick(list,'core',1,used));}
-  else if(type==='Push'){items=items.concat(pick(list,'push',4,used));}
-  else if(type==='Pull'){items=items.concat(pick(list,'pull',4,used));}
-  else if(type==='Legs'){items=items.concat(pick(list,'legs',4,used),pick(list,'core',1,used));}
-  if(GEN.goal==='ketahanan'){var c=pick(list,'cardio',1,used);items=items.concat(c);}
-  var m=pick(list,'mobility',1,[]);items=items.concat(m);
-  return items;
-}
-
-function generateProgram(fromSelectedOnly){
-  var list=pool(fromSelectedOnly);
-  if(list.length<4){alert('Data exercise yang cocok dengan filter ini terlalu sedikit. Coba tambah alat yang tersedia atau naikkan level.');return}
-  var plan=splitPlan(GEN.days);
-  var used=[];
-  var days=plan.map(function(type,i){var ex=buildDay(type,list,fromSelectedOnly?[]:used);return {day:i+1,type:type,exercises:ex}});
-  LAST_PROGRAM={goal:GEN.goal,level:GEN.level,days:days};
-  drawProgram(LAST_PROGRAM);
-}
-
-function goalLabel(g){return g==='kekuatan'?'Kekuatan':(g==='ketahanan'?'Ketahanan/Penurunan Berat':'Hipertrofi (Massa Otot)')}
-
-function drawProgram(prog){
-  var out=q('exlProgramOut');if(!out)return;
-  var html='<div class="exl-card"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">Program Mingguan — '+goalLabel(prog.goal)+'</h3><div class="exl-muted">Level: '+E(prog.level)+' • '+prog.days.length+' hari/minggu • disusun otomatis, bisa diacak ulang per exercise</div></div>'+
-  '<div class="exl-actions"><button class="exl-btn alt" id="exlPrintBtn">🖨️ Cetak / PDF</button></div></div></div>';
-  html+=prog.days.map(function(d,di){
-    return '<div class="exl-day"><h3>Hari '+d.day+' — '+E(d.type)+'</h3><div class="exl-muted">'+d.exercises.length+' exercise</div>'+
-    d.exercises.map(function(ex,ei){
-      var g=q?null:null;
-      var setsTxt=ex.sets[prog.goal];
-      return '<div class="exl-row"><div><div class="exl-rowname">'+E(ex.name)+'</div><div class="exl-rowcat">'+E(ex.cat)+' • '+E(ex.equip)+'</div></div><div>'+E(setsTxt)+'</div><div class="exl-rowcat">Target: '+E(ex.primary[0]||'')+'</div><button class="exl-swap" title="Ganti exercise" onclick="window.fjExlSwap('+di+','+ei+')">⟳</button></div>';
-    }).join('')+
-    '</div>';
-  }).join('');
-  out.innerHTML=html;
-  var pb=q('exlPrintBtn');if(pb)pb.onclick=printProgram;
-}
-
-window.fjExlSwap=function(dayIdx,exIdx){
-  if(!LAST_PROGRAM)return;
-  var day=LAST_PROGRAM.days[dayIdx];var cur=day.exercises[exIdx];if(!cur)return;
-  var list=pool(false).filter(function(d){return d.move===cur.move&&d.id!==cur.id});
-  if(!list.length){alert('Tidak ada alternatif exercise lain untuk kategori ini pada filter saat ini.');return}
-  var rep=list[Math.floor(Math.random()*list.length)];
-  day.exercises[exIdx]=rep;
-  drawProgram(LAST_PROGRAM);
+// ---- EXERCISE LIBRARY: EDUCATION ONLY (NO PROGRAM GENERATOR) ----
+var EDU_TOPIC='jenis';
+var EDU_DB={
+ jenis:{label:'Jenis Exercise',items:[
+  {n:'Compound / Multi-Joint',desc:'Gerakan yang melibatkan lebih dari satu sendi dan beberapa kelompok otot.',function:'Efisien untuk melatih pola gerak dan banyak jaringan dalam satu exercise.',risk:'Teknik dan beban harus sesuai kemampuan; kompleksitas meningkat bila banyak sendi terlibat.',train:'Mulai dari variasi yang mudah dikontrol lalu progreskan beban atau kompleksitas.',rec:'Squat, row, press, deadlift/hinge, lunge.'},
+  {n:'Isolation / Single-Joint',desc:'Gerakan yang menempatkan fokus utama pada satu kelompok otot dengan gerak sendi yang lebih terlokalisasi.',function:'Menambah volume spesifik pada otot tertentu.',risk:'Jangan memakai beban berlebihan hingga kompensasi mengambil alih.',train:'Gunakan setelah pola utama atau ketika volume lokal diperlukan.',rec:'Biceps curl, triceps pressdown, lateral raise, leg extension.'}
+ ]},
+ metode:{label:'Metode Latihan',items:[
+  {n:'Strength',desc:'Latihan dengan prioritas peningkatan force production.',function:'Meningkatkan kemampuan menghasilkan gaya.',risk:'Beban tinggi meningkatkan tuntutan teknik dan recovery.',train:'Utamakan teknik, compound lift sesuai kemampuan, rest cukup.',rec:'Squat, press, row, hinge dengan beban yang dapat dikontrol.'},
+  {n:'Hypertrophy',desc:'Latihan dengan volume resistance training yang memadai untuk pertumbuhan otot.',function:'Meningkatkan stimulus dan volume untuk hipertrofi.',risk:'Volume berlebihan tanpa recovery dapat menurunkan kualitas latihan.',train:'Distribusikan volume mingguan dan gunakan RIR untuk mengatur effort.',rec:'Compound + isolation sesuai otot target.'},
+  {n:'Power',desc:'Latihan yang menekankan produksi gaya secara cepat.',function:'Mengembangkan kemampuan menghasilkan force dengan kecepatan tinggi.',risk:'Butuh teknik dan kesiapan; jangan mengejar kecepatan dengan bentuk buruk.',train:'Gunakan beban moderat dan hentikan set ketika kecepatan/teknik turun.',rec:'Jump, throw, Olympic-lift derivative, fast concentric resistance.'},
+  {n:'Muscular Endurance',desc:'Latihan dengan repetisi lebih tinggi dan beban relatif lebih ringan.',function:'Meningkatkan kemampuan mempertahankan kerja otot.',risk:'Fatigue dapat mengganggu teknik.',train:'Gunakan beban yang memungkinkan repetisi berkualitas dan rest lebih singkat.',rec:'Circuit, bodyweight, resistance ringan–sedang.'}
+ ]},
+ pola:{label:'Pola Gerak',items:[
+  {n:'Squat',desc:'Dominan fleksi-ekstensi lutut dan pinggul dengan kontribusi pergelangan kaki.',function:'Melatih kemampuan berdiri, duduk, menurunkan dan menaikkan pusat massa.',risk:'Kedalaman, posisi lutut, trunk dan ROM harus disesuaikan individu.',train:'Goblet squat → squat variation sesuai kemampuan.',rec:'Squat, leg press, sit-to-stand.'},
+  {n:'Hinge',desc:'Gerakan dominan dari pinggul dengan trunk dikontrol.',function:'Mengembangkan hip extension dan posterior-chain strength.',risk:'Kehilangan posisi spine saat beban meningkat.',train:'Hip hinge drill → RDL/deadlift variation.',rec:'RDL, deadlift, hip thrust.'},
+  {n:'Push',desc:'Mendorong beban menjauh dari tubuh.',function:'Melatih pectoral, deltoid, triceps dan stabilisasi terkait.',risk:'Posisi shoulder/scapula dan ROM perlu dikontrol.',train:'Incline push-up → press variation.',rec:'Push-up, bench press, overhead press.'},
+  {n:'Pull',desc:'Menarik beban menuju tubuh.',function:'Melatih punggung, rear shoulder dan elbow flexors.',risk:'Jangan mengganti gerakan dengan momentum trunk berlebihan.',train:'Supported row → row/pulldown/pull-up sesuai level.',rec:'Row, pulldown, pull-up.'},
+  {n:'Lunge / Split Stance',desc:'Pola unilateral dengan pembagian beban antara kedua tungkai.',function:'Melatih kekuatan unilateral dan kontrol pinggul-lutut.',risk:'Keseimbangan dan kontrol lutut menjadi faktor penting.',train:'Split squat → lunge variation.',rec:'Split squat, reverse lunge, step-up.'},
+  {n:'Carry',desc:'Membawa beban sambil mempertahankan posisi tubuh.',function:'Melatih grip, trunk, shoulder dan locomotion.',risk:'Beban terlalu berat dapat mengubah postur dan gait.',train:'Farmer carry ringan → progres beban/jarak.',rec:'Farmer carry, suitcase carry.'},
+  {n:'Core / Anti-Rotation',desc:'Menghasilkan atau menahan gerak trunk secara terkontrol.',function:'Meningkatkan kemampuan trunk menghasilkan dan mentransfer gaya.',risk:'Jangan mengejar ROM atau beban dengan kehilangan kontrol trunk.',train:'Dead bug → Pallof press → loaded variations.',rec:'Dead bug, plank, Pallof press, controlled rotation.'}
+ ]},
+ warmup:{label:'Warm Up',items:[
+  {n:'General Warm-Up',desc:'Aktivitas ringan untuk menaikkan kesiapan umum sebelum sesi.',function:'Meningkatkan kesiapan fisik dan mental sebelum latihan.',risk:'Jangan sampai warm-up menghabiskan kapasitas sesi utama.',train:'Mulai ringan lalu naikkan intensitas bertahap.',rec:'Walking, bike, row ringan 5–10 menit sesuai sesi.'},
+  {n:'Specific Warm-Up',desc:'Gerakan yang mendekati pola latihan utama dengan intensitas lebih rendah.',function:'Melatih pola, koordinasi dan kesiapan jaringan yang relevan.',risk:'Beban pemanasan tidak perlu mendekati beban kerja.',train:'Gunakan beberapa set ramp-up sebelum working sets.',rec:'Squat pattern sebelum squat; press pattern sebelum press.'}
+ ]},
+ stretching:{label:'Stretching',items:[
+  {n:'Dynamic Stretching',desc:'Gerakan aktif melalui ROM yang terkontrol.',function:'Mempersiapkan gerak dan ROM untuk aktivitas.',risk:'Hindari gerakan memaksa atau memantul pada ROM akhir.',train:'Gunakan gerakan progresif yang relevan dengan sesi.',rec:'Leg swing terkontrol, arm circles, dynamic lunge.'},
+  {n:'Static Stretching',desc:'Mempertahankan posisi peregangan pada ROM tertentu.',function:'Dapat digunakan untuk flexibility/ROM ketika sesuai konteks.',risk:'Jangan memaksakan nyeri atau menggunakan sebagai pengganti assessment.',train:'Gunakan durasi nyaman dan konsisten.',rec:'Hamstring, hip flexor, calf, chest stretch.'},
+  {n:'PNF',desc:'Metode flexibility yang menggabungkan kontraksi dan relaksasi.',function:'Dapat meningkatkan ROM bila diterapkan dengan benar.',risk:'Lebih kompleks; sebaiknya dipandu profesional yang memahami teknik.',train:'Gunakan kontraksi submaksimal dan kontrol ROM.',rec:'PNF hamstring/hip sesuai kebutuhan.'}
+ ]},
+ otot:{label:'Otot',items:[
+  {n:'Pectoralis Major',desc:'Otot utama dada.',function:'Berperan pada horizontal adduction dan kontribusi gerak bahu.',risk:'Beban/ROM berlebihan dapat meningkatkan tuntutan bahu.',train:'Press/fly dengan ROM yang dapat dikontrol.',rec:'Bench press, push-up, cable fly.'},
+  {n:'Latissimus Dorsi',desc:'Otot besar punggung lateral.',function:'Berperan pada shoulder extension dan adduction.',risk:'Jangan mengganti pull dengan ayunan trunk.',train:'Tarik dengan scapula dan siku terkontrol.',rec:'Pulldown, pull-up, row.'},
+  {n:'Deltoid',desc:'Kelompok otot utama bahu.',function:'Menghasilkan dan mengontrol gerak elevasi/lengan.',risk:'Overhead loading perlu disesuaikan dengan kemampuan bahu.',train:'Pilih press/raise sesuai level dan tujuan.',rec:'Shoulder press, lateral raise, controlled raise.'},
+  {n:'Gluteus Maximus',desc:'Otot besar bokong.',function:'Kontributor utama hip extension.',risk:'Posisi pelvis dan spine tetap perlu dikontrol.',train:'Progres dari bridge/hinge ke loaded hip extension.',rec:'Hip thrust, squat, RDL, lunge.'},
+  {n:'Quadriceps',desc:'Kelompok ekstensor lutut di paha depan.',function:'Membantu knee extension dan kontrol saat squat/lunge.',risk:'Volume dan ROM disesuaikan toleransi lutut.',train:'Gunakan squat/lunge/press dengan kontrol.',rec:'Squat, leg press, split squat.'},
+  {n:'Hamstrings',desc:'Kelompok posterior thigh.',function:'Berperan pada knee flexion dan hip extension.',risk:'Hindari mengejar ROM dengan kehilangan posisi trunk/pelvis.',train:'Gabungkan hinge dan knee-flexion patterns.',rec:'RDL, leg curl, hip hinge.'},
+  {n:'Core',desc:'Kelompok otot trunk yang membantu stabilitas dan transfer gaya.',function:'Menjaga dan mengontrol posisi trunk.',risk:'Fatigue dapat mengurangi kontrol.',train:'Progres dari kontrol dasar ke resistance.',rec:'Dead bug, plank, Pallof press, carry.'}
+ ]},
+ sendi:{label:'Sendi',items:[
+  {n:'Shoulder / Glenohumeral',desc:'Sendi ball-and-socket dengan ROM besar.',function:'Menggerakkan lengan dalam berbagai arah dan berkontribusi pada push/pull.',risk:'ROM dan loading overhead harus sesuai kemampuan; nyeri bukan target latihan.',train:'Latih kontrol scapula, rotator cuff dan pola push/pull secara progresif.',rec:'Cable row, press variation, controlled external rotation, carries.'},
+  {n:'Elbow',desc:'Dominan hinge untuk flexion-extension dengan kontribusi rotasi forearm melalui kompleks terkait.',function:'Menghubungkan gerak bahu dengan tangan pada push/pull.',risk:'Overuse dan beban mendadak dapat mengganggu toleransi jaringan.',train:'Progreskan curl/extension dan push/pull secara bertahap.',rec:'Curl, triceps pressdown, row, press.'},
+  {n:'Wrist',desc:'Kompleks sendi yang mengatur posisi tangan dan transfer gaya.',function:'Menjaga posisi tangan saat gripping dan pressing.',risk:'Posisi ekstensi/fleksi berlebihan dapat meningkatkan tuntutan.',train:'Latih grip dan posisi pergelangan dalam ROM nyaman.',rec:'Carries, rows, presses dengan grip sesuai.'},
+  {n:'Hip',desc:'Ball-and-socket yang menghubungkan pelvis dan femur.',function:'Menghasilkan dan mengontrol gerak besar tungkai.',risk:'ROM dan beban harus sesuai kontrol pelvis dan trunk.',train:'Progreskan squat, hinge, lunge dan hip extension.',rec:'Squat, RDL, hip thrust, split squat.'},
+  {n:'Knee',desc:'Kompleks sendi dominan flexion-extension yang bekerja bersama hip dan ankle.',function:'Menyerap dan menghasilkan gaya saat squat, lunge dan locomotion.',risk:'Kualitas gerak, beban dan volume perlu dinaikkan bertahap.',train:'Mulai dari pola squat/lunge yang dapat dikontrol.',rec:'Sit-to-stand, squat, split squat, leg press.'},
+  {n:'Ankle',desc:'Kompleks sendi yang penting untuk dorsiflexion/plantarflexion dan transfer gaya.',function:'Mendukung gait, squat, jump dan keseimbangan.',risk:'ROM terbatas dapat mengubah mekanika gerak.',train:'Latih calf raise, dorsiflexion control dan pola squat sesuai kemampuan.',rec:'Calf raise, controlled squat, step-up.'},
+  {n:'Spine',desc:'Rangkaian vertebra yang memberi kombinasi stabilitas dan mobilitas regional.',function:'Mendukung trunk dan transfer gaya antara upper dan lower body.',risk:'Beban dan ROM ekstrem harus dihindari bila kontrol tidak memadai.',train:'Utamakan trunk control, breathing/bracing dan progressive loading.',rec:'Dead bug, carry, hinge, row dengan trunk control.'}
+ ]},
+ tulang:{label:'Tulang',items:[
+  {n:'Femur',desc:'Tulang panjang utama paha.',function:'Menyalurkan beban antara hip dan knee.',risk:'Loading harus bertahap dan sesuai kapasitas individu.',train:'Resistance training yang melibatkan tungkai memberikan stimulus mekanis.',rec:'Squat, split squat, step-up.'},
+  {n:'Tibia',desc:'Tulang panjang utama tungkai bawah.',function:'Menyalurkan beban dari knee ke ankle.',risk:'Impact dan volume perlu diprogreskan bertahap.',train:'Strength dan weight-bearing sesuai kemampuan.',rec:'Squat, calf raise, step-up.'},
+  {n:'Humerus',desc:'Tulang panjang lengan atas.',function:'Menjadi pengungkit untuk gerak shoulder dan elbow.',risk:'Overhead/loading perlu disesuaikan kemampuan.',train:'Push/pull progresif.',rec:'Row, press, pulldown.'},
+  {n:'Pelvis',desc:'Struktur tulang yang menghubungkan spine dan tungkai.',function:'Transfer gaya dan menjadi attachment berbagai otot.',risk:'Kontrol trunk/pelvis penting pada loaded movement.',train:'Latih hip extension, squat, lunge dan carry.',rec:'Squat, hip thrust, lunge, carry.'},
+  {n:'Spine / Vertebrae',desc:'Kolom tulang belakang yang menopang trunk.',function:'Memberi struktur, perlindungan dan transfer gaya.',risk:'Teknik, fatigue dan loading harus dikelola.',train:'Progressive resistance dengan trunk control.',rec:'Hinge, row, carry, core anti-movement.'},
+  {n:'Bone Health',desc:'Tulang beradaptasi terhadap loading mekanis yang sesuai.',function:'Menopang tubuh, melindungi organ, menjadi pengungkit dan menyimpan mineral.',risk:'Program untuk kondisi tulang tertentu membutuhkan assessment/rujukan yang sesuai.',train:'Gunakan resistance dan weight-bearing secara bertahap pada healthy adults.',rec:'Squat/hinge/push/pull/carry sesuai level.'}
+ ]}
 };
-
-function printProgram(){
-  if(!LAST_PROGRAM)return;
-  var root=document.createElement('div');root.id='fjExlPrintRoot';
-  var html='<h1>FITNESS JOURNEY — Program Latihan Otomatis</h1><p>Tujuan: '+E(goalLabel(LAST_PROGRAM.goal))+' | Level: '+E(LAST_PROGRAM.level)+'</p>';
-  LAST_PROGRAM.days.forEach(function(d){
-    html+='<h2>Hari '+d.day+' — '+E(d.type)+'</h2><table><tr><th>Exercise</th><th>Kategori</th><th>Sets &amp; Reps</th><th>Target Otot</th></tr>'+
-    d.exercises.map(function(ex){return '<tr><td>'+E(ex.name)+'</td><td>'+E(ex.cat)+'</td><td>'+E(ex.sets[LAST_PROGRAM.goal])+'</td><td>'+E(ex.primary[0]||'')+'</td></tr>'}).join('')+'</table>';
-  });
-  root.innerHTML=html;
-  document.body.appendChild(root);
-  var css=document.createElement('style');css.id='fjExlPrintCss';
-  css.textContent='@media print{body>*:not(#fjExlPrintRoot){display:none!important}#fjExlPrintRoot{display:block!important;padding:20px;font-family:Arial}#fjExlPrintRoot table{width:100%;border-collapse:collapse;margin-bottom:14px}#fjExlPrintRoot th,#fjExlPrintRoot td{border-bottom:1px solid #ccc;padding:6px;font-size:11px;text-align:left}}@media screen{#fjExlPrintRoot{display:none}}';
-  document.head.appendChild(css);
-  window.print();
-  setTimeout(function(){root.remove();css.remove()},500);
-}
-
-// ---- MATERI & EDUKASI (Types of Exercise, Methods, Movement Patterns, Warm-Up, Stretching, Muscles, Joints, Bones) ----
-var MATERI_TOPIC='jenis';
-var MATERI_DATA={
-  jenis:{label:'Jenis-Jenis Latihan',sections:[
-    {h:'Latihan Kardio / Aerobik',p:'Latihan berintensitas ringan-sedang yang dilakukan secara terus-menerus dalam durasi cukup lama untuk melatih sistem jantung dan paru-paru.',items:['Contoh: jalan cepat, jogging, bersepeda, berenang, rowing, jump rope.','Manfaat: meningkatkan VO2 max, membakar kalori, menyehatkan jantung.']},
-    {h:'Latihan Kekuatan (Resistance / Strength Training)',p:'Latihan yang membebani otot melawan tahanan untuk meningkatkan kekuatan dan/atau ukuran otot.',items:['Contoh: barbel, dumbbell, mesin beban, resistance band, beban tubuh (bodyweight).','Manfaat: meningkatkan massa otot, kepadatan tulang, metabolisme istirahat.']},
-    {h:'Latihan Fleksibilitas',p:'Latihan yang bertujuan meningkatkan rentang gerak (range of motion) sendi dan elastisitas otot.',items:['Contoh: static stretching, yoga, Pilates.','Manfaat: mengurangi kekakuan otot, memperbaiki postur, menurunkan risiko cedera.']},
-    {h:'Latihan Keseimbangan (Balance)',p:'Latihan yang melatih kontrol tubuh dan stabilitas, penting untuk pencegahan jatuh dan performa fungsional.',items:['Contoh: single-leg stance, bosu ball, latihan proprioseptif.','Manfaat: meningkatkan koordinasi otot-saraf dan stabilitas sendi.']},
-    {h:'Latihan Anaerobik / HIIT',p:'Latihan intensitas tinggi dalam waktu singkat yang mengandalkan energi tanpa oksigen (sistem energi ATP-PC dan glikolitik).',items:['Contoh: sprint, HIIT, Tabata, latihan plyometric.','Manfaat: meningkatkan power, kapasitas anaerobik, efisiensi pembakaran lemak.']},
-    {h:'Latihan Fungsional',p:'Latihan yang meniru pola gerak aktivitas sehari-hari, melibatkan banyak sendi dan otot sekaligus.',items:['Contoh: farmer carry, squat-to-press, lunge with rotation.','Manfaat: meningkatkan kemampuan gerak yang aplikatif di kehidupan nyata.']},
-    {h:'Latihan Koordinasi & Kelincahan (Agility)',p:'Latihan yang melatih kecepatan reaksi, perubahan arah, dan koordinasi neuromuskular.',items:['Contoh: ladder drill, cone drill, reaction ball.','Manfaat: penting untuk performa olahraga dan aktivitas dinamis.']}
-  ]},
-  metode:{label:'Metode Latihan',sections:[
-    {h:'Straight Sets',p:'Metode dasar: melakukan sejumlah set dan repetisi untuk satu gerakan dengan istirahat penuh di antara set, sebelum berpindah ke gerakan berikutnya.'},
-    {h:'Superset',p:'Dua gerakan dilakukan berurutan tanpa istirahat, biasanya menargetkan otot berlawanan (agonis-antagonis) atau otot yang sama untuk meningkatkan intensitas.'},
-    {h:'Circuit Training',p:'Beberapa gerakan disusun dalam satu rangkaian (circuit) dan dilakukan berurutan dengan istirahat minimal, lalu diulang beberapa putaran. Efektif untuk kekuatan dan daya tahan kardio sekaligus.'},
-    {h:'Drop Set',p:'Setelah mencapai kegagalan otot pada satu beban, beban langsung diturunkan dan repetisi dilanjutkan tanpa istirahat, untuk memaksimalkan kelelahan otot.'},
-    {h:'Pyramid / Ladder Training',p:'Beban ditambah secara bertahap sambil repetisi dikurangi (ascending), atau sebaliknya (descending), pada gerakan yang sama.'},
-    {h:'Cluster Set',p:'Set dipecah menjadi beberapa mini-set kecil dengan jeda singkat (10-20 detik) di antaranya, memungkinkan beban lebih berat dengan kualitas gerak terjaga.'},
-    {h:'HIIT (High-Intensity Interval Training)',p:'Interval kerja intensitas maksimal/submaksimal diselingi periode istirahat atau intensitas rendah, dalam siklus berulang.'},
-    {h:'Tabata',p:'Format interval spesifik: 20 detik kerja maksimal, 10 detik istirahat, diulang 8 putaran (total 4 menit per gerakan).'},
-    {h:'EMOM (Every Minute on the Minute)',p:'Sejumlah repetisi diselesaikan di awal tiap menit, sisa waktu dalam menit tersebut menjadi istirahat.'},
-    {h:'AMRAP (As Many Rounds/Reps As Possible)',p:'Menyelesaikan sebanyak mungkin putaran atau repetisi dalam batas waktu yang ditentukan.'},
-    {h:'Giant Set / Tri-Set',p:'Tiga atau lebih gerakan dilakukan berurutan tanpa istirahat sebelum jeda, biasanya menargetkan satu kelompok otot yang sama.'},
-    {h:'Contrast / Complex Training',p:'Menggabungkan gerakan beban berat (strength) dengan gerakan eksplosif (power/plyometric) secara berpasangan untuk meningkatkan output tenaga.'},
-    {h:'Tempo Training',p:'Mengontrol kecepatan tiap fase gerakan (eksentrik-isometrik-konsentrik), misalnya tempo 3-1-1, untuk meningkatkan time under tension.'}
-  ]},
-  pola:{label:'Pola Gerak (Movement Patterns)',sections:[
-    {h:'Squat (Jongkok)',p:'Gerakan menekuk lutut dan pinggul secara bersamaan pada bidang vertikal. Contoh: back squat, goblet squat, leg press.'},
-    {h:'Hinge (Engsel Pinggul)',p:'Gerakan menekuk dari sendi pinggul dengan lutut relatif minim tertekuk, menekankan hamstring & glutes. Contoh: deadlift, hip thrust, kettlebell swing.'},
-    {h:'Push (Dorong)',p:'Mendorong beban menjauhi tubuh, dibagi horizontal (contoh: bench press, push up) dan vertikal (contoh: overhead press).'},
-    {h:'Pull (Tarik)',p:'Menarik beban mendekati tubuh, dibagi horizontal (contoh: row) dan vertikal (contoh: pull up, lat pulldown).'},
-    {h:'Lunge (Langkah / Split Stance)',p:'Gerakan unilateral (satu sisi kaki) menekuk lutut dan pinggul dalam posisi kaki terbelah. Contoh: walking lunge, split squat, step up.'},
-    {h:'Carry (Membawa Beban)',p:'Membawa beban sambil berjalan untuk melatih grip, core, dan stabilitas postur. Contoh: farmer carry, suitcase carry.'},
-    {h:'Rotation / Anti-Rotation',p:'Gerakan memutar tubuh (rotation) atau menahan agar tubuh tidak berputar (anti-rotation) untuk melatih core. Contoh: cable rotation, pallof press, wood chop.'},
-    {h:'Gait (Pola Berjalan / Berlari)',p:'Pola gerak dasar manusia untuk berpindah tempat, menjadi fondasi latihan kardio dan olahraga lari.'}
-  ]},
-  warmup:{label:'Pemanasan (Warm-Up)',sections:[
-    {h:'Tujuan Pemanasan',p:'Meningkatkan suhu tubuh dan aliran darah ke otot, mempersiapkan sistem saraf-otot, meningkatkan mobilitas sendi, serta menurunkan risiko cedera sebelum latihan inti.'},
-    {h:'General Warm-Up',p:'Aktivitas kardio ringan selama 5-10 menit (contoh: jalan cepat, jogging ringan, sepeda statis) untuk menaikkan suhu tubuh dan detak jantung secara bertahap.'},
-    {h:'Specific / Dynamic Warm-Up',p:'Gerakan dinamis yang meniru pola gerak latihan utama, dilakukan dengan intensitas meningkat bertahap.',items:['Contoh gerakan: arm circle, leg swing, walking lunge, high knee, butt kick, hip opener, inchworm, bodyweight squat.','Durasi: sekitar 5-10 menit, 8-12 repetisi per gerakan.']},
-    {h:'Urutan yang Disarankan',items:['1) General warm-up (kardio ringan).','2) Dynamic stretching / mobility drill sesuai area yang akan dilatih.','3) Set pemanasan spesifik dengan beban ringan sebelum set kerja utama (ramp-up set).']}
-  ]},
-  stretching:{label:'Peregangan (Stretching)',sections:[
-    {h:'Static Stretching',p:'Menahan posisi peregangan otot tanpa gerakan selama 15-30 detik. Lebih cocok dilakukan setelah latihan (cooldown) karena menahan posisi statis sebelum latihan dapat sedikit menurunkan output kekuatan/power.'},
-    {h:'Dynamic Stretching',p:'Peregangan melalui gerakan aktif dan terkontrol dengan rentang gerak meningkat bertahap. Ideal dilakukan sebagai bagian dari pemanasan sebelum latihan.'},
-    {h:'PNF Stretching (Proprioceptive Neuromuscular Facilitation)',p:'Teknik kontraksi-relaksasi: otot dikontraksikan isometrik terlebih dahulu (contoh 5-10 detik), lalu direlaksasikan dan diregangkan lebih dalam. Efektif meningkatkan fleksibilitas jangka panjang, umumnya dengan bantuan partner.'},
-    {h:'Ballistic Stretching',p:'Peregangan dengan gerakan memantul/menghentak di titik akhir rentang gerak. Berisiko cedera lebih tinggi karena tidak memberi waktu otot beradaptasi, umumnya hanya untuk atlet terlatih.'},
-    {h:'Kapan Menggunakan Masing-Masing',items:['Sebelum latihan: dynamic stretching.','Setelah latihan: static stretching untuk relaksasi otot dan pemulihan.','Program fleksibilitas jangka panjang: PNF atau static stretching konsisten di luar sesi latihan.']}
-  ]},
-  otot:{label:'Sistem Otot (Muscular System)',sections:[
-    {h:'Jenis Otot',items:['Otot Rangka (Skeletal) — melekat pada tulang, bekerja secara sadar (voluntary), berperan dalam gerakan tubuh.','Otot Jantung (Cardiac) — bekerja tanpa sadar (involuntary), khusus memompa darah di jantung.','Otot Polos (Smooth) — bekerja tanpa sadar, ditemukan pada organ dalam seperti usus dan pembuluh darah.']},
-    {h:'Kelompok Otot Rangka Utama',items:['Dada: Pectoralis Major & Minor.','Punggung: Latissimus Dorsi, Trapezius, Rhomboid, Erector Spinae.','Bahu: Deltoid (anterior, medial, posterior).','Lengan: Biceps Brachii, Triceps Brachii, otot lengan bawah (forearm).','Core / Perut: Rectus Abdominis, Obliques (internal & eksternal), Transverse Abdominis.','Pinggul & Paha: Gluteus Maximus/Medius/Minimus, Quadriceps, Hamstrings, Hip Flexors, Adductors, Abductors.','Betis: Gastrocnemius, Soleus.']},
-    {h:'Peran Otot dalam Gerakan',items:['Agonis (Prime Mover) — otot utama yang menghasilkan gerakan.','Antagonis — otot yang berlawanan fungsi dengan agonis dan berelaksasi saat agonis berkontraksi.','Sinergis — otot pembantu yang bekerja sama dengan agonis.','Stabilizer — otot yang menjaga postur/sendi tetap stabil selama gerakan berlangsung.']}
-  ]},
-  sendi:{label:'Sistem Sendi (Joint System)',sections:[
-    {h:'Jenis Sendi Sinovial (paling berperan dalam olahraga)',items:['Ball-and-Socket (Sendi Peluru) — gerak paling bebas ke segala arah. Contoh: bahu, pinggul.','Hinge (Sendi Engsel) — gerak satu bidang (fleksi-ekstensi). Contoh: siku, lutut.','Pivot (Sendi Putar) — gerak rotasi. Contoh: sendi antara tulang leher atas (atlas-axis).','Gliding (Sendi Luncur) — gerak geser terbatas. Contoh: pergelangan tangan dan kaki.','Saddle (Sendi Pelana) — gerak dua bidang. Contoh: pangkal ibu jari.','Condyloid — gerak dua bidang tanpa rotasi penuh. Contoh: pergelangan tangan.']},
-    {h:'Range of Motion (ROM)',p:'Rentang gerak maksimal yang bisa dicapai sebuah sendi. Mobilitas sendi yang baik penting agar gerakan latihan dapat dilakukan dengan teknik penuh dan aman.'},
-    {h:'Mobilitas vs Stabilitas',p:'Beberapa sendi (bahu, pinggul, pergelangan kaki) cenderung membutuhkan lebih banyak mobilitas, sedangkan sendi lain (tulang belakang, lutut) membutuhkan lebih banyak stabilitas — konsep ini mendasari pemilihan latihan mobility & core stability dalam program.'},
-    {h:'Sendi Utama yang Terlibat dalam Latihan',p:'Bahu, siku, pergelangan tangan, tulang belakang (spine), pinggul, lutut, dan pergelangan kaki adalah sendi-sendi yang paling sering terlibat dan perlu diperhatikan tekniknya saat latihan beban.'}
-  ]},
-  tulang:{label:'Sistem Tulang (Skeletal System)',sections:[
-    {h:'Fungsi Tulang',items:['Penyangga struktur tubuh.','Pelindung organ vital (contoh: tengkorak melindungi otak, tulang rusuk melindungi jantung & paru).','Tempat melekatnya otot melalui tendon, menjadi pengungkit (lever) untuk gerakan.','Tempat penyimpanan mineral (kalsium & fosfor).','Tempat produksi sel darah (sumsum tulang).']},
-    {h:'Kategori Tulang',items:['Tulang Panjang (Long Bones) — contoh: femur, humerus, tibia; berperan besar dalam gerakan dan pengungkit.','Tulang Pendek (Short Bones) — contoh: tulang pergelangan tangan (carpal) dan kaki (tarsal).','Tulang Pipih (Flat Bones) — contoh: tengkorak, sternum, scapula; berfungsi melindungi organ.','Tulang Tak Beraturan (Irregular Bones) — contoh: ruas tulang belakang (vertebra), tulang panggul (pelvis).']},
-    {h:'Struktur Tulang Belakang (Spine)',p:'Tulang belakang tersusun dari 7 ruas cervical (leher), 12 ruas thoracic (punggung atas), 5 ruas lumbar (punggung bawah), sacrum, dan coccyx. Menjaga posisi netral tulang belakang (spinal alignment) sangat penting saat mengangkat beban untuk mencegah cedera.'},
-    {h:'Latihan Beban dan Kepadatan Tulang',p:'Latihan beban (resistance training) memberikan stimulus mekanis pada tulang yang secara bertahap dapat meningkatkan kepadatan mineral tulang (bone density), sehingga bermanfaat untuk kesehatan tulang jangka panjang.'}
-  ]}
-};
-// ---- Materi & Edukasi: modul interaktif (pilihan, isian, automation & rekomendasi) ----
-var WARMUP_POOL={
-  'Upper Body':[{name:'Arm Circle (maju &amp; mundur)',sec:30},{name:'Band Pull Apart / Rotasi Bahu',sec:30},{name:'Push Up to Downward Dog',sec:30},{name:'Cat-Cow Stretch',sec:30},{name:'Scapular Push Up',sec:30},{name:'Inchworm Walkout',sec:30}],
-  'Lower Body':[{name:'Leg Swing (depan-belakang)',sec:30},{name:'Leg Swing (samping)',sec:30},{name:'Bodyweight Squat',sec:30},{name:'Walking Lunge',sec:30},{name:'Hip Opener (90/90 Switch)',sec:30},{name:'High Knees',sec:30}],
-  'Full Body':[{name:'Jumping Jack',sec:30},{name:'High Knees',sec:30},{name:'Butt Kick',sec:30},{name:"World's Greatest Stretch",sec:30},{name:'Bodyweight Squat',sec:30},{name:'Arm Circle',sec:30},{name:'Inchworm Walkout',sec:30}],
-  'Kardio':[{name:'Jalan Cepat / Jogging Ringan',sec:120},{name:'High Knees',sec:30},{name:'Butt Kick',sec:30},{name:'Jumping Jack',sec:30}],
-  'Mobilitas':[{name:'Cat-Cow Stretch',sec:45},{name:'90/90 Hip Switch',sec:45},{name:"World's Greatest Stretch",sec:45},{name:'Thoracic Rotation (Open Book)',sec:45},{name:'Ankle Circles',sec:30}]
-};
-var STRETCH_DYNAMIC={
-  'Kaki &amp; Pinggul':[{name:'Leg Swing depan-belakang',sec:30},{name:'Walking Lunge',sec:30},{name:'Hip Opener (90/90 Switch)',sec:30}],
-  'Punggung &amp; Bahu':[{name:'Arm Circle',sec:30},{name:'Cat-Cow Stretch',sec:30},{name:'Thoracic Rotation (Open Book)',sec:30}],
-  'Full Body':[{name:"World's Greatest Stretch",sec:30},{name:'Inchworm Walkout',sec:30},{name:'Arm Circle + Leg Swing',sec:30}]
-};
-var STRETCH_STATIC={
-  'Kaki &amp; Pinggul':[{name:'Quad Stretch (berdiri)',sec:30},{name:'Hamstring Stretch',sec:30},{name:'90/90 Hip Stretch',sec:30},{name:'Calf Stretch di dinding',sec:30}],
-  'Punggung &amp; Bahu':[{name:"Child's Pose",sec:30},{name:'Cross-Body Shoulder Stretch',sec:30},{name:'Doorway Chest/Shoulder Stretch',sec:30},{name:'Lat Stretch',sec:30}],
-  'Full Body':[{name:'Standing Forward Fold',sec:30},{name:'Quad Stretch',sec:30},{name:'Cross-Body Shoulder Stretch',sec:30},{name:'Seated Spinal Twist',sec:30}]
-};
-var JOINT_INFO={
-  'Bahu':'Ball-and-socket — sendi paling fleksibel, prioritaskan mobilitas namun tetap butuh stabilitas rotator cuff.',
-  'Siku':'Hinge — gerak fleksi-ekstensi, umumnya stabil, fokus pada kekuatan bukan mobilitas ekstra.',
-  'Pergelangan Tangan':'Condyloid/Gliding — gerak dua bidang, penting untuk menjaga fleksibilitas saat menopang beban (push up, plank).',
-  'Pinggul':'Ball-and-socket — sendi besar dengan rentang gerak luas, sering kaku akibat duduk lama sehingga perlu mobilitas rutin.',
-  'Lutut':'Hinge — gerak fleksi-ekstensi, butuh stabilitas otot sekitar (quad, hamstring) lebih dari mobilitas ekstra.',
-  'Pergelangan Kaki':'Hinge/Gliding — mobilitas dorsofleksi penting untuk squat dan lari yang aman.',
-  'Tulang Belakang':'Kombinasi sendi kecil (facet joints) — butuh mobilitas di thoracic spine namun stabilitas di lumbar spine.'
-};
-var JOINT_KEYWORDS={'Bahu':['bahu','shoulder','rotator'],'Siku':['siku','elbow'],'Pergelangan Tangan':['pergelangan tangan','wrist'],'Pinggul':['hip','pinggul'],'Lutut':['lutut','knee','quad'],'Pergelangan Kaki':['pergelangan kaki','ankle','betis'],'Tulang Belakang':['tulang belakang','thoracic','spine']};
-var PATTERN_MOVE_MAP={'Squat (Jongkok)':'legs','Hinge (Engsel Pinggul)':'legs','Push (Dorong)':'push','Pull (Tarik)':'pull','Lunge (Langkah / Split Stance)':'legs','Carry (Membawa Beban)':'core','Rotation / Anti-Rotation':'core','Gait (Pola Berjalan / Berlari)':'cardio'};
-var PATTERN_KEYWORDS={'Squat (Jongkok)':['squat','leg press'],'Hinge (Engsel Pinggul)':['deadlift','thrust'],'Lunge (Langkah / Split Stance)':['lunge'],'Rotation / Anti-Rotation':['twist','dead bug','plank','crunch'],'Gait (Pola Berjalan / Berlari)':['running','treadmill','rowing','jumping','burpee']};
-
-var MATERI_INTERACTIVE={
-  jenis:{title:'🎯 Rekomendasi Jenis Latihan',desc:'Pilih tujuan utamamu, sistem akan merekomendasikan jenis latihan yang paling sesuai.',
-    fields:[{key:'goal',label:'Tujuan Utama',type:'select',options:['Menurunkan Berat Badan','Membentuk Otot (Hipertrofi)','Meningkatkan Stamina/Kardio','Meningkatkan Fleksibilitas','Kesehatan &amp; Kebugaran Umum']}],
-    compute:function(v){
-      var map={
-        'Menurunkan Berat Badan':{j:['Latihan Kardio / Aerobik','Latihan Anaerobik / HIIT'],a:'Kombinasi kardio dan HIIT efektif membakar kalori tinggi dan meningkatkan metabolisme.'},
-        'Membentuk Otot (Hipertrofi)':{j:['Latihan Kekuatan (Resistance Training)'],a:'Latihan beban dengan volume sedang-tinggi adalah stimulus utama pertumbuhan otot.'},
-        'Meningkatkan Stamina/Kardio':{j:['Latihan Kardio / Aerobik','Latihan Fungsional'],a:'Latihan aerobik berkelanjutan melatih efisiensi jantung dan paru-paru.'},
-        'Meningkatkan Fleksibilitas':{j:['Latihan Fleksibilitas'],a:'Stretching rutin dan yoga meningkatkan rentang gerak sendi secara bertahap.'},
-        'Kesehatan &amp; Kebugaran Umum':{j:['Latihan Kekuatan (Resistance Training)','Latihan Kardio / Aerobik','Latihan Fleksibilitas'],a:'Kombinasi ketiganya memberi manfaat menyeluruh untuk kesehatan jangka panjang.'}
-      };
-      var r=map[v.goal]||map['Kesehatan &amp; Kebugaran Umum'];
-      return '<div class="exl-badges" style="margin-bottom:8px">'+r.j.map(function(x){return '<span class="exl-badge">'+E(x)+'</span>'}).join('')+'</div><p class="exl-muted" style="margin:0">'+E(r.a)+'</p>';
-    }},
-  metode:{title:'🎯 Rekomendasi Metode Latihan',desc:'Isi level pengalaman dan waktu latihan yang tersedia untuk mendapatkan metode yang cocok.',
-    fields:[{key:'level',label:'Level Pengalaman',type:'select',options:['Pemula','Menengah','Lanjutan']},{key:'waktu',label:'Waktu Latihan Tersedia',type:'select',options:['15-20 menit','30-45 menit','60 menit ke atas']}],
-    compute:function(v){
-      var opts=[];
-      if(v.waktu==='15-20 menit')opts=['Tabata','EMOM','Circuit Training'];
-      else if(v.waktu==='30-45 menit')opts=['Superset','Circuit Training','Straight Sets'];
-      else opts=['Straight Sets dengan Pyramid/Drop Set','Giant Set / Tri-Set','Contrast Training'];
-      if(v.level==='Pemula')opts=opts.filter(function(o){return o!=='Contrast Training'});
-      if(v.level==='Lanjutan')opts.push('Cluster Set');
-      return '<div class="exl-badges" style="margin-bottom:8px">'+opts.map(function(o){return '<span class="exl-badge">'+E(o)+'</span>'}).join('')+'</div><p class="exl-muted" style="margin:0">Kombinasi level <b>'+E(v.level)+'</b> dan waktu <b>'+E(v.waktu)+'</b> paling sesuai dengan metode di atas.</p>';
-    }},
-  pola:{title:'🎯 Cari Contoh Exercise per Pola Gerak',desc:'Pilih pola gerak untuk melihat contoh exercise dari Exercise Library.',
-    fields:[{key:'pattern',label:'Pola Gerak',type:'select',options:['Squat (Jongkok)','Hinge (Engsel Pinggul)','Push (Dorong)','Pull (Tarik)','Lunge (Langkah / Split Stance)','Carry (Membawa Beban)','Rotation / Anti-Rotation','Gait (Pola Berjalan / Berlari)']}],
-    compute:function(v){
-      var pattern=v.pattern;var kws=PATTERN_KEYWORDS[pattern]||[];
-      var pool=DATA.filter(function(d){return kws.some(function(k){return d.name.toLowerCase().indexOf(k)>-1})});
-      if(!pool.length){var mv=PATTERN_MOVE_MAP[pattern];pool=DATA.filter(function(d){return d.move===mv})}
-      var picks=pool.slice(0,4);
-      var html='<p class="exl-muted" style="margin:0 0 8px">Contoh exercise untuk pola <b>'+E(pattern)+'</b> dari Exercise Library:</p>';
-      html+=picks.length?('<ul>'+picks.map(function(d){return '<li><b>'+E(d.name)+'</b> — '+E(d.cat)+' • '+E(d.equip)+' ('+E(d.level)+')</li>'}).join('')+'</ul>'):'<p class="exl-muted">Belum ada contoh spesifik di database untuk pola ini.</p>';
-      return html;
-    }},
-  warmup:{title:'🎯 Generator Warm-Up Otomatis',desc:'Pilih fokus latihan hari ini dan durasi warm-up, sistem akan menyusun rutinitas pemanasan secara otomatis.',
-    fields:[{key:'focus',label:'Fokus Latihan Hari Ini',type:'select',options:['Upper Body','Lower Body','Full Body','Kardio','Mobilitas']},{key:'durasi',label:'Durasi Warm-Up',type:'select',options:['5 menit','10 menit']}],
-    compute:function(v){
-      var pool=WARMUP_POOL[v.focus]||WARMUP_POOL['Full Body'];var target=(parseInt(v.durasi,10)||5)*60;var total=0,out=[];
-      for(var i=0;i<pool.length&&total<target;i++){out.push(pool[i]);total+=pool[i].sec}
-      var html='<p class="exl-muted" style="margin:0 0 8px">Rutinitas warm-up otomatis untuk <b>'+E(v.focus)+'</b> (~'+E(v.durasi)+'):</p><ol>'+out.map(function(o){return '<li>'+o.name+' — '+o.sec+' detik</li>'}).join('')+'</ol>'+
-      '<p class="exl-muted" style="font-size:11px;margin-top:6px">Total durasi: ~'+(Math.round(total/6)/10)+' menit. Lakukan sebelum latihan inti dimulai.</p>';
-      return html;
-    }},
-  stretching:{title:'🎯 Rekomendasi Peregangan',desc:'Pilih waktu peregangan dan area tubuh untuk mendapatkan jenis stretching yang tepat.',
-    fields:[{key:'waktu',label:'Waktu Peregangan',type:'select',options:['Sebelum Latihan (Pre-Workout)','Setelah Latihan (Cooldown)']},{key:'area',label:'Area Tubuh',type:'select',options:['Kaki &amp; Pinggul','Punggung &amp; Bahu','Full Body']}],
-    compute:function(v){
-      var isPre=v.waktu.indexOf('Sebelum')===0;var pool=(isPre?STRETCH_DYNAMIC:STRETCH_STATIC)[v.area]||[];var tipe=isPre?'Dynamic Stretching':'Static / PNF Stretching';
-      var html='<p style="margin:0 0 8px">Untuk <b>'+E(v.waktu)+'</b> pada area <b>'+v.area+'</b>, jenis yang disarankan: <b>'+E(tipe)+'</b>.</p>';
-      html+=pool.length?('<ul>'+pool.map(function(o){return '<li>'+o.name+' — tahan/lakukan '+o.sec+' detik</li>'}).join('')+'</ul>'):'';
-      return html;
-    }},
-  otot:{title:'🎯 Cari Exercise per Kelompok Otot',desc:'Pilih kelompok otot untuk melihat contoh exercise yang menyasarnya dari Exercise Library.',
-    fields:[{key:'kelompok',label:'Kelompok Otot',type:'select',options:['Dada','Punggung','Bahu','Lengan','Perut/Core','Kaki']}],
-    compute:function(v){
-      var picks=DATA.filter(function(d){return d.cat===v.kelompok}).slice(0,4);
-      var html='<p class="exl-muted" style="margin:0 0 8px">Contoh exercise untuk kelompok otot <b>'+E(v.kelompok)+'</b>:</p>';
-      html+=picks.length?('<ul>'+picks.map(function(d){return '<li><b>'+E(d.name)+'</b> — Target: '+E(d.primary.join(', '))+'</li>'}).join('')+'</ul>'):'<p class="exl-muted">Belum ada exercise untuk kategori ini di database.</p>';
-      return html;
-    }},
-  sendi:{title:'🎯 Info &amp; Rekomendasi per Sendi',desc:'Pilih satu sendi untuk melihat jenis sendi, karakteristiknya, dan rekomendasi latihan mobilitas.',
-    fields:[{key:'sendi',label:'Pilih Sendi',type:'select',options:['Bahu','Siku','Pergelangan Tangan','Pinggul','Lutut','Pergelangan Kaki','Tulang Belakang']}],
-    compute:function(v){
-      var kws=JOINT_KEYWORDS[v.sendi]||[];
-      var pool=DATA.filter(function(d){if(d.move!=='mobility')return false;var text=(d.primary.join(' ')+' '+d.secondary.join(' ')+' '+d.name).toLowerCase();return kws.some(function(k){return text.indexOf(k)>-1})});
-      if(!pool.length)pool=DATA.filter(function(d){return d.move==='mobility'});
-      var html='<p style="margin:0 0 8px"><b>'+E(v.sendi)+':</b> '+E(JOINT_INFO[v.sendi]||'')+'</p>';
-      if(pool.length)html+='<p class="exl-muted" style="margin:0 0 6px">Rekomendasi latihan mobilitas:</p><ul>'+pool.slice(0,3).map(function(d){return '<li>'+E(d.name)+'</li>'}).join('')+'</ul>';
-      return html;
-    }},
-  tulang:{title:'🎯 Cek Kebiasaan &amp; Rekomendasi Postur',desc:'Centang kebiasaan yang sesuai dengan kondisimu untuk mendapatkan rekomendasi umum menjaga kesehatan tulang &amp; postur.',
-    fields:[{key:'checks',label:'Cek kebiasaan kamu',type:'checklist',options:['Duduk lebih dari 6 jam sehari','Sering menunduk melihat ponsel/laptop','Jarang melakukan latihan beban/kekuatan','Postur cenderung membungkuk saat berdiri/duduk','Pernah merasakan nyeri punggung/leher ringan']}],
-    compute:function(v){
-      var n=v.checks.length,msg,tips;
-      if(n===0){msg='Kebiasaan kamu sejauh ini cukup baik untuk kesehatan tulang &amp; postur.';tips=['Pertahankan latihan beban rutin untuk menjaga kepadatan tulang.'];}
-      else if(n<=2){msg='Ada beberapa kebiasaan yang perlu diperhatikan untuk kesehatan tulang belakang &amp; postur.';tips=['Selingi duduk lama dengan berdiri/berjalan setiap 30-60 menit.','Lakukan mobility thoracic spine (contoh: Cat-Cow, Open Book) secara rutin.'];}
-      else{msg='Beberapa kebiasaan berisiko terhadap postur dan kesehatan tulang belakang terdeteksi.';tips=['Perbanyak latihan mobilitas tulang belakang &amp; pinggul setiap hari.','Tambahkan latihan penguatan core &amp; punggung (contoh: Plank, Dead Bug, Face Pull).','Perhatikan posisi duduk &amp; ketinggian layar agar tidak terlalu menunduk.','Pertimbangkan latihan beban rutin — resistance training terbukti membantu menjaga kepadatan tulang.'];}
-      return '<p style="margin:0 0 8px"><b>'+msg+'</b></p><ul>'+tips.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul><p class="exl-muted" style="margin-top:8px;font-size:11px">Catatan: ini edukasi umum, bukan diagnosis medis. Jika mengalami nyeri berkelanjutan, konsultasikan ke tenaga medis/fisioterapis.</p>';
-    }}
-};
-
-function mtFieldHtml(f,idx){
-  if(f.type==='select')return '<div class="field"><label>'+E(f.label)+'</label><select id="mtField_'+idx+'">'+f.options.map(function(o){return '<option value="'+o.replace(/"/g,'&quot;')+'">'+o+'</option>'}).join('')+'</select></div>';
-  if(f.type==='checklist')return '<div class="field" style="grid-column:1/-1"><label>'+E(f.label)+'</label><div>'+f.options.map(function(o,i){return '<label style="display:flex;gap:7px;align-items:center;margin:5px 0;font-weight:700;color:#3f7a63;font-size:12.5px"><input type="checkbox" id="mtField_'+idx+'_'+i+'"> '+E(o)+'</label>'}).join('')+'</div></div>';
-  return '';
-}
-function mtCollectValues(fields){
-  var v={};
-  fields.forEach(function(f,idx){
-    if(f.type==='select')v[f.key]=q('mtField_'+idx).value;
-    if(f.type==='checklist'){var checked=[];f.options.forEach(function(o,i){if(q('mtField_'+idx+'_'+i).checked)checked.push(o)});v[f.key]=checked;}
-  });
-  return v;
-}
-
 function renderMateri(){
-  var b=q('exlMateri');if(!b)return;
-  var order=['jenis','metode','pola','warmup','stretching','otot','sendi','tulang'];
-  var chips=order.map(function(k){return '<span class="exl-chip'+(MATERI_TOPIC===k?' on':'')+'" data-mt="'+k+'">'+E(MATERI_DATA[k].label)+'</span>'}).join('');
-  var topic=MATERI_DATA[MATERI_TOPIC],itx=MATERI_INTERACTIVE[MATERI_TOPIC],interactiveHtml='';
-  if(itx){
-    interactiveHtml='<div class="exl-card exl-edu-interactive"><div class="exl-edu-head"><div><div class="label">INTERACTIVE EDUCATION</div><h3>'+E(itx.title)+'</h3><p class="exl-muted">'+E(itx.desc)+'</p></div><span class="exl-auto-badge">AUTOMATION + RECOMMENDATION</span></div>'+
-      '<div class="exl-gen-form">'+itx.fields.map(mtFieldHtml).join('')+
-      '<div class="field"><label>Tujuan belajar / fokus kamu</label><input id="mtGoalText" placeholder="Contoh: ingin memahami squat untuk pemula"></div>'+
-      '<div class="field" style="grid-column:1/-1"><label>Catatan / pertanyaan tambahan</label><textarea id="mtNoteText" rows="3" placeholder="Tulis pertanyaan, pengalaman latihan, atau hal yang ingin diperjelas..."></textarea></div>'+
-      '</div><div class="exl-modal-actions"><button class="exl-btn" id="mtGoBtn">⚡ Buat Rekomendasi Otomatis</button></div>'+
-      '<div id="mtOut" class="exl-edu-output"><p class="exl-muted">Isi pilihan di atas lalu jalankan rekomendasi.</p></div></div>';
-  }
-  var body=topic.sections.map(function(s){
-    var html='<div class="exl-card"><h3 style="margin-top:0">'+E(s.h)+'</h3>';
-    if(s.p)html+='<p class="exl-muted" style="margin:0 0 6px">'+E(s.p)+'</p>';
-    if(s.items&&s.items.length)html+='<ul>'+s.items.map(function(i){return '<li>'+E(i)+'</li>'}).join('')+'</ul>';
-    html+='</div>';return html;
-  }).join('');
-  b.innerHTML='<div class="exl-card"><div class="label">MATERI &amp; EDUKASI</div><h3 style="margin:4px 0 8px">'+E(topic.label)+'</h3>'+
-    '<p class="exl-muted">Pilih topik, isi kondisi/fokus, lalu sistem menghasilkan rekomendasi dan langkah belajar yang relevan.</p>'+
-    '<div class="exl-chipset" id="exlMateriChips">'+chips+'</div></div>'+interactiveHtml+body;
-  q('exlMateriChips').querySelectorAll('.exl-chip').forEach(function(c){c.onclick=function(){MATERI_TOPIC=this.dataset.mt;renderMateri()}});
-  if(itx){
-    q('mtGoBtn').onclick=function(){
-      var v=mtCollectValues(itx.fields),goal=(q('mtGoalText')||{}).value||'',note=(q('mtNoteText')||{}).value||'';
-      var out=itx.compute(v)||'';
-      var rec=[];
-      if(goal)rec.push('Fokus kamu: <b>'+E(goal)+'</b>.');
-      if(note)rec.push('Catatan yang akan dibawa ke sesi berikutnya: <b>'+E(note)+'</b>.');
-      rec.push('Rekomendasi otomatis: ulangi materi ini secara bertahap, pilih variasi exercise yang sesuai level, dan gunakan teknik yang dapat dikontrol sebelum menaikkan beban atau kompleksitas.');
-      q('mtOut').innerHTML=out+'<div class="exl-auto-reco"><b>🤖 Rekomendasi Otomatis</b><ul>'+rec.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></div>';
-    };
-  }
+  var b=q('exlMateri');if(!b)return;var keys=Object.keys(EDU_DB),topic=EDU_DB[EDU_TOPIC]||EDU_DB.jenis;
+  var tabs=keys.map(function(k){return '<button type="button" class="exl-chip '+(k===EDU_TOPIC?'on':'')+'" data-edu-topic="'+k+'">'+E(EDU_DB[k].label)+'</button>'}).join('');
+  var cards=topic.items.map(function(x){return '<article class="edu-library-card"><h3>'+E(x.n)+'</h3><div><b>Penjelasan</b><p>'+E(x.desc)+'</p></div><div><b>Fungsi</b><p>'+E(x.function)+'</p></div><div><b>Risiko / perhatian</b><p>'+E(x.risk)+'</p></div><div><b>Cara melatih / menerapkan</b><p>'+E(x.train)+'</p></div><div><b>Jenis latihan yang relevan</b><p>'+E(x.rec)+'</p></div></article>'}).join('');
+  b.innerHTML='<div class="exl-card"><div class="label">LIBRARY MATERI & EDUKASI</div><h2 style="margin:4px 0">'+E(topic.label)+'</h2><p class="exl-muted">Bagian ini adalah library pengetahuan. Tidak ada generator program otomatis dan tidak mengubah program client.</p><div class="edu-topic-tabs">'+tabs+'</div></div><div class="edu-library-grid">'+cards+'</div>';
+  b.querySelectorAll('[data-edu-topic]').forEach(function(btn){btn.onclick=function(){EDU_TOPIC=this.dataset.eduTopic;renderMateri()}});
 }
-
 function boot(){nav();}
+
 var tries=0;function retryBoot(){boot();tries++;if(tries<40&&!q('fjExLibNav'))setTimeout(retryBoot,500)}
 setTimeout(retryBoot,300);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);
@@ -8975,397 +8679,6 @@ function boot(){activeNavFix();patchPTM()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1200)},{once:true});else setTimeout(boot,1200);
 window.addEventListener('load',function(){setTimeout(boot,1400)});
 setInterval(function(){activeNavFix();var p=$('fjPtOpsV2');if(p&&p.classList.contains('active')){renderMirrorCalendar();renderMirrorClients()}},1500);
-})();
-</script>
-
-<!-- V46 FINAL TARGETED FIX: interactive Exercise Library + Education + phone scrolling -->
-<style id="fj-v46-final-targeted">
-*{box-sizing:border-box}
-@media (max-width:760px){
-  html,body{width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;}
-  body{touch-action:pan-y!important;overscroll-behavior-y:auto!important;}
-  .app{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:100vh!important;overflow:visible!important;}
-  .side{position:relative!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;}
-  .main{position:relative!important;margin:0!important;left:auto!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:0!important;overflow:visible!important;overflow-x:hidden!important;overflow-y:visible!important;}
-  .panel{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
-  #fjExerciseLibrary{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
-  #fjExerciseLibrary .exl-shell{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
-  #fjExerciseLibrary .exl-card{width:100%!important;min-width:0!important;max-width:100%!important;}
-  #fjExerciseLibrary .exl-filters{grid-template-columns:1fr!important;width:100%!important;min-width:0!important;}
-  #fjExerciseLibrary input,#fjExerciseLibrary select,#fjExerciseLibrary textarea{max-width:100%!important;min-width:0!important;}
-  #exlGridWrap{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
-  #exlGridWrap .exl-grid{grid-template-columns:1fr!important;width:100%!important;min-width:0!important;max-width:100%!important;}
-  #exlGridWrap .exl-ex{width:100%!important;min-width:0!important;max-width:100%!important;}
-  #exlSelected .exl-grid{grid-template-columns:1fr!important;width:100%!important;}
-  #exlSelected .exl-ex{min-width:0!important;max-width:100%!important;}
-  #exlGenerator,#exlMateri{width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;}
-  #exlGenerator .exl-gen-form,#exlMateri .exl-gen-form{grid-template-columns:1fr!important;width:100%!important;}
-  #exlMateri .exl-chipset{display:flex!important;flex-wrap:wrap!important;width:100%!important;gap:7px!important;}
-  #exlMateri .exl-chip{max-width:100%!important;}
-  #exlModal{overflow:auto!important;-webkit-overflow-scrolling:touch!important;}
-  #exlModalBody{width:calc(100vw - 24px)!important;max-width:calc(100vw - 24px)!important;min-width:0!important;max-height:calc(100vh - 24px)!important;overflow-y:auto!important;overflow-x:hidden!important;}
-}
-@media (min-width:761px){
-  html,body{overflow-x:hidden!important;}
-  .main{min-width:0!important;overflow-x:hidden!important;}
-}
-.fj-v46-edu-card{border:1px solid #cfe4ef;border-radius:14px;padding:14px;background:#fff;margin-top:12px}
-.fj-v46-edu-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
-.fj-v46-edu-form .span2{grid-column:1/-1}
-.fj-v46-edu-form label{display:block;font-weight:800;font-size:12px;margin-bottom:5px}
-.fj-v46-edu-form input,.fj-v46-edu-form select,.fj-v46-edu-form textarea{width:100%;padding:9px;border:1px solid #cfe0e9;border-radius:9px;background:#fff}
-.fj-v46-reco{margin-top:12px;padding:12px;border-radius:12px;background:#eef8ff;border:1px solid #bdd9e9}
-.fj-v46-exercise-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
-.fj-v46-ex-card{border:1px solid #d8e5eb;border-radius:12px;padding:11px;background:#fff;cursor:pointer}
-.fj-v46-ex-card h4{margin:7px 0 5px}
-.fj-v46-tags{display:flex;flex-wrap:wrap;gap:5px}.fj-v46-tag{font-size:10px;font-weight:800;padding:4px 7px;border-radius:999px;background:#eef5f8}
-@media(max-width:760px){.fj-v46-edu-form{grid-template-columns:1fr}.fj-v46-exercise-grid{grid-template-columns:1fr}}
-</style>
-<script id="fj-v46-final-targeted-runtime">
-(function(){
-'use strict';
-/*
- FJ V46 REBUILT
- - Materi/Edukasi recommendation is now driven by the same Goal -> Workout Type
-   -> Pattern -> Exercise logic used by Training Program PRO.
- - No MutationObserver and no polling loop here. The old observer could repeatedly
-   rebuild the panel after its own DOM changes.
- - Exercise choices are filtered/ranked, not D.slice(0,120).
-*/
-var V46={eduTopic:'jenis',eduShown:false};
-function q(id){return document.getElementById(id)}
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function exerciseData(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
-function activeExerciseLibrary(){var p=q('fjExerciseLibrary');return p&&p.classList.contains('active')}
-function canonGoal(v){
-  var x=String(v||'').trim();
-  var map={
-    'Hypertrophy / Bodybuilding':'Hypertrophy',
-    'Strength & Power':'Strength',
-    'Fat Loss':'Fat Loss',
-    'Endurance':'Muscular Endurance',
-    'General Fitness':'General Fitness'
-  };
-  return map[x]||x||'General Fitness';
-}
-function displayGoal(v){
-  var x=canonGoal(v);
-  var map={'Hypertrophy':'Hypertrophy / Bodybuilding','Strength':'Strength & Power','Muscular Endurance':'Endurance'};
-  return map[x]||x;
-}
-function canonLevel(v){
-  var x=String(v||'Pemula').toLowerCase();
-  if(/lanjut|advanced/.test(x))return 'advanced';
-  if(/menengah|intermediate/.test(x))return 'intermediate';
-  return 'beginner';
-}
-function levelRank(v){
-  var x=String(v||'').toLowerCase();
-  if(/lanjut|advanced/.test(x))return 3;
-  if(/menengah|intermediate/.test(x))return 2;
-  return 1;
-}
-function canonicalEquipment(v){return String(v||'').trim()||'Mixed'}
-function workoutForGoal(goal){
-  try{return typeof recommendedWorkoutTypeForGoal==='function'
-    ?recommendedWorkoutTypeForGoal(canonGoal(goal),3):'fullbody'}catch(e){return 'fullbody'}
-}
-function patternsFor(goal,wtype){
-  var st={g:canonGoal(goal),wtype:wtype||workoutForGoal(goal),res:'Mixed',level:'beginner',age:30,months:3,freq:3,weight:null,height:null,experience:'',readiness:'',medical:''};
-  try{
-    if(typeof fjGoalTypePatternsV3==='function'){
-      var a=fjGoalTypePatternsV3(st);
-      if(Array.isArray(a)&&a.length)return a;
-    }
-  }catch(e){}
-  try{
-    var a=(window.PRO_WORKOUT_PATTERNS&&window.PRO_WORKOUT_PATTERNS[st.wtype])||[];
-    if(a.length)return a;
-  }catch(e){}
-  return ['lower','upperPush','upperPull','hinge','core'];
-}
-function exercisePattern(d){
-  try{
-    if(typeof patternForExercise==='function')return patternForExercise(d.name);
-  }catch(e){}
-  var n=String(d.name||'').toLowerCase();
-  if(/deadlift|rdl|hip thrust|swing|good morning/.test(n))return 'hinge';
-  if(/bench|push up|press|dip|fly/.test(n))return 'upperPush';
-  if(/row|pull up|pulldown|lat pulldown/.test(n))return 'upperPull';
-  if(/squat|leg press|lunge|step up/.test(n))return 'lower';
-  if(/plank|dead bug|crunch|carry/.test(n))return 'core';
-  return 'core';
-}
-function exerciseLevelScore(d,target){
-  var tr=levelRank(target), er=levelRank(d.level);
-  if(!d.level)return 1;
-  if(er===tr)return 5;
-  if(er<tr)return 3; // easier is acceptable
-  if(er===tr+1)return -8; // don't recommend harder than selected level
-  return -20;
-}
-function textMatch(d,query){
-  var hay=[d.name,d.cat,d.move,d.movement].concat(d.primary||[],d.secondary||[]).join(' ').toLowerCase();
-  var terms=String(query||'').toLowerCase().split(/[,;\/]+|\s{2,}/).map(function(x){return x.trim()}).filter(Boolean);
-  if(!terms.length)return 0;
-  var score=0;
-  terms.forEach(function(t){if(hay.indexOf(t)>=0)score+=8});
-  return score;
-}
-function goalExerciseScore(d,goal,wtype,focus){
-  var g=canonGoal(goal),patterns=patternsFor(g,wtype),p=exercisePattern(d),idx=patterns.indexOf(p);
-  var score=idx<0?0:(patterns.length-idx)*7;
-  var n=(String(d.name||'')+' '+String(d.cat||'')+' '+String(d.movement||'')).toLowerCase();
-  if(g==='Hypertrophy'&&/press|row|pulldown|squat|leg press|hinge|curl|extension|fly|raise/.test(n))score+=5;
-  if(g==='Strength'&&/squat|deadlift|bench|row|press|pull up|chin up/.test(n))score+=6;
-  if(g==='Fat Loss'&&/conditioning|cardio|squat|lunge|carry|row|bike|run/.test(n))score+=4;
-  if(g==='Muscular Endurance'&&/circuit|conditioning|bodyweight|row|lunge|squat|push up/.test(n))score+=4;
-  score+=textMatch(d,focus);
-  return score;
-}
-function buildRecoState(){
-  var goal=q('v46EduGoal')?.value||'General Fitness';
-  var level=q('v46EduLevel')?.value||'Pemula';
-  var wtype=q('v46EduWtype')?.value||workoutForGoal(goal);
-  var equip=q('v46EduEquip')?.value||'';
-  var type=q('v46EduType')?.value||'';
-  var focus=(q('v46EduFocus')?.value||'').trim();
-  var note=(q('v46EduNote')?.value||'').trim();
-  return {goal,level,wtype,equip,type,focus,note,patterns:patternsFor(goal,wtype)};
-}
-function filteredExercises(st){
-  var D=exerciseData(), targetLevel=canonLevel(st.level);
-  var arr=D.filter(function(d){
-    if(st.type&&String(d.type||'')!==st.type)return false;
-    if(st.equip&&String(d.equip||'').toLowerCase()!==String(st.equip).toLowerCase())return false;
-    var lr=exerciseLevelScore(d,targetLevel); if(lr<=-5)return false;
-    if(st.focus && textMatch(d,st.focus)<=0)return false;
-    return true;
-  });
-  arr.sort(function(a,b){
-    var sa=goalExerciseScore(a,st.goal,st.wtype,st.focus)+exerciseLevelScore(a,targetLevel);
-    var sb=goalExerciseScore(b,st.goal,st.wtype,st.focus)+exerciseLevelScore(b,targetLevel);
-    return sb-sa || String(a.name).localeCompare(String(b.name));
-  });
-  return arr;
-}
-function buildProCompatibleNames(st){
-  var out=[];
-  try{
-    var ps={
-      g:canonGoal(st.goal),wtype:st.wtype,res:canonicalEquipment(st.equip)||'Mixed',
-      level:canonLevel(st.level),age:30,months:3,freq:3,weight:null,height:null,
-      experience:canonLevel(st.level)==='beginner'?'Pemula':'',readiness:'',medical:''
-    };
-    if(typeof allProExercisesForWorkout==='function'){
-      allProExercisesForWorkout(ps).forEach(function(x){if(x&&x.name)out.push(x.name)});
-    }
-  }catch(e){}
-  return new Set(out);
-}
-function getRanked(st){
-  var arr=filteredExercises(st);
-  var proNames=buildProCompatibleNames(st);
-  arr.forEach(function(d){
-    d.__v46score=goalExerciseScore(d,st.goal,st.wtype,st.focus)+exerciseLevelScore(d,canonLevel(st.level));
-    if(proNames.has(d.name))d.__v46score+=10;
-  });
-  arr.sort(function(a,b){return b.__v46score-a.__v46score||String(a.name).localeCompare(String(b.name))});
-  return arr;
-}
-function updateWorkoutTypeOptions(){
-  var goal=q('v46EduGoal'),sel=q('v46EduWtype'); if(!goal||!sel)return;
-  var g=canonGoal(goal.value),allowed=[];
-  try{allowed=typeof allowedWorkoutTypesForGoal==='function'?allowedWorkoutTypesForGoal(g):[]}catch(e){}
-  if(!allowed.length)allowed=[workoutForGoal(g)];
-  var current=sel.value, html='';
-  allowed.forEach(function(k){
-    var info=window.WORKOUT_TYPES&&window.WORKOUT_TYPES[k];
-    if(!info)return;
-    html+='<option value="'+esc(k)+'">'+esc(info.label||k)+'</option>';
-  });
-  if(!html)html='<option value="'+esc(workoutForGoal(g))+'">'+esc(workoutForGoal(g))+'</option>';
-  sel.innerHTML=html;
-  var recommended=workoutForGoal(g);
-  if(Array.from(sel.options).some(function(o){return o.value===recommended}))sel.value=recommended;
-  else if(Array.from(sel.options).some(function(o){return o.value===current}))sel.value=current;
-  updateExerciseChoices();
-}
-function updateExerciseChoices(){
-  var st=buildRecoState(),sel=q('v46EduExercise');if(!sel)return;
-  var arr=getRanked(st).slice(0,30);
-  var selected=new Set(Array.from(sel.selectedOptions||[]).map(function(o){return o.value}));
-  sel.innerHTML=arr.map(function(d){
-    var label=d.name+' — '+(d.cat||d.movement||'')+' • '+(d.equip||'Bodyweight')+' • '+(d.level||'');
-    return '<option value="'+esc(d.id)+'" '+(selected.has(String(d.id))?'selected':'')+'>'+esc(label)+'</option>';
-  }).join('');
-  var count=q('v46EduCount');if(count)count.textContent=arr.length+' exercise yang sesuai konteks';
-  var summary=q('v46EduLogic');if(summary)summary.innerHTML=
-    '<b>Logic aktif:</b> '+esc(displayGoal(st.goal))+' → '+esc((window.WORKOUT_TYPES&&window.WORKOUT_TYPES[st.wtype]?.label)||st.wtype)+
-    ' → pola '+esc(st.patterns.join(', '))+' → filter '+esc(st.level)+(st.type?' → '+esc(st.type):'')+(st.equip?' → '+esc(st.equip):'')+'.';
-}
-function topicsLabel(k){return {jenis:'Jenis Exercise',metode:'Metode Latihan',pola:'Pola Gerak',warmup:'Warm Up',stretching:'Stretching',otot:'Otot',sendi:'Sendi',tulang:'Tulang'}[k]||k}
-function topicConfig(topic){
-  var configs={
-    jenis:{title:'Jenis Exercise',desc:'Pilih tujuan, level, workout type, jenis gerakan, dan alat. Sistem menyaring serta memberi prioritas berdasarkan logic Training Program PRO.'},
-    metode:{title:'Metode Latihan',desc:'Metode dipilih dari tujuan, level, dan waktu latihan. Metode tidak lagi dipisahkan dari goal.'},
-    pola:{title:'Pola Gerak',desc:'Pola gerak mengikuti goal dan workout type sebelum memilih exercise contoh.'},
-    warmup:{title:'Warm Up',desc:'Warm-up mengikuti tujuan sesi dan workout type, bukan daftar generik yang sama untuk semua client.'},
-    stretching:{title:'Stretching',desc:'Pilih area tubuh dan kebutuhan sesi; hasil diprioritaskan sesuai konteks latihan.'},
-    otot:{title:'Otot',desc:'Pilih otot target untuk melihat exercise yang benar-benar menargetkannya, sambil mempertahankan goal dan level.'},
-    sendi:{title:'Sendi',desc:'Gunakan area sendi untuk memprioritaskan kontrol gerak dan pilihan yang relevan.'},
-    tulang:{title:'Tulang',desc:'Materi edukasi tetap informatif, tetapi rekomendasi latihan mengikuti goal, level, dan pola gerak.'}
-  };
-  return configs[topic]||configs.jenis;
-}
-function warmupFor(st){
-  var t=st.wtype||'fullbody',focus=(st.focus||'').toLowerCase();
-  var map={
-    upperlower:['Easy bike / row','Arm circles','Band pull-apart','Bodyweight squat','Hip hinge drill','Dead bug'],
-    ppl:['Easy bike / row','Arm circles','Band pull-apart','Scapular push-up','Light bodyweight squat','Dead bug'],
-    hypertrophy:['Easy treadmill / bike','Bodyweight squat','Glute bridge','Band pull-apart','Scapular push-up','Reverse lunge'],
-    strengthpower:['Easy bike / row','Bodyweight squat','Hip hinge drill','Glute bridge','Scapular push-up','Band row','Low-amplitude pogo'],
-    circuit:['Easy walk / bike','Marching','Bodyweight squat','Reverse lunge','Inchworm','Dead bug'],
-    fullbody:['Easy walk / bike','Dynamic marching','Bodyweight squat','Hip hinge drill','Band pull-apart','Dead bug'],
-    lowimpact:['Easy walk / bike','Joint circles','Supported squat','Glute bridge','Band row','Dead bug'],
-    mobilityflow:['Easy walk','Controlled joint circles','Cat-cow','90/90 hip rotation','Thoracic rotation','Deep squat hold'],
-    rehab:['Easy walk / bike','Controlled joint circles','Supported squat','Glute bridge','Wall push-up','Band row'],
-    prehab:['Easy walk / bike','Controlled joint circles','Glute bridge','Scapular wall slide','Band row','Dead bug'],
-    recovery:['Easy walk','Breathing reset','Gentle joint circles','Cat-cow','90/90 hip rotation','Supported squat']
-  };
-  var out=map[t]||map.fullbody;
-  if(/upper|shoulder|chest|back|pull|push/.test(focus))out=['Easy bike / row','Arm circles','Band pull-apart','Scapular push-up','Inchworm','Thoracic rotation'];
-  if(/lower|leg|glute|hamstring|quad|hip|knee/.test(focus))out=['Easy walk / bike','Leg swing','Bodyweight squat','Hip hinge drill','Reverse lunge','90/90 hip rotation'];
-  return out;
-}
-function renderWarmup(st){
-  var list=warmupFor(st),minutes=(q('v46EduDuration')?.value||'5 menit');
-  return '<h4>Warm-up yang disarankan</h4><ol>'+list.slice(0,minutes==='10 menit'?7:5).map(function(x,i){return '<li><b>'+esc(x)+'</b> — '+(i===0?'2–3 menit':i<3?'30–45 detik':'30 detik')+'</li>'}).join('')+
-    '</ol><p class="exl-muted">Dasar pemilihan: '+esc(displayGoal(st.goal))+' → '+esc((window.WORKOUT_TYPES&&window.WORKOUT_TYPES[st.wtype]?.label)||st.wtype)+' → fokus '+esc(st.focus||'seluruh sesi')+'. Intensitas pemanasan harus tetap mudah dan tidak menghabiskan kapasitas sesi utama.</p>';
-}
-function renderMethod(st){
-  var lvl=canonLevel(st.level),g=canonGoal(st.goal),mins=q('v46EduDuration')?.value||'30–45 menit';
-  var opts;
-  if(g==='Strength')opts=mins==='15–20 menit'?['Full-body compound','EMOM sederhana']:['Straight Sets','Top Set + Back-off','Superset aksesori'];
-  else if(g==='Hypertrophy')opts=mins==='15–20 menit'?['Superset','Density ringan']:['Straight Sets','Superset','Double progression'];
-  else if(g==='Fat Loss')opts=mins==='60 menit ke atas'?['Circuit Training','Zone 2 + resistance']:['Circuit Training','Intervals terkontrol'];
-  else if(g==='Power')opts=['Contrast Training','Power + strength'];
-  else opts=mins==='15–20 menit'?['Circuit ringan','EMOM sederhana']:['Full-body resistance','Circuit Training','Straight Sets'];
-  if(lvl==='beginner')opts=opts.filter(function(x){return !/contrast|drop|giant/.test(x.toLowerCase())});
-  return '<h4>Metode yang sesuai konteks</h4><div class="exl-badges">'+opts.map(function(x){return '<span class="exl-badge">'+esc(x)+'</span>'}).join('')+'</div><p class="exl-muted">Metode dipilih dari <b>'+esc(displayGoal(g))+'</b>, level <b>'+esc(st.level)+'</b>, dan waktu <b>'+esc(mins)+'</b>. Workout type tetap menjadi pengarah utama.</p>';
-}
-function renderPattern(st){
-  var arr=st.patterns||[],D=exerciseData(),html='<h4>Pola gerak prioritas</h4><div class="exl-badges">'+arr.map(function(x){return '<span class="exl-badge">'+esc(x)+'</span>'}).join('')+'</div><ul>';
-  arr.slice(0,5).forEach(function(pat){
-    var picks=D.filter(function(d){return exercisePattern(d)===pat}).slice(0,2);
-    if(picks.length)html+='<li><b>'+esc(pat)+'</b>: '+picks.map(function(x){return esc(x.name)}).join(', ')+'</li>';
-  });
-  return html+'</ul><p class="exl-muted">Pola tidak dipilih secara acak; urutannya berasal dari kombinasi goal dan workout type yang sama dengan Training Program PRO.</p>';
-}
-function renderMuscle(st){
-  var D=getRanked(st),focus=(st.focus||'').trim();
-  if(!focus)return '<p class="exl-muted">Isi <b>Fokus / area</b>, misalnya glute, hamstring, shoulder, chest, atau back, agar otot target dapat diprioritaskan.</p>';
-  return '<h4>Exercise untuk area "'+esc(focus)+'"</h4><ul>'+D.slice(0,8).map(function(x){return '<li><b>'+esc(x.name)+'</b> — '+esc((x.primary||[]).join(', '))+'</li>'}).join('')+'</ul>';
-}
-function renderStretch(st){
-  var f=(st.focus||'').toLowerCase(),list=/lower|leg|glute|hamstring|hip|knee/.test(f)?['Leg swing','90/90 hip rotation','Walking lunge']:['Arm circle','Thoracic rotation','Cross-body shoulder stretch'];
-  return '<h4>Mobilitas / stretching yang relevan</h4><ol>'+list.map(function(x){return '<li>'+esc(x)+' — 20–40 detik / controlled reps</li>'}).join('')+'</ol><p class="exl-muted">Untuk sebelum latihan utama, prioritaskan gerakan dinamis dan kontrol; stretching statis panjang lebih cocok setelah sesi atau sebagai sesi mobilitas tersendiri.</p>';
-}
-function renderJoint(st){
-  var f=(st.focus||'').toLowerCase(),joint=/shoulder|bahu/.test(f)?'Bahu':/knee|lutut/.test(f)?'Lutut':/hip|pinggul/.test(f)?'Pinggul':/ankle|pergelangan kaki/.test(f)?'Pergelangan Kaki':'area sendi yang dipilih';
-  return '<h4>'+esc(joint)+'</h4><p>Prioritaskan rentang gerak yang dapat dikontrol dan stabilitas sesuai tuntutan sesi. Exercise rekomendasi tetap mengikuti goal, level, dan pola dari engine PRO.</p>';
-}
-function renderBone(st){
-  return '<h4>Hubungan latihan dengan tulang</h4><p>Latihan resistance yang dilakukan secara progresif memberi stimulus mekanis. Pilihan exercise tetap harus disesuaikan dengan level, goal, pola gerak, dan kemampuan mengontrol teknik.</p>';
-}
-function edu(){
-  var b=q('exlMateri');if(!b)return;
-  var D=exerciseData(),topic=V46.eduTopic,tc=topicConfig(topic);
-  var chips=Object.keys({jenis:1,metode:1,pola:1,warmup:1,stretching:1,otot:1,sendi:1,tulang:1}).map(function(k){
-    return '<button type="button" class="exl-chip '+(k===topic?'on':'')+'" data-v46-topic="'+k+'">'+topicsLabel(k)+'</button>';
-  }).join('');
-  var equips=Array.from(new Set(D.map(function(x){return x.equip}).filter(Boolean))).sort();
-  var goals=['Fat Loss','Hypertrophy / Bodybuilding','Strength & Power','Muscular Endurance','General Fitness','Power','Performance','Healthy Aging','Mobility','Return to Exercise','Body Recomposition','Muscle Gain','Functional Fitness','Hybrid Athlete','Running Performance','Low-Impact Fitness'];
-  var types=['','Compound','Isolation'];
-  b.innerHTML=
-    '<div class="exl-card"><div class="label">MATERI &amp; EDUKASI</div><h3 style="margin:4px 0">'+esc(tc.title)+'</h3><p class="exl-muted">'+esc(tc.desc)+'</p><div class="exl-chipset" id="fjV46EduTopics">'+chips+'</div></div>'+
-    '<div class="fj-v46-edu-card"><div class="exl-auto-badge">INTERAKTIF • AUTOMATION • REKOMENDASI PRO</div>'+
-    '<h3>Isi kondisi → sistem menyusun rekomendasi</h3>'+
-    '<div class="fj-v46-edu-form">'+
-    '<div><label>Tujuan</label><select id="v46EduGoal">'+goals.map(function(x){return '<option>'+esc(x)+'</option>'}).join('')+'</select></div>'+
-    '<div><label>Level</label><select id="v46EduLevel"><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select></div>'+
-    '<div><label>Workout Type</label><select id="v46EduWtype"></select></div>'+
-    '<div><label>Jenis Exercise</label><select id="v46EduType">'+types.map(function(x){return '<option value="'+esc(x)+'">'+esc(x||'Compound + Isolation')+'</option>'}).join('')+'</select></div>'+
-    '<div><label>Alat</label><select id="v46EduEquip"><option value="">Semua alat</option>'+equips.map(function(x){return '<option>'+esc(x)+'</option>'}).join('')+'</select></div>'+
-    '<div><label>Durasi</label><select id="v46EduDuration"><option>15–20 menit</option><option selected>30–45 menit</option><option>60 menit ke atas</option><option>5 menit</option><option>10 menit</option></select></div>'+
-    '<div><label>Fokus / area</label><input id="v46EduFocus" placeholder="contoh: glute, hamstring, shoulder, chest, squat"></div>'+
-    '<div><label>Catatan / kondisi</label><input id="v46EduNote" placeholder="contoh: baru mulai, waktu 45 menit, fokus teknik"></div>'+
-    '<div class="span2"><label>Pilihan latihan <span id="v46EduCount" class="exl-muted"></span></label><select id="v46EduExercise" multiple size="7"></select><small class="exl-muted">Daftar ini sudah disaring berdasarkan konteks. Pilih beberapa bila ingin memaksa exercise tertentu masuk ke hasil.</small></div>'+
-    '</div>'+
-    '<div id="v46EduLogic" class="exl-library-note" style="margin-top:10px"></div>'+
-    '<div style="margin-top:10px"><button type="button" class="exl-btn" id="v46EduRun">⚡ Buat Rekomendasi</button></div>'+
-    '<div id="v46EduOut" class="fj-v46-reco"><span class="exl-muted">Ubah tujuan/level/workout type lalu tekan tombol untuk melihat rekomendasi.</span></div></div>'+
-    '<div class="exl-card"><h3>Exercise yang Sesuai</h3><p class="exl-muted">Daftar di bawah mengikuti filter dan prioritas yang sama. Klik exercise untuk membuka detail.</p><div id="fjV46EduExercises" class="fj-v46-exercise-grid"></div></div>';
-  b.querySelectorAll('[data-v46-topic]').forEach(function(x){x.onclick=function(){V46.eduTopic=this.dataset.v46Topic;edu()}});
-  var g=q('v46EduGoal'),lvl=q('v46EduLevel'),wt=q('v46EduWtype'),type=q('v46EduType'),eq=q('v46EduEquip'),dur=q('v46EduDuration'),focus=q('v46EduFocus');
-  if(g)g.value=displayGoal((function(){try{return document.getElementById('programGoal')?.value}catch(e){return ''}})()||'General Fitness');
-  updateWorkoutTypeOptions();
-  [g,lvl,type,eq,dur,focus].forEach(function(el){if(el)el.addEventListener('input',updateExerciseChoices);if(el)el.addEventListener('change',updateExerciseChoices)});
-  if(wt)wt.addEventListener('change',updateExerciseChoices);
-  q('v46EduRun').onclick=function(){
-    var st=buildRecoState(),ranked=getRanked(st),selected=Array.from(q('v46EduExercise').selectedOptions).map(function(o){return D.find(function(x){return String(x.id)===String(o.value)})}).filter(Boolean);
-    var chosen=[],seen={};
-    selected.forEach(function(x){if(!seen[x.name]){seen[x.name]=1;chosen.push(x)}});
-    ranked.forEach(function(x){if(chosen.length<8&&!seen[x.name]){seen[x.name]=1;chosen.push(x)}});
-    var body='';
-    if(topic==='warmup')body=renderWarmup(st);
-    else if(topic==='metode')body=renderMethod(st);
-    else if(topic==='pola')body=renderPattern(st);
-    else if(topic==='stretching')body=renderStretch(st);
-    else if(topic==='otot')body=renderMuscle(st);
-    else if(topic==='sendi')body=renderJoint(st);
-    else if(topic==='tulang')body=renderBone(st);
-    else body='<h4>Rekomendasi exercise</h4><ol>'+chosen.slice(0,8).map(function(x){return '<li><b>'+esc(x.name)+'</b> — '+esc((x.primary||[]).join(', ')||x.cat||'')+' • '+esc(x.equip||'Bodyweight')+' • '+esc(x.level||'')+'</li>'}).join('')+'</ol>';
-    var why='<div class="exl-auto-reco"><b>🤖 Kenapa ini dipilih?</b><ul>'+
-      '<li>Goal: <b>'+esc(displayGoal(st.goal))+'</b></li>'+
-      '<li>Workout Type: <b>'+esc((window.WORKOUT_TYPES&&window.WORKOUT_TYPES[st.wtype]?.label)||st.wtype)+'</b></li>'+
-      '<li>Pola prioritas: <b>'+esc(st.patterns.join(', '))+'</b></li>'+
-      '<li>Level: <b>'+esc(st.level)+'</b>; jenis: <b>'+esc(st.type||'Compound + Isolation')+'</b>; alat: <b>'+esc(st.equip||'Semua alat')+'</b></li>'+
-      (st.focus?'<li>Fokus area ikut menaikkan prioritas exercise yang cocok dengan "'+esc(st.focus)+'".</li>':'')+
-      '</ul></div>';
-    q('v46EduOut').innerHTML=body+why;
-    renderEduExercises(chosen.slice(0,12));
-  };
-  updateExerciseChoices();
-  renderEduExercises(getRanked(buildRecoState()).slice(0,12));
-}
-function renderEduExercises(list){
-  var b=q('fjV46EduExercises');if(!b)return;
-  b.innerHTML=list.map(function(d){
-    return '<div class="fj-v46-ex-card" data-v46-id="'+esc(d.id)+'"><div class="fj-v46-tags"><span class="fj-v46-tag">'+esc(d.type||'Compound')+'</span><span class="fj-v46-tag">'+esc(d.level||'')+'</span></div><h4>'+esc(d.name)+'</h4><div class="exl-muted">'+esc((d.primary||[]).join(', ')||d.cat||'')+'</div><div class="fj-v46-tags" style="margin-top:6px"><span class="fj-v46-tag">'+esc(d.movement||d.move||exercisePattern(d.name))+'</span><span class="fj-v46-tag">'+esc(d.equip||'')+'</span></div></div>';
-  }).join('');
-  b.querySelectorAll('[data-v46-id]').forEach(function(c){c.onclick=function(){if(window.fjExlOpen)window.fjExlOpen(c.dataset.v46Id)}});
-}
-function refreshBrowse(){
- var b=q('exlBrowse');if(!b)return;
- b.querySelectorAll('.exl-emoji').forEach(function(x){x.remove()});
- b.querySelectorAll('.exl-ex').forEach(function(x){x.style.minWidth='0';x.style.maxWidth='100%'});
-}
-function install(){
- if(window.innerWidth<=760){
-   document.documentElement.style.overflowY='auto';
-   document.body.style.overflowY='auto';
-   document.body.style.height='auto';
-   document.body.style.minHeight='100%';
- }
- document.addEventListener('click',function(e){
-   var b=e.target.closest&&e.target.closest('.side .navbtn');
-   if(b && /Exercise Library/i.test(b.textContent||'')){setTimeout(refreshBrowse,80)}
-   var t=e.target.closest&&e.target.closest('#fjExerciseLibrary .exl-tab');
-   if(t && /Materi|Edukasi/i.test(t.textContent||'')){setTimeout(function(){if(activeExerciseLibrary())edu()},50)}
- },true);
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 </script>
 
@@ -9786,16 +9099,14 @@ window.fjV48SaveOnline=saveOnline;window.fjV48LoadOnline=loadOnline;
   /* Exercise Library: two compact cards per row on phones, preserving every click/action. */
   #fjExerciseLibrary .exl-grid,
   #exlGridWrap .exl-grid,
-  #exlSelected .exl-grid,
-  #fjV46EduExercises.fj-v46-exercise-grid{
+  #exlSelected .exl-grid{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
     gap:7px!important;
     width:100%!important;
   }
   #fjExerciseLibrary .exl-grid>.exl-card,
   #exlGridWrap .exl-grid>.exl-card,
-  #exlSelected .exl-grid>.exl-card,
-  #fjV46EduExercises .exl-card{
+  #exlSelected .exl-grid>.exl-card{
     min-width:0!important;
     margin:0!important;
     padding:9px!important;
@@ -9805,11 +9116,9 @@ window.fjV48SaveOnline=saveOnline;window.fjV48LoadOnline=loadOnline;
   #fjExerciseLibrary .exl-grid>.exl-card h3,
   #exlGridWrap .exl-grid>.exl-card h3,
   #exlSelected .exl-grid>.exl-card h3,
-  #fjV46EduExercises .exl-card h3{font-size:13px!important;line-height:1.2!important}
   #fjExerciseLibrary .exl-grid>.exl-card p,
   #exlGridWrap .exl-grid>.exl-card p,
   #exlSelected .exl-grid>.exl-card p,
-  #fjV46EduExercises .exl-card p{font-size:10px!important;line-height:1.25!important}
   #fjExerciseLibrary .exl-grid>.exl-card .exl-meta-line span,
   #exlGridWrap .exl-grid>.exl-card .exl-meta-line span{font-size:8px!important;padding:3px 4px!important}
   #fjExerciseLibrary .exl-grid>.exl-card .exl-btn,
@@ -9965,11 +9274,9 @@ setInterval(function(){repairOnlineIdentity();mergeBAIntoDirectory();enrichCalen
   #fjExerciseLibrary .exl-grid>.exl-card .exl-meta-line,
   #exlGridWrap .exl-grid>.exl-card .exl-meta-line,
   #exlSelected .exl-grid>.exl-card .exl-meta-line,
-  #fjV46EduExercises .exl-card .exl-meta-line{width:100%!important;min-width:0!important;overflow:visible!important;display:flex!important;flex-wrap:wrap!important;align-items:flex-start!important;gap:4px!important}
   #fjExerciseLibrary .exl-grid>.exl-card .exl-meta-line span,
   #exlGridWrap .exl-grid>.exl-card .exl-meta-line span,
   #exlSelected .exl-grid>.exl-card .exl-meta-line span,
-  #fjV46EduExercises .exl-card .exl-meta-line span{display:inline-block!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.15!important}
 }
 /* PT Management device toolbar remains compact and wraps naturally on phones. */
 #fjPtOpsV2 .fj-v50-device-toolbar{display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin:6px 0 10px!important;padding:7px!important;border:1px solid #d9e8ef!important;border-radius:10px!important;background:#fbfefe!important}
@@ -10037,467 +9344,4 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 <!-- FJ V58 TARGETED EXERCISE LIBRARY / PROGRAM GENERATOR ENHANCEMENT
      Scope: Exercise Library only. Existing application panels and data flow are untouched. -->
-<style id="fj-v58-exercise-enhancement-css">
-#fjExerciseLibrary .fj-v58-reco{margin-top:12px;border:1px solid #c8dfef;border-radius:14px;background:linear-gradient(180deg,#f8fcff,#fff);padding:14px}
-#fjExerciseLibrary .fj-v58-reco-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
-#fjExerciseLibrary .fj-v58-reco-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:10px}
-#fjExerciseLibrary .fj-v58-reco-card{border:1px solid #d8e7ef;border-radius:11px;background:#fff;padding:10px;min-width:0}
-#fjExerciseLibrary .fj-v58-reco-card b{display:block;color:#164d70;font-size:13px;line-height:1.3}
-#fjExerciseLibrary .fj-v58-mini{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-#fjExerciseLibrary .fj-v58-mini span{font-size:9px;font-weight:800;padding:3px 6px;border-radius:999px;background:#edf6fb;color:#426b82;border:1px solid #d6e7f0}
-#fjExerciseLibrary .fj-v58-fit{margin-top:7px;font-size:10.5px;line-height:1.4;color:#5f7888}
-#fjExerciseLibrary .fj-v58-note{margin-top:9px;padding:9px 10px;border-radius:10px;background:#eef7fd;border:1px solid #c9e1ef;color:#426b82;font-size:11px;line-height:1.45}
-#fjExerciseLibrary .fj-v58-goal-note{font-size:10px;color:#668294;margin-top:4px}
-#fjExerciseLibrary .exl-level{white-space:nowrap;display:inline-flex;align-items:center;max-width:100%}
-@media(max-width:760px){
-  #fjExerciseLibrary .exl-shell{padding:11px;border-radius:14px}
-  #fjExerciseLibrary .exl-card{padding:11px}
-  #fjExerciseLibrary .exl-ex{padding:11px}
-  #fjExerciseLibrary .exl-ex-top{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;min-width:0}
-  #fjExerciseLibrary .exl-ex h4{font-size:14px;line-height:1.3;overflow-wrap:anywhere}
-  #fjExerciseLibrary .exl-badges{align-items:flex-start}
-  #fjExerciseLibrary .exl-badge{line-height:1.25;white-space:nowrap}
-  #fjExerciseLibrary .fj-v58-reco-grid{grid-template-columns:1fr}
-  #fjExerciseLibrary .fj-v58-reco-card{padding:10px}
-  #fjExerciseLibrary .exl-gen-form{gap:9px}
-  #fjExerciseLibrary .exl-chip{font-size:10.5px;padding:6px 9px}
-}
-</style>
-<script id="fj-v58-exercise-enhancement">
-(function(){
-'use strict';
-var GOALS=[
- 'Fat Loss','Hypertrophy','Muscular Endurance','Strength','Strength Endurance','Power','Performance',
- 'General Fitness','Healthy Aging','Mobility','Return to Exercise','Corrective / Modification','Other',
- 'Body Recomposition','Muscle Gain','Healthy Weight Management','Cardiorespiratory Fitness','Aerobic Endurance',
- 'Anaerobic Capacity','Work Capacity','Functional Fitness','Hybrid Athlete','Sport-Specific Performance',
- 'Speed & Agility','Coordination & Balance','Core Stability','Posture & Movement Quality','Injury Prevention',
- 'Rehabilitation','Prehabilitation','Longevity','Running Performance','Obstacle / Race Preparation',
- 'Low-Impact Fitness','Recovery & Resilience'
-];
-var GOAL_KEY={
- 'Fat Loss':['cardio','conditioning','circuit','full body','hypertrophy'],
- 'Hypertrophy':['hypertrophy','muscle','isolation','volume'],
- 'Muscular Endurance':['endurance','circuit','conditioning'],
- 'Strength':['strength','compound','squat','hinge','press','row'],
- 'Strength Endurance':['strength','endurance','superset','circuit'],
- 'Power':['power','plyo','jump','throw','swing','explosive'],
- 'Performance':['performance','power','agility','speed','conditioning'],
- 'General Fitness':['full body','functional','conditioning'],
- 'Healthy Aging':['stability','balance','functional','strength','mobility'],
- 'Mobility':['mobility','stretch','range'],
- 'Return to Exercise':['beginner','stability','control','low impact'],
- 'Corrective / Modification':['corrective','control','stability','mobility'],
- 'Body Recomposition':['hypertrophy','strength','conditioning'],
- 'Muscle Gain':['hypertrophy','volume','compound','isolation'],
- 'Healthy Weight Management':['conditioning','strength','aerobic'],
- 'Cardiorespiratory Fitness':['cardio','aerobic','conditioning'],
- 'Aerobic Endurance':['aerobic','cardio','zone'],
- 'Anaerobic Capacity':['anaerobic','hiit','sprint','interval'],
- 'Work Capacity':['conditioning','circuit','carry'],
- 'Functional Fitness':['functional','carry','unilateral','core'],
- 'Hybrid Athlete':['hybrid','strength','conditioning','run'],
- 'Sport-Specific Performance':['performance','power','agility','speed'],
- 'Speed & Agility':['speed','agility','plyo'],
- 'Coordination & Balance':['balance','unilateral','stability'],
- 'Core Stability':['core','carry','anti-rotation'],
- 'Posture & Movement Quality':['stability','mobility','row','core'],
- 'Injury Prevention':['stability','control','mobility','balance'],
- 'Rehabilitation':['controlled','stability','mobility'],
- 'Prehabilitation':['stability','mobility','control'],
- 'Longevity':['strength','aerobic','balance','mobility'],
- 'Running Performance':['run','sprint','single-leg','calf','conditioning'],
- 'Obstacle / Race Preparation':['carry','sled','grip','running','conditioning'],
- 'Low-Impact Fitness':['low impact','bike','row','walk','machine'],
- 'Recovery & Resilience':['recovery','mobility','aerobic']
-};
-var GOAL_DESC={
- FatLoss:'Resistance training plus appropriately scaled aerobic/conditioning work.',
- Hypertrophy:'Progressive resistance with sufficient weekly volume and recovery.',
- Strength:'Progressive multi-joint resistance with heavier loading and adequate rest.',
- Power:'Explosive intent after adequate technical readiness; volume is controlled.',
- Mobility:'Controlled active range, mobility and stability work.',
- GeneralFitness:'Balanced resistance, aerobic, mobility and movement-quality training.'
-};
-function q(id){return document.getElementById(id)}
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function data(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
-function normalizeEquipment(){
-  data().forEach(function(d){
-    if(String(d.equip||'').toLowerCase()==='dumbbell / kettlebell') d.equip='Kettlebell';
-    d.programMove=(function(){
-      var m=String(d.move||d.movement||'').toLowerCase(),n=String(d.name||'').toLowerCase(),c=String(d.cat||'').toLowerCase();
-      if(/squat|leg press|step-up|lunge|split squat|pistol|hack squat/.test(n+' '+m))return 'legs';
-      if(/deadlift|rdl|good morning|hip thrust|swing|pull-through|nordic|hinge/.test(n+' '+m))return 'hinge';
-      if(m==='push'||/press|push-up|dip|fly/.test(n))return 'push';
-      if(m==='pull'||/row|pull-up|pulldown|chin-up|face pull/.test(n))return 'pull';
-      if(m==='core'||/plank|carry|woodchop|pallof|ab wheel|knee raise|turkish/.test(n))return 'core';
-      if(m==='cardio'||/bike|row erg|run|sprint|jump rope|conditioning/.test(n))return 'cardio';
-      if(m==='mobility'||/mobility|stretch|cat-cow|90\/90|open book/.test(n))return 'mobility';
-      return m||c||'other';
-    })();
-  });
-}
-function levelRank(l){return l==='Pemula'?1:(l==='Menengah'?2:3)}
-function prescription(goal,level,type){
-  if(goal==='Strength')return level==='Pemula'?'2–3 sets × 6–10 reps • RPE ~6–7 • rest 2–3 min':'3–5 sets × 3–6 reps • rest 2–4 min';
-  if(goal==='Power')return '2–4 sets × 3–6 explosive reps • 30–70% 1RM when applicable • rest 2–3 min';
-  if(goal==='Hypertrophy'||goal==='Muscle Gain'||goal==='Body Recomposition')return level==='Pemula'?'2–3 sets × 8–12 reps • rest 60–120 s':'3–4 sets × 6–12 reps • rest 60–120 s';
-  if(goal==='Muscular Endurance'||goal==='Strength Endurance')return '2–4 sets × 12–20 reps • rest 30–90 s';
-  if(goal==='Mobility'||goal==='Posture & Movement Quality')return '2–4 sets × 6–12 controlled reps or 20–45 s • pain-free ROM';
-  if(goal==='Cardiorespiratory Fitness'||goal==='Aerobic Endurance')return '20–40 min or intervals scaled to fitness • conversational/moderate work where appropriate';
-  return level==='Pemula'?'2–3 sets × 8–15 reps • controlled technique • rest 60–120 s':'2–4 sets × 6–15 reps • controlled technique • rest 60–150 s';
-}
-function goalForText(g){return GOAL_DESC[g]||'Program disesuaikan dengan tujuan, level, pola gerak, alat, dan toleransi latihan.'}
-function equipmentOptions(){
-  var set={};data().forEach(function(d){if(d.equip)set[d.equip]=1});
-  return Object.keys(set).sort();
-}
-function currentEquipment(){
-  var out=[],wrap=q('exlEquipChips');
-  if(wrap)wrap.querySelectorAll('.exl-chip.on').forEach(function(x){if(x.dataset.eq)out.push(x.dataset.eq)});
-  return out;
-}
-function currentGoal(){
-  var e=q('fjV58BrowseGoal')||q('exlGoal');return e&&e.value?e.value:'General Fitness';
-}
-function currentLevel(){
-  var e=q('exlLevel');return e&&e.value?e.value:'Menengah';
-}
-function recommendationState(goal,level,days){
-  var freq=Math.max(2,Math.min(6,Number(days)||3));
-  var wt=typeof recommendedWorkoutTypeForGoal==='function'?recommendedWorkoutTypeForGoal(goal,freq):'fullbody';
-  return {g:goal,wtype:wt,res:'AUTO',level:level,age:null,gender:'',weight:null,height:null,months:1,freq:freq,activity:'',experience:'',readiness:'',medical:''};
-}
-function recommendationPatterns(st){
-  var base=[];
-  try{
-    if(typeof fjGoalTypePatternsV3==='function')base=fjGoalTypePatternsV3(st)||[];
-  }catch(e){}
-  if(!base.length){
-    try{base=proWorkoutPatterns(st)||[]}catch(e){}
-  }
-  return Array.from(new Set(base.filter(function(x){return ['lower','upperPush','upperPull','hinge','core','conditioning','arms','mobility'].indexOf(x)>-1})));
-}
-function patternGoalWeight(pattern,goal){
-  var map={
-    'Strength':{lower:6,hinge:6,upperPush:5,upperPull:5,core:2,conditioning:1},
-    'Hypertrophy':{lower:5,hinge:5,upperPush:5,upperPull:5,arms:5,core:2,conditioning:1},
-    'Muscle Gain':{lower:5,hinge:5,upperPush:5,upperPull:5,arms:5,core:2,conditioning:1},
-    'Body Recomposition':{lower:5,hinge:5,upperPush:5,upperPull:5,arms:3,core:3,conditioning:3},
-    'Fat Loss':{lower:4,hinge:4,upperPush:3,upperPull:3,core:3,conditioning:6},
-    'Cardiorespiratory Fitness':{conditioning:8,lower:3,core:2,upperPush:2,upperPull:2},
-    'Aerobic Endurance':{conditioning:9,lower:3,core:2},
-    'Power':{lower:6,hinge:6,upperPush:5,upperPull:4,conditioning:5,core:2},
-    'Performance':{lower:5,hinge:5,upperPush:4,upperPull:4,conditioning:6,core:3},
-    'Mobility':{mobility:9,core:4,lower:3,upperPush:2,upperPull:2},
-    'Healthy Aging':{lower:5,upperPush:4,upperPull:4,hinge:4,core:4,conditioning:4,mobility:5},
-    'Core Stability':{core:10,lower:3,hinge:2,upperPush:2,upperPull:2},
-    'Posture & Movement Quality':{upperPull:6,core:5,hinge:4,mobility:6,lower:3},
-    'Recovery & Resilience':{mobility:8,conditioning:5,core:3,lower:2,upperPush:2,upperPull:2}
-  };
-  var m=map[goal]||{lower:4,hinge:4,upperPush:4,upperPull:4,core:3,conditioning:2,mobility:2};
-  return m[pattern]||1;
-}
-function compatScore(d,goal,st){
-  var p=d.programMove||d.move||'';
-  var score=patternGoalWeight(p,goal)*10;
-  if(st){
-    try{if(!fjClientCompatibleV3(d,st))return -9999}catch(e){}
-  }
-  if(goal==='Strength'&&d.type==='Compound')score+=18;
-  if((goal==='Hypertrophy'||goal==='Muscle Gain'||goal==='Body Recomposition')&&d.type==='Compound')score+=8;
-  if((goal==='Hypertrophy'||goal==='Muscle Gain')&&d.type==='Isolation')score+=4;
-  if(goal==='Power'&&/jump|throw|swing|plyo|explosive/i.test(String(d.name)))score+=15;
-  if(goal==='Mobility'&&p==='mobility')score+=20;
-  if(goal==='Core Stability'&&p==='core')score+=20;
-  if((goal==='Cardiorespiratory Fitness'||goal==='Aerobic Endurance')&&p==='conditioning')score+=25;
-  if(d.level==='Pemula')score+=2;
-  return score;
-}
-function recommendationPool(goal,level,days){
-  var st=recommendationState(goal,level,days),eq=currentEquipment(),src=data().filter(function(d){
-    if(levelRank(d.level)>levelRank(level))return false;
-    if(eq.length&&eq.indexOf(d.equip)<0)return false;
-    try{if(!fjClientCompatibleV3(d,st))return false}catch(e){}
-    return true;
-  });
-  var pats=recommendationPatterns(st),ranked=src.map(function(d){return {d:d,score:compatScore(d,goal,st),pattern:pats.indexOf(d.programMove||'')}}).filter(function(x){return x.score>-9999});
-  ranked.sort(function(a,b){return b.score-a.score||String(a.d.name).localeCompare(String(b.d.name))});
-  return {st:st,pats:pats,items:ranked};
-}
-function renderReco(){
-  var host=q('fjV58RecoHost');if(!host)return;
-  var goal=currentGoal(),level=currentLevel(),days=q('exlDays')?Number(q('exlDays').value)||3:3;
-  var rec=recommendationPool(goal,level,days),cat=q('exlFCat')?q('exlFCat').value:'',type=q('exlFType')?q('exlFType').value:'',search=q('exlSearch')?q('exlSearch').value.trim().toLowerCase():'';
-  var list=rec.items.filter(function(x){var d=x.d;
-    if(cat&&d.cat!==cat)return false;
-    if(type&&d.type!==type)return false;
-    if(search){var hay=(d.name+' '+d.cat+' '+d.primary.join(' ')+' '+d.secondary.join(' ')+' '+d.equip+' '+(d.programMove||'')).toLowerCase();if(hay.indexOf(search)<0)return false;}
-    return true;
-  });
-  var shown=list.slice(0,24),wt=rec.st.wtype;
-  host.innerHTML='<div class="fj-v58-reco-head"><div><b style="color:#174f72">Rekomendasi Otomatis — '+esc(goal)+'</b><div class="fj-v58-goal-note">'+esc(goalForText(goal))+' Workout Type: <b>'+esc((window.WORKOUT_TYPES&&window.WORKOUT_TYPES[wt]&&window.WORKOUT_TYPES[wt].label)||wt)+'</b>.</div></div><div class="fj-v58-mini"><span>'+shown.length+' pilihan prioritas</span><span>'+list.length+' cocok dengan filter</span><span>Level ≤ '+esc(level)+'</span></div></div>'+ 
-    '<div class="fj-v58-reco-grid">'+shown.map(function(x){var d=x.d;return "<div class='fj-v58-reco-card'><b>"+esc(d.name)+"</b><div class='fj-v58-mini'><span>"+esc(d.cat)+"</span><span>"+esc(d.equip)+"</span><span>"+esc(d.level)+"</span><span>"+esc(d.type||"Compound")+"</span></div><div class='fj-v58-fit'>"+esc(d.primary.join(', '))+"<br><strong>"+esc(prescription(goal,level,d.type))+"</strong></div></div>"}).join('')+'</div>'+ 
-    '<div class="fj-v58-note"><b>Logic yang sama dengan Training Program PRO:</b> Goal → Workout Type → pola gerak yang kompatibel → level → equipment → client-safety filter → ranking exercise. Exercise tidak dipilih hanya karena nama mengandung kata tertentu.</div>';
-}
-function ensureBrowseEnhancement(){
-  var b=q('exlBrowse');if(!b)return;
-  var grid=q('exlGridWrap');if(!grid)return;
-  var card=grid.parentElement;
-  if(!q('fjV58BrowseGoal')){
-    var goalWrap=document.createElement('div');
-    goalWrap.className='field';
-    goalWrap.style.marginTop='9px';
-    goalWrap.innerHTML='<label>Tujuan Rekomendasi</label><select id="fjV58BrowseGoal">'+GOALS.map(function(g){return '<option value="'+esc(g)+'">'+esc(g)+'</option>'}).join('')+'</select>';
-    var filters=card.querySelector('.exl-filters');
-    if(filters)filters.appendChild(goalWrap);
-    var masterGoal=q('programGoal');
-    if(masterGoal&&GOALS.indexOf(masterGoal.value)>-1)goalWrap.querySelector('select').value=masterGoal.value;
-    goalWrap.querySelector('select').onchange=renderReco;
-  }
-  if(!q('fjV58RecoHost')){
-    var host=document.createElement('div');host.id='fjV58RecoHost';host.className='fj-v58-reco';
-    grid.parentNode.insertBefore(host,grid);
-  }
-  renderReco();
-}
-function expandGeneratorGoals(){
-  var sel=q('exlGoal');if(!sel)return;
-  var val=sel.value;
-  sel.innerHTML=GOALS.map(function(g){return '<option value="'+esc(g)+'">'+esc(g)+'</option>'}).join('');
-  sel.value=GOALS.indexOf(val)>-1?val:'General Fitness';
-}
-function goalRecipe(goal){
-  var g=goal.toLowerCase();
-  if(/mobility|recovery/.test(g))return ['mobility','core','legs','push','pull'];
-  if(/power|speed|agility|performance|sport|obstacle|running/.test(g))return ['legs','hinge','push','pull','core','cardio'];
-  if(/strength/.test(g))return ['legs','hinge','push','pull','core'];
-  if(/hypertrophy|muscle|recomposition/.test(g))return ['legs','hinge','push','pull','core','isolation'];
-  if(/endurance|cardio|aerobic|anaerobic|work capacity|fat loss|weight/.test(g))return ['legs','push','pull','hinge','core','cardio'];
-  return ['legs','push','pull','hinge','core'];
-}
-function splitFor(days){
-  if(days<=3)return Array.from({length:days},function(){return 'Full Body'});
-  if(days===4)return ['Upper Body','Lower Body','Upper Body','Lower Body'];
-  if(days===5)return ['Push','Pull','Legs','Upper + Core','Lower + Conditioning'];
-  return ['Push','Pull','Legs','Upper','Lower','Full Body'];
-}
-function dayPatterns(type){
-  if(type==='Upper Body'||type==='Upper')return ['push','pull','push','pull','core','isolation'];
-  if(type==='Lower Body'||type==='Lower')return ['legs','hinge','legs','hinge','core','cardio'];
-  if(type==='Push')return ['push','push','push','core','legs','isolation'];
-  if(type==='Pull')return ['pull','pull','pull','hinge','core','isolation'];
-  if(type==='Legs')return ['legs','legs','hinge','legs','core','cardio'];
-  if(type==='Upper + Core')return ['push','pull','push','pull','core','isolation'];
-  if(type==='Lower + Conditioning')return ['legs','hinge','legs','core','cardio','mobility'];
-  return ['legs','push','pull','hinge','core','isolation'];
-}
-function makeProgram(){
-  normalizeEquipment();
-  var D=data(),goal=currentGoal(),level=currentLevel(),days=Number(q('exlDays')?q('exlDays').value:3)||3,eq=currentEquipment();
-  if(!eq.length)eq=equipmentOptions();
-  var rec=recommendationPool(goal,level,days),allowed=rec.items.map(function(x){return x.d}).filter(function(d){return eq.indexOf(d.equip)>-1});
-  if(allowed.length<8){alert('Exercise yang sesuai dengan Goal, level, dan alat yang dipilih terlalu sedikit. Aktifkan lebih banyak alat atau sesuaikan level.');return null}
-  var splits=splitFor(days),used={};
-  var sessions=splits.map(function(type,di){
-    var st=rec.st,basePatterns=recommendationPatterns(st),sessionPatterns=dayPatterns(type),wanted=Array.from(new Set(sessionPatterns.concat(basePatterns)));
-    var sessionUsed={},items=[];
-    wanted.forEach(function(pat){
-      var pool=allowed.filter(function(d){return d.programMove===pat&&!sessionUsed[d.id]});
-      pool.sort(function(a,b){return compatScore(b,goal,st)-compatScore(a,goal,st)||((used[a.id]||0)-(used[b.id]||0))});
-      if(pool.length){var pick=pool[0];sessionUsed[pick.id]=1;used[pick.id]=(used[pick.id]||0)+1;items.push(pick)}
-    });
-    var fill=allowed.filter(function(d){return !sessionUsed[d.id]}).sort(function(a,b){return (compatScore(b,goal,st)-((used[b.id]||0)*3))-(compatScore(a,goal,st)-((used[a.id]||0)*3))||String(a.name).localeCompare(String(b.name))});
-    var target=goal==='Mobility'||goal==='Recovery & Resilience'?6:8;
-    while(items.length<target&&fill.length){var x=fill.shift();sessionUsed[x.id]=1;used[x.id]=(used[x.id]||0)+1;items.push(x)}
-    return {day:di+1,type:type,exercises:items};
-  });
-  return {goal:goal,level:level,days:sessions};
-}
-function drawEnhancedProgram(prog){
-  var out=q('exlProgramOut');if(!out)return;
-  var total=prog.days.reduce(function(a,d){return a+d.exercises.length},0);
-  var html='<div class="exl-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap"><div><h3 style="margin:0">Program Mingguan — '+esc(prog.goal)+'</h3><div class="exl-muted">Level: '+esc(prog.level)+' • '+prog.days.length+' hari/minggu • '+total+' exercise • variasi terkontrol</div></div><button class="exl-btn alt" id="fjV58Print">🖨️ Cetak / PDF</button></div><div class="fj-v58-note"><b>Basis programming:</b> pemilihan latihan dan acute variables mengikuti tujuan dan level. ACSM 2026 menekankan penyesuaian terhadap goal, progressive training, dan seluruh kelompok otot utama; NASM OPT menyediakan fase stabilization, strength endurance, hypertrophy, maximal strength, dan power. Parameter tetap harus disesuaikan dengan asesmen dan toleransi klien.</div></div>';
-  prog.days.forEach(function(d){
-    html+='<div class="exl-day"><h3>Hari '+d.day+' — '+esc(d.type)+'</h3><div class="exl-muted">'+d.exercises.length+' exercise</div>';
-    d.exercises.forEach(function(ex,i){html+='<div class="exl-row"><div><div class="exl-rowname">'+esc(ex.name)+'</div><div class="exl-rowcat">'+esc(ex.cat)+' • '+esc(ex.equip)+' • '+esc(ex.level)+'</div></div><div>'+esc(prescription(prog.goal,prog.level,ex.type))+'</div><div class="exl-rowcat">Primary: '+esc(ex.primary.join(', '))+'<br>Pattern: '+esc(ex.programMove||ex.move||'')+'</div><button class="exl-swap" data-v58-swap="'+d.day+'|'+i+'" title="Ganti exercise">⟳</button></div>'});
-    html+='</div>';
-  });
-  out.innerHTML=html;
-  q('fjV58Print').onclick=function(){
-    var w=window.open('','_blank');if(!w){alert('Popup diblokir browser. Izinkan popup untuk mencetak PDF.');return}
-    var body='<h1>FITNESS JOURNEY — Program Latihan Otomatis</h1><p>Goal: '+esc(prog.goal)+' | Level: '+esc(prog.level)+'</p>';
-    prog.days.forEach(function(d){body+='<h2>Hari '+d.day+' — '+esc(d.type)+'</h2><table><tr><th>Exercise</th><th>Kategori</th><th>Alat</th><th>Sets / Reps / Rest</th><th>Primary</th></tr>'+d.exercises.map(function(ex){return '<tr><td>'+esc(ex.name)+'</td><td>'+esc(ex.cat)+'</td><td>'+esc(ex.equip)+'</td><td>'+esc(prescription(prog.goal,prog.level,ex.type))+'</td><td>'+esc(ex.primary.join(', '))+'</td></tr>'}).join('')+'</table>'});w.document.write('<!doctype html><html><head><title>Fitness Journey Program</title><style>body{font-family:Arial;padding:24px;color:#163b57}table{width:100%;border-collapse:collapse;margin-bottom:20px}th,td{border:1px solid #ccdbe5;padding:7px;font-size:11px;text-align:left;vertical-align:top}th{background:#eef6fb}</style></head><body>'+body+'</body></html>');w.document.close();w.focus();setTimeout(function(){w.print()},300);
-  };
-  out.querySelectorAll('[data-v58-swap]').forEach(function(btn){btn.onclick=function(){var parts=this.dataset.v58Swap.split('|'),di=Number(parts[0])-1,ei=Number(parts[1]),cur=prog.days[di].exercises[ei],eq=currentEquipment();var alt=data().filter(function(d){return d.id!==cur.id&&d.programMove===cur.programMove&&levelRank(d.level)<=levelRank(prog.level)&&eq.indexOf(d.equip)>-1});if(alt.length){prog.days[di].exercises[ei]=alt[Math.floor(Math.random()*alt.length)];drawEnhancedProgram(prog)}}});
-}
-function install(){
-  normalizeEquipment();
-  // Combined equipment labels are normalized to Kettlebell, keeping Dumbbell as its own category.
-  var style=document.createElement('style');style.textContent='#fjExerciseLibrary .exl-badge.eq{white-space:nowrap}';document.head.appendChild(style);
-  document.addEventListener('click',function(e){
-    var gen=e.target.closest&&e.target.closest('#exlGenBtn');
-    if(gen){
-      e.preventDefault();e.stopImmediatePropagation();
-      expandGeneratorGoals();
-      var p=makeProgram();window.__fjV58Program=p;drawEnhancedProgram(p);
-      return;
-    }
-  },true);
-  var obs=new MutationObserver(function(records){
-    // Ignore mutations created by our own recommendation renderer. The old
-    // observer re-rendered fjV58RecoHost on every mutation, causing a
-    // mutation -> render -> mutation loop that could freeze the whole app.
-    var ownMutation=records.some(function(r){
-      return r.target && r.target.closest && r.target.closest('#fjV58RecoHost');
-    });
-    if(ownMutation)return;
-    normalizeEquipment();
-    var p=q('fjExerciseLibrary');
-    if(!p||!p.classList.contains('active'))return;
-    var browse=q('exlBrowse');
-    if(browse&&browse.classList.contains('active')){
-      // Initialize only once; do not continuously re-render the host.
-      if(!q('fjV58RecoHost'))ensureBrowseEnhancement();
-    }
-    var gen=q('exlGenerator');
-    if(gen&&gen.classList.contains('active'))expandGeneratorGoals();
-  });
-  obs.observe(document.body,{childList:true,subtree:true});
-  // Safety net only: initialize if the host was not created normally.
-  setInterval(function(){
-    var p=q('fjExerciseLibrary');if(!p||!p.classList.contains('active'))return;
-    var browse=q('exlBrowse');if(browse&&browse.classList.contains('active')&&!q('fjV58RecoHost'))ensureBrowseEnhancement();
-  },1000);
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-})();
-</script>
-<script id="fj-v58-education-interactive-enhancement">
-(function(){'use strict';
-if(window.__fjV58EducationEnhanced)return;window.__fjV58EducationEnhanced=true;
-var ROOT='fjV58EduPro';
-function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
-function q(id){return document.getElementById(id)}
-function exData(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
-var DB={
- stretching:{label:'Stretching & Mobility',icon:'🧘',items:[
-  {n:'Dynamic Hip Opener',area:'Hip',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Hip circles','90/90 transitions','Leg swings']},
-  {n:'Half-Kneeling Hip Flexor Stretch',area:'Hip',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Half-kneeling hip flexor stretch','Glute squeeze','Controlled pelvic position']},
-  {n:'90/90 Hip Rotation',area:'Hip',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Intermediate',rec:['90/90 transitions','Hip CARs','Controlled internal/external rotation']},
-  {n:'Adductor Rock-Back',area:'Adductor',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Adductor rock-back','Lateral squat pattern','Wide-stance mobility']},
-  {n:'Hamstring Dynamic Sweep',area:'Hamstring',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Dynamic sweep','Leg swing','Hip hinge drill']},
-  {n:'Standing Quadriceps Stretch',area:'Quadriceps',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Standing quad stretch','Half-kneeling quad stretch']},
-  {n:'Calf Wall Stretch',area:'Calf/Ankle',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Gastrocnemius stretch','Soleus stretch','Ankle dorsiflexion drill']},
-  {n:'Ankle Dorsiflexion Rocker',area:'Ankle',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Knee-to-wall','Ankle rocker','Calf raise with controlled ROM']},
-  {n:'Open Book Rotation',area:'Thoracic Spine',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Open book','Quadruped T-spine rotation','Wall rotation']},
-  {n:'Child’s Pose with Side Reach',area:'Back/Lat',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Child’s pose','Lat stretch','Breathing']},
-  {n:'Doorway Pec Stretch',area:'Chest/Shoulder',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Doorway pec stretch','Wall slide','Scapular control']},
-  {n:'Shoulder CAR',area:'Shoulder',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Intermediate',rec:['Shoulder CAR','Wall slide','Controlled arm circles']}
- ]},
- muscles:{label:'Muscles',icon:'💪',items:[
-  {n:'Pectoralis Major',group:'Chest',action:'Horizontal adduction / pressing',joint:'Shoulder',ex:['Bench Press','Push-Up','Cable Fly','Machine Chest Press'],stretch:['Doorway Pec Stretch']},
-  {n:'Latissimus Dorsi',group:'Back',action:'Shoulder extension/adduction',joint:'Shoulder',ex:['Lat Pulldown','Pull-Up','Cable Row','Single-Arm Row'],stretch:['Child’s Pose with Side Reach']},
-  {n:'Trapezius',group:'Back/Scapula',action:'Scapular elevation/retraction/upward rotation',joint:'Scapulothoracic/Shoulder',ex:['Row','Face Pull','Farmer Carry','Shrug'],stretch:['Upper-back mobility']},
-  {n:'Deltoid',group:'Shoulder',action:'Shoulder elevation/abduction and pressing',joint:'Shoulder',ex:['Overhead Press','Lateral Raise','Landmine Press'],stretch:['Shoulder mobility']},
-  {n:'Gluteus Maximus',group:'Glutes',action:'Hip extension',joint:'Hip',ex:['Squat','Hip Thrust','Romanian Deadlift','Step-Up'],stretch:['Hip flexor stretch']},
-  {n:'Gluteus Medius',group:'Glutes',action:'Hip abduction / pelvic control',joint:'Hip',ex:['Lateral Step-Up','Side-Lying Abduction','Band Walk'],stretch:['Hip mobility']},
-  {n:'Quadriceps',group:'Thigh',action:'Knee extension',joint:'Knee',ex:['Squat','Leg Press','Split Squat','Step-Up'],stretch:['Quadriceps stretch']},
-  {n:'Hamstrings',group:'Thigh',action:'Knee flexion / hip extension',joint:'Knee/Hip',ex:['RDL','Leg Curl','Deadlift','Single-Leg RDL'],stretch:['Hamstring stretch']},
-  {n:'Gastrocnemius/Soleus',group:'Calf',action:'Plantarflexion',joint:'Ankle',ex:['Calf Raise','Seated Calf Raise','Loaded Carry'],stretch:['Calf stretch']},
-  {n:'Rectus Abdominis',group:'Core',action:'Trunk flexion / trunk control',joint:'Spine',ex:['Curl-Up','Dead Bug','Cable Crunch'],stretch:['Controlled trunk extension']},
-  {n:'Obliques',group:'Core',action:'Rotation / anti-rotation / lateral flexion',joint:'Spine',ex:['Pallof Press','Cable Chop','Side Plank'],stretch:['Controlled rotation']},
-  {n:'Erector Spinae',group:'Back/Core',action:'Spinal extension and trunk endurance',joint:'Spine',ex:['Back Extension','Deadlift','Bird Dog'],stretch:['Spinal mobility']}
- ]},
- joints:{label:'Joints',icon:'🦿',items:[
-  {n:'Shoulder',kind:'Ball-and-socket',motion:'Flexion, extension, abduction, rotation',muscles:'Deltoid, rotator cuff, pectorals, latissimus',mob:['Wall Slide','Shoulder CAR','Controlled overhead reach'],strength:['Row','Press','Landmine Press']},
-  {n:'Elbow',kind:'Hinge',motion:'Flexion and extension',muscles:'Biceps, triceps, forearm',mob:['Gentle elbow flex/extend'],strength:['Curl','Triceps Pressdown','Push-Up']},
-  {n:'Wrist',kind:'Complex gliding/condyloid contribution',motion:'Flexion, extension, deviation',muscles:'Forearm flexors/extensors',mob:['Wrist circles','Loaded wrist extension prep'],strength:['Farmer Carry','Grip work']},
-  {n:'Spine',kind:'Segmental column',motion:'Flexion, extension, lateral flexion, rotation',muscles:'Core, erectors, multifidus and surrounding musculature',mob:['Open Book','Cat-Cow','Thoracic rotation'],strength:['Bird Dog','Carry','Row']},
-  {n:'Hip',kind:'Ball-and-socket',motion:'Flexion, extension, abduction, adduction, rotation',muscles:'Glutes, adductors, hip flexors, hamstrings',mob:['90/90','Hip CAR','Adductor rock-back'],strength:['Squat','RDL','Hip Thrust']},
-  {n:'Knee',kind:'Hinge-dominant',motion:'Flexion and extension with small accessory motions',muscles:'Quadriceps, hamstrings, calf, glutes',mob:['Heel-to-glute','Controlled knee flexion'],strength:['Squat','Split Squat','Step-Up','Leg Press']},
-  {n:'Ankle',kind:'Talocrural/subtalar complex',motion:'Dorsiflexion, plantarflexion and multiplanar control',muscles:'Calf, tibialis anterior/posterior and foot musculature',mob:['Knee-to-wall','Ankle rocker'],strength:['Calf Raise','Tibialis Raise','Single-Leg Balance']}
- ]},
- bones:{label:'Bones',icon:'🦴',items:[
-  {n:'Femur',region:'Thigh',role:'Major weight-bearing long bone',load:['Squat','Split Squat','Step-Up','Walking/Running as appropriate'],note:'Bone adaptation is influenced by regular mechanical loading; exercise should be selected for the whole person rather than to “isolate” a bone.'},
-  {n:'Tibia',region:'Lower leg',role:'Major weight-bearing lower-leg bone',load:['Squat','Step-Up','Calf Raise','Walking/impact activity as appropriate'],note:'Loading should progress gradually and reflect training history and tolerance.'},
-  {n:'Humerus',region:'Upper arm',role:'Long bone connecting shoulder and elbow',load:['Push-Up','Press','Row','Carry'],note:'Upper-body resistance exercises load the surrounding musculoskeletal system.'},
-  {n:'Radius & Ulna',region:'Forearm',role:'Forearm bones supporting elbow/wrist function',load:['Farmer Carry','Row','Curl','Press'],note:'Grip and resistance work can provide appropriate loading when technique and tolerance are adequate.'},
-  {n:'Pelvis',region:'Hip/pelvic ring',role:'Transfers forces between trunk and lower limbs',load:['Squat','Hip Hinge','Carry','Lunge'],note:'Programming should consider hip strength, trunk control and movement quality.'},
-  {n:'Vertebral Column',region:'Spine',role:'Axial support and force transmission',load:['Carry','Row','Bird Dog','Resistance training with controlled technique'],note:'The spine is not a single “muscle target”; loading choices should respect technique, tolerance and individual context.'}
- ]},
- movement:{label:'Movement Patterns',icon:'🔄',items:[
-  {n:'Squat',plane:'Primarily sagittal',focus:'Knee + hip extension',examples:['Goblet Squat','Back Squat','Leg Press','Split Squat'],progress:['Box/assisted squat','Goblet squat','Loaded squat']},
-  {n:'Hinge',plane:'Sagittal',focus:'Hip extension',examples:['Hip Hinge','RDL','Deadlift','Hip Thrust'],progress:['Dowel hinge','KB deadlift','RDL/deadlift']},
-  {n:'Push',plane:'Horizontal/vertical',focus:'Pressing force',examples:['Push-Up','Bench Press','Overhead Press','Landmine Press'],progress:['Incline push-up','Push-up','Loaded press']},
-  {n:'Pull',plane:'Horizontal/vertical',focus:'Pulling force',examples:['Row','Lat Pulldown','Pull-Up','Cable Row'],progress:['Supported row','Cable row','Pull-up progression']},
-  {n:'Lunge / Split Stance',plane:'Sagittal/frontal variations',focus:'Unilateral lower-body control',examples:['Reverse Lunge','Split Squat','Step-Up','Lateral Lunge'],progress:['Assisted split stance','Split squat','Loaded unilateral']},
-  {n:'Carry',plane:'Locomotion',focus:'Grip + trunk + gait',examples:['Farmer Carry','Suitcase Carry','Front Rack Carry'],progress:['Light carry','Longer carry','Heavier/complex carry']},
-  {n:'Rotation / Anti-Rotation',plane:'Transverse',focus:'Trunk force transfer/control',examples:['Pallof Press','Cable Chop','Cable Rotation','Side Plank'],progress:['Isometric hold','Loaded anti-rotation','Dynamic rotation']},
-  {n:'Gait / Locomotion',plane:'Cyclical',focus:'Walking/running mechanics',examples:['Walk','Treadmill','Jog','Run intervals'],progress:['Walk','Brisk walk','Run progression']}
- ]},
- posture:{label:'Posture & Movement Quality',icon:'🧍',items:[
-  {n:'Head / Neck',check:'Neutral head position and comfortable cervical movement',learn:['Screen height','Neck mobility','Thoracic posture'],rec:['Chin tuck practice','Thoracic extension','Scapular control']},
-  {n:'Scapula / Shoulder',check:'Scapula moves with the shoulder rather than being held rigid',learn:['Upward rotation','Retraction/protraction','Shoulder ROM'],rec:['Wall slide','Row','Serratus-focused press']},
-  {n:'Thoracic Spine',check:'Adequate extension/rotation supports upper-body movement',learn:['Thoracic extension','Rotation','Breathing/rib mechanics'],rec:['Open book','Quadruped rotation','Controlled extension']},
-  {n:'Pelvis / Hip',check:'Pelvic control during squat, hinge and single-leg tasks',learn:['Hip mobility','Glute function','Trunk control'],rec:['Hip hinge drill','Glute bridge','Split squat']},
-  {n:'Knee / Foot',check:'Knee tracks appropriately for the task and foot remains controlled',learn:['Foot tripod','Ankle dorsiflexion','Single-leg control'],rec:['Knee-to-wall','Calf raise','Step-down progression']}
- ]}
-};
-var GOALS=['General Fitness','Strength','Hypertrophy','Muscular Endurance','Power','Mobility','Flexibility','Movement Quality','Cardiorespiratory Fitness','Healthy Aging','Body Recomposition','Sport Performance'];
-var LEVELS=['Beginner','Intermediate','Advanced'];
-var EQUIP=['Any','Bodyweight','Dumbbell','Barbell','Kettlebell','Cable','Machine','Band'];
-var CONTEXT=['Learning','Pre-Workout','Main Training','Cooldown','Recovery'];
-var PATTERNS=['All','Squat','Hinge','Push','Pull','Lunge / Split Stance','Carry','Rotation / Anti-Rotation','Gait / Locomotion'];
-function opts(a,sel){return a.map(function(x){return '<option value="'+esc(x)+'"'+(x===sel?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
-function currentType(){var b=q(ROOT);return b?b.dataset.type||'stretching':'stretching'}
-function typeTabs(){return Object.keys(DB).map(function(k){var d=DB[k];return '<button type="button" class="fj58e-tab '+(currentType()===k?'on':'')+'" data-fj58-type="'+k+'">'+d.icon+' '+d.label+'</button>'}).join('')}
-function cardFor(item,type,i){var title=item.n,sub='',meta='',why='',rec=[];
- if(type==='stretching'){sub=item.area+' • '+item.type;meta=item.focus+' • '+item.ctx+' • '+item.level;rec=item.rec;why='Use the stretch type that matches the context: dynamic work is useful for movement preparation; static flexibility work can be placed in appropriate flexibility/cooldown contexts.'}
- if(type==='muscles'){sub=item.group+' • '+item.action;meta='Joint: '+item.joint;rec=item.ex.concat(item.stretch);why='Recommendation connects the muscle’s action with movement patterns and practical exercise choices.'}
- if(type==='joints'){sub=item.kind;meta=item.motion;rec=(item.mob||[]).concat(item.strength||[]);why='Joint recommendations are organized around mobility, control and strength rather than treating a joint in isolation.'}
- if(type==='bones'){sub=item.region+' • '+item.role;meta='Loading & training context';rec=item.load;why=item.note}
- if(type==='movement'){sub=item.plane+' • '+item.focus;meta='Progression: '+item.progress.join(' → ');rec=item.examples;why='Start with a controllable variation, then progress complexity/load when technique and readiness support it.'}
- if(type==='posture'){sub=item.check;meta='Learn: '+item.learn.join(' • ');rec=item.rec;why='This is an education and movement-quality guide, not a diagnosis.'}
- return '<button type="button" class="fj58e-libcard" data-fj58-index="'+i+'"><strong>'+esc(title)+'</strong><span>'+esc(sub)+'</span><small>'+esc(meta)+'</small><div>'+rec.slice(0,4).map(function(x){return '<em>'+esc(x)+'</em>'}).join('')+'</div></button>'}
-function matches(item,type,f){var s=(item.n+' '+(item.area||'')+' '+(item.group||'')+' '+(item.action||'')+' '+(item.region||'')+' '+(item.plane||'')+' '+(item.focus||'')+' '+(item.check||'')).toLowerCase();
- if(f.search&&s.indexOf(f.search.toLowerCase())<0)return false;
- if(type==='stretching'){if(f.area!=='All'&&item.area!==f.area)return false;if(f.context!=='Any'&&item.ctx!==f.context)return false;if(f.level!=='Any'&&item.level!==f.level)return false;if(f.focus!=='Any'&&item.focus!==f.focus)return false}
- if(type==='muscles'&&f.group!=='All'&&item.group!==f.group)return false;
- if(type==='joints'&&f.area!=='All'&&item.n!==f.area)return false;
- if(type==='bones'&&f.area!=='All'&&item.n!==f.area)return false;
- if(type==='movement'&&f.pattern!=='All'&&item.n!==f.pattern)return false;
- if(type==='posture'&&f.area!=='All'&&item.n!==f.area)return false;
- return true}
-function recommendations(type,f){var all=DB[type].items.filter(function(x){return matches(x,type,f)});var ed=exData();
- if(type==='stretching'&&ed.length){var keywords=(f.area+' '+f.focus).toLowerCase();var extra=ed.filter(function(x){var t=(x.name+' '+(x.primary||[]).join(' ')+' '+(x.secondary||[]).join(' ')).toLowerCase();return !f.search||t.indexOf(f.search.toLowerCase())>-1||keywords.split(' ').some(function(k){return k.length>3&&t.indexOf(k)>-1})}).slice(0,10).map(function(x){return {n:x.name,area:x.primary&&x.primary[0]||f.area,type:'Exercise Library',focus:f.focus,ctx:f.context,level:f.level,rec:[x.name],__lib:true}});all=all.concat(extra)}
- return all.slice(0,18)}
-function filters(type){
- if(type==='stretching')return '<div class="fj58e-filters"><label>Area<select id="fj58Area">'+opts(['All','Neck','Shoulder','Chest/Shoulder','Back/Lat','Thoracic Spine','Spine','Hip','Adductor','Hamstring','Quadriceps','Calf/Ankle','Ankle'])+'</select></label><label>Focus<select id="fj58Focus">'+opts(['Any','Mobility','Flexibility'])+'</select></label><label>Level<select id="fj58Level">'+opts(['Any'].concat(LEVELS))+'</select></label><label>Context<select id="fj58Context">'+opts(['Any'].concat(CONTEXT.filter(function(x){return x!=='Learning'&&x!=='Main Training'})))+'</select></label></div>';
- if(type==='muscles')return '<div class="fj58e-filters"><label>Muscle Group<select id="fj58Group">'+opts(['All','Chest','Back','Back/Scapula','Shoulder','Glutes','Thigh','Calf','Core','Back/Core'])+'</select></label><label>Goal<select id="fj58Goal">'+opts(GOALS,'General Fitness')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label></div>';
- if(type==='joints')return '<div class="fj58e-filters"><label>Joint<select id="fj58Area">'+opts(['All'].concat(DB.joints.items.map(function(x){return x.n})))+'</select></label><label>Goal<select id="fj58Goal">'+opts(GOALS,'Mobility')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label></div>';
- if(type==='bones')return '<div class="fj58e-filters"><label>Bone / Structure<select id="fj58Area">'+opts(['All'].concat(DB.bones.items.map(function(x){return x.n})))+'</select></label><label>Goal<select id="fj58Goal">'+opts(['Bone Health Context','Strength','General Fitness','Healthy Aging'],'Bone Health Context')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label></div>';
- if(type==='movement')return '<div class="fj58e-filters"><label>Movement Pattern<select id="fj58Pattern">'+opts(PATTERNS,'All')+'</select></label><label>Goal<select id="fj58Goal">'+opts(GOALS,'General Fitness')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label><label>Equipment<select id="fj58Equip">'+opts(EQUIP,'Any')+'</select></label></div>';
- return '<div class="fj58e-filters"><label>Region<select id="fj58Area">'+opts(['All'].concat(DB.posture.items.map(function(x){return x.n})))+'</select></label><label>Goal<select id="fj58Goal">'+opts(['Movement Quality','General Fitness','Mobility','Strength'],'Movement Quality')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label></div>';
-}
-function render(type){var b=q('exlMateri');if(!b)return;var old=q(ROOT);var host=document.createElement('div');host.id=ROOT;host.dataset.type=type;var d=DB[type];host.innerHTML='<style>'+css()+'</style><div class="fj58e-head"><div><div class="label">INTERACTIVE HUMAN BODY & MOVEMENT EDUCATION</div><h2>'+d.icon+' '+d.label+'</h2><p>Belajar, pilih, cek, dan dapatkan rekomendasi yang terhubung dengan goal, level, movement, dan exercise library.</p></div><div class="fj58e-badge">EVIDENCE-INFORMED</div></div><div class="fj58e-tabs">'+typeTabs()+'</div>'+filters(type)+'<div class="fj58e-search"><input id="fj58Search" placeholder="Cari nama, otot, area, gerakan..."/><button type="button" id="fj58Reset">Reset</button></div><div class="fj58e-note">Rekomendasi diprioritaskan berdasarkan kecocokan konteks. Ini adalah materi edukasi kebugaran, bukan diagnosis atau pengganti pemeriksaan medis.</div><div class="fj58e-layout"><div><div class="fj58e-count" id="fj58Count"></div><div id="fj58Cards" class="fj58e-cards"></div></div><aside id="fj58Detail" class="fj58e-detail"><h3>Pilih materi</h3><p>Pilih item untuk membuka penjelasan, hubungan anatomi, dan rekomendasi.</p></aside></div><div class="fj58e-source"><strong>Programming principles:</strong> goal-specific loading, gradual progression, personalization, movement quality and appropriate exercise selection. ACSM’s 2026 resistance-training position stand emphasizes matching training variables to goals and building gradually; NASM’s OPT framework progresses through stabilization, strength and power phases. <a href="https://www.acsm.org/resistance-training-guidelines-update-2026/" target="_blank" rel="noopener">ACSM</a> · <a href="https://www.nasm.org/certified-personal-trainer/the-opt-model" target="_blank" rel="noopener">NASM OPT</a></div>';
- if(old)old.replaceWith(host);else b.appendChild(host);bind(host,type);}
-function readFilters(type){function v(id,d){var x=q(id);return x?x.value:d}return {area:v('fj58Area','All'),focus:v('fj58Focus','Any'),level:v('fj58Level','Any'),context:v('fj58Context','Any'),group:v('fj58Group','All'),pattern:v('fj58Pattern','All'),goal:v('fj58Goal','General Fitness'),equip:v('fj58Equip','Any'),search:v('fj58Search','')}}
-function bind(host,type){host.querySelectorAll('[data-fj58-type]').forEach(function(btn){btn.addEventListener('click',function(){render(this.dataset.fj58Type)})});var update=function(){var f=readFilters(type),arr=recommendations(type,f),cards=q('fj58Cards');q('fj58Count').textContent=arr.length+' rekomendasi / materi yang cocok';cards.innerHTML=arr.map(function(x,i){return cardFor(x,type,i)}).join('');cards.querySelectorAll('.fj58e-libcard').forEach(function(c){c.addEventListener('click',function(){detail(type,arr[+this.dataset.fj58Index],f)})});if(arr[0])detail(type,arr[0],f)};host.querySelectorAll('select,input').forEach(function(x){x.addEventListener('input',update);x.addEventListener('change',update)});q('fj58Reset').addEventListener('click',function(){render(type)});update()}
-function detail(type,x,f){var b=q('fj58Detail');if(!b||!x)return;var rec=x.rec||[];var html='<div class="fj58e-detailtop"><span>'+DB[type].icon+'</span><div><div class="label">SELECTED TOPIC</div><h3>'+esc(x.n)+'</h3><p>'+esc(x.area||x.group||x.region||x.plane||x.kind||'')+'</p></div></div>';
- if(type==='muscles')html+='<section><b>Function</b><p>'+esc(x.action)+'</p><b>Related joint</b><p>'+esc(x.joint)+'</p></section>';
- if(type==='joints')html+='<section><b>Joint type</b><p>'+esc(x.kind)+'</p><b>Movement</b><p>'+esc(x.motion)+'</p><b>Key musculature</b><p>'+esc(x.muscles)+'</p></section>';
- if(type==='bones')html+='<section><b>Role</b><p>'+esc(x.role)+'</p><b>Training / loading context</b><p>'+esc(x.note)+'</p></section>';
- if(type==='movement')html+='<section><b>Pattern</b><p>'+esc(x.focus)+'</p><b>Progression</b><p>'+esc(x.progress.join(' → '))+'</p></section>';
- if(type==='posture')html+='<section><b>What to check</b><p>'+esc(x.check)+'</p><b>Learn</b><p>'+esc(x.learn.join(' • '))+'</p></section>';
- if(type==='stretching')html+='<section><b>Type / context</b><p>'+esc(x.type)+' • '+esc(x.ctx)+' • '+esc(x.level)+'</p><b>Focus</b><p>'+esc(x.focus)+'</p></section>';
- html+='<section><b>Recommended options</b><div class="fj58e-rec">'+rec.map(function(r,i){return '<div><strong>'+(i+1)+'.</strong> '+esc(r)+'</div>'}).join('')+'</div></section><section class="fj58e-why"><b>Why this is recommended</b><p>Match the selection to the stated goal, current level, movement quality, equipment, and training context. Progress only when the client can perform the current variation with appropriate control and tolerance.</p></section>';
- if(f&&f.goal)html+='<div class="fj58e-context"><b>Current filter</b><br>Goal: '+esc(f.goal)+' · Level: '+esc(f.level||'Any')+(f.equip?' · Equipment: '+esc(f.equip):'')+'</div>';
- b.innerHTML=html}
-function css(){return '.fj58e-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;background:linear-gradient(135deg,#f7fdfc,#eaf9f6);border:1px solid #cce8e4;border-radius:16px;padding:16px;margin-bottom:12px}.fj58e-head h2{margin:4px 0;color:#0c403f}.fj58e-head p{margin:0;color:#628c8a;max-width:800px}.fj58e-badge{font-size:10px;font-weight:900;padding:7px 9px;border-radius:999px;background:#def7f1;color:#14766b;white-space:nowrap}.fj58e-tabs{display:flex;gap:7px;overflow:auto;padding:2px 0 10px}.fj58e-tab{border:1px solid #d2e9e9;background:#fff;color:#437a73;border-radius:999px;padding:9px 12px;font-weight:800;white-space:nowrap;cursor:pointer}.fj58e-tab.on{background:#def9f5;border-color:#99e8d8;color:#087f70}.fj58e-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;background:#fff;border:1px solid #d2e9e9;border-radius:14px;padding:12px}.fj58e-filters label{font-size:11px;font-weight:900;color:#5e8984}.fj58e-filters select,.fj58e-search input{width:100%;margin-top:5px;padding:9px;border:1px solid #cce6e1;border-radius:9px;background:#fff;color:#143d37}.fj58e-search{display:flex;gap:8px;margin-top:10px}.fj58e-search input{margin:0;flex:1}.fj58e-search button{border:1px solid #cce6e1;background:#edf8f6;border-radius:9px;padding:8px 12px;font-weight:800;color:#1d655c}.fj58e-note{margin-top:10px;padding:10px;border-radius:10px;background:#f4faf9;border:1px solid #d7ebe8;color:#5c817c;font-size:12px}.fj58e-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:12px;margin-top:12px}.fj58e-count{font-size:11px;font-weight:900;color:#628c8a;margin:0 0 7px}.fj58e-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.fj58e-libcard{text-align:left;border:1px solid #d4e8e6;background:#fff;border-radius:12px;padding:11px;cursor:pointer;color:#143d37;min-width:0}.fj58e-libcard:hover{border-color:#74cfc0}.fj58e-libcard strong{display:block;font-size:14px}.fj58e-libcard span,.fj58e-libcard small{display:block;color:#628c8a;margin-top:3px;line-height:1.35}.fj58e-libcard small{font-size:10px}.fj58e-libcard em{display:inline-block;font-style:normal;font-size:10px;background:#eef7f5;border-radius:999px;padding:4px 6px;margin:6px 4px 0 0}.fj58e-detail{border:1px solid #cce6e1;border-radius:14px;background:linear-gradient(180deg,#fff,#f6fcfb);padding:14px;align-self:start;position:sticky;top:10px}.fj58e-detail h3{margin:2px 0;color:#0c403f}.fj58e-detail p{color:#628c8a;margin:5px 0 10px}.fj58e-detail section{border-top:1px solid #e2efef;padding-top:10px;margin-top:10px}.fj58e-detailtop{display:flex;gap:10px;align-items:flex-start}.fj58e-detailtop>span{font-size:28px}.fj58e-rec div{padding:7px 8px;border-radius:8px;background:#f4faf9;margin-top:5px;font-size:12px}.fj58e-why{background:#fff8ea;border:1px solid #efd9aa;border-radius:10px;padding:9px}.fj58e-context{margin-top:10px;font-size:11px;padding:8px;border-radius:8px;background:#eef8f6;color:#3f756e}.fj58e-source{margin-top:12px;font-size:10px;color:#72908c;line-height:1.5}.fj58e-source a{color:#087f70;font-weight:800}@media(max-width:850px){.fj58e-layout{grid-template-columns:1fr}.fj58e-detail{position:static}.fj58e-filters{grid-template-columns:1fr 1fr}}@media(max-width:560px){.fj58e-head{flex-direction:column}.fj58e-cards{grid-template-columns:1fr}.fj58e-filters{grid-template-columns:1fr}.fj58e-search{flex-direction:column}.fj58e-search button{width:100%}}'}
-function isEduClick(e){var el=e.target.closest?e.target.closest('button,.navbtn'):null;return el&&/Exercise Library/i.test(el.textContent||'')}
-document.addEventListener('click',function(e){if(!isEduClick(e))return;setTimeout(function(){var p=q('fjExerciseLibrary'),m=q('exlMateri');if(p&&p.classList.contains('active')&&m){render('stretching')}},120)},true);
-setTimeout(function(){var p=q('fjExerciseLibrary'),m=q('exlMateri');if(p&&p.classList.contains('active')&&m)render('stretching')},1200);
-})();
-</script>
+

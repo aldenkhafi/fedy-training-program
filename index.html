@@ -9761,3 +9761,424 @@ window.fjPtM53Show=function(){if(!isMaster())return;var old=document.getElementB
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(run,1600)},{once:true});else setTimeout(run,1600);window.addEventListener('load',function(){setTimeout(run,1800)});setInterval(function(){if(isMaster())run()},2500);
 })();
 </script>
+
+
+<!-- FJ V58 TARGETED EXERCISE LIBRARY / PROGRAM GENERATOR ENHANCEMENT
+     Scope: Exercise Library only. Existing application panels and data flow are untouched. -->
+<style id="fj-v58-exercise-enhancement-css">
+#fjExerciseLibrary .fj-v58-reco{margin-top:12px;border:1px solid #c8dfef;border-radius:14px;background:linear-gradient(180deg,#f8fcff,#fff);padding:14px}
+#fjExerciseLibrary .fj-v58-reco-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+#fjExerciseLibrary .fj-v58-reco-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:10px}
+#fjExerciseLibrary .fj-v58-reco-card{border:1px solid #d8e7ef;border-radius:11px;background:#fff;padding:10px;min-width:0}
+#fjExerciseLibrary .fj-v58-reco-card b{display:block;color:#164d70;font-size:13px;line-height:1.3}
+#fjExerciseLibrary .fj-v58-mini{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+#fjExerciseLibrary .fj-v58-mini span{font-size:9px;font-weight:800;padding:3px 6px;border-radius:999px;background:#edf6fb;color:#426b82;border:1px solid #d6e7f0}
+#fjExerciseLibrary .fj-v58-fit{margin-top:7px;font-size:10.5px;line-height:1.4;color:#5f7888}
+#fjExerciseLibrary .fj-v58-note{margin-top:9px;padding:9px 10px;border-radius:10px;background:#eef7fd;border:1px solid #c9e1ef;color:#426b82;font-size:11px;line-height:1.45}
+#fjExerciseLibrary .fj-v58-goal-note{font-size:10px;color:#668294;margin-top:4px}
+#fjExerciseLibrary .exl-level{white-space:nowrap;display:inline-flex;align-items:center;max-width:100%}
+@media(max-width:760px){
+  #fjExerciseLibrary .exl-shell{padding:11px;border-radius:14px}
+  #fjExerciseLibrary .exl-card{padding:11px}
+  #fjExerciseLibrary .exl-ex{padding:11px}
+  #fjExerciseLibrary .exl-ex-top{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;min-width:0}
+  #fjExerciseLibrary .exl-ex h4{font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+  #fjExerciseLibrary .exl-badges{align-items:flex-start}
+  #fjExerciseLibrary .exl-badge{line-height:1.25;white-space:nowrap}
+  #fjExerciseLibrary .fj-v58-reco-grid{grid-template-columns:1fr}
+  #fjExerciseLibrary .fj-v58-reco-card{padding:10px}
+  #fjExerciseLibrary .exl-gen-form{gap:9px}
+  #fjExerciseLibrary .exl-chip{font-size:10.5px;padding:6px 9px}
+}
+</style>
+<script id="fj-v58-exercise-enhancement">
+(function(){
+'use strict';
+var GOALS=[
+ 'Fat Loss','Hypertrophy','Muscular Endurance','Strength','Strength Endurance','Power','Performance',
+ 'General Fitness','Healthy Aging','Mobility','Return to Exercise','Corrective / Modification','Other',
+ 'Body Recomposition','Muscle Gain','Healthy Weight Management','Cardiorespiratory Fitness','Aerobic Endurance',
+ 'Anaerobic Capacity','Work Capacity','Functional Fitness','Hybrid Athlete','Sport-Specific Performance',
+ 'Speed & Agility','Coordination & Balance','Core Stability','Posture & Movement Quality','Injury Prevention',
+ 'Rehabilitation','Prehabilitation','Longevity','Running Performance','Obstacle / Race Preparation',
+ 'Low-Impact Fitness','Recovery & Resilience'
+];
+var GOAL_KEY={
+ 'Fat Loss':['cardio','conditioning','circuit','full body','hypertrophy'],
+ 'Hypertrophy':['hypertrophy','muscle','isolation','volume'],
+ 'Muscular Endurance':['endurance','circuit','conditioning'],
+ 'Strength':['strength','compound','squat','hinge','press','row'],
+ 'Strength Endurance':['strength','endurance','superset','circuit'],
+ 'Power':['power','plyo','jump','throw','swing','explosive'],
+ 'Performance':['performance','power','agility','speed','conditioning'],
+ 'General Fitness':['full body','functional','conditioning'],
+ 'Healthy Aging':['stability','balance','functional','strength','mobility'],
+ 'Mobility':['mobility','stretch','range'],
+ 'Return to Exercise':['beginner','stability','control','low impact'],
+ 'Corrective / Modification':['corrective','control','stability','mobility'],
+ 'Body Recomposition':['hypertrophy','strength','conditioning'],
+ 'Muscle Gain':['hypertrophy','volume','compound','isolation'],
+ 'Healthy Weight Management':['conditioning','strength','aerobic'],
+ 'Cardiorespiratory Fitness':['cardio','aerobic','conditioning'],
+ 'Aerobic Endurance':['aerobic','cardio','zone'],
+ 'Anaerobic Capacity':['anaerobic','hiit','sprint','interval'],
+ 'Work Capacity':['conditioning','circuit','carry'],
+ 'Functional Fitness':['functional','carry','unilateral','core'],
+ 'Hybrid Athlete':['hybrid','strength','conditioning','run'],
+ 'Sport-Specific Performance':['performance','power','agility','speed'],
+ 'Speed & Agility':['speed','agility','plyo'],
+ 'Coordination & Balance':['balance','unilateral','stability'],
+ 'Core Stability':['core','carry','anti-rotation'],
+ 'Posture & Movement Quality':['stability','mobility','row','core'],
+ 'Injury Prevention':['stability','control','mobility','balance'],
+ 'Rehabilitation':['controlled','stability','mobility'],
+ 'Prehabilitation':['stability','mobility','control'],
+ 'Longevity':['strength','aerobic','balance','mobility'],
+ 'Running Performance':['run','sprint','single-leg','calf','conditioning'],
+ 'Obstacle / Race Preparation':['carry','sled','grip','running','conditioning'],
+ 'Low-Impact Fitness':['low impact','bike','row','walk','machine'],
+ 'Recovery & Resilience':['recovery','mobility','aerobic']
+};
+var GOAL_DESC={
+ FatLoss:'Resistance training plus appropriately scaled aerobic/conditioning work.',
+ Hypertrophy:'Progressive resistance with sufficient weekly volume and recovery.',
+ Strength:'Progressive multi-joint resistance with heavier loading and adequate rest.',
+ Power:'Explosive intent after adequate technical readiness; volume is controlled.',
+ Mobility:'Controlled active range, mobility and stability work.',
+ GeneralFitness:'Balanced resistance, aerobic, mobility and movement-quality training.'
+};
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function data(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
+function normalizeEquipment(){
+  data().forEach(function(d){
+    if(String(d.equip||'').toLowerCase()==='dumbbell / kettlebell') d.equip='Kettlebell';
+    d.programMove=(function(){
+      var m=String(d.move||d.movement||'').toLowerCase(),n=String(d.name||'').toLowerCase(),c=String(d.cat||'').toLowerCase();
+      if(/squat|leg press|step-up|lunge|split squat|pistol|hack squat/.test(n+' '+m))return 'legs';
+      if(/deadlift|rdl|good morning|hip thrust|swing|pull-through|nordic|hinge/.test(n+' '+m))return 'hinge';
+      if(m==='push'||/press|push-up|dip|fly/.test(n))return 'push';
+      if(m==='pull'||/row|pull-up|pulldown|chin-up|face pull/.test(n))return 'pull';
+      if(m==='core'||/plank|carry|woodchop|pallof|ab wheel|knee raise|turkish/.test(n))return 'core';
+      if(m==='cardio'||/bike|row erg|run|sprint|jump rope|conditioning/.test(n))return 'cardio';
+      if(m==='mobility'||/mobility|stretch|cat-cow|90\/90|open book/.test(n))return 'mobility';
+      return m||c||'other';
+    })();
+  });
+}
+function levelRank(l){return l==='Pemula'?1:(l==='Menengah'?2:3)}
+function prescription(goal,level,type){
+  if(goal==='Strength')return level==='Pemula'?'2–3 sets × 6–10 reps • RPE ~6–7 • rest 2–3 min':'3–5 sets × 3–6 reps • rest 2–4 min';
+  if(goal==='Power')return '2–4 sets × 3–6 explosive reps • 30–70% 1RM when applicable • rest 2–3 min';
+  if(goal==='Hypertrophy'||goal==='Muscle Gain'||goal==='Body Recomposition')return level==='Pemula'?'2–3 sets × 8–12 reps • rest 60–120 s':'3–4 sets × 6–12 reps • rest 60–120 s';
+  if(goal==='Muscular Endurance'||goal==='Strength Endurance')return '2–4 sets × 12–20 reps • rest 30–90 s';
+  if(goal==='Mobility'||goal==='Posture & Movement Quality')return '2–4 sets × 6–12 controlled reps or 20–45 s • pain-free ROM';
+  if(goal==='Cardiorespiratory Fitness'||goal==='Aerobic Endurance')return '20–40 min or intervals scaled to fitness • conversational/moderate work where appropriate';
+  return level==='Pemula'?'2–3 sets × 8–15 reps • controlled technique • rest 60–120 s':'2–4 sets × 6–15 reps • controlled technique • rest 60–150 s';
+}
+function goalForText(g){return GOAL_DESC[g]||'Program disesuaikan dengan tujuan, level, pola gerak, alat, dan toleransi latihan.'}
+function equipmentOptions(){
+  var set={};data().forEach(function(d){if(d.equip)set[d.equip]=1});
+  return Object.keys(set).sort();
+}
+function currentEquipment(){
+  var out=[],wrap=q('exlEquipChips');
+  if(wrap)wrap.querySelectorAll('.exl-chip.on').forEach(function(x){if(x.dataset.eq)out.push(x.dataset.eq)});
+  return out;
+}
+function currentGoal(){
+  var e=q('exlGoal');return e?e.value:'General Fitness';
+}
+function currentLevel(){
+  var e=q('exlLevel');return e?e.value:'Menengah';
+}
+function compatScore(d,goal){
+  var text=(d.name+' '+d.cat+' '+d.primary.join(' ')+' '+d.secondary.join(' ')+' '+(d.programMove||'')+' '+(d.equip||'')).toLowerCase();
+  var keys=GOAL_KEY[goal]||[];
+  var score=0;
+  keys.forEach(function(k){if(text.indexOf(k.toLowerCase())>-1)score+=3});
+  if(goal==='Strength'&&d.type==='Compound')score+=5;
+  if((goal==='Hypertrophy'||goal==='Muscle Gain')&&d.type==='Compound')score+=3;
+  if(goal==='Power'&&/jump|throw|swing|plyo|explosive/i.test(text))score+=8;
+  if(goal==='Mobility'&&d.programMove==='mobility')score+=9;
+  if(goal==='Core Stability'&&d.programMove==='core')score+=9;
+  if(goal==='Cardiorespiratory Fitness'&&d.programMove==='cardio')score+=9;
+  return score;
+}
+function renderReco(){
+  var host=q('fjV58RecoHost');if(!host)return;
+  var D=data(), goal=currentGoal(), level=currentLevel();
+  var eq=currentEquipment();
+  var cat=q('exlFCat')?q('exlFCat').value:'', type=q('exlFType')?q('exlFType').value:'', search=q('exlSearch')?q('exlSearch').value.trim().toLowerCase():'';
+  var focus=(search+' '+cat+' '+type).trim();
+  var list=D.filter(function(d){
+    if(levelRank(d.level)>levelRank(level))return false;
+    if(eq.length&&eq.indexOf(d.equip)<0)return false;
+    if(cat&&d.cat!==cat)return false;
+    if(type&&d.type!==type)return false;
+    if(search){
+      var hay=(d.name+' '+d.cat+' '+d.primary.join(' ')+' '+d.secondary.join(' ')+' '+d.equip+' '+(d.programMove||'')).toLowerCase();
+      if(hay.indexOf(search)<0)return false;
+    }
+    return true;
+  }).map(function(d){return {d:d,score:compatScore(d,goal)}}).sort(function(a,b){return b.score-a.score});
+  var shown=list.slice(0,24);
+  host.innerHTML='<div class="fj-v58-reco-head"><div><b style="color:#174f72">Rekomendasi Otomatis — '+esc(goal)+'</b><div class="fj-v58-goal-note">'+esc(goalForText(goal))+'</div></div><div class="fj-v58-mini"><span>'+shown.length+' pilihan prioritas</span><span>'+list.length+' cocok dengan filter</span><span>Level ≤ '+esc(level)+'</span></div></div>'+
+    '<div class="fj-v58-reco-grid">'+shown.map(function(x){var d=x.d;return "<div class='fj-v58-reco-card'><b>"+esc(d.name)+"</b><div class='fj-v58-mini'><span>"+esc(d.cat)+"</span><span>"+esc(d.equip)+"</span><span>"+esc(d.level)+"</span><span>"+esc(d.type||"Compound")+"</span></div><div class='fj-v58-fit'>"+esc(d.primary.join(', '))+"<br><strong>"+esc(prescription(goal,level,d.type))+"</strong></div></div>"}).join('')+'</div>'+
+    '<div class="fj-v58-note"><b>Prinsip pemilihan:</b> latihan diprioritaskan menurut tujuan, level, pola gerak, otot target, dan alat yang tersedia; variasi tidak berarti acak. Gunakan teknik yang dikuasai dan progresi bertahap. Rentang programming di sini adalah panduan umum untuk orang dewasa sehat, bukan pengganti asesmen profesional.</div>';
+}
+function ensureBrowseEnhancement(){
+  var b=q('exlBrowse');if(!b)return;
+  var grid=q('exlGridWrap');if(!grid)return;
+  var card=grid.parentElement;
+  if(!q('fjV58BrowseGoal')){
+    var goalWrap=document.createElement('div');
+    goalWrap.className='field';
+    goalWrap.style.marginTop='9px';
+    goalWrap.innerHTML='<label>Tujuan Rekomendasi</label><select id="fjV58BrowseGoal">'+GOALS.map(function(g){return '<option value="'+esc(g)+'">'+esc(g)+'</option>'}).join('')+'</select>';
+    var filters=card.querySelector('.exl-filters');
+    if(filters)filters.appendChild(goalWrap);
+    goalWrap.querySelector('select').onchange=renderReco;
+  }
+  if(!q('fjV58RecoHost')){
+    var host=document.createElement('div');host.id='fjV58RecoHost';host.className='fj-v58-reco';
+    grid.parentNode.insertBefore(host,grid);
+  }
+  renderReco();
+}
+function expandGeneratorGoals(){
+  var sel=q('exlGoal');if(!sel)return;
+  var val=sel.value;
+  sel.innerHTML=GOALS.map(function(g){return '<option value="'+esc(g)+'">'+esc(g)+'</option>'}).join('');
+  sel.value=GOALS.indexOf(val)>-1?val:'General Fitness';
+}
+function goalRecipe(goal){
+  var g=goal.toLowerCase();
+  if(/mobility|recovery/.test(g))return ['mobility','core','legs','push','pull'];
+  if(/power|speed|agility|performance|sport|obstacle|running/.test(g))return ['legs','hinge','push','pull','core','cardio'];
+  if(/strength/.test(g))return ['legs','hinge','push','pull','core'];
+  if(/hypertrophy|muscle|recomposition/.test(g))return ['legs','hinge','push','pull','core','isolation'];
+  if(/endurance|cardio|aerobic|anaerobic|work capacity|fat loss|weight/.test(g))return ['legs','push','pull','hinge','core','cardio'];
+  return ['legs','push','pull','hinge','core'];
+}
+function splitFor(days){
+  if(days<=3)return Array.from({length:days},function(){return 'Full Body'});
+  if(days===4)return ['Upper Body','Lower Body','Upper Body','Lower Body'];
+  if(days===5)return ['Push','Pull','Legs','Upper + Core','Lower + Conditioning'];
+  return ['Push','Pull','Legs','Upper','Lower','Full Body'];
+}
+function dayPatterns(type){
+  if(type==='Upper Body'||type==='Upper')return ['push','pull','push','pull','core','isolation'];
+  if(type==='Lower Body'||type==='Lower')return ['legs','hinge','legs','hinge','core','cardio'];
+  if(type==='Push')return ['push','push','push','core','legs','isolation'];
+  if(type==='Pull')return ['pull','pull','pull','hinge','core','isolation'];
+  if(type==='Legs')return ['legs','legs','hinge','legs','core','cardio'];
+  if(type==='Upper + Core')return ['push','pull','push','pull','core','isolation'];
+  if(type==='Lower + Conditioning')return ['legs','hinge','legs','core','cardio','mobility'];
+  return ['legs','push','pull','hinge','core','isolation'];
+}
+function makeProgram(){
+  normalizeEquipment();
+  var D=data(),goal=currentGoal(),level=currentLevel(),days=Number(q('exlDays')?q('exlDays').value:3)||3,eq=currentEquipment();
+  if(!eq.length)eq=equipmentOptions();
+  var allowed=D.filter(function(d){return levelRank(d.level)<=levelRank(level)&&eq.indexOf(d.equip)>-1});
+  if(allowed.length<12){alert('Exercise yang sesuai dengan filter terlalu sedikit. Aktifkan lebih banyak alat.');return}
+  var splits=splitFor(days),used={};
+  var sessions=splits.map(function(type,di){
+    var patterns=dayPatterns(type),sessionUsed={},items=[];
+    patterns.forEach(function(pat){
+      var pool=allowed.filter(function(d){return d.programMove===pat&&!sessionUsed[d.id]});
+      pool.sort(function(a,b){return compatScore(b,goal)-compatScore(a,goal)});
+      if(pool.length){
+        var pick=pool[di%Math.max(1,pool.length)];
+        sessionUsed[pick.id]=1;used[pick.id]=(used[pick.id]||0)+1;items.push(pick);
+      }
+    });
+    // Fill to 8–10 exercises with the best unused compatible movements.
+    var fill=allowed.filter(function(d){return !sessionUsed[d.id]}).sort(function(a,b){
+      return (compatScore(b,goal)+(used[a.id]||0)*-2)-(compatScore(a,goal)+(used[b.id]||0)*-2);
+    });
+    while(items.length<8&&fill.length){var x=fill.shift();sessionUsed[x.id]=1;used[x.id]=(used[x.id]||0)+1;items.push(x)}
+    return {day:di+1,type:type,exercises:items};
+  });
+  return {goal:goal,level:level,days:sessions};
+}
+function drawEnhancedProgram(prog){
+  var out=q('exlProgramOut');if(!out)return;
+  var total=prog.days.reduce(function(a,d){return a+d.exercises.length},0);
+  var html='<div class="exl-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap"><div><h3 style="margin:0">Program Mingguan — '+esc(prog.goal)+'</h3><div class="exl-muted">Level: '+esc(prog.level)+' • '+prog.days.length+' hari/minggu • '+total+' exercise • variasi terkontrol</div></div><button class="exl-btn alt" id="fjV58Print">🖨️ Cetak / PDF</button></div><div class="fj-v58-note"><b>Basis programming:</b> pemilihan latihan dan acute variables mengikuti tujuan dan level. ACSM 2026 menekankan penyesuaian terhadap goal, progressive training, dan seluruh kelompok otot utama; NASM OPT menyediakan fase stabilization, strength endurance, hypertrophy, maximal strength, dan power. Parameter tetap harus disesuaikan dengan asesmen dan toleransi klien.</div></div>';
+  prog.days.forEach(function(d){
+    html+='<div class="exl-day"><h3>Hari '+d.day+' — '+esc(d.type)+'</h3><div class="exl-muted">'+d.exercises.length+' exercise</div>';
+    d.exercises.forEach(function(ex,i){html+='<div class="exl-row"><div><div class="exl-rowname">'+esc(ex.name)+'</div><div class="exl-rowcat">'+esc(ex.cat)+' • '+esc(ex.equip)+' • '+esc(ex.level)+'</div></div><div>'+esc(prescription(prog.goal,prog.level,ex.type))+'</div><div class="exl-rowcat">Primary: '+esc(ex.primary.join(', '))+'<br>Pattern: '+esc(ex.programMove||ex.move||'')+'</div><button class="exl-swap" data-v58-swap="'+d.day+'|'+i+'" title="Ganti exercise">⟳</button></div>'});
+    html+='</div>';
+  });
+  out.innerHTML=html;
+  q('fjV58Print').onclick=function(){
+    var w=window.open('','_blank');if(!w){alert('Popup diblokir browser. Izinkan popup untuk mencetak PDF.');return}
+    var body='<h1>FITNESS JOURNEY — Program Latihan Otomatis</h1><p>Goal: '+esc(prog.goal)+' | Level: '+esc(prog.level)+'</p>';
+    prog.days.forEach(function(d){body+='<h2>Hari '+d.day+' — '+esc(d.type)+'</h2><table><tr><th>Exercise</th><th>Kategori</th><th>Alat</th><th>Sets / Reps / Rest</th><th>Primary</th></tr>'+d.exercises.map(function(ex){return '<tr><td>'+esc(ex.name)+'</td><td>'+esc(ex.cat)+'</td><td>'+esc(ex.equip)+'</td><td>'+esc(prescription(prog.goal,prog.level,ex.type))+'</td><td>'+esc(ex.primary.join(', '))+'</td></tr>'}).join('')+'</table>'});w.document.write('<!doctype html><html><head><title>Fitness Journey Program</title><style>body{font-family:Arial;padding:24px;color:#163b57}table{width:100%;border-collapse:collapse;margin-bottom:20px}th,td{border:1px solid #ccdbe5;padding:7px;font-size:11px;text-align:left;vertical-align:top}th{background:#eef6fb}</style></head><body>'+body+'</body></html>');w.document.close();w.focus();setTimeout(function(){w.print()},300);
+  };
+  out.querySelectorAll('[data-v58-swap]').forEach(function(btn){btn.onclick=function(){var parts=this.dataset.v58Swap.split('|'),di=Number(parts[0])-1,ei=Number(parts[1]),cur=prog.days[di].exercises[ei],eq=currentEquipment();var alt=data().filter(function(d){return d.id!==cur.id&&d.programMove===cur.programMove&&levelRank(d.level)<=levelRank(prog.level)&&eq.indexOf(d.equip)>-1});if(alt.length){prog.days[di].exercises[ei]=alt[Math.floor(Math.random()*alt.length)];drawEnhancedProgram(prog)}}});
+}
+function install(){
+  normalizeEquipment();
+  // Combined equipment labels are normalized to Kettlebell, keeping Dumbbell as its own category.
+  var style=document.createElement('style');style.textContent='#fjExerciseLibrary .exl-badge.eq{white-space:nowrap}';document.head.appendChild(style);
+  document.addEventListener('click',function(e){
+    var gen=e.target.closest&&e.target.closest('#exlGenBtn');
+    if(gen){
+      e.preventDefault();e.stopImmediatePropagation();
+      expandGeneratorGoals();
+      var p=makeProgram();window.__fjV58Program=p;drawEnhancedProgram(p);
+      return;
+    }
+  },true);
+  var obs=new MutationObserver(function(){
+    normalizeEquipment();
+    var p=q('fjExerciseLibrary');
+    if(!p||!p.classList.contains('active'))return;
+    var browse=q('exlBrowse');
+    if(browse&&browse.classList.contains('active')){
+      // Existing search filters remain intact; only the recommendation block is added.
+      ensureBrowseEnhancement();
+    }
+    var gen=q('exlGenerator');
+    if(gen&&gen.classList.contains('active'))expandGeneratorGoals();
+  });
+  obs.observe(document.body,{childList:true,subtree:true});
+  // Rebuild recommendation block after the existing filter controls have rendered.
+  setInterval(function(){
+    var p=q('fjExerciseLibrary');if(!p||!p.classList.contains('active'))return;
+    var browse=q('exlBrowse');if(browse&&browse.classList.contains('active'))ensureBrowseEnhancement();
+  },700);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+})();
+</script>
+<script id="fj-v58-education-interactive-enhancement">
+(function(){'use strict';
+if(window.__fjV58EducationEnhanced)return;window.__fjV58EducationEnhanced=true;
+var ROOT='fjV58EduPro';
+function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
+function q(id){return document.getElementById(id)}
+function exData(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
+var DB={
+ stretching:{label:'Stretching & Mobility',icon:'🧘',items:[
+  {n:'Dynamic Hip Opener',area:'Hip',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Hip circles','90/90 transitions','Leg swings']},
+  {n:'Half-Kneeling Hip Flexor Stretch',area:'Hip',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Half-kneeling hip flexor stretch','Glute squeeze','Controlled pelvic position']},
+  {n:'90/90 Hip Rotation',area:'Hip',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Intermediate',rec:['90/90 transitions','Hip CARs','Controlled internal/external rotation']},
+  {n:'Adductor Rock-Back',area:'Adductor',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Adductor rock-back','Lateral squat pattern','Wide-stance mobility']},
+  {n:'Hamstring Dynamic Sweep',area:'Hamstring',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Dynamic sweep','Leg swing','Hip hinge drill']},
+  {n:'Standing Quadriceps Stretch',area:'Quadriceps',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Standing quad stretch','Half-kneeling quad stretch']},
+  {n:'Calf Wall Stretch',area:'Calf/Ankle',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Gastrocnemius stretch','Soleus stretch','Ankle dorsiflexion drill']},
+  {n:'Ankle Dorsiflexion Rocker',area:'Ankle',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Knee-to-wall','Ankle rocker','Calf raise with controlled ROM']},
+  {n:'Open Book Rotation',area:'Thoracic Spine',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Beginner',rec:['Open book','Quadruped T-spine rotation','Wall rotation']},
+  {n:'Child’s Pose with Side Reach',area:'Back/Lat',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Child’s pose','Lat stretch','Breathing']},
+  {n:'Doorway Pec Stretch',area:'Chest/Shoulder',type:'Static',focus:'Flexibility',ctx:'Cooldown',level:'Beginner',rec:['Doorway pec stretch','Wall slide','Scapular control']},
+  {n:'Shoulder CAR',area:'Shoulder',type:'Dynamic',focus:'Mobility',ctx:'Pre-workout',level:'Intermediate',rec:['Shoulder CAR','Wall slide','Controlled arm circles']}
+ ]},
+ muscles:{label:'Muscles',icon:'💪',items:[
+  {n:'Pectoralis Major',group:'Chest',action:'Horizontal adduction / pressing',joint:'Shoulder',ex:['Bench Press','Push-Up','Cable Fly','Machine Chest Press'],stretch:['Doorway Pec Stretch']},
+  {n:'Latissimus Dorsi',group:'Back',action:'Shoulder extension/adduction',joint:'Shoulder',ex:['Lat Pulldown','Pull-Up','Cable Row','Single-Arm Row'],stretch:['Child’s Pose with Side Reach']},
+  {n:'Trapezius',group:'Back/Scapula',action:'Scapular elevation/retraction/upward rotation',joint:'Scapulothoracic/Shoulder',ex:['Row','Face Pull','Farmer Carry','Shrug'],stretch:['Upper-back mobility']},
+  {n:'Deltoid',group:'Shoulder',action:'Shoulder elevation/abduction and pressing',joint:'Shoulder',ex:['Overhead Press','Lateral Raise','Landmine Press'],stretch:['Shoulder mobility']},
+  {n:'Gluteus Maximus',group:'Glutes',action:'Hip extension',joint:'Hip',ex:['Squat','Hip Thrust','Romanian Deadlift','Step-Up'],stretch:['Hip flexor stretch']},
+  {n:'Gluteus Medius',group:'Glutes',action:'Hip abduction / pelvic control',joint:'Hip',ex:['Lateral Step-Up','Side-Lying Abduction','Band Walk'],stretch:['Hip mobility']},
+  {n:'Quadriceps',group:'Thigh',action:'Knee extension',joint:'Knee',ex:['Squat','Leg Press','Split Squat','Step-Up'],stretch:['Quadriceps stretch']},
+  {n:'Hamstrings',group:'Thigh',action:'Knee flexion / hip extension',joint:'Knee/Hip',ex:['RDL','Leg Curl','Deadlift','Single-Leg RDL'],stretch:['Hamstring stretch']},
+  {n:'Gastrocnemius/Soleus',group:'Calf',action:'Plantarflexion',joint:'Ankle',ex:['Calf Raise','Seated Calf Raise','Loaded Carry'],stretch:['Calf stretch']},
+  {n:'Rectus Abdominis',group:'Core',action:'Trunk flexion / trunk control',joint:'Spine',ex:['Curl-Up','Dead Bug','Cable Crunch'],stretch:['Controlled trunk extension']},
+  {n:'Obliques',group:'Core',action:'Rotation / anti-rotation / lateral flexion',joint:'Spine',ex:['Pallof Press','Cable Chop','Side Plank'],stretch:['Controlled rotation']},
+  {n:'Erector Spinae',group:'Back/Core',action:'Spinal extension and trunk endurance',joint:'Spine',ex:['Back Extension','Deadlift','Bird Dog'],stretch:['Spinal mobility']}
+ ]},
+ joints:{label:'Joints',icon:'🦿',items:[
+  {n:'Shoulder',kind:'Ball-and-socket',motion:'Flexion, extension, abduction, rotation',muscles:'Deltoid, rotator cuff, pectorals, latissimus',mob:['Wall Slide','Shoulder CAR','Controlled overhead reach'],strength:['Row','Press','Landmine Press']},
+  {n:'Elbow',kind:'Hinge',motion:'Flexion and extension',muscles:'Biceps, triceps, forearm',mob:['Gentle elbow flex/extend'],strength:['Curl','Triceps Pressdown','Push-Up']},
+  {n:'Wrist',kind:'Complex gliding/condyloid contribution',motion:'Flexion, extension, deviation',muscles:'Forearm flexors/extensors',mob:['Wrist circles','Loaded wrist extension prep'],strength:['Farmer Carry','Grip work']},
+  {n:'Spine',kind:'Segmental column',motion:'Flexion, extension, lateral flexion, rotation',muscles:'Core, erectors, multifidus and surrounding musculature',mob:['Open Book','Cat-Cow','Thoracic rotation'],strength:['Bird Dog','Carry','Row']},
+  {n:'Hip',kind:'Ball-and-socket',motion:'Flexion, extension, abduction, adduction, rotation',muscles:'Glutes, adductors, hip flexors, hamstrings',mob:['90/90','Hip CAR','Adductor rock-back'],strength:['Squat','RDL','Hip Thrust']},
+  {n:'Knee',kind:'Hinge-dominant',motion:'Flexion and extension with small accessory motions',muscles:'Quadriceps, hamstrings, calf, glutes',mob:['Heel-to-glute','Controlled knee flexion'],strength:['Squat','Split Squat','Step-Up','Leg Press']},
+  {n:'Ankle',kind:'Talocrural/subtalar complex',motion:'Dorsiflexion, plantarflexion and multiplanar control',muscles:'Calf, tibialis anterior/posterior and foot musculature',mob:['Knee-to-wall','Ankle rocker'],strength:['Calf Raise','Tibialis Raise','Single-Leg Balance']}
+ ]},
+ bones:{label:'Bones',icon:'🦴',items:[
+  {n:'Femur',region:'Thigh',role:'Major weight-bearing long bone',load:['Squat','Split Squat','Step-Up','Walking/Running as appropriate'],note:'Bone adaptation is influenced by regular mechanical loading; exercise should be selected for the whole person rather than to “isolate” a bone.'},
+  {n:'Tibia',region:'Lower leg',role:'Major weight-bearing lower-leg bone',load:['Squat','Step-Up','Calf Raise','Walking/impact activity as appropriate'],note:'Loading should progress gradually and reflect training history and tolerance.'},
+  {n:'Humerus',region:'Upper arm',role:'Long bone connecting shoulder and elbow',load:['Push-Up','Press','Row','Carry'],note:'Upper-body resistance exercises load the surrounding musculoskeletal system.'},
+  {n:'Radius & Ulna',region:'Forearm',role:'Forearm bones supporting elbow/wrist function',load:['Farmer Carry','Row','Curl','Press'],note:'Grip and resistance work can provide appropriate loading when technique and tolerance are adequate.'},
+  {n:'Pelvis',region:'Hip/pelvic ring',role:'Transfers forces between trunk and lower limbs',load:['Squat','Hip Hinge','Carry','Lunge'],note:'Programming should consider hip strength, trunk control and movement quality.'},
+  {n:'Vertebral Column',region:'Spine',role:'Axial support and force transmission',load:['Carry','Row','Bird Dog','Resistance training with controlled technique'],note:'The spine is not a single “muscle target”; loading choices should respect technique, tolerance and individual context.'}
+ ]},
+ movement:{label:'Movement Patterns',icon:'🔄',items:[
+  {n:'Squat',plane:'Primarily sagittal',focus:'Knee + hip extension',examples:['Goblet Squat','Back Squat','Leg Press','Split Squat'],progress:['Box/assisted squat','Goblet squat','Loaded squat']},
+  {n:'Hinge',plane:'Sagittal',focus:'Hip extension',examples:['Hip Hinge','RDL','Deadlift','Hip Thrust'],progress:['Dowel hinge','KB deadlift','RDL/deadlift']},
+  {n:'Push',plane:'Horizontal/vertical',focus:'Pressing force',examples:['Push-Up','Bench Press','Overhead Press','Landmine Press'],progress:['Incline push-up','Push-up','Loaded press']},
+  {n:'Pull',plane:'Horizontal/vertical',focus:'Pulling force',examples:['Row','Lat Pulldown','Pull-Up','Cable Row'],progress:['Supported row','Cable row','Pull-up progression']},
+  {n:'Lunge / Split Stance',plane:'Sagittal/frontal variations',focus:'Unilateral lower-body control',examples:['Reverse Lunge','Split Squat','Step-Up','Lateral Lunge'],progress:['Assisted split stance','Split squat','Loaded unilateral']},
+  {n:'Carry',plane:'Locomotion',focus:'Grip + trunk + gait',examples:['Farmer Carry','Suitcase Carry','Front Rack Carry'],progress:['Light carry','Longer carry','Heavier/complex carry']},
+  {n:'Rotation / Anti-Rotation',plane:'Transverse',focus:'Trunk force transfer/control',examples:['Pallof Press','Cable Chop','Cable Rotation','Side Plank'],progress:['Isometric hold','Loaded anti-rotation','Dynamic rotation']},
+  {n:'Gait / Locomotion',plane:'Cyclical',focus:'Walking/running mechanics',examples:['Walk','Treadmill','Jog','Run intervals'],progress:['Walk','Brisk walk','Run progression']}
+ ]},
+ posture:{label:'Posture & Movement Quality',icon:'🧍',items:[
+  {n:'Head / Neck',check:'Neutral head position and comfortable cervical movement',learn:['Screen height','Neck mobility','Thoracic posture'],rec:['Chin tuck practice','Thoracic extension','Scapular control']},
+  {n:'Scapula / Shoulder',check:'Scapula moves with the shoulder rather than being held rigid',learn:['Upward rotation','Retraction/protraction','Shoulder ROM'],rec:['Wall slide','Row','Serratus-focused press']},
+  {n:'Thoracic Spine',check:'Adequate extension/rotation supports upper-body movement',learn:['Thoracic extension','Rotation','Breathing/rib mechanics'],rec:['Open book','Quadruped rotation','Controlled extension']},
+  {n:'Pelvis / Hip',check:'Pelvic control during squat, hinge and single-leg tasks',learn:['Hip mobility','Glute function','Trunk control'],rec:['Hip hinge drill','Glute bridge','Split squat']},
+  {n:'Knee / Foot',check:'Knee tracks appropriately for the task and foot remains controlled',learn:['Foot tripod','Ankle dorsiflexion','Single-leg control'],rec:['Knee-to-wall','Calf raise','Step-down progression']}
+ ]}
+};
+var GOALS=['General Fitness','Strength','Hypertrophy','Muscular Endurance','Power','Mobility','Flexibility','Movement Quality','Cardiorespiratory Fitness','Healthy Aging','Body Recomposition','Sport Performance'];
+var LEVELS=['Beginner','Intermediate','Advanced'];
+var EQUIP=['Any','Bodyweight','Dumbbell','Barbell','Kettlebell','Cable','Machine','Band'];
+var CONTEXT=['Learning','Pre-Workout','Main Training','Cooldown','Recovery'];
+var PATTERNS=['All','Squat','Hinge','Push','Pull','Lunge / Split Stance','Carry','Rotation / Anti-Rotation','Gait / Locomotion'];
+function opts(a,sel){return a.map(function(x){return '<option value="'+esc(x)+'"'+(x===sel?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
+function currentType(){var b=q(ROOT);return b?b.dataset.type||'stretching':'stretching'}
+function typeTabs(){return Object.keys(DB).map(function(k){var d=DB[k];return '<button type="button" class="fj58e-tab '+(currentType()===k?'on':'')+'" data-fj58-type="'+k+'">'+d.icon+' '+d.label+'</button>'}).join('')}
+function cardFor(item,type,i){var title=item.n,sub='',meta='',why='',rec=[];
+ if(type==='stretching'){sub=item.area+' • '+item.type;meta=item.focus+' • '+item.ctx+' • '+item.level;rec=item.rec;why='Use the stretch type that matches the context: dynamic work is useful for movement preparation; static flexibility work can be placed in appropriate flexibility/cooldown contexts.'}
+ if(type==='muscles'){sub=item.group+' • '+item.action;meta='Joint: '+item.joint;rec=item.ex.concat(item.stretch);why='Recommendation connects the muscle’s action with movement patterns and practical exercise choices.'}
+ if(type==='joints'){sub=item.kind;meta=item.motion;rec=(item.mob||[]).concat(item.strength||[]);why='Joint recommendations are organized around mobility, control and strength rather than treating a joint in isolation.'}
+ if(type==='bones'){sub=item.region+' • '+item.role;meta='Loading & training context';rec=item.load;why=item.note}
+ if(type==='movement'){sub=item.plane+' • '+item.focus;meta='Progression: '+item.progress.join(' → ');rec=item.examples;why='Start with a controllable variation, then progress complexity/load when technique and readiness support it.'}
+ if(type==='posture'){sub=item.check;meta='Learn: '+item.learn.join(' • ');rec=item.rec;why='This is an education and movement-quality guide, not a diagnosis.'}
+ return '<button type="button" class="fj58e-libcard" data-fj58-index="'+i+'"><strong>'+esc(title)+'</strong><span>'+esc(sub)+'</span><small>'+esc(meta)+'</small><div>'+rec.slice(0,4).map(function(x){return '<em>'+esc(x)+'</em>'}).join('')+'</div></button>'}
+function matches(item,type,f){var s=(item.n+' '+(item.area||'')+' '+(item.group||'')+' '+(item.action||'')+' '+(item.region||'')+' '+(item.plane||'')+' '+(item.focus||'')+' '+(item.check||'')).toLowerCase();
+ if(f.search&&s.indexOf(f.search.toLowerCase())<0)return false;
+ if(type==='stretching'){if(f.area!=='All'&&item.area!==f.area)return false;if(f.context!=='Any'&&item.ctx!==f.context)return false;if(f.level!=='Any'&&item.level!==f.level)return false;if(f.focus!=='Any'&&item.focus!==f.focus)return false}
+ if(type==='muscles'&&f.group!=='All'&&item.group!==f.group)return false;
+ if(type==='joints'&&f.area!=='All'&&item.n!==f.area)return false;
+ if(type==='bones'&&f.area!=='All'&&item.n!==f.area)return false;
+ if(type==='movement'&&f.pattern!=='All'&&item.n!==f.pattern)return false;
+ if(type==='posture'&&f.area!=='All'&&item.n!==f.area)return false;
+ return true}
+function recommendations(type,f){var all=DB[type].items.filter(function(x){return matches(x,type,f)});var ed=exData();
+ if(type==='stretching'&&ed.length){var keywords=(f.area+' '+f.focus).toLowerCase();var extra=ed.filter(function(x){var t=(x.name+' '+(x.primary||[]).join(' ')+' '+(x.secondary||[]).join(' ')).toLowerCase();return !f.search||t.indexOf(f.search.toLowerCase())>-1||keywords.split(' ').some(function(k){return k.length>3&&t.indexOf(k)>-1})}).slice(0,10).map(function(x){return {n:x.name,area:x.primary&&x.primary[0]||f.area,type:'Exercise Library',focus:f.focus,ctx:f.context,level:f.level,rec:[x.name],__lib:true}});all=all.concat(extra)}
+ return all.slice(0,18)}
+function filters(type){
+ if(type==='stretching')return '<div class="fj58e-filters"><label>Area<select id="fj58Area">'+opts(['All','Neck','Shoulder','Chest/Shoulder','Back/Lat','Thoracic Spine','Spine','Hip','Adductor','Hamstring','Quadriceps','Calf/Ankle','Ankle'])+'</select></label><label>Focus<select id="fj58Focus">'+opts(['Any','Mobility','Flexibility'])+'</select></label><label>Level<select id="fj58Level">'+opts(['Any'].concat(LEVELS))+'</select></label><label>Context<select id="fj58Context">'+opts(['Any'].concat(CONTEXT.filter(function(x){return x!=='Learning'&&x!=='Main Training'})))+'</select></label></div>';
+ if(type==='muscles')return '<div class="fj58e-filters"><label>Muscle Group<select id="fj58Group">'+opts(['All','Chest','Back','Back/Scapula','Shoulder','Glutes','Thigh','Calf','Core','Back/Core'])+'</select></label><label>Goal<select id="fj58Goal">'+opts(GOALS,'General Fitness')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label></div>';
+ if(type==='joints')return '<div class="fj58e-filters"><label>Joint<select id="fj58Area">'+opts(['All'].concat(DB.joints.items.map(function(x){return x.n})))+'</select></label><label>Goal<select id="fj58Goal">'+opts(GOALS,'Mobility')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label></div>';
+ if(type==='bones')return '<div class="fj58e-filters"><label>Bone / Structure<select id="fj58Area">'+opts(['All'].concat(DB.bones.items.map(function(x){return x.n})))+'</select></label><label>Goal<select id="fj58Goal">'+opts(['Bone Health Context','Strength','General Fitness','Healthy Aging'],'Bone Health Context')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label></div>';
+ if(type==='movement')return '<div class="fj58e-filters"><label>Movement Pattern<select id="fj58Pattern">'+opts(PATTERNS,'All')+'</select></label><label>Goal<select id="fj58Goal">'+opts(GOALS,'General Fitness')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label><label>Equipment<select id="fj58Equip">'+opts(EQUIP,'Any')+'</select></label></div>';
+ return '<div class="fj58e-filters"><label>Region<select id="fj58Area">'+opts(['All'].concat(DB.posture.items.map(function(x){return x.n})))+'</select></label><label>Goal<select id="fj58Goal">'+opts(['Movement Quality','General Fitness','Mobility','Strength'],'Movement Quality')+'</select></label><label>Level<select id="fj58Level">'+opts(LEVELS,'Beginner')+'</select></label></div>';
+}
+function render(type){var b=q('exlMateri');if(!b)return;var old=q(ROOT);var host=document.createElement('div');host.id=ROOT;host.dataset.type=type;var d=DB[type];host.innerHTML='<style>'+css()+'</style><div class="fj58e-head"><div><div class="label">INTERACTIVE HUMAN BODY & MOVEMENT EDUCATION</div><h2>'+d.icon+' '+d.label+'</h2><p>Belajar, pilih, cek, dan dapatkan rekomendasi yang terhubung dengan goal, level, movement, dan exercise library.</p></div><div class="fj58e-badge">EVIDENCE-INFORMED</div></div><div class="fj58e-tabs">'+typeTabs()+'</div>'+filters(type)+'<div class="fj58e-search"><input id="fj58Search" placeholder="Cari nama, otot, area, gerakan..."/><button type="button" id="fj58Reset">Reset</button></div><div class="fj58e-note">Rekomendasi diprioritaskan berdasarkan kecocokan konteks. Ini adalah materi edukasi kebugaran, bukan diagnosis atau pengganti pemeriksaan medis.</div><div class="fj58e-layout"><div><div class="fj58e-count" id="fj58Count"></div><div id="fj58Cards" class="fj58e-cards"></div></div><aside id="fj58Detail" class="fj58e-detail"><h3>Pilih materi</h3><p>Pilih item untuk membuka penjelasan, hubungan anatomi, dan rekomendasi.</p></aside></div><div class="fj58e-source"><strong>Programming principles:</strong> goal-specific loading, gradual progression, personalization, movement quality and appropriate exercise selection. ACSM’s 2026 resistance-training position stand emphasizes matching training variables to goals and building gradually; NASM’s OPT framework progresses through stabilization, strength and power phases. <a href="https://www.acsm.org/resistance-training-guidelines-update-2026/" target="_blank" rel="noopener">ACSM</a> · <a href="https://www.nasm.org/certified-personal-trainer/the-opt-model" target="_blank" rel="noopener">NASM OPT</a></div>';
+ if(old)old.replaceWith(host);else b.appendChild(host);bind(host,type);}
+function readFilters(type){function v(id,d){var x=q(id);return x?x.value:d}return {area:v('fj58Area','All'),focus:v('fj58Focus','Any'),level:v('fj58Level','Any'),context:v('fj58Context','Any'),group:v('fj58Group','All'),pattern:v('fj58Pattern','All'),goal:v('fj58Goal','General Fitness'),equip:v('fj58Equip','Any'),search:v('fj58Search','')}}
+function bind(host,type){host.querySelectorAll('[data-fj58-type]').forEach(function(btn){btn.addEventListener('click',function(){render(this.dataset.fj58Type)})});var update=function(){var f=readFilters(type),arr=recommendations(type,f),cards=q('fj58Cards');q('fj58Count').textContent=arr.length+' rekomendasi / materi yang cocok';cards.innerHTML=arr.map(function(x,i){return cardFor(x,type,i)}).join('');cards.querySelectorAll('.fj58e-libcard').forEach(function(c){c.addEventListener('click',function(){detail(type,arr[+this.dataset.fj58Index],f)})});if(arr[0])detail(type,arr[0],f)};host.querySelectorAll('select,input').forEach(function(x){x.addEventListener('input',update);x.addEventListener('change',update)});q('fj58Reset').addEventListener('click',function(){render(type)});update()}
+function detail(type,x,f){var b=q('fj58Detail');if(!b||!x)return;var rec=x.rec||[];var html='<div class="fj58e-detailtop"><span>'+DB[type].icon+'</span><div><div class="label">SELECTED TOPIC</div><h3>'+esc(x.n)+'</h3><p>'+esc(x.area||x.group||x.region||x.plane||x.kind||'')+'</p></div></div>';
+ if(type==='muscles')html+='<section><b>Function</b><p>'+esc(x.action)+'</p><b>Related joint</b><p>'+esc(x.joint)+'</p></section>';
+ if(type==='joints')html+='<section><b>Joint type</b><p>'+esc(x.kind)+'</p><b>Movement</b><p>'+esc(x.motion)+'</p><b>Key musculature</b><p>'+esc(x.muscles)+'</p></section>';
+ if(type==='bones')html+='<section><b>Role</b><p>'+esc(x.role)+'</p><b>Training / loading context</b><p>'+esc(x.note)+'</p></section>';
+ if(type==='movement')html+='<section><b>Pattern</b><p>'+esc(x.focus)+'</p><b>Progression</b><p>'+esc(x.progress.join(' → '))+'</p></section>';
+ if(type==='posture')html+='<section><b>What to check</b><p>'+esc(x.check)+'</p><b>Learn</b><p>'+esc(x.learn.join(' • '))+'</p></section>';
+ if(type==='stretching')html+='<section><b>Type / context</b><p>'+esc(x.type)+' • '+esc(x.ctx)+' • '+esc(x.level)+'</p><b>Focus</b><p>'+esc(x.focus)+'</p></section>';
+ html+='<section><b>Recommended options</b><div class="fj58e-rec">'+rec.map(function(r,i){return '<div><strong>'+(i+1)+'.</strong> '+esc(r)+'</div>'}).join('')+'</div></section><section class="fj58e-why"><b>Why this is recommended</b><p>Match the selection to the stated goal, current level, movement quality, equipment, and training context. Progress only when the client can perform the current variation with appropriate control and tolerance.</p></section>';
+ if(f&&f.goal)html+='<div class="fj58e-context"><b>Current filter</b><br>Goal: '+esc(f.goal)+' · Level: '+esc(f.level||'Any')+(f.equip?' · Equipment: '+esc(f.equip):'')+'</div>';
+ b.innerHTML=html}
+function css(){return '.fj58e-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;background:linear-gradient(135deg,#f7fdfc,#eaf9f6);border:1px solid #cce8e4;border-radius:16px;padding:16px;margin-bottom:12px}.fj58e-head h2{margin:4px 0;color:#0c403f}.fj58e-head p{margin:0;color:#628c8a;max-width:800px}.fj58e-badge{font-size:10px;font-weight:900;padding:7px 9px;border-radius:999px;background:#def7f1;color:#14766b;white-space:nowrap}.fj58e-tabs{display:flex;gap:7px;overflow:auto;padding:2px 0 10px}.fj58e-tab{border:1px solid #d2e9e9;background:#fff;color:#437a73;border-radius:999px;padding:9px 12px;font-weight:800;white-space:nowrap;cursor:pointer}.fj58e-tab.on{background:#def9f5;border-color:#99e8d8;color:#087f70}.fj58e-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;background:#fff;border:1px solid #d2e9e9;border-radius:14px;padding:12px}.fj58e-filters label{font-size:11px;font-weight:900;color:#5e8984}.fj58e-filters select,.fj58e-search input{width:100%;margin-top:5px;padding:9px;border:1px solid #cce6e1;border-radius:9px;background:#fff;color:#143d37}.fj58e-search{display:flex;gap:8px;margin-top:10px}.fj58e-search input{margin:0;flex:1}.fj58e-search button{border:1px solid #cce6e1;background:#edf8f6;border-radius:9px;padding:8px 12px;font-weight:800;color:#1d655c}.fj58e-note{margin-top:10px;padding:10px;border-radius:10px;background:#f4faf9;border:1px solid #d7ebe8;color:#5c817c;font-size:12px}.fj58e-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:12px;margin-top:12px}.fj58e-count{font-size:11px;font-weight:900;color:#628c8a;margin:0 0 7px}.fj58e-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.fj58e-libcard{text-align:left;border:1px solid #d4e8e6;background:#fff;border-radius:12px;padding:11px;cursor:pointer;color:#143d37;min-width:0}.fj58e-libcard:hover{border-color:#74cfc0}.fj58e-libcard strong{display:block;font-size:14px}.fj58e-libcard span,.fj58e-libcard small{display:block;color:#628c8a;margin-top:3px;line-height:1.35}.fj58e-libcard small{font-size:10px}.fj58e-libcard em{display:inline-block;font-style:normal;font-size:10px;background:#eef7f5;border-radius:999px;padding:4px 6px;margin:6px 4px 0 0}.fj58e-detail{border:1px solid #cce6e1;border-radius:14px;background:linear-gradient(180deg,#fff,#f6fcfb);padding:14px;align-self:start;position:sticky;top:10px}.fj58e-detail h3{margin:2px 0;color:#0c403f}.fj58e-detail p{color:#628c8a;margin:5px 0 10px}.fj58e-detail section{border-top:1px solid #e2efef;padding-top:10px;margin-top:10px}.fj58e-detailtop{display:flex;gap:10px;align-items:flex-start}.fj58e-detailtop>span{font-size:28px}.fj58e-rec div{padding:7px 8px;border-radius:8px;background:#f4faf9;margin-top:5px;font-size:12px}.fj58e-why{background:#fff8ea;border:1px solid #efd9aa;border-radius:10px;padding:9px}.fj58e-context{margin-top:10px;font-size:11px;padding:8px;border-radius:8px;background:#eef8f6;color:#3f756e}.fj58e-source{margin-top:12px;font-size:10px;color:#72908c;line-height:1.5}.fj58e-source a{color:#087f70;font-weight:800}@media(max-width:850px){.fj58e-layout{grid-template-columns:1fr}.fj58e-detail{position:static}.fj58e-filters{grid-template-columns:1fr 1fr}}@media(max-width:560px){.fj58e-head{flex-direction:column}.fj58e-cards{grid-template-columns:1fr}.fj58e-filters{grid-template-columns:1fr}.fj58e-search{flex-direction:column}.fj58e-search button{width:100%}}'}
+function isEduClick(e){var el=e.target.closest?e.target.closest('button,.navbtn'):null;return el&&/Exercise Library/i.test(el.textContent||'')}
+document.addEventListener('click',function(e){if(!isEduClick(e))return;setTimeout(function(){var p=q('fjExerciseLibrary'),m=q('exlMateri');if(p&&p.classList.contains('active')&&m){render('stretching')}},120)},true);
+setTimeout(function(){var p=q('fjExerciseLibrary'),m=q('exlMateri');if(p&&p.classList.contains('active')&&m)render('stretching')},1200);
+})();
+</script>

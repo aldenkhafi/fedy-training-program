@@ -7236,110 +7236,8 @@ setInterval(function(){ensurePTClientNav();refreshPTAccess()},4000);
 })();
 </script>
 
-<script id="fj-v61-education-rebuild">
-(function(){
-'use strict';
-function q(id){return document.getElementById(id)}
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function data(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
-var ANATOMY={
-  'Punggung':{
-    muscles:[
-      ['Latissimus Dorsi',['lat','latissimus','pulldown','pull up','row']],
-      ['Trapezius',['trap','trapezius','shrug','face pull']],
-      ['Rhomboids',['rhomboid','row','scapula']],
-      ['Erector Spinae',['erector','spine','deadlift','back extension']],
-      ['Teres Major',['teres','pulldown','row']],
-      ['Rear Deltoid',['rear delt','posterior delt','face pull','reverse fly']]
-    ],
-    joints:['Shoulder','Elbow','Spine'],
-    bones:['Scapula','Thoracic Spine','Lumbar Spine','Humerus','Ribs'],
-    patterns:['Pull','Hinge','Carry'],
-    function:'Menarik lengan, mengontrol scapula, membantu ekstensi/adduksi bahu, stabilisasi trunk, dan transfer gaya.',
-    risk:'Teknik, ROM, fatigue, dan beban perlu dikontrol. Momentum berlebihan atau beban yang terlalu berat dapat mengurangi kualitas gerak.',
-    warm:'5–8 menit aktivitas ringan + scapular movement + row/pulldown ringan + ramp-up set.',
-    stretch:'Lat stretch, child-pose/lat reach, thoracic rotation, dan gentle posterior-shoulder stretch sesuai kebutuhan.'
-  },
-  'Dada':{muscles:[['Pectoralis Major',['chest','dada','press','fly','push up']]],joints:['Shoulder','Elbow'],bones:['Sternum','Ribs','Scapula','Humerus'],patterns:['Push'],function:'Mendorong dan membantu gerak lengan melalui horizontal adduction/flexion bahu.',risk:'Kontrol bahu dan ROM perlu disesuaikan dengan kapasitas individu.',warm:'Cardio ringan + arm circles + ramp-up press.',stretch:'Doorway chest stretch dan dynamic arm sweep.'},
-  'Bahu':{muscles:[['Anterior Deltoid',['shoulder press','front raise','press']],['Medial Deltoid',['lateral raise','shoulder']],['Rear Deltoid',['rear delt','face pull','reverse fly']]],joints:['Shoulder'],bones:['Scapula','Clavicle','Humerus'],patterns:['Push','Pull'],function:'Menghasilkan dan mengontrol elevasi serta gerak lengan.',risk:'Overhead load dan volume perlu disesuaikan dengan toleransi bahu.',warm:'Arm circles + scapular movement + light raise/press.',stretch:'Cross-body shoulder stretch dan gentle posterior shoulder stretch.'},
-  'Lengan':{muscles:[['Biceps Brachii',['biceps','curl','row','pulldown']],['Triceps Brachii',['triceps','extension','press']]],joints:['Elbow','Shoulder'],bones:['Humerus','Radius','Ulna'],patterns:['Push','Pull'],function:'Elbow flexion/extension dan kontribusi pada push/pull.',risk:'Beban dan momentum perlu dikontrol agar siku dan bahu tetap toleran.',warm:'Gerak siku ringan + set pemanasan curl/extension.',stretch:'Biceps wall stretch dan overhead triceps stretch.'},
-  'Pinggul & Paha':{muscles:[['Gluteus Maximus',['glute','hip thrust','deadlift','squat']],['Quadriceps',['quad','squat','lunge','leg press']],['Hamstrings',['hamstring','deadlift','hinge','leg curl']]],joints:['Hip','Knee'],bones:['Pelvis','Femur','Tibia','Patella'],patterns:['Squat','Hinge','Lunge'],function:'Menghasilkan dan mengontrol hip/knee extension serta locomotion.',risk:'ROM, volume, dan impact perlu diprogreskan bertahap.',warm:'Walk/bike + lunge + squat/hinge drill + ramp-up.',stretch:'Quad, hamstring, dan glute stretch sesuai kebutuhan.'},
-  'Core':{muscles:[['Core / Trunk',['core','plank','dead bug','carry','anti rotation']]],joints:['Spine','Hip'],bones:['Spine / Vertebrae','Pelvis','Rib cage'],patterns:['Core / Anti-Rotation','Carry'],function:'Bracing, stabilitas trunk, transfer gaya, dan kontrol posisi tubuh.',risk:'Fatigue dapat menurunkan kontrol trunk; jangan mengejar beban saat bracing hilang.',warm:'Breathing/bracing + dead bug ringan + movement prep.',stretch:'Child pose reach, open book, dan gentle trunk mobility.'}
-};
 
-function norm(v){return String(v||'').toLowerCase()}
-function muscleList(region){return ANATOMY[region]?ANATOMY[region].muscles.map(function(x){return x[0]}):[]}
-function exMatches(region,muscle,pattern,joint,bone){
-  var r=ANATOMY[region]||ANATOMY.Punggung, keys=[];
-  if(muscle){var mm=r.muscles.find(function(x){return x[0]===muscle});if(mm)keys=mm[1]}
-  var arr=data().map(function(d){
-    var hay=norm([d.name,d.cat,d.move,d.movement].concat(d.primary||[],d.secondary||[]).join(' ')),score=0;
-    if(!hay)return {d:d,s:-1};
-    if(muscle&&keys.some(function(k){return hay.indexOf(norm(k))>=0}))score+=12;
-    if(!muscle&&r.muscles.some(function(mm){return mm[1].some(function(k){return hay.indexOf(norm(k))>=0})}))score+=8;
-    if(pattern&&norm(d.move)===norm(pattern))score+=8;
-    if(joint&&['shoulder','elbow','spine','hip','knee','ankle'].some(function(k){return norm(joint).indexOf(k)>=0&&hay.indexOf(k)>=0}))score+=2;
-    if(bone&&hay.indexOf(norm(bone))>=0)score+=2;
-    if(score===0)return {d:d,s:-1};
-    return {d:d,s:score};
-  }).filter(function(x){return x.s>=0}).sort(function(a,b){return b.s-a.s||String(a.d.name).localeCompare(String(b.d.name))});
-  return arr.slice(0,24);
-}
-function render(){
-  var b=q('exlMateri');if(!b)return;
-  var regions=Object.keys(ANATOMY),region=q('fjV61EduRegion')?q('fjV61EduRegion').value:'Punggung';
-  var r=ANATOMY[region]||ANATOMY.Punggung,muscles=muscleList(region);
-  var muscle=q('fjV61EduMuscle')?q('fjV61EduMuscle').value:'';
-  var pattern=q('fjV61EduPattern')?q('fjV61EduPattern').value:'';
-  var joint=q('fjV61EduJoint')?q('fjV61EduJoint').value:'';
-  var bone=q('fjV61EduBone')?q('fjV61EduBone').value:'';
-  var ex=exMatches(region,muscle,pattern,joint,bone);
-  var mopts='<option value="">Semua bagian / otot</option>'+muscles.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
-  var popts='<option value="">Semua pattern</option>'+r.patterns.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
-  var jopts='<option value="">Semua sendi</option>'+r.joints.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
-  var bopts='<option value="">Semua tulang</option>'+r.bones.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
-  b.innerHTML='<div class="exl-card fj-v61-edu"><div class="label">MATERI & EDUKASI — AUTOMATION</div>'+
-    '<h2 style="margin:4px 0">Pilih bagian tubuh → otot → latihan → anatomi → rekomendasi</h2>'+
-    '<p class="exl-muted">Contoh: pilih <b>Punggung</b>. Sistem lalu menyaring otot punggung, latihan yang relevan, pattern, sendi, tulang, lalu menampilkan fungsi, risiko, warm up, stretching dan rekomendasi.</p>'+
-    '<div class="fj-v61-edu-filters">'+
-      '<label>Bagian tubuh<select id="fjV61EduRegion">'+regions.map(function(x){return '<option '+(x===region?'selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label>'+
-      '<label>Otot bagian mana<select id="fjV61EduMuscle">'+mopts+'</select></label>'+
-      '<label>Pattern / nama gerakan<select id="fjV61EduPattern">'+popts+'</select></label>'+
-      '<label>Sendi terlibat<select id="fjV61EduJoint">'+jopts+'</select></label>'+
-      '<label>Tulang terkait<select id="fjV61EduBone">'+bopts+'</select></label>'+
-    '</div>'+
-    '<div class="fj-v61-edu-info">'+
-      '<div><b>Fungsi</b><span>'+esc(r.function)+'</span></div>'+
-      '<div><b>Risiko / perhatian</b><span>'+esc(r.risk)+'</span></div>'+
-      '<div><b>Warm Up</b><span>'+esc(r.warm)+'</span></div>'+
-      '<div><b>Stretching</b><span>'+esc(r.stretch)+'</span></div>'+
-      '<div><b>Sendi</b><span>'+esc(joint||r.joints.join(' • '))+'</span></div>'+
-      '<div><b>Tulang</b><span>'+esc(bone||r.bones.join(' • '))+'</span></div>'+
-    '</div>'+
-    '<div style="margin-top:14px"><div class="label">LATIHAN YANG TERKAIT</div><div class="fj-v61-edu-results">'+
-      (ex.length?ex.map(function(x){var d=x.d;return '<article class="fj-v61-edu-card"><h4>'+esc(d.emoji||'🏋️')+' '+esc(d.name)+'</h4><div class="meta">Otot: '+esc((d.primary||[]).join(', ')||'—')+'</div><div class="meta">Pattern: '+esc(d.move||'—')+' • Alat: '+esc(d.equip||'—')+' • Level: '+esc(d.level||'—')+'</div><p style="font-size:11px;color:#516f80">'+esc(d.desc||'')+'</p><button type="button" class="exl-btn alt" onclick="window.fjExlOpen(&quot;'+esc(d.id)+'&quot;)">Lihat Detail</button></article>'}).join(''):'<div class="fj-v61-edu-empty">Belum ada latihan yang cocok dengan kombinasi pilihan ini.</div>')+
-    '</div></div></div>';
-  ['fjV61EduRegion','fjV61EduMuscle','fjV61EduPattern','fjV61EduJoint','fjV61EduBone'].forEach(function(id){
-    var el=q(id);if(el)el.onchange=render;
-  });
-}
-function boot(){
-  var nav=q('fjExLibNav');if(nav&&!nav.dataset.fj61edu){
-    nav.dataset.fj61edu='1';
-    nav.addEventListener('click',function(){setTimeout(function(){
-      var tab=document.querySelector('#fjExerciseLibrary .exl-tab[data-v="materi"]');
-      if(tab&&!tab.classList.contains('active'))tab.click();
-      setTimeout(render,80);
-    },80)},true);
-  }
-  if(q('exlMateri'))render();
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1400)},{once:true});else setTimeout(boot,1400);
-window.addEventListener('load',function(){setTimeout(boot,1700)});
-setInterval(function(){if(q('exlMateri')&&q('fjV61EduRegion')==null)render()},2500);
-})();
-</script>
-<!-- FJ V61.1 SURGICAL STABILITY PATCH: fixes only reported runtime/navigation/education issues. -->
+<!-- FJ V61.8 SURGICAL: Materi & Edukasi uses one integrated engine; duplicate education renderers removed. -->
 <style id="fj-v611-surgical-fix">
 /* Keep sidebar labels inside their boxes; do not alter the rest of the layout. */
 .side .navbtn{white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.25;min-width:0}
@@ -7365,117 +7263,8 @@ setInterval(function(){if(q('exlMateri')&&q('fjV61EduRegion')==null)render()},25
 (function(){
 'use strict';
 function q(id){return document.getElementById(id)}
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-
-/* Calendar persistence: deliberately global because older calendar handlers call persistCalendar(). */
-window.persistCalendar=function(){
-  try{
-    var st=window.fjClientCalendar&&typeof window.fjClientCalendar.state==='function'?window.fjClientCalendar.state():null;
-    if(!st)return;
-    var g=function(id){var e=q(id);return e?e.value||'':''};
-    var ba=null; try{ba=window.fjGetBeforeAfterState?window.fjGetBeforeAfterState():JSON.parse(localStorage.getItem('fj_v27_before_after')||'null')}catch(e){}
-    var payload={version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:{name:g('clientName'),age:g('programAge'),gender:g('programGender'),weight:g('programWeight'),height:g('programHeight'),goal:g('programGoal'),level:g('programLevel'),wtype:g('programWorkoutType'),duration:g('programMonths'),freq:g('programFreq')},calendar:st,beforeAfter:ba};
-    localStorage.setItem('fj_client_calendar_v1',JSON.stringify(payload));
-  }catch(e){console.error('persistCalendar failed',e)}
-};
-
-/* Online tombstone helper: older online sync code calls isDeletedOnline() before the directory IIFE exists. */
-window.isDeletedOnline=function(onlineId){
-  if(!onlineId)return false;
-  try{var x=JSON.parse(localStorage.getItem('fj_client_directory_deleted_v1')||'{}')||{};return !!x[String(onlineId)]}catch(e){return false}
-};
-
-/* Keep exactly one PT & Client navigation entry, directly below PT Tracker Management. */
-function installPTClientNav(){
-  var side=document.querySelector('.side'); if(!side)return;
-  var tracker=q('fjPtTrackerNav')||q('fjV60PtDirectoryNav');
-  var n=q('fjPtClientNav');
-  if(!n){
-    n=document.createElement('button'); n.id='fjPtClientNav'; n.type='button'; n.className='navbtn'; n.textContent='▣ PT & Client';
-  }
-  var dup=q('fjV60PtDirectoryNav'); if(dup&&dup!==n)dup.remove();
-  if(tracker&&tracker.parentNode){
-    if(n.previousElementSibling!==tracker)tracker.parentNode.insertBefore(n,tracker.nextSibling);
-  }else if(!n.parentNode){side.appendChild(n)}
-  n.style.display='flex'; n.style.width='100%'; n.style.whiteSpace='normal'; n.style.overflowWrap='anywhere';
-  n.onclick=function(e){
-    e.preventDefault();e.stopPropagation();
-    try{
-      if(typeof window.fjOpenPtClientUnified==='function'){
-        var p=q('fjPtOpsV2'); if(p){document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});p.classList.add('active');p.style.display='block';}
-        Promise.resolve(window.fjOpenPtClientUnified()).catch(function(err){console.error(err);alert('PT & Client gagal dibuka: '+(err&&err.message?err.message:err))});
-      }else if(typeof window.fjV61OpenPTClient==='function'){
-        Promise.resolve(window.fjV61OpenPTClient()).catch(function(err){console.error(err);alert('PT & Client gagal dibuka: '+(err&&err.message?err.message:err))});
-      }
-    }catch(err){console.error(err);alert('PT & Client gagal dibuka: '+(err&&err.message?err.message:err))}
-  };
-}
-
-/* Detailed, text-first anatomy education. Major muscles are selectable by region; the detail panel is self-contained. */
-var MUSCLES={
-'Pectoralis Major':{region:'Dada',bones:'Clavicle, sternum, costal cartilages and humerus (attachment via lateral lip of intertubercular sulcus)',joints:'Shoulder',patterns:'Horizontal push / horizontal adduction; shoulder flexion (clavicular portion); internal rotation',function:'Menghasilkan horizontal adduction dan membantu flexion serta internal rotation bahu.',train:'Bench press, incline press, push-up, cable fly, dumbbell fly.',cues:'Scapula terkontrol, siku dan ROM sesuai toleransi, dorong tanpa memantulkan beban.'},
-'Pectoralis Minor':{region:'Dada',bones:'Ribs 3–5 → coracoid process of scapula',joints:'Scapulothoracic / shoulder complex',patterns:'Scapular protraction, depression dan downward rotation',function:'Membantu posisi dan kontrol scapula.',train:'Push-up plus, serratus/scapular-control drills dan pressing dengan kontrol scapula.',cues:'Fokus pada gerak scapula, bukan sekadar menambah beban.'},
-'Latissimus Dorsi':{region:'Punggung',bones:'Thoracolumbar fascia, lower thoracic/lumbar region, iliac crest dan lower ribs → humerus',joints:'Shoulder',patterns:'Vertical pull / shoulder extension / adduction',function:'Membantu shoulder extension dan adduction serta transfer gaya upper body.',train:'Lat pulldown, pull-up, straight-arm pulldown, one-arm cable pulldown, row variations.',cues:'Jaga trunk stabil dan tarik siku dengan kontrol tanpa momentum.'},
-'Trapezius':{region:'Punggung',bones:'Occipital region, nuchal ligament dan cervical/thoracic spinous processes → clavicle, acromion, scapular spine',joints:'Scapulothoracic / shoulder complex',patterns:'Scapular elevation, retraction, depression dan upward rotation',function:'Menstabilkan dan menggerakkan scapula untuk push, pull dan overhead movement.',train:'Shrug, row, face pull, prone Y-raise, farmer carry.',cues:'Bedakan gerak scapula dari mengangkat bahu secara berlebihan.'},
-'Rhomboids':{region:'Punggung',bones:'Cervical/thoracic spinous processes → medial border of scapula',joints:'Scapulothoracic',patterns:'Scapular retraction dan downward rotation',function:'Membantu menarik scapula ke arah tulang belakang dan menjaga kontrol scapula.',train:'Chest-supported row, cable row, band row.',cues:'Tarik dengan kontrol dan hindari shrug berlebihan.'},
-'Erector Spinae':{region:'Punggung',bones:'Broad attachment along sacrum/pelvis and vertebral processes → ribs/vertebrae/skull depending on subdivision',joints:'Spine / trunk',patterns:'Hip hinge, spinal extension dan anti-flexion isometric control',function:'Membantu mempertahankan dan mengontrol posisi tulang belakang serta transfer gaya.',train:'Romanian deadlift, deadlift, back extension, good morning (sesuai level).',cues:'Pertahankan kontrol trunk; beban dinaikkan bertahap.'},
-'Deltoid':{region:'Bahu',bones:'Clavicle, acromion dan scapular spine → deltoid tuberosity of humerus',joints:'Shoulder',patterns:'Press / raise / arm elevation',function:'Anterior membantu flexion, medial abduction, posterior extension dan horizontal abduction.',train:'Overhead press, lateral raise, rear-delt fly, cable raise.',cues:'Gunakan ROM terkontrol dan hindari momentum.'},
-'Rotator Cuff':{region:'Bahu',bones:'Scapula → proximal humerus',joints:'Shoulder',patterns:'Shoulder rotation / stabilization',function:'Menstabilkan kepala humerus dan membantu rotasi bahu.',train:'Cable/band external rotation, internal rotation, controlled raise dan row variations.',cues:'Beban ringan–moderat dengan kontrol; bukan mengejar beban maksimal.'},
-'Biceps Brachii':{region:'Lengan',bones:'Long head: supraglenoid tubercle of scapula; short head: coracoid process → radius (radial tuberosity) via biceps tendon',joints:'Shoulder dan elbow; juga memengaruhi radioulnar joint',patterns:'Pull; elbow flexion; forearm supination; shoulder flexion assistance',function:'Melakukan elbow flexion dan supination serta membantu stabilisasi/gerak bahu.',train:'Dumbbell/cable curl, incline dumbbell curl, preacher curl, hammer curl (brachialis/brachioradialis ikut bekerja), chin-up.',cues:'Siku relatif stabil, supinasi penuh sesuai kenyamanan, hindari ayunan badan.'},
-'Brachialis':{region:'Lengan',bones:'Distal humerus → ulna (coronoid process/tuberosity)',joints:'Elbow',patterns:'Pull / elbow flexion',function:'Flexor siku yang kuat pada berbagai posisi forearm.',train:'Hammer curl, reverse curl, cable curl, preacher curl.',cues:'Kontrol fase turun dan jangan mengangkat beban dengan momentum.'},
-'Brachioradialis':{region:'Lengan',bones:'Lateral supracondylar ridge of humerus → distal radius',joints:'Elbow / radioulnar',patterns:'Pull / elbow flexion',function:'Membantu flexion siku terutama dengan forearm posisi netral.',train:'Hammer curl, neutral-grip cable curl, reverse curl.',cues:'Pertahankan grip netral dan ROM terkendali.'},
-'Triceps Brachii':{region:'Lengan',bones:'Scapula (long head) and posterior humerus (other heads) → olecranon of ulna',joints:'Elbow; long head also crosses shoulder',patterns:'Push / elbow extension',function:'Prime mover untuk elbow extension; long head juga membantu shoulder extension.',train:'Cable pressdown, overhead extension, close-grip press, assisted dip.',cues:'Siku stabil dan ROM sesuai toleransi.'},
-'Serratus Anterior':{region:'Dada',bones:'Ribs 1–8/9 → anterior medial border of scapula',joints:'Scapulothoracic',patterns:'Scapular protraction dan upward rotation',function:'Membantu scapula bergerak dan tetap menempel pada thorax saat arm elevation/push.',train:'Push-up plus, cable punch, wall slide dengan protraction.',cues:'Jangan hanya menggerakkan lengan; rasakan gerak scapula.'},
-'Rectus Abdominis':{region:'Core',bones:'Pubic crest/symphysis → xiphoid process and costal cartilages',joints:'Spine / trunk',patterns:'Anti-extension / trunk flexion control',function:'Membantu trunk flexion dan mengontrol anterior pelvic tilt serta ekstensi lumbar.',train:'Cable crunch, reverse crunch, controlled curl-up, dead bug progressions.',cues:'Jaga ribcage-pelvis relationship dan jangan menarik leher.'},
-'Obliques':{region:'Core',bones:'Ribs and thoracolumbar region → linea alba, pelvis and lower ribs depending on layer',joints:'Spine / trunk',patterns:'Anti-rotation / rotation / lateral flexion',function:'Mengontrol rotasi, lateral flexion dan transfer gaya antara pelvis dan thorax.',train:'Pallof press, side plank, cable chop/lift, controlled rotation.',cues:'Prioritaskan kontrol anti-rotation sebelum menambah beban rotasi.'},
-'Gluteus Maximus':{region:'Pinggul',bones:'Posterior ilium, sacrum/coccyx → gluteal tuberosity and iliotibial tract',joints:'Hip',patterns:'Squat / hinge / lunge / hip extension',function:'Prime contributor pada hip extension dan membantu stabilisasi pelvis.',train:'Hip thrust, squat, Romanian deadlift, split squat, step-up.',cues:'Kontrol pelvis dan gunakan hip extension tanpa over-arching lumbar.'},
-'Gluteus Medius':{region:'Pinggul',bones:'Lateral ilium → greater trochanter of femur',joints:'Hip',patterns:'Frontal-plane control / abduction / single-leg stability',function:'Hip abduction dan kontrol pelvis terutama pada single-leg stance.',train:'Side-lying abduction, cable abduction, lateral step-up, single-leg squat progressions.',cues:'Jaga pelvis tidak jatuh ke sisi berlawanan.'},
-'Hip Flexors':{region:'Pinggul',bones:'Primarily lumbar spine/iliac fossa → lesser trochanter via iliopsoas',joints:'Hip',patterns:'Hip flexion / locomotion',function:'Mengangkat paha dan membantu kontrol pelvis serta langkah.',train:'Cable/band hip flexion, marching, controlled leg raise, step-up.',cues:'Hindari kompensasi lumbar saat hip flexion.'},
-'Adductors':{region:'Paha',bones:'Pubis/ischium → medial femur/tibia depending on muscle',joints:'Hip',patterns:'Lunge / frontal-plane control / hip adduction',function:'Mendekatkan paha ke garis tengah dan membantu stabilitas pelvis/hip.',train:'Copenhagen plank, lateral lunge, adductor machine, controlled squat/lunge.',cues:'Naikkan ROM dan beban bertahap.'},
-'Quadriceps':{region:'Paha',bones:'Femur/ilium → patella and tibial tuberosity via patellar tendon',joints:'Knee; rectus femoris also crosses hip',patterns:'Squat / lunge / knee extension',function:'Kelompok utama untuk knee extension dan kontrol deselerasi.',train:'Squat, split squat, leg press, step-up, knee extension.',cues:'Jaga kontrol lutut dan progreskan volume secara bertahap.'},
-'Hamstrings':{region:'Paha',bones:'Ischial tuberosity and posterior femur → tibia/fibula depending on muscle',joints:'Hip dan knee',patterns:'Hinge / lunge / knee flexion',function:'Membantu hip extension dan knee flexion serta kontrol fase deselerasi.',train:'Romanian deadlift, leg curl, Nordic progression, good morning.',cues:'Kontrol pelvis dan spine saat hinge; jangan memaksa ROM.'},
-'Gastrocnemius':{region:'Tungkai bawah',bones:'Femoral condyles → calcaneus via Achilles tendon',joints:'Knee dan ankle',patterns:'Locomotion / calf raise / propulsion',function:'Plantarflexion dan membantu knee flexion.',train:'Standing calf raise, single-leg calf raise, loaded pogo progression.',cues:'Gunakan full controlled ROM yang nyaman.'},
-'Soleus':{region:'Tungkai bawah',bones:'Posterior tibia/fibula → calcaneus via Achilles tendon',joints:'Ankle',patterns:'Locomotion / plantarflexion',function:'Plantarflexor penting terutama saat knee flexed.',train:'Seated calf raise, bent-knee calf raise.',cues:'Kontrol bawah-atas dan jangan memantulkan beban.'},
-'Tibialis Anterior':{region:'Tungkai bawah',bones:'Lateral tibia → medial foot (medial cuneiform/base first metatarsal)',joints:'Ankle',patterns:'Locomotion / dorsiflexion',function:'Dorsiflexion dan membantu kontrol kaki saat gait.',train:'Tibialis raises, band dorsiflexion, controlled heel walks.',cues:'Gerakkan ankle, bukan seluruh kaki dari pinggul.'}
-};
-var REGIONS=['Semua','Dada','Punggung','Bahu','Lengan','Core','Pinggul','Paha','Tungkai bawah'];
-function getExerciseData(){return window.__fjExerciseData||window.DATA||window.exerciseData||[]}
-function relatedExercises(m){
-  var a=getExerciseData(); if(!Array.isArray(a))return [];
-  var n=m.name.toLowerCase(), keys=n.split(/\s+/).filter(function(x){return x.length>3});
-  return a.filter(function(d){var hay=JSON.stringify([d.name,d.primary,d.secondary,d.cat,d.move]).toLowerCase();return keys.some(function(k){return hay.indexOf(k)>-1})}).slice(0,12);
-}
-function renderEducation(){
-  var b=q('exlMateri'); if(!b)return;
-  var names=Object.keys(MUSCLES).sort(), region=q('fjEduRegion')?q('fjEduRegion').value:'Semua', chosen=q('fjEduMuscle')?q('fjEduMuscle').value:'Biceps Brachii';
-  var list=names.filter(function(n){return region==='Semua'||MUSCLES[n].region===region}); if(!list.length)list=names;
-  if(list.indexOf(chosen)<0)chosen=list[0];
-  var m=MUSCLES[chosen], ex=relatedExercises(m);
-  b.innerHTML='<div class="fj-v611-education">'+
-    '<div class="edu-head"><div><div class="label">MATERI &amp; EDUKASI</div><h2>'+esc(m.name)+'</h2><div class="edu-muted">Pilih wilayah tubuh lalu satu otot. Detail di bawah berubah hanya untuk materi ini.</div></div><div class="edu-muted">Region: <b>'+esc(m.region)+'</b></div></div>'+
-    '<div class="edu-selects"><label>Wilayah tubuh<select id="fjEduRegion">'+REGIONS.map(function(r){return '<option '+(r===region?'selected':'')+'>'+esc(r)+'</option>'}).join('')+'</select></label><label>Otot<select id="fjEduMuscle">'+list.map(function(n){return '<option '+(n===chosen?'selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label></div>'+
-    '<div class="edu-grid">'+
-      '<section class="edu-box"><h3>Berada di tulang / attachment</h3><p>'+esc(m.bones)+'</p></section>'+
-      '<section class="edu-box"><h3>Sendi yang terlibat</h3><p>'+esc(m.joints)+'</p></section>'+
-      '<section class="edu-box"><h3>Nama pattern / gerakan</h3><p>'+esc(m.patterns)+'</p></section>'+
-      '<section class="edu-box"><h3>Fungsi utama</h3><p>'+esc(m.function)+'</p></section>'+
-      '<section class="edu-box"><h3>Cara melatih</h3><p>'+esc(m.train)+'</p></section>'+
-      '<section class="edu-box"><h3>Petunjuk teknik</h3><p>'+esc(m.cues)+'</p></section>'+
-      '<section class="edu-box"><h3>Jenis latihan yang relevan</h3><ul>'+m.train.split(',').map(function(x){return '<li>'+esc(x.trim())+'</li>'}).join('')+'</ul></section>'+ 
-      '<section class="edu-box"><h3>Exercise dari library yang terkait</h3><ul>'+(ex.length?ex.map(function(x){return '<li>'+esc(x.name||x)+'</li>'}).join(''):'<li>Belum ada exercise library yang cocok dengan nama otot ini.</li>')+'</ul></section>'+ 
-    '</div></div>';
-  var r=q('fjEduRegion'), mm=q('fjEduMuscle');
-  if(r)r.onchange=function(){renderEducation()};
-  if(mm)mm.onchange=function(){renderEducation()};
-}
-function installEducation(){
-  var b=q('exlMateri'); if(!b)return false;
-  renderEducation(); return true;
-}
-function boot(){installPTClientNav();installEducation()}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,50);setTimeout(boot,500)}, {once:true});
-else {setTimeout(boot,50);setTimeout(boot,500)}
-window.addEventListener('load',function(){setTimeout(boot,300)});
+window.persistCalendar=function(){try{var st=window.fjClientCalendar&&typeof window.fjClientCalendar.state==='function'?window.fjClientCalendar.state():null;if(!st)return;var g=function(id){var e=q(id);return e?e.value||'':''};var ba=null;try{ba=window.fjGetBeforeAfterState?window.fjGetBeforeAfterState():JSON.parse(localStorage.getItem('fj_v27_before_after')||'null')}catch(e){};localStorage.setItem('fj_client_calendar_v1',JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:{name:g('clientName'),age:g('programAge'),gender:g('programGender'),weight:g('programWeight'),height:g('programHeight'),goal:g('programGoal'),level:g('programLevel'),wtype:g('programWorkoutType'),duration:g('programMonths'),freq:g('programFreq')},calendar:st,beforeAfter:ba}))}catch(e){console.error('persistCalendar failed',e)}};
+window.isDeletedOnline=function(onlineId){if(!onlineId)return false;try{var x=JSON.parse(localStorage.getItem('fj_client_directory_deleted_v1')||'{}')||{};return !!x[String(onlineId)]}catch(e){return false}};
 })();
 </script>
 </body></html>';
@@ -8105,107 +7894,132 @@ setInterval(function(){ensurePTClientNav();refreshPTAccess()},4000);
 })();
 </script>
 
-<script id="fj-v61-education-rebuild">
+
+
+<!-- V61.7 CLEAN PT / CLIENT CONSOLIDATION: one navigation layer + explicit PT assignment. -->
+<style id="fj-v617-clean-pt-css">
+/* ONE sidebar presentation only. Native PT engines remain authoritative. */
+#fjPtTrackerNav,#fjPtClientNav{
+  position:relative!important; z-index:100000!important; pointer-events:auto!important;
+  width:100%!important; max-width:100%!important; min-width:0!important; box-sizing:border-box!important;
+  overflow:hidden!important; white-space:normal!important; overflow-wrap:anywhere!important; word-break:break-word!important;
+}
+#fjPtTrackerNav{border-left:4px solid #1687c9!important}
+#fjPtClientNav{border-left:4px solid #8e5ac8!important}
+#fjPtTrackerNav.fj-v617-active{background:#1687c9!important;color:#fff!important}
+#fjPtClientNav.fj-v617-active{background:#8e5ac8!important;color:#fff!important}
+#fjPtOpsV2 .ptv2-tab[data-v="pt-client"]{display:none!important}
+#fjPtOpsV2 .ptv2-head h2{overflow-wrap:anywhere!important;word-break:break-word!important;white-space:normal!important}
+#fjPtOpsV2 .fj-v617-assign{margin-top:8px}
+.fj-v617-assign-btn{border:1px solid #9fc8dc!important;background:#f4fbff!important;color:#14617e!important;border-radius:8px!important;padding:6px 9px!important;font-weight:800!important;cursor:pointer!important}
+.fj-v617-assign-btn:hover{background:#e8f7ff!important}
+#fjV617AssignModal{position:fixed;inset:0;z-index:2147483646;background:rgba(15,35,50,.62);display:none;align-items:center;justify-content:center;padding:14px}
+#fjV617AssignModal.open{display:flex}
+#fjV617AssignModal .box{width:min(520px,96vw);background:#fff;border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+#fjV617AssignModal label{display:block;font-size:12px;font-weight:800;color:#31576f;margin:8px 0 5px}
+#fjV617AssignModal select{width:100%;padding:10px;border:1px solid #cfe0e9;border-radius:9px;background:#fff}
+#fjV617AssignStatus{min-height:18px;margin-top:8px;font-size:12px;color:#6d879e}
+</style>
+<script id="fj-v617-clean-pt-runtime">
 (function(){
 'use strict';
-function q(id){return document.getElementById(id)}
+var $=function(id){return document.getElementById(id)};
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function data(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
-var ANATOMY={
-  'Punggung':{
-    muscles:[
-      ['Latissimus Dorsi',['lat','latissimus','pulldown','pull up','row']],
-      ['Trapezius',['trap','trapezius','shrug','face pull']],
-      ['Rhomboids',['rhomboid','row','scapula']],
-      ['Erector Spinae',['erector','spine','deadlift','back extension']],
-      ['Teres Major',['teres','pulldown','row']],
-      ['Rear Deltoid',['rear delt','posterior delt','face pull','reverse fly']]
-    ],
-    joints:['Shoulder','Elbow','Spine'],
-    bones:['Scapula','Thoracic Spine','Lumbar Spine','Humerus','Ribs'],
-    patterns:['Pull','Hinge','Carry'],
-    function:'Menarik lengan, mengontrol scapula, membantu ekstensi/adduksi bahu, stabilisasi trunk, dan transfer gaya.',
-    risk:'Teknik, ROM, fatigue, dan beban perlu dikontrol. Momentum berlebihan atau beban yang terlalu berat dapat mengurangi kualitas gerak.',
-    warm:'5–8 menit aktivitas ringan + scapular movement + row/pulldown ringan + ramp-up set.',
-    stretch:'Lat stretch, child-pose/lat reach, thoracic rotation, dan gentle posterior-shoulder stretch sesuai kebutuhan.'
-  },
-  'Dada':{muscles:[['Pectoralis Major',['chest','dada','press','fly','push up']]],joints:['Shoulder','Elbow'],bones:['Sternum','Ribs','Scapula','Humerus'],patterns:['Push'],function:'Mendorong dan membantu gerak lengan melalui horizontal adduction/flexion bahu.',risk:'Kontrol bahu dan ROM perlu disesuaikan dengan kapasitas individu.',warm:'Cardio ringan + arm circles + ramp-up press.',stretch:'Doorway chest stretch dan dynamic arm sweep.'},
-  'Bahu':{muscles:[['Anterior Deltoid',['shoulder press','front raise','press']],['Medial Deltoid',['lateral raise','shoulder']],['Rear Deltoid',['rear delt','face pull','reverse fly']]],joints:['Shoulder'],bones:['Scapula','Clavicle','Humerus'],patterns:['Push','Pull'],function:'Menghasilkan dan mengontrol elevasi serta gerak lengan.',risk:'Overhead load dan volume perlu disesuaikan dengan toleransi bahu.',warm:'Arm circles + scapular movement + light raise/press.',stretch:'Cross-body shoulder stretch dan gentle posterior shoulder stretch.'},
-  'Lengan':{muscles:[['Biceps Brachii',['biceps','curl','row','pulldown']],['Triceps Brachii',['triceps','extension','press']]],joints:['Elbow','Shoulder'],bones:['Humerus','Radius','Ulna'],patterns:['Push','Pull'],function:'Elbow flexion/extension dan kontribusi pada push/pull.',risk:'Beban dan momentum perlu dikontrol agar siku dan bahu tetap toleran.',warm:'Gerak siku ringan + set pemanasan curl/extension.',stretch:'Biceps wall stretch dan overhead triceps stretch.'},
-  'Pinggul & Paha':{muscles:[['Gluteus Maximus',['glute','hip thrust','deadlift','squat']],['Quadriceps',['quad','squat','lunge','leg press']],['Hamstrings',['hamstring','deadlift','hinge','leg curl']]],joints:['Hip','Knee'],bones:['Pelvis','Femur','Tibia','Patella'],patterns:['Squat','Hinge','Lunge'],function:'Menghasilkan dan mengontrol hip/knee extension serta locomotion.',risk:'ROM, volume, dan impact perlu diprogreskan bertahap.',warm:'Walk/bike + lunge + squat/hinge drill + ramp-up.',stretch:'Quad, hamstring, dan glute stretch sesuai kebutuhan.'},
-  'Core':{muscles:[['Core / Trunk',['core','plank','dead bug','carry','anti rotation']]],joints:['Spine','Hip'],bones:['Spine / Vertebrae','Pelvis','Rib cage'],patterns:['Core / Anti-Rotation','Carry'],function:'Bracing, stabilitas trunk, transfer gaya, dan kontrol posisi tubuh.',risk:'Fatigue dapat menurunkan kontrol trunk; jangan mengejar beban saat bracing hilang.',warm:'Breathing/bracing + dead bug ringan + movement prep.',stretch:'Child pose reach, open book, dan gentle trunk mobility.'}
-};
-
-function norm(v){return String(v||'').toLowerCase()}
-function muscleList(region){return ANATOMY[region]?ANATOMY[region].muscles.map(function(x){return x[0]}):[]}
-function exMatches(region,muscle,pattern,joint,bone){
-  var r=ANATOMY[region]||ANATOMY.Punggung, keys=[];
-  if(muscle){var mm=r.muscles.find(function(x){return x[0]===muscle});if(mm)keys=mm[1]}
-  var arr=data().map(function(d){
-    var hay=norm([d.name,d.cat,d.move,d.movement].concat(d.primary||[],d.secondary||[]).join(' ')),score=0;
-    if(!hay)return {d:d,s:-1};
-    if(muscle&&keys.some(function(k){return hay.indexOf(norm(k))>=0}))score+=12;
-    if(!muscle&&r.muscles.some(function(mm){return mm[1].some(function(k){return hay.indexOf(norm(k))>=0})}))score+=8;
-    if(pattern&&norm(d.move)===norm(pattern))score+=8;
-    if(joint&&['shoulder','elbow','spine','hip','knee','ankle'].some(function(k){return norm(joint).indexOf(k)>=0&&hay.indexOf(k)>=0}))score+=2;
-    if(bone&&hay.indexOf(norm(bone))>=0)score+=2;
-    if(score===0)return {d:d,s:-1};
-    return {d:d,s:score};
-  }).filter(function(x){return x.s>=0}).sort(function(a,b){return b.s-a.s||String(a.d.name).localeCompare(String(b.d.name))});
-  return arr.slice(0,24);
-}
-function render(){
-  var b=q('exlMateri');if(!b)return;
-  var regions=Object.keys(ANATOMY),region=q('fjV61EduRegion')?q('fjV61EduRegion').value:'Punggung';
-  var r=ANATOMY[region]||ANATOMY.Punggung,muscles=muscleList(region);
-  var muscle=q('fjV61EduMuscle')?q('fjV61EduMuscle').value:'';
-  var pattern=q('fjV61EduPattern')?q('fjV61EduPattern').value:'';
-  var joint=q('fjV61EduJoint')?q('fjV61EduJoint').value:'';
-  var bone=q('fjV61EduBone')?q('fjV61EduBone').value:'';
-  var ex=exMatches(region,muscle,pattern,joint,bone);
-  var mopts='<option value="">Semua bagian / otot</option>'+muscles.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
-  var popts='<option value="">Semua pattern</option>'+r.patterns.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
-  var jopts='<option value="">Semua sendi</option>'+r.joints.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
-  var bopts='<option value="">Semua tulang</option>'+r.bones.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
-  b.innerHTML='<div class="exl-card fj-v61-edu"><div class="label">MATERI & EDUKASI — AUTOMATION</div>'+
-    '<h2 style="margin:4px 0">Pilih bagian tubuh → otot → latihan → anatomi → rekomendasi</h2>'+
-    '<p class="exl-muted">Contoh: pilih <b>Punggung</b>. Sistem lalu menyaring otot punggung, latihan yang relevan, pattern, sendi, tulang, lalu menampilkan fungsi, risiko, warm up, stretching dan rekomendasi.</p>'+
-    '<div class="fj-v61-edu-filters">'+
-      '<label>Bagian tubuh<select id="fjV61EduRegion">'+regions.map(function(x){return '<option '+(x===region?'selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label>'+
-      '<label>Otot bagian mana<select id="fjV61EduMuscle">'+mopts+'</select></label>'+
-      '<label>Pattern / nama gerakan<select id="fjV61EduPattern">'+popts+'</select></label>'+
-      '<label>Sendi terlibat<select id="fjV61EduJoint">'+jopts+'</select></label>'+
-      '<label>Tulang terkait<select id="fjV61EduBone">'+bopts+'</select></label>'+
-    '</div>'+
-    '<div class="fj-v61-edu-info">'+
-      '<div><b>Fungsi</b><span>'+esc(r.function)+'</span></div>'+
-      '<div><b>Risiko / perhatian</b><span>'+esc(r.risk)+'</span></div>'+
-      '<div><b>Warm Up</b><span>'+esc(r.warm)+'</span></div>'+
-      '<div><b>Stretching</b><span>'+esc(r.stretch)+'</span></div>'+
-      '<div><b>Sendi</b><span>'+esc(joint||r.joints.join(' • '))+'</span></div>'+
-      '<div><b>Tulang</b><span>'+esc(bone||r.bones.join(' • '))+'</span></div>'+
-    '</div>'+
-    '<div style="margin-top:14px"><div class="label">LATIHAN YANG TERKAIT</div><div class="fj-v61-edu-results">'+
-      (ex.length?ex.map(function(x){var d=x.d;return '<article class="fj-v61-edu-card"><h4>'+esc(d.emoji||'🏋️')+' '+esc(d.name)+'</h4><div class="meta">Otot: '+esc((d.primary||[]).join(', ')||'—')+'</div><div class="meta">Pattern: '+esc(d.move||'—')+' • Alat: '+esc(d.equip||'—')+' • Level: '+esc(d.level||'—')+'</div><p style="font-size:11px;color:#516f80">'+esc(d.desc||'')+'</p><button type="button" class="exl-btn alt" onclick="window.fjExlOpen(&quot;'+esc(d.id)+'&quot;)">Lihat Detail</button></article>'}).join(''):'<div class="fj-v61-edu-empty">Belum ada latihan yang cocok dengan kombinasi pilihan ini.</div>')+
-    '</div></div></div>';
-  ['fjV61EduRegion','fjV61EduMuscle','fjV61EduPattern','fjV61EduJoint','fjV61EduBone'].forEach(function(id){
-    var el=q(id);if(el)el.onchange=render;
+function side(){return document.querySelector('.side')}
+function exercise(){return $('fjExLibNav')}
+function panel(){return $('fjPtOpsV2')}
+function supa(){return window.sb||null}
+function user(){return window.currentUser||null}
+function mergePTRows(dir,users){
+  var out=[],seen={};
+  (dir||[]).concat(users||[]).forEach(function(x){
+    var id=String(x&&x.user_id||x&&x.id||'');if(!id||seen[id])return;seen[id]=1;
+    out.push({id:x.id||'',user_id:id,pt_name:x.pt_name||x.full_name||x.email||id,email:x.email||'',status:x.status||'active',outlet:x.outlet||''});
   });
+  return out.sort(function(a,b){return String(a.pt_name||'').localeCompare(String(b.pt_name||''))});
 }
-function boot(){
-  var nav=q('fjExLibNav');if(nav&&!nav.dataset.fj61edu){
-    nav.dataset.fj61edu='1';
-    nav.addEventListener('click',function(){setTimeout(function(){
-      var tab=document.querySelector('#fjExerciseLibrary .exl-tab[data-v="materi"]');
-      if(tab&&!tab.classList.contains('active'))tab.click();
-      setTimeout(render,80);
-    },80)},true);
-  }
-  if(q('exlMateri'))render();
+async function activePTs(){
+  var s=supa();if(!s)return [];
+  var d=await s.from('pt_directory').select('id,user_id,pt_name,email,status,outlet').eq('status','active').order('pt_name');
+  if(d.error)throw d.error;
+  var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').in('role',['PT','MANAGER']).order('email');
+  if(u.error)throw u.error;
+  return mergePTRows(d.data||[],(u.data||[]));
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1400)},{once:true});else setTimeout(boot,1400);
-window.addEventListener('load',function(){setTimeout(boot,1700)});
-setInterval(function(){if(q('exlMateri')&&q('fjV61EduRegion')==null)render()},2500);
+function ensureModal(){
+  var m=$('fjV617AssignModal');if(m)return m;
+  m=document.createElement('div');m.id='fjV617AssignModal';
+  m.innerHTML='<div class="box"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><div style="font-size:11px;font-weight:900;color:#1687c9">PT ASSIGNMENT</div><h3 id="fjV617AssignTitle" style="margin:3px 0;color:#17364e">Assign PT</h3></div><button type="button" class="ptv2-btn alt" id="fjV617AssignClose">Tutup</button></div><label>PT yang menangani client</label><select id="fjV617AssignSelect"><option value="">Pilih PT</option></select><div id="fjV617AssignStatus"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button type="button" class="ptv2-btn alt" id="fjV617AssignCancel">Batal</button><button type="button" class="ptv2-btn" id="fjV617AssignSave">Save Assignment</button></div></div>';
+  document.body.appendChild(m);
+  $('fjV617AssignClose').onclick=closeAssign;$('fjV617AssignCancel').onclick=closeAssign;$('fjV617AssignSave').onclick=saveAssign;
+  return m;
+}
+var assignClientId='';
+function closeAssign(){var m=$('fjV617AssignModal');if(m)m.classList.remove('open');assignClientId=''}
+async function resolveCurrentPT(id,current){
+  if(current)return current;
+  var s=supa();if(!s||!id)return '';
+  try{var r=await s.from('pt_clients').select('pt_user_id').eq('id',id).single();return r.data&&r.data.pt_user_id||''}catch(e){return ''}
+}
+async function openAssign(id,name,current){
+  var m=ensureModal();assignClientId=id;$('fjV617AssignTitle').textContent='Assign PT — '+(name||'Client');$('fjV617AssignStatus').textContent='Memuat daftar PT…';
+  try{
+    var rows=await activePTs(),cur=await resolveCurrentPT(id,current||''),sel=$('fjV617AssignSelect');
+    sel.innerHTML='<option value="">Pilih PT</option>'+rows.map(function(x){return '<option value="'+esc(x.user_id)+'" data-name="'+esc(x.pt_name||x.email||x.user_id)+'" data-email="'+esc(x.email||'')+'">'+esc(x.pt_name||x.email||x.user_id)+(x.outlet?' • '+esc(x.outlet):'')+'</option>'}).join('');
+    sel.value=cur||'';$('fjV617AssignStatus').textContent=rows.length?rows.length+' PT aktif/approved tersedia.':'Belum ada PT aktif/approved. Daftarkan akun PT melalui PT Public Directory.';m.classList.add('open');
+  }catch(e){$('fjV617AssignStatus').textContent='Gagal memuat PT: '+(e.message||e);m.classList.add('open')}
+}
+async function saveAssign(){
+  var id=assignClientId,sel=$('fjV617AssignSelect'),ptid=sel&&sel.value||'';if(!id||!ptid){alert('Pilih PT terlebih dahulu.');return}
+  var opt=sel.options[sel.selectedIndex],name=opt&&opt.dataset.name||opt&&opt.textContent||'',email=opt&&opt.dataset.email||'',s=supa();if(!s){alert('Supabase belum terhubung.');return}
+  var st=$('fjV617AssignStatus');st.textContent='Menyimpan assignment…';
+  try{
+    var old=await s.from('pt_clients').select('profile').eq('id',id).single();if(old.error)throw old.error;
+    var pr=old.data&&old.data.profile&&typeof old.data.profile==='object'?old.data.profile:{};pr.pt_name=name;pr.pt_email=email;
+    var r=await s.from('pt_clients').update({pt_user_id:ptid,pt_email:email,profile:pr}).eq('id',id).select('id,pt_user_id,pt_email,profile').single();if(r.error)throw r.error;
+    /* Ensure the selected approved PT is also represented in the PT directory. */
+    try{var du=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('user_id',ptid).single();var u=du.data||{};await s.from('pt_directory').upsert({user_id:ptid,pt_name:name||u.full_name||u.email||ptid,email:email||u.email||'',status:'active',outlet:u.outlet||''},{onConflict:'user_id'});}catch(e){console.warn('PT directory sync',e)}
+    try{var sr=await s.from('pt_schedules').update({pt_user_id:ptid}).eq('client_id',id).eq('status','SCHEDULED');if(sr.error)console.warn('Schedule reassignment',sr.error)}catch(e){}
+    try{var raw=JSON.parse(localStorage.getItem('fj_client_directory_v1')||'{}')||{};Object.keys(raw).forEach(function(k){if(String(raw[k]&&raw[k].onlineId||'')===String(id)){raw[k].pt_user_id=ptid;raw[k].pt_name=name;raw[k].pt_email=email;raw[k].updatedAt=new Date().toISOString()}});localStorage.setItem('fj_client_directory_v1',JSON.stringify(raw))}catch(e){}
+    closeAssign();try{if(typeof window.fjLivePull==='function')window.fjLivePull()}catch(e){};try{if(typeof window.fjOpenPtClientUnified==='function'&&$('fjPtClientUnified')?.classList.contains('active'))await window.fjOpenPtClientUnified()}catch(e){};try{if(typeof window.fjPtV2Refresh==='function')window.fjPtV2Refresh()}catch(e){}
+  }catch(e){st.textContent='Gagal menyimpan: '+(e.message||e);alert('Assignment PT gagal disimpan: '+(e.message||e))}
+}
+window.fjV617AssignPT=openAssign;
+function addAssignButton(card,id,name,current){if(!card||card.querySelector('.fj-v617-assign'))return;var w=document.createElement('div');w.className='fj-v617-assign';w.innerHTML='<button type="button" class="fj-v617-assign-btn">Assign / Ganti PT</button>';w.querySelector('button').onclick=function(e){e.preventDefault();e.stopPropagation();openAssign(id,name,current||'')};card.appendChild(w)}
+function decorate(){
+  var list=$('ptv2ClientCards');if(list){list.querySelectorAll('.ptv2-client').forEach(function(c){var raw=c.getAttribute('onclick')||'',m=raw.match(/fjPtV2OpenClient\([\'\"]([^\'\"]+)[\'\"]\)/),cid=m&&m[1];if(!cid)return;c.dataset.fjClientId=cid;addAssignButton(c,cid,c.querySelector('h3')?.textContent||'Client','')})}
+  var pd=$('fjPcuClients');if(pd)pd.querySelectorAll('.fj-pcu-client').forEach(function(c){addAssignButton(c,c.dataset.client,c.querySelector('b')?.textContent||'Client',c.dataset.pt||'')})
+}
+function canonicalNav(){
+  var s=side(),ex=exercise();if(!s||!ex||!ex.parentNode)return;
+  ['fjV616PtTracker','fjV616PtClient','fjV615PtTracker','fjV615PtClient','fjV60PtDirectoryNav','fjPtOpsV2Nav','fjPtMasterNav','fjPtMirrorMaster'].forEach(function(id){var x=$(id);if(x)x.remove()});
+  var t=$('fjPtTrackerNav'),c=$('fjPtClientNav');
+  if(!t){t=document.createElement('button');t.id='fjPtTrackerNav';t.type='button';t.className='navbtn';t.textContent='▣ PT Tracker Management'}
+  if(!c){c=document.createElement('button');c.id='fjPtClientNav';c.type='button';c.className='navbtn';c.textContent='▣ PT & Client'}
+  if(t.parentNode!==ex.parentNode||t.previousElementSibling!==ex)ex.parentNode.insertBefore(t,ex.nextSibling);
+  if(c.parentNode!==t.parentNode||c.previousElementSibling!==t)t.parentNode.insertBefore(c,t.nextSibling);
+  t.style.display='flex';c.style.display='flex';t.style.pointerEvents='auto';c.style.pointerEvents='auto';
+  if(!t.dataset.fj617Bound){t.dataset.fj617Bound='1';t.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openTracker()}}
+  if(!c.dataset.fj617Bound){c.dataset.fj617Bound='1';c.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openClient()}}
+}
+function openTracker(){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');p.style.removeProperty('display')});
+  var p=panel();if(!p)return;
+  try{if(typeof window.fjPtV2Build==='function')window.fjPtV2Build();if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar')}catch(e){console.error('PT Tracker',e)}
+  document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});p.classList.add('active');p.style.display='block';p.style.visibility='visible';p.style.opacity='1';
+  document.querySelectorAll('.side .navbtn').forEach(function(b){b.classList.remove('active')});$('fjPtTrackerNav')?.classList.add('fj-v617-active');$('fjPtClientNav')?.classList.remove('fj-v617-active');decorate();
+}
+async function openClient(){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');p.style.removeProperty('display')});var p=panel();if(!p)return;p.classList.add('active');p.style.display='block';p.style.visibility='visible';p.style.opacity='1';
+  try{if(typeof window.fjOpenPtClientUnified==='function')await window.fjOpenPtClientUnified();else if(typeof window.fjV61OpenPTClient==='function')await window.fjV61OpenPTClient()}catch(e){console.error('PT & Client',e)}
+  document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});document.querySelectorAll('.side .navbtn').forEach(function(b){b.classList.remove('active')});$('fjPtClientNav')?.classList.add('fj-v617-active');$('fjPtTrackerNav')?.classList.remove('fj-v617-active');decorate();
+}
+function removeDuplicatePTClientTab(){var p=panel();if(!p)return;p.querySelectorAll('.ptv2-tab[data-v="pt-client"]').forEach(function(b){b.style.display='none'})}
+function boot(){canonicalNav();removeDuplicatePTClientTab();decorate()}
+var obs=new MutationObserver(function(){canonicalNav();removeDuplicatePTClientTab();decorate()});
+if(document.body)obs.observe(document.body,{childList:true,subtree:true});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500)},{once:true});else setTimeout(boot,500);
+window.addEventListener('load',function(){setTimeout(boot,900)});setInterval(boot,3000);
 })();
 </script>
 </body></html>
@@ -9902,16 +9716,18 @@ Object.assign(EDU_MUSCLES,{
  'hamstrings':{name:'Hamstrings',region:'Paha belakang',desc:'Kelompok biceps femoris, semitendinosus, dan semimembranosus di posterior paha.',function:'Knee flexion dan hip extension serta kontrol pelvis/femur.',risk:'ROM dan loading harus dikontrol terutama pada posisi hip flexion besar.',daily:'Gabungkan hip hinge dan/atau knee-flexion exercise sesuai tujuan.',dont:'Jangan memaksa stretch sampai nyeri atau kehilangan posisi trunk/pelvis.',moves:['Hinge','Lunge','Knee Flexion'],joints:['Hip','Knee'],bones:['Pelvis','Femur','Tibia'],warmup:'Walking/bike ringan, leg swing terkontrol, hip hinge drill.',stretching:'Supine hamstring stretch atau active hamstring sweep.',stretchList:['Supine Hamstring Stretch','Active Hamstring Sweep','Half-Kneeling Hinge'],types:'RDL/deadlift, leg curl, good morning, Nordic progression.',keywords:['hamstring','hamstrings','paha belakang']},
  'gastrocnemius':{name:'Gastrocnemius',region:'Tungkai bawah',desc:'Otot betis superfisial yang melintasi knee dan ankle.',function:'Plantarflexion ankle dan membantu knee flexion.',risk:'Impact, calf volume, dan return-to-running perlu diprogreskan bertahap.',daily:'Gunakan standing calf raise dan locomotion sesuai kebutuhan.',dont:'Jangan menambah volume lari/lompat secara mendadak.',moves:['Calf Raise','Plantarflexion','Cardio'],joints:['Ankle','Knee'],bones:['Femur','Tibia','Fibula','Talus'],warmup:'Jalan/bike, ankle circles, calf raises ringan.',stretching:'Wall calf stretch dengan lutut lurus.',stretchList:['Wall Calf Stretch','Ankle Rock'],types:'Standing calf raise, jumping/running progression.',keywords:['gastrocnemius','calf','betis']},
  'soleus':{name:'Soleus',region:'Tungkai bawah',desc:'Otot betis dalam yang bekerja kuat pada plantarflexion terutama ketika lutut menekuk.',function:'Plantarflexion dan membantu kontrol ankle saat berdiri, berjalan, dan berlari.',risk:'Volume dan impact tetap perlu diprogreskan bertahap.',daily:'Gunakan seated/bent-knee calf raise dan weight-bearing locomotion.',dont:'Jangan menambah impact mendadak.',moves:['Calf Raise','Plantarflexion','Cardio'],joints:['Ankle','Knee'],bones:['Tibia','Fibula','Talus'],warmup:'Walking/bike dan bent-knee calf raises ringan.',stretching:'Bent-knee calf stretch.',stretchList:['Bent-Knee Soleus Stretch','Ankle Rock'],types:'Seated/bent-knee calf raise, running progression.',keywords:['soleus','calf','betis']},
- 'tibialis-anterior':{name:'Tibialis Anterior',region:'Tungkai bawah depan',desc:'Otot anterior tungkai yang dominan pada dorsiflexion ankle.',function:'Dorsiflexion dan membantu kontrol kaki saat heel strike dan locomotion.',risk:'Volume lari dan repetitive ankle work perlu dinaikkan bertahap.',daily:'Gunakan tibialis raises, controlled walking, dan ankle mobility.',dont:'Jangan menambah repetitive impact mendadak.',moves:['Dorsiflexion','Cardio'],joints:['Ankle'],bones:['Tibia','Fibula','Talus'],warmup:'Ankle circles, tibialis raises ringan, walking.',stretching:'Gentle plantarflexion stretch bila nyaman.',stretchList:['Ankle Mobility','Gentle Shin Stretch'],types:'Tibialis raises, dorsiflexion resistance, locomotion.',keywords:['tibialis anterior','tibialis','shin','tulang kering']}
+ 'tibialis-anterior':{name:'Tibialis Anterior',region:'Tungkai bawah depan',desc:'Otot anterior tungkai yang dominan pada dorsiflexion ankle.',function:'Dorsiflexion dan membantu kontrol kaki saat heel strike dan locomotion.',risk:'Volume lari dan repetitive ankle work perlu dinaikkan bertahap.',daily:'Gunakan tibialis raises, controlled walking, dan ankle mobility.',dont:'Jangan menambah repetitive impact mendadak.',moves:['Dorsiflexion','Cardio'],joints:['Ankle'],bones:['Tibia','Fibula','Talus'],warmup:'Ankle circles, tibialis raises ringan, walking.',stretching:'Gentle plantarflexion stretch bila nyaman.',stretchList:['Ankle Mobility','Gentle Shin Stretch'],types:'Tibialis raises, dorsiflexion resistance, locomotion.',keywords:['tibialis anterior','tibialis','shin','tulang kering']},
+ 'calves':{name:'Calves / Betis',region:'Tungkai bawah',desc:'Kelompok otot betis yang terutama terdiri dari gastrocnemius dan soleus untuk menghasilkan plantarflexion serta membantu propulsion saat berjalan, berlari dan melompat.',function:'Gastrocnemius berkontribusi pada plantarflexion dan juga melewati lutut; soleus merupakan plantarflexor penting terutama saat lutut menekuk.',risk:'Volume, impact dan ROM perlu diprogreskan bertahap. Gunakan ROM yang dapat dikontrol dan hindari memantulkan beban.',daily:'Gunakan standing calf raise untuk menekankan gastrocnemius dan seated/bent-knee calf raise untuk menekankan soleus; progreskan beban atau repetisi secara bertahap.',dont:'Jangan memantulkan tubuh atau mengejar ROM yang menimbulkan nyeri tajam; kontrol fase turun dan dorongan.',moves:['Locomotion','Calf Raise'],joints:['Ankle','Knee'],bones:['Tibia','Fibula','Talus','Femur'],warmup:'5–8 menit jalan/bike ringan + ankle rocks + calf raises ringan dan beberapa ramp-up set.',stretching:'Wall calf stretch dan bent-knee soleus stretch secara nyaman, terutama setelah sesi atau pada sesi fleksibilitas.',stretchList:['Standing Calf Stretch','Bent-Knee Soleus Stretch','Ankle Mobility'],types:'Standing calf raise + seated/bent-knee calf raise.',keywords:['calves','calf','betis','gastrocnemius','soleus','calf raise']},
+ 'forearm':{name:'Forearm / Lengan Bawah',region:'Lengan',desc:'Kelompok otot lengan bawah yang mengatur grip serta gerak pergelangan dan membantu posisi tangan saat push, pull dan carry.',function:'Membantu wrist flexion/extension, pronation/supination dan menghasilkan atau mempertahankan grip.',risk:'Grip volume dan beban perlu dinaikkan bertahap. Posisi pergelangan yang terlalu ekstrem atau fatigue berat dapat menurunkan kontrol.',daily:'Gunakan carries, hammer/reverse curl, wrist flexion-extension atau grip work sesuai kebutuhan dan volume latihan keseluruhan.',dont:'Jangan memaksa pergelangan pada posisi ekstrem atau menambah volume grip mendadak ketika siku/pergelangan sudah fatigue.',moves:['Pull','Carry','Wrist / Grip'],joints:['Wrist','Elbow','Radioulnar'],bones:['Radius','Ulna','Carpal bones','Humerus'],warmup:'Wrist circles + membuka/menutup tangan + pronation/supination ringan + grip ringan.',stretching:'Gentle wrist flexor/extensor stretch dan pronation/supination mobility tanpa memaksa ROM.',stretchList:['Wrist Flexor Stretch','Wrist Extensor Stretch','Forearm Rotation Mobility'],types:'Hammer/reverse curl + wrist curl/extension + carries/grip work.',keywords:['forearm','lengan bawah','wrist','grip','brachioradialis','flexor','extensor']},
 });
 
 var EDU_JOINTS={
  'Shoulder':{desc:'Kompleks bahu dengan ROM besar yang mendukung gerak lengan.',function:'Menghubungkan upper limb dengan trunk dan memungkinkan push, pull, reach dan carry.',risk:'ROM, overhead loading dan volume harus sesuai kemampuan.',muscles:['Pectoralis Major','Latissimus Dorsi','Deltoid'],bones:['Scapula','Clavicle','Humerus'],warmup:'Arm circles, scapular control, light push/pull dan ramp-up.',stretch:'Cross-body, chest dan lat stretching sesuai kebutuhan.'},
  'Elbow':{desc:'Kompleks sendi yang dominan pada flexion-extension lengan.',function:'Mentransfer gaya antara bahu dan tangan saat push/pull.',risk:'Overuse dan beban mendadak dapat mengganggu toleransi jaringan.',muscles:['Biceps Brachii','Triceps Brachii'],bones:['Humerus','Radius','Ulna'],warmup:'Light curl/extension dan easy row/press.',stretch:'Gentle biceps/triceps stretch.'},
- 'Wrist':{desc:'Kompleks pergelangan yang membantu posisi tangan dan transfer gaya.',function:'Menjaga grip dan posisi tangan saat pressing, pulling dan carries.',risk:'Posisi ekstrem atau beban berlebihan perlu dihindari bila tidak terkontrol.',muscles:['Forearm'],bones:['Radius','Ulna','Carpal bones'],warmup:'Wrist circles, grip ringan, gradual loading.',stretch:'Gentle wrist flexor/extensor stretch.'},
+ 'Wrist':{desc:'Kompleks pergelangan yang membantu posisi tangan dan transfer gaya.',function:'Menjaga grip dan posisi tangan saat pressing, pulling dan carries.',risk:'Posisi ekstrem atau beban berlebihan perlu dihindari bila tidak terkontrol.',muscles:['Forearm / Lengan Bawah'],bones:['Radius','Ulna','Carpal bones'],warmup:'Wrist circles, grip ringan, gradual loading.',stretch:'Gentle wrist flexor/extensor stretch.'},
  'Hip':{desc:'Sendi ball-and-socket antara pelvis dan femur.',function:'Menghasilkan dan mengontrol squat, hinge, lunge, sprint dan locomotion.',risk:'ROM dan loading perlu sesuai kontrol pelvis/trunk.',muscles:['Gluteus Maximus','Hamstrings','Quadriceps'],bones:['Pelvis','Femur'],warmup:'Walking, hip circles, lunge/hinge drill.',stretch:'Hip flexor, glute dan adductor mobility sesuai kebutuhan.'},
  'Knee':{desc:'Kompleks sendi yang dominan pada flexion-extension dan bekerja bersama hip serta ankle.',function:'Menyerap dan menghasilkan gaya pada squat, lunge, berjalan, berlari dan melompat.',risk:'Volume, impact dan ROM perlu diprogreskan bertahap.',muscles:['Quadriceps','Hamstrings'],bones:['Femur','Tibia','Patella'],warmup:'Bike/walk, dynamic knee bend, squat/lunge ramp-up.',stretch:'Quadriceps/hamstring stretch secara nyaman.'},
- 'Ankle':{desc:'Kompleks ankle untuk dorsiflexion/plantarflexion dan transfer gaya.',function:'Mendukung gait, squat, jump, balance dan propulsion.',risk:'ROM terbatas atau impact mendadak dapat mengubah tuntutan mekanik.',muscles:['Calves','Quadriceps'],bones:['Tibia','Fibula','Talus'],warmup:'Ankle rocks, calf raises, walking.',stretch:'Wall calf stretch dan ankle mobility.'},
+ 'Ankle':{desc:'Kompleks ankle untuk dorsiflexion/plantarflexion dan transfer gaya.',function:'Mendukung gait, squat, jump, balance dan propulsion.',risk:'ROM terbatas atau impact mendadak dapat mengubah tuntutan mekanik.',muscles:['Calves / Betis','Quadriceps'],bones:['Tibia','Fibula','Talus'],warmup:'Ankle rocks, calf raises, walking.',stretch:'Wall calf stretch dan ankle mobility.'},
  'Spine':{desc:'Rangkaian vertebra yang menggabungkan stabilitas dan mobilitas regional.',function:'Menopang trunk dan mentransfer gaya antara upper dan lower body.',risk:'Fatigue, beban dan ROM ekstrem perlu dikelola.',muscles:['Core / Trunk','Latissimus Dorsi','Hamstrings'],bones:['Spine / Vertebrae','Pelvis','Rib cage'],warmup:'Breathing/bracing, cat-camel ringan, hinge pattern.',stretch:'Child pose reach, open book atau gentle trunk mobility.'}
 };
 
@@ -10355,101 +10171,3 @@ window.addEventListener('load',function(){setTimeout(boot,1100)});
 <!-- ROOT SAVE TRAINING FIX: final isolated handler. It supersedes broken/stacked Save Training handlers only. -->
 
 <!-- V61.6 SURGICAL CONSOLIDATION: navigation presentation only; existing engines remain authoritative. -->
-<style id="fj-v616-surgical-css">
-/* PT buttons live directly below Exercise Library and never sit under another clickable layer. */
-#fjV616PtTracker,#fjV616PtClient{
-  display:flex!important;position:relative!important;z-index:100000!important;pointer-events:auto!important;
-  width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;
-  overflow:hidden!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;
-  cursor:pointer!important;text-align:left!important;align-items:center!important;line-height:1.2!important;
-}
-#fjV616PtTracker{border-left:4px solid #1687c9!important}
-#fjV616PtClient{border-left:4px solid #8e5ac8!important}
-#fjV616PtTracker.fj-v616-active{background:#1687c9!important;color:#fff!important}
-#fjV616PtClient.fj-v616-active{background:#8e5ac8!important;color:#fff!important}
-#fjV616PtTracker:not(.fj-v616-active):hover{background:rgba(22,135,201,.13)!important}
-#fjV616PtClient:not(.fj-v616-active):hover{background:rgba(142,90,200,.13)!important}
-#fjV616PtTracker,#fjV616PtClient{padding:9px 10px!important}
-/* Keep the existing PT Tracker title inside its own box. */
-#fjPtOpsV2 .ptv2-head h2,.ptv2-head h2{overflow-wrap:anywhere!important;word-break:break-word!important;white-space:normal!important}
-/* Distinct active colors for existing shell panels; no event handlers are replaced. */
-.navbtn[data-tab="training"].active{background:#7e57c2!important;color:#fff!important}
-.navbtn[data-tab="trainingPro"].active{background:#16a085!important;color:#fff!important}
-.navbtn[data-tab="clientCalendar"].active,#clientCalendarNav.active{background:#e74c3c!important;color:#fff!important}
-.navbtn[data-tab="adminAccess"].active{background:#d79a2b!important;color:#fff!important}
-#fjExLibNav.active{background:#1687c9!important;color:#fff!important}
-</style>
-<script id="fj-v616-surgical-runtime">
-(function(){
-'use strict';
-var $=function(id){return document.getElementById(id)};
-function side(){return document.querySelector('.side')}
-function main(){return document.querySelector('main.main')||document.querySelector('.main')}
-function exerciseNav(){return $('fjExLibNav')}
-function panel(id){return $(id)}
-function activatePanel(id){document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id===id)});var p=$(id);if(p){p.style.display='block';p.style.visibility='visible';p.style.opacity='1'}return p}
-function markActive(id){document.querySelectorAll('.side .navbtn').forEach(function(b){b.classList.remove('active')});var n=$(id);if(n)n.classList.add('active')}
-function openTracker(){
-  markActive('fjV616PtTracker');
-  try{
-    if(typeof window.fjPtV2Build==='function')window.fjPtV2Build();
-    if(typeof window.fjPtV2Show==='function'){window.fjPtV2Show('calendar');return true}
-  }catch(e){console.error('V61.6 PT Tracker bridge',e)}
-  return false;
-}
-async function openClient(){
-  markActive('fjV616PtClient');
-  var p=activatePanel('fjPtOpsV2');
-  try{
-    if(typeof window.fjOpenPtClientUnified==='function'){await window.fjOpenPtClientUnified();return true}
-    if(typeof window.fjV61OpenPTClient==='function'){await window.fjV61OpenPTClient();return true}
-  }catch(e){console.error('V61.6 PT & Client bridge',e)}
-  return !!p;
-}
-function make(id,label,fn){
-  var n=$(id);
-  if(!n){n=document.createElement('button');n.type='button';n.id=id;n.className='navbtn';n.textContent=label}
-  n.dataset.fj616='1';
-  if(!n.dataset.fj616Bound){
-    n.dataset.fj616Bound='1';
-    n.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();fn();},true);
-  }
-  return n;
-}
-function install(){
-  var s=side(),ex=exerciseNav();if(!s||!ex||!ex.parentNode)return false;
-  /* Remove only duplicate PRESENTATION entries from earlier PT patches. Native engines stay intact. */
-  ['fjV615PtTracker','fjV615PtClient','fjV60PtDirectoryNav','fjPtOpsV2Nav','fjPtMasterNav','fjPtMirrorMaster'].forEach(function(id){var x=$(id);if(x)x.remove()});
-  var t=make('fjV616PtTracker','▣ PT Tracker Management',openTracker);
-  var c=make('fjV616PtClient','▣ PT & Client',openClient);
-  if(t.parentNode!==ex.parentNode||t.previousElementSibling!==ex)ex.parentNode.insertBefore(t,ex.nextSibling);
-  if(c.parentNode!==t.parentNode||c.previousElementSibling!==t)t.parentNode.insertBefore(c,t.nextSibling);
-  t.style.display='flex';c.style.display='flex';
-  /* Legacy native buttons are kept in DOM for their engines, but not shown as duplicate sidebar entries. */
-  ['fjPtTrackerNav','fjPtClientNav'].forEach(function(id){var x=$(id);if(x)x.style.display='none'});
-  return true;
-}
-function repairExerciseClick(){
-  var n=exerciseNav();if(!n||n.dataset.fj616ClickBound)return;
-  n.dataset.fj616ClickBound='1';
-  /* Do not replace the existing Exercise Library handler. Capture only forwards to that existing handler. */
-  n.addEventListener('click',function(e){
-    try{
-      if(typeof n.onclick==='function'){e.preventDefault();e.stopImmediatePropagation();n.onclick.call(n,e)}
-    }catch(err){console.error('V61.6 Exercise Library bridge',err)}
-  },true);
-}
-function sync(){
-  var p=$( 'fjPtOpsV2');var active=p&&p.classList.contains('active');
-  var t=$('fjV616PtTracker'),c=$('fjV616PtClient');if(!t||!c)return;
-  t.classList.toggle('fj-v616-active',!!active&&t.classList.contains('active'));
-  c.classList.toggle('fj-v616-active',!!active&&c.classList.contains('active'));
-}
-function boot(){install();repairExerciseClick();}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,700)},{once:true});else setTimeout(boot,700);
-window.addEventListener('load',function(){setTimeout(boot,900)});
-setInterval(boot,2500);
-/* Remove the old literal escaped V60 comment if a stale copy exists in the body. */
-try{document.querySelectorAll('body *').forEach(function(x){if(x.children.length===0&&/FJ V60 CLEAN ONLINE MASTER/.test(x.textContent||'')){x.remove()}})}catch(e){}
-})();
-</script>

@@ -5836,7 +5836,7 @@ function printRange(){var p=rangePayload();if(!p)return;var old=document.getElem
 function openRange(){fillRangeDialog();$('ccRangeModal').classList.add('open')}
 function bindRangeDialog(){if($('ccRangeClose'))$('ccRangeClose').onclick=function(){$('ccRangeModal').classList.remove('open')};if($('ccRangeSave'))$('ccRangeSave').onclick=saveRange;if($('ccRangeRestore'))$('ccRangeRestore').onclick=restoreRange;if($('ccRangePrint'))$('ccRangePrint').onclick=printRange}
 function renderCalendar(){var out=$('ccCalendar');if(!out)return;var y=ccState.year,m=ccState.month,days=daysInMonth(y,m);out.style.setProperty('--cc-days',days);var html='<div class="fj-cc-calendar">';html+='<div class="fj-cc-head" style="position:sticky;left:0;z-index:7">TIME</div>';var dnames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];for(var d=1;d<=days;d++){var dt=new Date(y,m,d),dow=dnames[dt.getDay()];html+='<div class="fj-cc-head"><span class="daynum">'+d+'</span><span class="dow">'+dow+'</span></div>'}for(var h=0;h<24;h++){html+='<div class="fj-cc-time">'+String(h).padStart(2,'0')+':00</div>';for(d=1;d<=days;d++){var date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),k=key(date,h),ev=ccState.events[k],today=(new Date().getFullYear()===y&&new Date().getMonth()===m&&new Date().getDate()===d),owner=ev&&ev.client&&ev.client.name?String(ev.client.name):'',meta=ev?((owner?owner+' • ':'')+(ev.client&&ev.client.goal?'Goal: '+ev.client.goal+' • ':'')+(ev.client&&ev.client.wtype?'Type: '+ev.client.wtype:'')):'';var ex=ev&&ev.exercises?ev.exercises.map(function(x){return x.exercise}).filter(Boolean).join(' • '):'';html+='<div class="fj-cc-cell '+(today?'today':'')+'" data-cc-key="'+k+'">'+(ev?'<div class="fj-cc-event"><strong>'+esc(ev.title||'Training')+'</strong><small>'+esc(meta)+'</small><small>'+esc(ex)+'</small></div>':'')+'</div>'}}html+='</div>';out.innerHTML=html;out.querySelectorAll('[data-cc-key]').forEach(function(cell){cell.onclick=function(e){if(e)e.preventDefault();openEditor(this.dataset.ccKey)}});var title=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}),t=$('ccMonthTitle');if(t)t.textContent=title}
-function install(){var side=document.querySelector('.side');if(!side)return;if(!$(NAV_ID)){var n=document.createElement('button');n.className='navbtn';n.id=NAV_ID;n.dataset.tab=PANEL_ID;n.textContent='▣ Client Calendar';var pro=document.getElementById('trainingProNav');if(pro&&pro.parentNode)pro.parentNode.insertBefore(n,pro.nextSibling);else{var t=side.querySelector('.navbtn[data-tab="training"]');t&&t.parentNode.insertBefore(n,t.nextSibling)}}var nav=$(NAV_ID);if(nav&&!nav.dataset.ccNavBound){nav.dataset.ccNavBound='1';nav.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.classList.toggle('active',b===nav)});document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id===PANEL_ID)});try{localStorage.setItem('fj_active_panel_v20',PANEL_ID);history.pushState({fjApp:true,fjPanel:PANEL_ID},'',location.href)}catch(e){}} ,true)}var main=document.querySelector('main.main')||document.querySelector('.main');if(!main)return;if(!$(PANEL_ID)){var panel=document.createElement('section');panel.className='panel';panel.id=PANEL_ID;panel.innerHTML='<div class="top"><div><h1>Client Calendar</h1><p>Monthly client training calendar — 24-hour schedule</p></div></div><div class="fj-cc-toolbar"><button class="btn" id="ccPrev">← Previous</button><div class="fj-cc-month-title" id="ccMonthTitle"></div><button class="btn" id="ccNext">Next →</button><button class="btn alt" id="ccUndoBtn" disabled>↶ Undo</button><button class="btn alt" id="ccRedoBtn" disabled>↷ Redo</button><button class="btn alt" id="ccSaveBtn">💾 Save</button><button class="btn alt" id="ccLoadBtn">📂 Load</button><button class="btn alt" id="ccResetBtn" style="border-color:#c0392b;color:#c0392b;font-weight:900">⚠ Reset Calendar</button><button class="btn alt" id="ccPrintBtn">▣ Print / Save Date Range</button></div><div class="fj-cc-calendar-scroll"><div id="ccCalendar"></div></div><div class="fj-cc-modal" id="ccModal"><div class="fj-cc-dialog"><h3 id="ccEditHeading">Training</h3><input type="hidden" id="ccEditKey"><div class="fj-cc-form-grid"><div class="field span2"><label>Training Title</label><input id="ccEditTitle" placeholder="e.g. Strength Session"></div><div class="field span2"><label>Notes</label><input id="ccEditNotes" placeholder="Optional notes"></div></div><div class="fj-cc-form-grid" style="margin-top:10px"><div class="field"><label>Client Name</label><input id="ccEditClientName"></div><div class="field"><label>Age</label><input id="ccEditAge" type="number"></div><div class="field"><label>Gender</label><select id="ccEditGender"></select></div><div class="field"><label>Weight (kg)</label><input id="ccEditWeight" type="number"></div><div class="field"><label>Height (cm)</label><input id="ccEditHeight" type="number"></div><div class="field"><label>Goal</label><select id="ccEditGoal"></select></div><div class="field"><label>Fitness Level</label><select id="ccEditLevel"></select></div><div class="field"><label>Workout Type</label><select id="ccEditWtype"></select><p class="muted" id="ccEditWtypeNote" style="margin-top:6px;font-size:12px"></p></div><div class="field"><label>Duration (months)</label><input id="ccEditDuration" type="number" min="1"></div><div class="field"><label>Frequency / week</label><input id="ccEditFreq" type="number" min="1" max="7"></div></div><div class="fj-cc-exercises" id="ccExercises"></div><div class="fj-cc-dialog-actions"><span id="ccAddExerciseWrap" class="fj-cc-add-wrap"><button type="button" class="btn alt" id="ccAddRecommended">＋ Add Exercise Recommended</button><button type="button" class="btn alt" id="ccAddGeneral">＋ Add Exercise General</button></span><button type="button" class="btn alt" id="ccModalUndo">↶ Undo</button><button type="button" class="btn alt" id="ccModalRedo">↷ Redo</button><button type="button" class="btn alt" id="ccDeleteEvent">Delete</button><button type="button" class="btn alt" id="ccCancel">Cancel</button><button type="button" class="btn" id="ccSaveEvent">Save Training</button></div></div></div>';main.appendChild(panel)}var pairs=[['ccEditGender','programGender'],['ccEditGoal','programGoal'],['ccEditLevel','programLevel'],['ccEditWtype','programWorkoutType']];pairs.forEach(function(pair){var dst=$(pair[0]),src=$(pair[1]);if(dst&&src)dst.innerHTML=src.innerHTML});
+function install(){var side=document.querySelector('.side');if(!side)return;if(!$(NAV_ID)){var n=document.createElement('button');n.className='navbtn';n.id=NAV_ID;n.dataset.tab=PANEL_ID;n.textContent='▣ Client Calendar';var pro=document.getElementById('trainingProNav');if(pro&&pro.parentNode)pro.parentNode.insertBefore(n,pro.nextSibling);else{var t=side.querySelector('.navbtn[data-tab="training"]');t&&t.parentNode.insertBefore(n,t.nextSibling)}}var nav=$(NAV_ID);if(nav&&!nav.dataset.ccNavBound){nav.dataset.ccNavBound='1';nav.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.classList.toggle('active',b===nav)});document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id===PANEL_ID)});try{localStorage.setItem('fj_active_panel_v20',PANEL_ID);history.pushState({fjApp:true,fjPanel:PANEL_ID},'',location.href)}catch(e){}} ,true)}var main=document.querySelector('main.main')||document.querySelector('.main');if(!main)return;if(!$(PANEL_ID)){var panel=document.createElement('section');panel.className='panel';panel.id=PANEL_ID;panel.innerHTML='<div class="top"><div><h1>Client Calendar</h1></div></div><div class="fj-cc-toolbar"><button class="btn" id="ccPrev">← Previous</button><div class="fj-cc-month-title" id="ccMonthTitle"></div><button class="btn" id="ccNext">Next →</button><button class="btn alt" id="ccUndoBtn" disabled>↶ Undo</button><button class="btn alt" id="ccRedoBtn" disabled>↷ Redo</button><button class="btn alt" id="ccSaveBtn">💾 Save</button><button class="btn alt" id="ccLoadBtn">📂 Load</button><button class="btn alt" id="ccResetBtn" style="border-color:#c0392b;color:#c0392b;font-weight:900">⚠ Reset Calendar</button><button class="btn alt" id="ccPrintBtn">▣ Print / Save Date Range</button></div><div class="fj-cc-calendar-scroll"><div id="ccCalendar"></div></div><div class="fj-cc-modal" id="ccModal"><div class="fj-cc-dialog"><h3 id="ccEditHeading">Training</h3><input type="hidden" id="ccEditKey"><div class="fj-cc-form-grid"><div class="field span2"><label>Training Title</label><input id="ccEditTitle" placeholder="e.g. Strength Session"></div><div class="field span2"><label>Notes</label><input id="ccEditNotes" placeholder="Optional notes"></div></div><div class="fj-cc-form-grid" style="margin-top:10px"><div class="field"><label>Client Name</label><input id="ccEditClientName"></div><div class="field"><label>Age</label><input id="ccEditAge" type="number"></div><div class="field"><label>Gender</label><select id="ccEditGender"></select></div><div class="field"><label>Weight (kg)</label><input id="ccEditWeight" type="number"></div><div class="field"><label>Height (cm)</label><input id="ccEditHeight" type="number"></div><div class="field"><label>Goal</label><select id="ccEditGoal"></select></div><div class="field"><label>Fitness Level</label><select id="ccEditLevel"></select></div><div class="field"><label>Workout Type</label><select id="ccEditWtype"></select><p class="muted" id="ccEditWtypeNote" style="margin-top:6px;font-size:12px"></p></div><div class="field"><label>Duration (months)</label><input id="ccEditDuration" type="number" min="1"></div><div class="field"><label>Frequency / week</label><input id="ccEditFreq" type="number" min="1" max="7"></div></div><div class="fj-cc-exercises" id="ccExercises"></div><div class="fj-cc-dialog-actions"><span id="ccAddExerciseWrap" class="fj-cc-add-wrap"><button type="button" class="btn alt" id="ccAddRecommended">＋ Add Exercise Recommended</button><button type="button" class="btn alt" id="ccAddGeneral">＋ Add Exercise General</button></span><button type="button" class="btn alt" id="ccModalUndo">↶ Undo</button><button type="button" class="btn alt" id="ccModalRedo">↷ Redo</button><button type="button" class="btn alt" id="ccDeleteEvent">Delete</button><button type="button" class="btn alt" id="ccCancel">Cancel</button><button type="button" class="btn" id="ccSaveEvent">Save Training</button></div></div></div>';main.appendChild(panel)}var pairs=[['ccEditGender','programGender'],['ccEditGoal','programGoal'],['ccEditLevel','programLevel'],['ccEditWtype','programWorkoutType']];pairs.forEach(function(pair){var dst=$(pair[0]),src=$(pair[1]);if(dst&&src)dst.innerHTML=src.innerHTML});
 function filterCalendarWorkoutTypeByGoal(){
   var goal=$('ccEditGoal'),sel=$('ccEditWtype');if(!goal||!sel)return;
   var master=$('programWorkoutType');
@@ -6510,7 +6510,7 @@ function applyDevice(p){
   if(p.ranges)localStorage.setItem(RANGES,JSON.stringify(p.ranges));
   try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.render==='function')window.fjClientCalendar.render()}catch(e){}
   document.dispatchEvent(new Event('fj-v50-refresh'));
-  setTimeout(function(){ensure();try{if(typeof window.fjV45OpenEvent==='function'){} }catch(e){}},80);
+  setTimeout(function(){ensure()},80);
 }
 function loadDevice(){
   var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);
@@ -6775,13 +6775,9 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
     p.classList.add('fj-pt-tracker-open');p.style.display='block';
     var label=p.querySelector('.ptv2-head .label');if(label)label.textContent='PT TRACKER MANAGEMENT';
     var h=p.querySelector('.ptv2-head h2');if(h)h.textContent='PT Tracker Management';
-    var sub=p.querySelector('.ptv2-head .ptv2-muted');if(sub)sub.textContent='Client Calendar Mirror • Client List • Client Detail • Package • Conduct • Master Monitor • PT Operations';
-    var tabs=p.querySelectorAll('.ptv2-tab');tabs.forEach(function(t){if(t.dataset.v==='calendar')t.textContent='Client Calendar Mirror';if(t.dataset.v==='clients')t.textContent='Client List';if(t.dataset.v==='detail')t.textContent='Client Detail';if(t.dataset.v==='monitor')t.textContent='Master Monitor'});
+    var sub=p.querySelector('.ptv2-head .ptv2-muted');if(sub)sub.textContent='';
+    var tabs=p.querySelectorAll('.ptv2-tab');tabs.forEach(function(t){if(t.dataset.v==='calendar')t.textContent='PT Schedule';if(t.dataset.v==='clients')t.textContent='Client List';if(t.dataset.v==='detail')t.textContent='Client Detail';if(t.dataset.v==='monitor')t.textContent='Master Monitor'});
     var dt=p.querySelector('.ptv2-tab[data-v="detail"]');if(dt)dt.style.display='';
-  }
-  function refreshMirror(){
-    try{if(typeof window.renderMirrorCalendar==='function')window.renderMirrorCalendar()}catch(_){ }
-    try{if(typeof window.renderMirrorClients==='function')window.renderMirrorClients()}catch(_){ }
   }
   function openTracker(){
     if(!allowed())return;
@@ -6792,7 +6788,7 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
     document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});
     p.classList.add('active');p.classList.add('fj-pt-tracker-open');p.style.display='block';
     document.querySelectorAll('.side .navbtn').forEach(function(x){x.classList.toggle('active',x.id===NAV_ID)});
-    setTimeout(refreshMirror,30);setTimeout(refreshMirror,500);
+    /* Native PT Management render is the only renderer used here. */
   }
   function bind(){
     ensureNav();
@@ -6802,10 +6798,101 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
   var tries=0;function boot(){bind();tries++;if(tries<40&&!el(NAV_ID))setTimeout(boot,500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);
   window.addEventListener('load',function(){setTimeout(boot,1100)});
-  setInterval(function(){bind();var p=el(OLD_PANEL);if(p&&p.classList.contains('active')){renameUI();refreshMirror()}},1800);
+  setInterval(function(){bind();var p=el(OLD_PANEL);if(p&&p.classList.contains('active'))renameUI()},1800);
 })();
 </script>
 
+<style id="fj-pt-tracker-native-header-css">
+/* The global app header is reused by the original shell. Hide the empty subtitle cleanly. */
+</style>
+<script id="fj-pt-tracker-native-header-runtime">
+(function(){
+  'use strict';
+  function q(s){return document.querySelector(s)}
+  function syncShellHeader(){
+    var top=q('main.main > .top');
+    if(!top)return;
+    var h=top.querySelector('h1'),p=top.querySelector('p');
+    if(!h)return;
+    var active=document.querySelector('main.main > .panel.active');
+    var id=active&&active.id||'';
+    var map={
+      'training':['Training Program','Create and manage personalized training programs'],
+      'trainingPro':['Training Program PRO','Professional training program management'],
+      'trainingClientCalendar':['Client Calendar',''],
+      'fjExerciseLibrary':['Exercise Library',''],
+      'fjPtOpsV2':['PT Tracker Management',''],
+      'adminAccess':['Admin Access','']
+    };
+    var v=map[id];
+    if(!v)return;
+    h.textContent=v[0];
+    if(p){p.textContent=v[1];p.style.display=v[1]?'':'none';}
+  }
+  function bind(){
+    document.querySelectorAll('.side .navbtn[data-tab]').forEach(function(b){
+      if(b.dataset.fjShellHeaderBound)return;
+      b.dataset.fjShellHeaderBound='1';
+      b.addEventListener('click',function(){setTimeout(syncShellHeader,0);setTimeout(syncShellHeader,80)},true);
+    });
+    syncShellHeader();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,700)},{once:true});else setTimeout(bind,700);
+  window.addEventListener('load',function(){setTimeout(bind,900)});
+  setInterval(bind,1800);
+})();
+</script>
+<script id="fj-pt-tracker-native-schedule-runtime">
+(function(){
+  'use strict';
+  function q(id){return document.getElementById(id)}
+  function sb(){return window.sb||null}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  async function clients(){
+    var s=sb(); if(!s)return [];
+    var r=await s.from('pt_clients').select('*').order('name');
+    if(r.error){console.warn('PT Tracker clients',r.error.message);return []}
+    return r.data||[];
+  }
+  function modal(html){var b=q('ptv2ModalBody'),m=q('ptv2Modal');if(!b||!m)return false;b.innerHTML=html;m.classList.add('open');return true}
+  window.fjPtV2NewSchedule=function(date){
+    (async function(){
+      var cs=await clients();
+      if(!cs.length){alert('Belum ada client di PT Tracker Management.');return}
+      var d=date||new Date().toISOString().slice(0,10);
+      var opts=cs.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join('');
+      if(!modal('<h2>New PT Schedule</h2><div class="ptv2-form">'+
+        '<div><label>Client</label><select id="pttClient">'+opts+'</select></div>'+
+        '<div><label>Date</label><input id="pttDate" type="date" value="'+esc(d)+'"></div>'+
+        '<div><label>Time</label><input id="pttTime" type="time" value="09:00"></div>'+
+        '<div><label>Schedule Type</label><select id="pttType"><option>PT Session</option><option>Assessment</option><option>Consultation</option><option>Follow Up</option></select></div>'+
+        '<div class="span3"><label>Notes</label><textarea id="pttNotes"></textarea></div>'+
+        '</div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" id="pttCancel">Cancel</button><button class="ptv2-btn" id="pttSave">Save Schedule</button></div>'))return;
+      q('pttCancel').onclick=function(){q('ptv2Modal').classList.remove('open')};
+      q('pttSave').onclick=async function(){
+        var s=sb();if(!s)return;
+        var cid=q('pttClient').value,day=q('pttDate').value,time=q('pttTime').value||'09:00';
+        if(!cid||!day){alert('Client dan tanggal wajib diisi.');return}
+        var u=window.currentUser||{};
+        var row={client_id:cid,pt_user_id:u.id||null,scheduled_at:day+'T'+time+':00',schedule_type:q('pttType').value,notes:q('pttNotes').value.trim(),status:'SCHEDULED'};
+        var r=await s.from('pt_schedules').insert(row);
+        if(r.error){alert(r.error.message);return}
+        q('ptv2Modal').classList.remove('open');
+        if(typeof window.fjPtV2Refresh==='function')await window.fjPtV2Refresh();
+        if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar');
+      };
+    })();
+  };
+})();
+</script>
+<script id="fj-pt-tracker-refresh-hook">
+(function(){
+  window.fjPtV2Refresh=async function(){
+    try{window.dispatchEvent(new Event('focus'))}catch(e){}
+    await new Promise(function(r){setTimeout(r,250)});
+  };
+})();
+</script>
 </body></html>
 
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
@@ -8624,139 +8711,19 @@ document.addEventListener('click',function(e){
   }
 },true);
 
-/* PT MANAGEMENT mirror: Client Calendar is the source of truth for client session data. */
-function mirrorEvents(){
-  var c=ccRead(),events=c&&c.events?c.events:{};
-  return Object.keys(events).sort().map(function(k){return {key:k,event:events[k]}}).filter(function(x){
-    return x.event&&x.event.client&&x.event.client.name;
-  });
-}
-function mirrorClients(){
-  var d=dirRead(),map={};
-  Object.keys(d).forEach(function(k){var c=d[k];if(c&&c.name)map[String(c.name).toLowerCase()]=c});
-  mirrorEvents().forEach(function(x){var c=x.event.client;if(c&&c.name&&!map[String(c.name).toLowerCase()])map[String(c.name).toLowerCase()]=c});
-  return Object.keys(map).map(function(k){return map[k]});
-}
-function mirrorClientCard(c){
-  var evs=mirrorEvents().filter(function(x){return x.event.client&&String(x.event.client.name).toLowerCase()===String(c.name).toLowerCase()});
-  var last=evs.length?evs[evs.length-1]:null;
-  return '<div class="ptv2-client" data-mirror-client="'+esc(c.name)+'"><h3>'+esc(c.name)+'</h3>'+
-    '<div class="ptv2-muted">Goal: '+esc(c.goal||c.profile?.goal||'—')+' • Level: '+esc(c.level||c.profile?.level||'—')+'</div>'+
-    '<div class="ptm-mirror-meta">Sessions in Client Calendar: <b>'+evs.length+'</b></div>'+
-    '<div class="ptm-mirror-meta">Latest: '+esc(last?last.key.replace('T',' '):'—')+'</div></div>';
-}
-var fjV45MirrorClientsSig='';
-function renderMirrorClients(){
-  var b=$('ptv2Clients');if(!b)return;
-  var a=mirrorClients();
-  var calSaved='';try{var cp=JSON.parse(localStorage.getItem('fj_client_calendar_v1')||'null');calSaved=cp&&cp.savedAt||''}catch(e){}
-  var sig=calSaved+'|'+mirrorEvents().length+'|'+String(a.map(function(c){return [c.name,c.goal,c.level,c.before?.image?.length||0,c.after?.image?.length||0].join('|')}).sort().join('§'));
-  if(sig===fjV45MirrorClientsSig && b.children.length)return;
-  fjV45MirrorClientsSig=sig;
-  b.innerHTML='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><div><h3 style="margin:0">Clients — Client Calendar Mirror</h3><div class="ptv2-muted">Semua data client yang tersimpan di Client Calendar / Client Directory tampil di sini.</div></div></div>'+
-    '<input id="ptv2Search" placeholder="Search client" style="margin-top:10px;width:100%;box-sizing:border-box;border:1px solid #cfe0e9;border-radius:9px;padding:9px"></div>'+
-    '<div id="ptv2ClientCards" class="ptv2-client-list">'+(a.map(mirrorClientCard).join('')||'<div class="ptv2-muted">Belum ada client di Client Calendar.</div>')+'</div>';
-  var inp=$('ptv2Search');if(inp)inp.oninput=function(){var z=this.value.toLowerCase();$('ptv2ClientCards').innerHTML=a.filter(function(c){return String(c.name).toLowerCase().includes(z)}).map(mirrorClientCard).join('')||'<div class="ptv2-muted">No clients found.</div>'};
-}
-var fjV45MirrorCalendarSig='';
-function renderMirrorCalendar(){
-  var b=$('ptv2Calendar');if(!b)return;
-  var now=window.__fjV45Month||new Date(),y=now.getFullYear(),m=now.getMonth(),days=new Date(y,m+1,0).getDate(),events=mirrorEvents(),by={};
-  var calRaw='';try{calRaw=localStorage.getItem('fj_client_calendar_v1')||''}catch(e){}
-  var calSaved='';try{var cp=JSON.parse(calRaw||'null');calSaved=cp&&cp.savedAt||''}catch(e){}
-  var sig=y+'-'+m+'|'+calSaved+'|'+events.length;
-  if(sig===fjV45MirrorCalendarSig && b.children.length)return;
-  fjV45MirrorCalendarSig=sig;
-  events.forEach(function(x){var d=x.key.slice(0,10);(by[d]||(by[d]=[])).push(x)});
-  var h='<div class="ptv2-card"><div class="ptv2-actions" style="justify-content:space-between"><button class="ptv2-btn alt" id="fjV45Prev">←</button><b>'+new Date(y,m,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'})+'</b><div class="ptv2-actions"><button class="ptv2-btn alt" id="fjV45Next">→</button></div></div>'+
-    '<div class="ptm-mirror-note">Client Calendar → PT Management: semua session, client, workout, dan notes dibaca dari data Client Calendar.</div></div>'+
-    '<div class="ptv2-calendar ptm-calendar-clickable">'+Array.from({length:days},function(_,i){var day=i+1,ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');return '<div class="ptv2-day ptm-click-day" data-date="'+ds+'"><div class="ptv2-daynum">'+day+'</div>'+(by[ds]||[]).map(function(x){var e=x.event;return '<div class="ptv2-event" data-mirror-event="'+esc(x.key)+'"><b>'+esc(e.client.name)+'</b><br>'+esc(x.key.slice(11,16))+' • '+esc(e.title||'Training')+'<small>'+esc(e.notes||'')+'</small></div>'}).join('')+'</div>'}).join('')+'</div>';
-  b.innerHTML=h;
-  $('fjV45Prev').onclick=function(){window.__fjV45Month=new Date(y,m-1,1);renderMirrorCalendar()};
-  $('fjV45Next').onclick=function(){window.__fjV45Month=new Date(y,m+1,1);renderMirrorCalendar()};
-  $('fjV45Schedule').onclick=function(){window.fjV45AddSchedule()};
-  b.querySelectorAll('.ptm-click-day').forEach(function(cell){cell.onclick=function(e){if(e.target.closest('.ptv2-event'))return;window.fjV45AddSchedule(cell.dataset.date)}});
-  b.querySelectorAll('[data-mirror-event]').forEach(function(ev){ev.onclick=function(e){e.stopPropagation();window.fjV45OpenEvent(ev.dataset.mirrorEvent)}});
-}
-window.fjV45OpenEvent=function(key){
-  var c=ccRead(),e=c&&c.events?c.events[key]:null;if(!e)return;
-  var rows=(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'')+'</td></tr>'}).join('');
-  var body='<h2>'+esc(e.client?.name||'Client')+'</h2><p><b>'+esc(key.replace('T',' '))+'</b> • '+esc(e.title||'Training')+'</p>'+
-    '<div class="ptm-mirror-profile"><div><b>Goal</b>'+esc(e.client?.goal||'—')+'</div><div><b>Level</b>'+esc(e.client?.level||'—')+'</div><div><b>Workout Type</b>'+esc(e.client?.wtype||'—')+'</div><div><b>Notes</b>'+esc(e.notes||'—')+'</div></div>'+
-    '<h3>Exercises</h3><div class="tablewrap"><table class="ptv2-table"><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Load</th><th>Rest</th></tr>'+rows+'</table></div>'+
-    '<div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Close</button></div>';
-  var mb=$('ptv2ModalBody');if(mb){mb.innerHTML=body;$('ptv2Modal').classList.add('open')}
-};
-window.fjV45AddSchedule=function(date){
-  var d=date||new Date().toISOString().slice(0,10),clients=mirrorClients();
-  if(!clients.length){alert('Tambahkan client terlebih dahulu di Client Calendar / Client Directory.');return}
-  var opts=clients.map(function(c){return '<option value="'+esc(c.name)+'">'+esc(c.name)+'</option>'}).join('');
-  var body='<h2>Add Schedule</h2><div class="ptv2-form">'+
-    '<div><label>Client</label><select id="v45sc">'+opts+'</select></div>'+
-    '<div><label>Date</label><input id="v45sd" type="date" value="'+esc(d)+'"></div>'+
-    '<div><label>Time</label><input id="v45st" type="time" value="09:00"></div>'+
-    '<div><label>Title</label><input id="v45title" value="Training"></div>'+
-    '<div class="span3"><label>Notes</label><textarea id="v45notes"></textarea></div>'+
-    '</div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" id="v45saveSchedule">Save Schedule</button></div>';
-  var mb=$('ptv2ModalBody');if(!mb)return;mb.innerHTML=body;$('ptv2Modal').classList.add('open');
-  $('v45saveSchedule').onclick=function(){
-    var name=$('v45sc').value,key=$('v45sd').value+'T'+$('v45st').value,c=clients.find(function(x){return String(x.name)===String(name)})||{};
-    var cal=ccRead()||{year:new Date(key).getFullYear(),month:new Date(key).getMonth(),events:{}};
-    cal.events=cal.events||{};cal.events[key]={title:$('v45title').value.trim()||'Training',notes:$('v45notes').value.trim(),day:new Date(key).toLocaleDateString(undefined,{weekday:'long'}),time:key.slice(11),client:{name:c.name,age:c.age||c.profile?.age||'',gender:c.gender||c.profile?.gender||'',weight:c.weight||c.profile?.weight||'',height:c.height||c.profile?.height||'',goal:c.goal||c.profile?.goal||'',level:c.level||c.profile?.level||'',wtype:c.wtype||c.profile?.wtype||''},exercises:[]};
-    localStorage.setItem('fj_client_calendar_v1',JSON.stringify({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:cal,auto:true}));
-    $('ptv2Modal').classList.remove('open');renderMirrorCalendar();
-    /* best-effort database mirror, if available */
-    try{var sb=window.sb;if(sb&&sb.from){var dbClient=window.__fjV45FindPtClient&&window.__fjV45FindPtClient(c.name);if(dbClient)sb.from('pt_schedules').insert({client_id:dbClient.id,pt_user_id:dbClient.pt_user_id||null,scheduled_at:key+':00',schedule_type:'PT Session',notes:$('v45notes')?.value||'',status:'SCHEDULED'}).then(function(){})}}catch(_){}
-  };
-};
-window.fjPtV2NewSchedule=window.fjV45AddSchedule;
+/* Legacy Client Calendar -> PT Management mirror removed.
+   PT Tracker uses the native PT Management engine instead. */
 
-/* Full Add Client form mirrors Client Calendar fields; saved to both local Client Directory and PT database. */
-window.fjPtV2NewClient=function(){
-  var body='<h2>Add Client</h2><div class="ptv2-form">'+
-    '<div class="span3"><label>Nama Client</label><input id="v45cn"></div>'+
-    '<div><label>Umur</label><input id="v45ca" type="number"></div><div><label>Gender</label><select id="v45cg"><option value="">—</option><option value="male">male</option><option value="female">female</option></select></div>'+
-    '<div><label>Berat (kg)</label><input id="v45cw" type="number" step="0.1"></div><div><label>Tinggi (cm)</label><input id="v45ch" type="number" step="0.1"></div>'+
-    '<div><label>Goal</label><select id="v45cgoal"><option>General Fitness</option><option>Fat Loss</option><option>Hypertrophy</option><option>Strength</option></select></div>'+
-    '<div><label>Fitness Level</label><select id="v45clevel"><option>auto</option><option>beginner</option><option>intermediate</option><option>advanced</option></select></div>'+
-    '<div><label>Workout Type</label><select id="v45cwtype"><option value="">Pilih setelah Goal</option></select></div>'+
-    '<div><label>Durasi (bulan)</label><input id="v45cdur" type="number" value="3"></div><div><label>Frekuensi / minggu</label><input id="v45cfreq" type="number" min="1" max="7" value="3"></div>'+
-    '<div><label>No. HP</label><input id="v45cphone"></div><div><label>Email</label><input id="v45cemail" type="email"></div>'+
-    '<div class="span3"><label>Catatan / Riwayat</label><textarea id="v45cnotes" rows="3"></textarea></div>'+
-    '</div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" onclick="window.fjPtV2Close()">Cancel</button><button class="ptv2-btn" id="v45saveClient">Save Client</button></div>';
-  var mb=$('ptv2ModalBody');if(!mb)return;mb.innerHTML=body;$('ptv2Modal').classList.add('open');
-  function refreshTypes(){
-    var goal=$('v45cgoal').value,src=document.getElementById('fjcdWtype'),sel=$('v45cwtype');
-    if(src&&src.options.length){
-      sel.innerHTML=Array.from(src.options).map(function(o){return '<option value="'+esc(o.value)+'">'+esc(o.textContent)+'</option>'}).join('');
-    }else{
-      sel.innerHTML='<option>Standard</option><option>Hypertrophy</option><option>Strength & Power</option><option>Upper / Lower</option><option>Push Pull Legs</option>';
-    }
-    if(goal==='Strength'&&sel.querySelector('option[value="hypertrophy"]'))sel.value='strengthpower';
-  }
-  refreshTypes();$('v45cgoal').onchange=refreshTypes;
-  $('v45saveClient').onclick=async function(){
-    var name=$('v45cn').value.trim();if(!name){alert('Nama client wajib diisi');return}
-    var c={id:uid(),name:name,age:$('v45ca').value,gender:$('v45cg').value,weight:$('v45cw').value,height:$('v45ch').value,goal:$('v45cgoal').value,level:$('v45clevel').value,wtype:$('v45cwtype').value,duration:$('v45cdur').value,freq:$('v45cfreq').value,phone:$('v45cphone').value,email:$('v45cemail').value,notes:$('v45cnotes').value};
-    var d=dirRead(),id='c'+Date.now().toString(36);c.id=id;d[id]=c;localStorage.setItem('fj_client_directory_v1',JSON.stringify(d));
-    try{var sb=window.sb;if(sb&&sb.from){var r=await sb.from('pt_clients').insert({name:c.name,phone:c.phone,email:c.email,profile:{age:c.age,gender:c.gender,weight:c.weight,height:c.height,goal:c.goal,level:c.level,wtype:c.wtype,duration:c.duration,freq:c.freq},notes:c.notes,pt_user_id:(window.currentUser&&currentUser.id)||null,pt_email:(window.currentUser&&currentUser.email)||''});if(r.error)console.warn(r.error.message)}}catch(_){}
-    $('ptv2Modal').classList.remove('open');renderMirrorClients();
-  };
-};
 function patchPTM(){
+  /* IMPORTANT: PT Tracker keeps the native PT Management engine.
+     Do not replace its calendar/client views with the Client Calendar UI. */
   activeNavFix();
-  var p=$('fjPtOpsV2');if(!p)return;
-  /* When PT Management is visible, replace only its two source-of-truth views. */
-  if(p.classList.contains('active')){
-    renderMirrorCalendar();
-    renderMirrorClients();
-  }
 }
-var mo=new MutationObserver(function(){activeNavFix();var p=$('fjPtOpsV2');if(p&&p.classList.contains('active')){renderMirrorCalendar();}});
+var mo=new MutationObserver(function(){activeNavFix();});
 function boot(){activeNavFix();patchPTM()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1200)},{once:true});else setTimeout(boot,1200);
 window.addEventListener('load',function(){setTimeout(boot,1400)});
-setInterval(function(){activeNavFix();var p=$('fjPtOpsV2');if(p&&p.classList.contains('active')){renderMirrorCalendar();renderMirrorClients()}},1500);
+setInterval(function(){activeNavFix();},1500);
 })();
 </script>
 
@@ -9083,7 +9050,7 @@ async function loadOnline(silent){
    refreshPTViews();
  }catch(e){console.error('V48 load online',e);if(!silent)setStatus('Load online gagal: '+(e.message||e),false)}finally{ONLINE_STATUS.busy=false}
 }
-function refreshPTViews(){var p=$('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;try{var b=$('ptv2Calendar');if(b){b.dataset.fjV48Refresh='1';var now=window.__fjV45Month||new Date();/* let existing mirror renderer rebuild */if(typeof window.fjV45OpenEvent==='function'){} } }catch(e){};setTimeout(function(){decoratePT();renderOnlineActivity()},40)}
+function refreshPTViews(){var p=$('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;try{var b=$('ptv2Calendar');if(b){b.dataset.fjV48Refresh='1';var now=window.__fjV45Month||new Date();/* let existing mirror renderer rebuild */} }catch(e){};setTimeout(function(){decoratePT();renderOnlineActivity()},40)}
 function logo(){
  var b=document.querySelector('.side .brand');if(!b||b.dataset.fjV48Logo)return;
  b.dataset.fjV48Logo='1';
@@ -9382,7 +9349,7 @@ function hasBA(ba){return !!((ba.before&&Object.keys(ba.before).some(function(k)
 function toast(msg,ok){var old=$('fjV50Toast');if(old)old.remove();var d=document.createElement('div');d.id='fjV50Toast';d.textContent=msg;d.style.cssText='position:fixed;right:14px;bottom:14px;z-index:2147483600;padding:10px 13px;border-radius:10px;background:'+(ok===false?'#b43b2f':'#147d70')+';color:#fff;font:800 12px Arial;box-shadow:0 8px 24px rgba(0,0,0,.22)';document.body.appendChild(d);setTimeout(function(){d.remove()},2400)}
 function devicePayload(){var d=dirRead(),c=calRead();return {version:'PT_MANAGEMENT_DEVICE_V1',savedAt:new Date().toISOString(),directory:d,calendar:c&&c.calendar?c.calendar:null}}
 function saveDevice(){try{var payload=devicePayload();localStorage.setItem(DEVICE,JSON.stringify(payload));var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FitnessJourney_PT_Management_Backup.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);toast('PT Management tersimpan ke device ✓',true)}catch(e){toast('Save Device gagal: '+e.message,false)}}
-function applyDevice(p){if(!p||!p.directory||!p.calendar)throw Error('Format backup PT Management tidak valid.');dirWrite(p.directory);calWrite({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:p.calendar});try{localStorage.setItem(DEVICE,JSON.stringify(p))}catch(e){};try{if(typeof window.fjClientCalendar!=='undefined'&&window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){};setTimeout(function(){try{if(typeof window.fjV45Month!=='undefined'&&typeof window.renderMirrorCalendar==='function')window.renderMirrorCalendar()}catch(e){};var p2=$('fjPtOpsV2');if(p2&&p2.classList.contains('active')){try{if(typeof window.fjV45OpenEvent==='function'){} }catch(e){};document.dispatchEvent(new Event('fj-v50-refresh'))}},80)}
+function applyDevice(p){if(!p||!p.directory||!p.calendar)throw Error('Format backup PT Management tidak valid.');dirWrite(p.directory);calWrite({version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:p.calendar});try{localStorage.setItem(DEVICE,JSON.stringify(p))}catch(e){};try{if(typeof window.fjClientCalendar!=='undefined'&&window.fjClientCalendar&&window.fjClientCalendar.render)window.fjClientCalendar.render()}catch(e){};setTimeout(function(){var p2=$('fjPtOpsV2');if(p2&&p2.classList.contains('active')){try{}catch(e){};document.dispatchEvent(new Event('fj-v50-refresh'))}},80)}
 function loadDevice(){var input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.style.display='none';document.body.appendChild(input);input.onchange=function(){var f=input.files&&input.files[0];input.remove();if(!f)return;var rd=new FileReader();rd.onload=function(){try{var p=JSON.parse(rd.result);applyDevice(p);toast('Backup PT Management berhasil dimuat dari device ✓',true)}catch(e){toast('Load Device gagal: '+(e.message||'format file salah'),false)}};rd.readAsText(f)};input.click()}
 function ensureDeviceToolbar(){var p=$('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;var h=p.querySelector('.fj-v50-device-toolbar');if(h)return;var online=p.querySelector('.fj-v48-online-toolbar');if(!online)return;h=document.createElement('div');h.className='fj-v50-device-toolbar';h.innerHTML='<button type="button" class="ptv2-btn" id="fjV50SaveDevice">💾 Save Device</button><button type="button" class="ptv2-btn alt" id="fjV50LoadDevice">📂 Load Device</button><span style="font-size:9px;color:#668293;align-self:center">Backup lokal + file JSON</span>';online.parentNode.insertBefore(h,online.nextSibling);$('fjV50SaveDevice').onclick=saveDevice;$('fjV50LoadDevice').onclick=loadDevice}
 function baData(z){z=z||{};var vals=[['Date',z.date],['Weight',z.weight],['Body Fat',z.bodyfat],['Chest',z.chest],['Waist',z.waist],['Hip',z.hip],['Arm',z.arm],['Thigh',z.thigh],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Notes',z.notes]];return '<div class="fj-v50-ba-data">'+vals.filter(function(v){return v[1]!=null&&v[1]!==''}).map(function(v){return '<div><b>'+esc(v[0])+'</b>'+esc(v[1])+'</div>'}).join('')+'</div>'}

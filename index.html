@@ -6801,6 +6801,80 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
 })();
 </script>
 
+<style id="fj-pt-tracker-replacement-css">
+/* PT TRACKER MANAGEMENT — replacement for the broken PT Management only.
+   It deliberately reuses the existing Client Calendar engine as the single source of truth. */
+#fjPtOpsV2,#fjPtMirrorMaster,#fjPtOpsV2Nav,#fjPtMasterNav{display:none!important}
+#fjPtTrackerNav{position:relative}
+</style>
+<script id="fj-pt-tracker-replacement-runtime">
+(function(){
+'use strict';
+var NAV='fjPtTrackerNav', CCNAV='clientCalendarNav', CCPANEL='trainingClientCalendar';
+function q(id){return document.getElementById(id)}
+function side(){return document.querySelector('.side')}
+function main(){return document.querySelector('main.main')||document.querySelector('.main')}
+function hideLegacy(){
+  ['fjPtOpsV2Nav','fjPtMasterNav','fjPtOpsV2','fjPtMirrorMaster'].forEach(function(id){var e=q(id);if(e){e.style.setProperty('display','none','important');e.classList.remove('active')}});
+}
+function setTitle(tracker){
+  var p=q(CCPANEL);if(!p)return;
+  var h=p.querySelector('.top h1');
+  var sub=p.querySelector('.top p');
+  if(!p.dataset.fjPtTrackerOriginalTitle){
+    p.dataset.fjPtTrackerOriginalTitle=h?h.textContent:'Client Calendar';
+    p.dataset.fjPtTrackerOriginalSub=sub?sub.textContent:'Monthly client training calendar — 24-hour schedule';
+  }
+  if(h)h.textContent=tracker?'PT TRACKER MANAGEMENT':(p.dataset.fjPtTrackerOriginalTitle||'Client Calendar');
+  if(sub)sub.textContent=tracker?'100% MIRROR — sumber data dan sistem berasal dari Client Calendar':(p.dataset.fjPtTrackerOriginalSub||'Monthly client training calendar — 24-hour schedule');
+}
+function activateCC(tracker){
+  var cc=q(CCNAV),p=q(CCPANEL);
+  if(cc && typeof cc.click==='function'){
+    try{cc.click()}catch(e){}
+  }
+  setTimeout(function(){
+    p=q(CCPANEL);if(!p)return;
+    document.querySelectorAll('.panel').forEach(function(x){x.classList.toggle('active',x===p)});
+    document.querySelectorAll('.side .navbtn').forEach(function(n){n.classList.toggle('active',n===q(tracker?NAV:CCNAV))});
+    p.classList.add('active');
+    setTitle(tracker);
+    try{if(window.fjClientCalendar&&typeof window.fjClientCalendar.render==='function')window.fjClientCalendar.render()}catch(e){console.warn('PT Tracker calendar render',e)}
+  },0);
+}
+function ensure(){
+  var s=side();if(!s)return false;
+  hideLegacy();
+  var n=q(NAV);
+  if(!n){
+    n=document.createElement('button');
+    n.id=NAV;n.type='button';n.className='navbtn';n.textContent='▣ PT Tracker Management';
+    var cc=q(CCNAV);
+    if(cc&&cc.parentNode)cc.parentNode.insertBefore(n,cc.nextSibling);else s.appendChild(n);
+  }
+  n.style.removeProperty('display');
+  n.onclick=function(e){
+    e.preventDefault();e.stopImmediatePropagation();
+    hideLegacy();
+    activateCC(true);
+  };
+  var cc=q(CCNAV);
+  if(cc&&!cc.dataset.fjPtTrackerRestore){
+    cc.dataset.fjPtTrackerRestore='1';
+    cc.addEventListener('click',function(){setTimeout(function(){setTitle(false);var n=q(NAV);if(n)n.classList.remove('active')},20)},true);
+  }
+  return true;
+}
+function boot(){ensure();setTimeout(ensure,250);setTimeout(ensure,1000);setTimeout(ensure,2500)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.addEventListener('load',function(){setTimeout(boot,300)});
+// Legacy PT Management code in this build can attempt to recreate its old button.
+// Keep that obsolete entry hidden, without changing any Client Calendar code.
+setInterval(function(){hideLegacy();var n=q(NAV);if(n)n.style.removeProperty('display')},1200);
+})();
+</script>
+
+
 </body></html>
 
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->

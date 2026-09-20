@@ -10353,3 +10353,139 @@ window.addEventListener('load',function(){setTimeout(boot,1100)});
 <!-- FJ V58 TARGETED EXERCISE LIBRARY / PROGRAM GENERATOR ENHANCEMENT
      Scope: Exercise Library only. Existing application panels and data flow are untouched. -->
 <!-- ROOT SAVE TRAINING FIX: final isolated handler. It supersedes broken/stacked Save Training handlers only. -->
+
+
+<!-- V61.3 FINAL PT NAV REPAIR: only PT Tracker / PT & Client navigation + sidebar visual polish. -->
+<style id="fj-v613-final-pt-nav-css">
+/* Hide only the older PT navigation entries. The underlying PT engines remain intact. */
+#fjPtTrackerNav,#fjPtClientNav,#fjV60PtDirectoryNav,#fjPtOpsV2Nav,#fjPtMasterNav,#fjPtMirrorMaster{display:none!important}
+/* Final PT buttons live directly below Exercise Library. */
+#fjPtTrackerNavFinal,#fjPtClientNavFinal{
+  display:flex!important;width:100%!important;box-sizing:border-box!important;
+  min-width:0!important;max-width:100%!important;overflow:hidden!important;
+  white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;
+  line-height:1.2!important;text-align:left!important;align-items:center!important;
+  justify-content:flex-start!important;
+}
+#fjPtTrackerNavFinal{border-left:4px solid #1687c9!important}
+#fjPtClientNavFinal{border-left:4px solid #8e5ac8!important}
+#fjPtTrackerNavFinal.fj-final-active{background:#1687c9!important;color:#fff!important;box-shadow:0 6px 16px rgba(22,135,201,.28)!important}
+#fjPtClientNavFinal.fj-final-active{background:#8e5ac8!important;color:#fff!important;box-shadow:0 6px 16px rgba(142,90,200,.28)!important}
+#fjPtTrackerNavFinal:not(.fj-final-active):hover{background:rgba(22,135,201,.13)!important}
+#fjPtClientNavFinal:not(.fj-final-active):hover{background:rgba(142,90,200,.13)!important}
+/* Keep PT Tracker Management text inside its own button box. */
+.side .navbtn{
+  box-sizing:border-box!important;min-width:0!important;max-width:100%!important;width:100%!important;
+  overflow:hidden!important;overflow-wrap:anywhere!important;word-break:normal!important;
+  white-space:normal!important;line-height:1.22!important;text-align:left!important;
+}
+#fjPtTrackerNavFinal,#fjPtClientNavFinal{font-size:12px!important;padding:9px 10px!important}
+/* Distinct active color for each sidebar panel. */
+.side .navbtn[data-tab="training"].active{background:#7e57c2!important;color:#fff!important}
+#trainingProNav.active{background:#16a085!important;color:#fff!important}
+#clientCalendarNav.active{background:#e74c3c!important;color:#fff!important}
+#adminNav.active{background:#d59a20!important;color:#fff!important}
+#fjExLibNav.active{background:#2f80a0!important;color:#fff!important}
+@media(max-width:700px){
+  #fjPtTrackerNavFinal,#fjPtClientNavFinal{font-size:11px!important;padding:8px!important}
+}
+</style>
+<script id="fj-v613-final-pt-nav-runtime">
+(function(){
+  'use strict';
+  function q(id){return document.getElementById(id)}
+  function side(){return document.querySelector('.side')}
+  function exerciseNav(){return q('fjExLibNav')}
+  function panel(id){return q(id)}
+  function clearFinalActive(){
+    [q('fjPtTrackerNavFinal'),q('fjPtClientNavFinal')].forEach(function(x){if(x)x.classList.remove('fj-final-active')});
+  }
+  function hideLegacy(){
+    ['fjPtTrackerNav','fjPtClientNav','fjV60PtDirectoryNav','fjPtOpsV2Nav','fjPtMasterNav','fjPtMirrorMaster'].forEach(function(id){var x=q(id);if(x)x.style.display='none'});
+  }
+  function setPanelActive(id){
+    document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});
+    var p=q(id);if(p){p.classList.add('active');p.style.display='block';}
+    document.querySelectorAll('.side .navbtn').forEach(function(x){x.classList.remove('active')});
+    if(id==='fjPtOpsV2'){
+      var t=q('fjPtTrackerNavFinal'),c=q('fjPtClientNavFinal');
+      if(window.__fjFinalPtMode==='client'){if(c)c.classList.add('active');if(t)t.classList.remove('active')}
+      else {if(t)t.classList.add('active');if(c)c.classList.remove('active')}
+    }
+  }
+  async function access(){
+    try{
+      if(typeof window.refreshPTAccess==='function')return !!(await window.refreshPTAccess());
+    }catch(e){}
+    return !!window.__fjPtAccessApproved;
+  }
+  async function openTracker(e){
+    if(e){e.preventDefault();e.stopImmediatePropagation()}
+    if(!(await access()))return;
+    window.__fjFinalPtMode='tracker';
+    var p=panel('fjPtOpsV2');
+    try{if(typeof window.fjPtV2Build==='function'&&!p)window.fjPtV2Build()}catch(err){}
+    p=panel('fjPtOpsV2');
+    if(!p)return;
+    try{if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar')}catch(err){console.error('PT Tracker open',err)}
+    setPanelActive('fjPtOpsV2');
+    var h=document.querySelector('main.main > .top h1'),sub=document.querySelector('main.main > .top p');
+    if(h)h.textContent='PT Tracker Management';if(sub){sub.textContent='';sub.style.display='none'}
+    hideLegacy();
+  }
+  async function openClient(e){
+    if(e){e.preventDefault();e.stopImmediatePropagation()}
+    if(!(await access()))return;
+    window.__fjFinalPtMode='client';
+    var p=panel('fjPtOpsV2');if(!p)return;
+    try{
+      if(typeof window.fjV61OpenPTClient==='function')await window.fjV61OpenPTClient();
+      else if(typeof window.fjOpenPtClientUnified==='function')await window.fjOpenPtClientUnified();
+    }catch(err){console.error('PT & Client open',err);return}
+    setPanelActive('fjPtOpsV2');
+    var h=document.querySelector('main.main > .top h1'),sub=document.querySelector('main.main > .top p');
+    if(h)h.textContent='PT & Client';if(sub){sub.textContent='';sub.style.display='none'}
+    hideLegacy();
+  }
+  function make(id,text,handler){
+    var n=q(id);if(!n){n=document.createElement('button');n.id=id;n.type='button';n.className='navbtn fj-final-pt-nav';n.textContent=text;}
+    n.style.display='flex';
+    n.onclick=handler;
+    return n;
+  }
+  function install(){
+    var s=side(),ex=exerciseNav();if(!s||!ex)return false;
+    hideLegacy();
+    var t=make('fjPtTrackerNavFinal','▣ PT Tracker Management',openTracker);
+    var c=make('fjPtClientNavFinal','▣ PT & Client',openClient);
+    if(ex.parentNode){
+      if(t.parentNode!==ex.parentNode||t.previousElementSibling!==ex)ex.parentNode.insertBefore(t,ex.nextSibling);
+      if(c.parentNode!==ex.parentNode||c.previousElementSibling!==t)t.parentNode.insertBefore(c,t.nextSibling);
+    }
+    t.style.display=window.__fjPtAccessApproved===false?'none':'flex';
+    c.style.display=window.__fjPtAccessApproved===false?'none':'flex';
+    return true;
+  }
+  function syncColors(){
+    var active=document.querySelector('main.main > .panel.active');
+    var id=active&&active.id||'';
+    var t=q('fjPtTrackerNavFinal'),c=q('fjPtClientNavFinal');
+    if(!t||!c)return;
+    if(id==='fjPtOpsV2'){
+      if(window.__fjFinalPtMode==='client'){c.classList.add('fj-final-active');t.classList.remove('fj-final-active')}
+      else {t.classList.add('fj-final-active');c.classList.remove('fj-final-active')}
+    }else clearFinalActive();
+  }
+  var tries=0;
+  function boot(){
+    install();syncColors();tries++;if(tries<80)setTimeout(boot,400);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500)},{once:true});else setTimeout(boot,500);
+  window.addEventListener('load',function(){setTimeout(boot,800)});
+  setInterval(function(){install();syncColors()},2500);
+  document.addEventListener('click',function(e){
+    var n=e.target&&e.target.closest?e.target.closest('.side .navbtn'):null;
+    if(n){setTimeout(function(){syncColors()},40)}
+  },true);
+})();
+</script>

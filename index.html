@@ -1421,7 +1421,7 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #fjPtOpsV2 .ptv2-calendar-scroll .ptv2-day{min-height:86px}
 @media(max-width:760px){#fjPtPublicDirectory .fj-pd-form{grid-template-columns:1fr 1fr}#fjPtPublicDirectory .fj-pd-form .wide{grid-column:1/-1}.fj-pcu-list{grid-template-columns:1fr}.fj-pcu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fj-pcu-detailgrid{grid-template-columns:1fr}.fj-pcu-shell{padding:10px}#fjPtOpsV2 .ptv2-calendar-scroll{max-width:100vw}.fj-pcu-table{font-size:10px}}
 </style></head><body>
-&lt;!-- FJ V60 CLEAN ONLINE MASTER: consolidated online/PT directory/PT&amp;Client controller; redundant runtime patches removed. --&gt;
+
 
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
 <div class="app"><aside class="side">
@@ -7339,6 +7339,875 @@ window.addEventListener('load',function(){setTimeout(boot,1700)});
 setInterval(function(){if(q('exlMateri')&&q('fjV61EduRegion')==null)render()},2500);
 })();
 </script>
+<!-- FJ V61.1 SURGICAL STABILITY PATCH: fixes only reported runtime/navigation/education issues. -->
+<style id="fj-v611-surgical-fix">
+/* Keep sidebar labels inside their boxes; do not alter the rest of the layout. */
+.side .navbtn{white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.25;min-width:0}
+.side .brand{white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.top h1{white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+/* Only Materi & Edukasi gets a clean text-first presentation; remove the small person/squat icons. */
+#exlMateri .prescard-icon,#exlMateri img,.fj-v611-education .edu-icon{display:none!important}
+#exlMateri .fj-v611-education{width:100%}
+.fj-v611-education .edu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fj-v611-education .edu-box{border:1px solid #d6e6ef;border-radius:12px;background:#fff;padding:13px}
+.fj-v611-education .edu-box h3{margin:0 0 7px;color:#123f60;font-size:14px}
+.fj-v611-education .edu-box p,.fj-v611-education .edu-box li{font-size:12px;line-height:1.5;color:#486879}
+.fj-v611-education .edu-box ul{margin:6px 0 0;padding-left:18px}
+.fj-v611-education .edu-selects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+.fj-v611-education label{font-size:11px;font-weight:900;color:#517286;display:flex;flex-direction:column;gap:5px}
+.fj-v611-education select{border:1px solid #c9dfe9;border-radius:9px;padding:9px;background:#fff;color:#173f59}
+.fj-v611-education .edu-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.fj-v611-education .edu-head h2{margin:2px 0 5px;color:#083b66}
+.fj-v611-education .edu-muted{color:#6b8494;font-size:11px}
+@media(max-width:800px){.fj-v611-education .edu-grid,.fj-v611-education .edu-selects{grid-template-columns:1fr}.fj-v611-education .edu-head{display:block}}
+</style>
+<script id="fj-v611-surgical-runtime">
+(function(){
+'use strict';
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+/* Calendar persistence: deliberately global because older calendar handlers call persistCalendar(). */
+window.persistCalendar=function(){
+  try{
+    var st=window.fjClientCalendar&&typeof window.fjClientCalendar.state==='function'?window.fjClientCalendar.state():null;
+    if(!st)return;
+    var g=function(id){var e=q(id);return e?e.value||'':''};
+    var ba=null; try{ba=window.fjGetBeforeAfterState?window.fjGetBeforeAfterState():JSON.parse(localStorage.getItem('fj_v27_before_after')||'null')}catch(e){}
+    var payload={version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),client:{name:g('clientName'),age:g('programAge'),gender:g('programGender'),weight:g('programWeight'),height:g('programHeight'),goal:g('programGoal'),level:g('programLevel'),wtype:g('programWorkoutType'),duration:g('programMonths'),freq:g('programFreq')},calendar:st,beforeAfter:ba};
+    localStorage.setItem('fj_client_calendar_v1',JSON.stringify(payload));
+  }catch(e){console.error('persistCalendar failed',e)}
+};
+
+/* Online tombstone helper: older online sync code calls isDeletedOnline() before the directory IIFE exists. */
+window.isDeletedOnline=function(onlineId){
+  if(!onlineId)return false;
+  try{var x=JSON.parse(localStorage.getItem('fj_client_directory_deleted_v1')||'{}')||{};return !!x[String(onlineId)]}catch(e){return false}
+};
+
+/* Keep exactly one PT & Client navigation entry, directly below PT Tracker Management. */
+function installPTClientNav(){
+  var side=document.querySelector('.side'); if(!side)return;
+  var tracker=q('fjPtTrackerNav')||q('fjV60PtDirectoryNav');
+  var n=q('fjPtClientNav');
+  if(!n){
+    n=document.createElement('button'); n.id='fjPtClientNav'; n.type='button'; n.className='navbtn'; n.textContent='▣ PT & Client';
+  }
+  var dup=q('fjV60PtDirectoryNav'); if(dup&&dup!==n)dup.remove();
+  if(tracker&&tracker.parentNode){
+    if(n.previousElementSibling!==tracker)tracker.parentNode.insertBefore(n,tracker.nextSibling);
+  }else if(!n.parentNode){side.appendChild(n)}
+  n.style.display='flex'; n.style.width='100%'; n.style.whiteSpace='normal'; n.style.overflowWrap='anywhere';
+  n.onclick=function(e){
+    e.preventDefault();e.stopPropagation();
+    try{
+      if(typeof window.fjOpenPtClientUnified==='function'){
+        var p=q('fjPtOpsV2'); if(p){document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});p.classList.add('active');p.style.display='block';}
+        Promise.resolve(window.fjOpenPtClientUnified()).catch(function(err){console.error(err);alert('PT & Client gagal dibuka: '+(err&&err.message?err.message:err))});
+      }else if(typeof window.fjV61OpenPTClient==='function'){
+        Promise.resolve(window.fjV61OpenPTClient()).catch(function(err){console.error(err);alert('PT & Client gagal dibuka: '+(err&&err.message?err.message:err))});
+      }
+    }catch(err){console.error(err);alert('PT & Client gagal dibuka: '+(err&&err.message?err.message:err))}
+  };
+}
+
+/* Detailed, text-first anatomy education. Major muscles are selectable by region; the detail panel is self-contained. */
+var MUSCLES={
+'Pectoralis Major':{region:'Dada',bones:'Clavicle, sternum, costal cartilages and humerus (attachment via lateral lip of intertubercular sulcus)',joints:'Shoulder',patterns:'Horizontal push / horizontal adduction; shoulder flexion (clavicular portion); internal rotation',function:'Menghasilkan horizontal adduction dan membantu flexion serta internal rotation bahu.',train:'Bench press, incline press, push-up, cable fly, dumbbell fly.',cues:'Scapula terkontrol, siku dan ROM sesuai toleransi, dorong tanpa memantulkan beban.'},
+'Pectoralis Minor':{region:'Dada',bones:'Ribs 3–5 → coracoid process of scapula',joints:'Scapulothoracic / shoulder complex',patterns:'Scapular protraction, depression dan downward rotation',function:'Membantu posisi dan kontrol scapula.',train:'Push-up plus, serratus/scapular-control drills dan pressing dengan kontrol scapula.',cues:'Fokus pada gerak scapula, bukan sekadar menambah beban.'},
+'Latissimus Dorsi':{region:'Punggung',bones:'Thoracolumbar fascia, lower thoracic/lumbar region, iliac crest dan lower ribs → humerus',joints:'Shoulder',patterns:'Vertical pull / shoulder extension / adduction',function:'Membantu shoulder extension dan adduction serta transfer gaya upper body.',train:'Lat pulldown, pull-up, straight-arm pulldown, one-arm cable pulldown, row variations.',cues:'Jaga trunk stabil dan tarik siku dengan kontrol tanpa momentum.'},
+'Trapezius':{region:'Punggung',bones:'Occipital region, nuchal ligament dan cervical/thoracic spinous processes → clavicle, acromion, scapular spine',joints:'Scapulothoracic / shoulder complex',patterns:'Scapular elevation, retraction, depression dan upward rotation',function:'Menstabilkan dan menggerakkan scapula untuk push, pull dan overhead movement.',train:'Shrug, row, face pull, prone Y-raise, farmer carry.',cues:'Bedakan gerak scapula dari mengangkat bahu secara berlebihan.'},
+'Rhomboids':{region:'Punggung',bones:'Cervical/thoracic spinous processes → medial border of scapula',joints:'Scapulothoracic',patterns:'Scapular retraction dan downward rotation',function:'Membantu menarik scapula ke arah tulang belakang dan menjaga kontrol scapula.',train:'Chest-supported row, cable row, band row.',cues:'Tarik dengan kontrol dan hindari shrug berlebihan.'},
+'Erector Spinae':{region:'Punggung',bones:'Broad attachment along sacrum/pelvis and vertebral processes → ribs/vertebrae/skull depending on subdivision',joints:'Spine / trunk',patterns:'Hip hinge, spinal extension dan anti-flexion isometric control',function:'Membantu mempertahankan dan mengontrol posisi tulang belakang serta transfer gaya.',train:'Romanian deadlift, deadlift, back extension, good morning (sesuai level).',cues:'Pertahankan kontrol trunk; beban dinaikkan bertahap.'},
+'Deltoid':{region:'Bahu',bones:'Clavicle, acromion dan scapular spine → deltoid tuberosity of humerus',joints:'Shoulder',patterns:'Press / raise / arm elevation',function:'Anterior membantu flexion, medial abduction, posterior extension dan horizontal abduction.',train:'Overhead press, lateral raise, rear-delt fly, cable raise.',cues:'Gunakan ROM terkontrol dan hindari momentum.'},
+'Rotator Cuff':{region:'Bahu',bones:'Scapula → proximal humerus',joints:'Shoulder',patterns:'Shoulder rotation / stabilization',function:'Menstabilkan kepala humerus dan membantu rotasi bahu.',train:'Cable/band external rotation, internal rotation, controlled raise dan row variations.',cues:'Beban ringan–moderat dengan kontrol; bukan mengejar beban maksimal.'},
+'Biceps Brachii':{region:'Lengan',bones:'Long head: supraglenoid tubercle of scapula; short head: coracoid process → radius (radial tuberosity) via biceps tendon',joints:'Shoulder dan elbow; juga memengaruhi radioulnar joint',patterns:'Pull; elbow flexion; forearm supination; shoulder flexion assistance',function:'Melakukan elbow flexion dan supination serta membantu stabilisasi/gerak bahu.',train:'Dumbbell/cable curl, incline dumbbell curl, preacher curl, hammer curl (brachialis/brachioradialis ikut bekerja), chin-up.',cues:'Siku relatif stabil, supinasi penuh sesuai kenyamanan, hindari ayunan badan.'},
+'Brachialis':{region:'Lengan',bones:'Distal humerus → ulna (coronoid process/tuberosity)',joints:'Elbow',patterns:'Pull / elbow flexion',function:'Flexor siku yang kuat pada berbagai posisi forearm.',train:'Hammer curl, reverse curl, cable curl, preacher curl.',cues:'Kontrol fase turun dan jangan mengangkat beban dengan momentum.'},
+'Brachioradialis':{region:'Lengan',bones:'Lateral supracondylar ridge of humerus → distal radius',joints:'Elbow / radioulnar',patterns:'Pull / elbow flexion',function:'Membantu flexion siku terutama dengan forearm posisi netral.',train:'Hammer curl, neutral-grip cable curl, reverse curl.',cues:'Pertahankan grip netral dan ROM terkendali.'},
+'Triceps Brachii':{region:'Lengan',bones:'Scapula (long head) and posterior humerus (other heads) → olecranon of ulna',joints:'Elbow; long head also crosses shoulder',patterns:'Push / elbow extension',function:'Prime mover untuk elbow extension; long head juga membantu shoulder extension.',train:'Cable pressdown, overhead extension, close-grip press, assisted dip.',cues:'Siku stabil dan ROM sesuai toleransi.'},
+'Serratus Anterior':{region:'Dada',bones:'Ribs 1–8/9 → anterior medial border of scapula',joints:'Scapulothoracic',patterns:'Scapular protraction dan upward rotation',function:'Membantu scapula bergerak dan tetap menempel pada thorax saat arm elevation/push.',train:'Push-up plus, cable punch, wall slide dengan protraction.',cues:'Jangan hanya menggerakkan lengan; rasakan gerak scapula.'},
+'Rectus Abdominis':{region:'Core',bones:'Pubic crest/symphysis → xiphoid process and costal cartilages',joints:'Spine / trunk',patterns:'Anti-extension / trunk flexion control',function:'Membantu trunk flexion dan mengontrol anterior pelvic tilt serta ekstensi lumbar.',train:'Cable crunch, reverse crunch, controlled curl-up, dead bug progressions.',cues:'Jaga ribcage-pelvis relationship dan jangan menarik leher.'},
+'Obliques':{region:'Core',bones:'Ribs and thoracolumbar region → linea alba, pelvis and lower ribs depending on layer',joints:'Spine / trunk',patterns:'Anti-rotation / rotation / lateral flexion',function:'Mengontrol rotasi, lateral flexion dan transfer gaya antara pelvis dan thorax.',train:'Pallof press, side plank, cable chop/lift, controlled rotation.',cues:'Prioritaskan kontrol anti-rotation sebelum menambah beban rotasi.'},
+'Gluteus Maximus':{region:'Pinggul',bones:'Posterior ilium, sacrum/coccyx → gluteal tuberosity and iliotibial tract',joints:'Hip',patterns:'Squat / hinge / lunge / hip extension',function:'Prime contributor pada hip extension dan membantu stabilisasi pelvis.',train:'Hip thrust, squat, Romanian deadlift, split squat, step-up.',cues:'Kontrol pelvis dan gunakan hip extension tanpa over-arching lumbar.'},
+'Gluteus Medius':{region:'Pinggul',bones:'Lateral ilium → greater trochanter of femur',joints:'Hip',patterns:'Frontal-plane control / abduction / single-leg stability',function:'Hip abduction dan kontrol pelvis terutama pada single-leg stance.',train:'Side-lying abduction, cable abduction, lateral step-up, single-leg squat progressions.',cues:'Jaga pelvis tidak jatuh ke sisi berlawanan.'},
+'Hip Flexors':{region:'Pinggul',bones:'Primarily lumbar spine/iliac fossa → lesser trochanter via iliopsoas',joints:'Hip',patterns:'Hip flexion / locomotion',function:'Mengangkat paha dan membantu kontrol pelvis serta langkah.',train:'Cable/band hip flexion, marching, controlled leg raise, step-up.',cues:'Hindari kompensasi lumbar saat hip flexion.'},
+'Adductors':{region:'Paha',bones:'Pubis/ischium → medial femur/tibia depending on muscle',joints:'Hip',patterns:'Lunge / frontal-plane control / hip adduction',function:'Mendekatkan paha ke garis tengah dan membantu stabilitas pelvis/hip.',train:'Copenhagen plank, lateral lunge, adductor machine, controlled squat/lunge.',cues:'Naikkan ROM dan beban bertahap.'},
+'Quadriceps':{region:'Paha',bones:'Femur/ilium → patella and tibial tuberosity via patellar tendon',joints:'Knee; rectus femoris also crosses hip',patterns:'Squat / lunge / knee extension',function:'Kelompok utama untuk knee extension dan kontrol deselerasi.',train:'Squat, split squat, leg press, step-up, knee extension.',cues:'Jaga kontrol lutut dan progreskan volume secara bertahap.'},
+'Hamstrings':{region:'Paha',bones:'Ischial tuberosity and posterior femur → tibia/fibula depending on muscle',joints:'Hip dan knee',patterns:'Hinge / lunge / knee flexion',function:'Membantu hip extension dan knee flexion serta kontrol fase deselerasi.',train:'Romanian deadlift, leg curl, Nordic progression, good morning.',cues:'Kontrol pelvis dan spine saat hinge; jangan memaksa ROM.'},
+'Gastrocnemius':{region:'Tungkai bawah',bones:'Femoral condyles → calcaneus via Achilles tendon',joints:'Knee dan ankle',patterns:'Locomotion / calf raise / propulsion',function:'Plantarflexion dan membantu knee flexion.',train:'Standing calf raise, single-leg calf raise, loaded pogo progression.',cues:'Gunakan full controlled ROM yang nyaman.'},
+'Soleus':{region:'Tungkai bawah',bones:'Posterior tibia/fibula → calcaneus via Achilles tendon',joints:'Ankle',patterns:'Locomotion / plantarflexion',function:'Plantarflexor penting terutama saat knee flexed.',train:'Seated calf raise, bent-knee calf raise.',cues:'Kontrol bawah-atas dan jangan memantulkan beban.'},
+'Tibialis Anterior':{region:'Tungkai bawah',bones:'Lateral tibia → medial foot (medial cuneiform/base first metatarsal)',joints:'Ankle',patterns:'Locomotion / dorsiflexion',function:'Dorsiflexion dan membantu kontrol kaki saat gait.',train:'Tibialis raises, band dorsiflexion, controlled heel walks.',cues:'Gerakkan ankle, bukan seluruh kaki dari pinggul.'}
+};
+var REGIONS=['Semua','Dada','Punggung','Bahu','Lengan','Core','Pinggul','Paha','Tungkai bawah'];
+function getExerciseData(){return window.__fjExerciseData||window.DATA||window.exerciseData||[]}
+function relatedExercises(m){
+  var a=getExerciseData(); if(!Array.isArray(a))return [];
+  var n=m.name.toLowerCase(), keys=n.split(/\s+/).filter(function(x){return x.length>3});
+  return a.filter(function(d){var hay=JSON.stringify([d.name,d.primary,d.secondary,d.cat,d.move]).toLowerCase();return keys.some(function(k){return hay.indexOf(k)>-1})}).slice(0,12);
+}
+function renderEducation(){
+  var b=q('exlMateri'); if(!b)return;
+  var names=Object.keys(MUSCLES).sort(), region=q('fjEduRegion')?q('fjEduRegion').value:'Semua', chosen=q('fjEduMuscle')?q('fjEduMuscle').value:'Biceps Brachii';
+  var list=names.filter(function(n){return region==='Semua'||MUSCLES[n].region===region}); if(!list.length)list=names;
+  if(list.indexOf(chosen)<0)chosen=list[0];
+  var m=MUSCLES[chosen], ex=relatedExercises(m);
+  b.innerHTML='<div class="fj-v611-education">'+
+    '<div class="edu-head"><div><div class="label">MATERI &amp; EDUKASI</div><h2>'+esc(m.name)+'</h2><div class="edu-muted">Pilih wilayah tubuh lalu satu otot. Detail di bawah berubah hanya untuk materi ini.</div></div><div class="edu-muted">Region: <b>'+esc(m.region)+'</b></div></div>'+
+    '<div class="edu-selects"><label>Wilayah tubuh<select id="fjEduRegion">'+REGIONS.map(function(r){return '<option '+(r===region?'selected':'')+'>'+esc(r)+'</option>'}).join('')+'</select></label><label>Otot<select id="fjEduMuscle">'+list.map(function(n){return '<option '+(n===chosen?'selected':'')+'>'+esc(n)+'</option>'}).join('')+'</select></label></div>'+
+    '<div class="edu-grid">'+
+      '<section class="edu-box"><h3>Berada di tulang / attachment</h3><p>'+esc(m.bones)+'</p></section>'+
+      '<section class="edu-box"><h3>Sendi yang terlibat</h3><p>'+esc(m.joints)+'</p></section>'+
+      '<section class="edu-box"><h3>Nama pattern / gerakan</h3><p>'+esc(m.patterns)+'</p></section>'+
+      '<section class="edu-box"><h3>Fungsi utama</h3><p>'+esc(m.function)+'</p></section>'+
+      '<section class="edu-box"><h3>Cara melatih</h3><p>'+esc(m.train)+'</p></section>'+
+      '<section class="edu-box"><h3>Petunjuk teknik</h3><p>'+esc(m.cues)+'</p></section>'+
+      '<section class="edu-box"><h3>Jenis latihan yang relevan</h3><ul>'+m.train.split(',').map(function(x){return '<li>'+esc(x.trim())+'</li>'}).join('')+'</ul></section>'+ 
+      '<section class="edu-box"><h3>Exercise dari library yang terkait</h3><ul>'+(ex.length?ex.map(function(x){return '<li>'+esc(x.name||x)+'</li>'}).join(''):'<li>Belum ada exercise library yang cocok dengan nama otot ini.</li>')+'</ul></section>'+ 
+    '</div></div>';
+  var r=q('fjEduRegion'), mm=q('fjEduMuscle');
+  if(r)r.onchange=function(){renderEducation()};
+  if(mm)mm.onchange=function(){renderEducation()};
+}
+function installEducation(){
+  var b=q('exlMateri'); if(!b)return false;
+  renderEducation(); return true;
+}
+function boot(){installPTClientNav();installEducation()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,50);setTimeout(boot,500)}, {once:true});
+else {setTimeout(boot,50);setTimeout(boot,500)}
+window.addEventListener('load',function(){setTimeout(boot,300)});
+})();
+</script>
+</body></html>';
+  try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
+
+  try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
+}
+function bindPrintButton(){
+  var b=q('fjV48PrintRange');if(!b||b.dataset.fjV52Bound)return;var c=b.cloneNode(true);c.dataset.fjV52Bound='1';b.parentNode.replaceChild(c,b);c.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();openPrintModal()},true);
+}
+function ensure(){var p=q('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;hideClientDetail();ensureDeviceToolbar();bindPrintButton();enhanceProfileClick()}
+document.addEventListener('click',function(e){var n=e.target.closest&&e.target.closest('.side .navbtn');if(n&&/PT Management/i.test(n.textContent||''))setTimeout(ensure,120);},true);
+document.addEventListener('fj-v50-refresh',function(){setTimeout(ensure,80)});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(ensure,1200)},{once:true});else setTimeout(ensure,1200);
+window.addEventListener('load',function(){setTimeout(ensure,1400)});
+})();
+</script>
+<style id="fj-ptm-master-mirror-v53-css">
+/* V53 — PT Management is a MASTER-ADMIN mirror of Client Calendar. */
+#fjPtMirrorMaster{padding-bottom:28px!important;display:block!important;visibility:visible!important;opacity:1!important;position:relative!important}
+#fjPtMirrorMaster .ptm53-shell{background:#f7fbfd;border:1px solid #d9e8ef;border-radius:18px;padding:16px}
+#fjPtMirrorMaster .ptm53-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+#fjPtMirrorMaster .ptm53-head h2{margin:2px 0;color:#17364e}
+#fjPtMirrorMaster .ptm53-muted{color:#6d879e;font-size:12px}
+#fjPtMirrorMaster .ptm53-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+#fjPtMirrorMaster .ptm53-btn{border:0;border-radius:9px;padding:8px 11px;background:#1787c8;color:#fff;font-weight:900;cursor:pointer}
+#fjPtMirrorMaster .ptm53-btn.alt{background:#fff;color:#31576f;border:1px solid #cfe0e9}
+#fjPtMirrorMaster .ptm53-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+#fjPtMirrorMaster .ptm53-tab{border:1px solid #cfe0e9;background:#fff;color:#31576f;border-radius:10px;padding:9px 13px;font-weight:900;cursor:pointer}
+#fjPtMirrorMaster .ptm53-tab.active{background:#eaf8ff;color:#087c98;border-color:#8ccde0}
+#fjPtMirrorMaster .ptm53-card{background:#fff;border:1px solid #dce8ef;border-radius:14px;padding:14px;box-shadow:0 7px 18px rgba(35,65,90,.06);margin-bottom:12px}
+#fjPtMirrorMaster .ptm53-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#fjPtMirrorMaster .ptm53-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+#fjPtMirrorMaster .ptm53-day{min-height:110px;border:1px solid #dce8ef;border-radius:9px;background:#fff;padding:6px;overflow:hidden}
+#fjPtMirrorMaster .ptm53-daynum{font-weight:950;color:#31576f;margin-bottom:5px}
+#fjPtMirrorMaster .ptm53-event{border-radius:7px;background:#edf8ff;border:1px solid #b9d9ef;padding:5px;margin-top:4px;font-size:10px;cursor:pointer}
+#fjPtMirrorMaster .ptm53-event:hover{border-color:#5fa8d5;background:#e7f5ff}
+#fjPtMirrorMaster .ptm53-client-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#fjPtMirrorMaster .ptm53-client{border:1px solid #d7e5ee;border-radius:12px;padding:12px;background:#fff;cursor:pointer}
+#fjPtMirrorMaster .ptm53-client:hover{border-color:#72b4dc;box-shadow:0 7px 18px rgba(20,55,80,.08)}
+#fjPtMirrorMaster .ptm53-client h3{margin:0 0 5px;color:#17364e}
+#fjPtMirrorMaster .ptm53-ba{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+#fjPtMirrorMaster .ptm53-ba>div{border:1px solid #dce8ef;border-radius:9px;padding:6px;background:#fbfefe;text-align:center}
+#fjPtMirrorMaster .ptm53-ba img{display:block;width:100%;height:90px;object-fit:cover;border-radius:6px;margin-top:4px}
+#fjPtMirrorMaster .ptm53-nophoto{height:90px;display:flex;align-items:center;justify-content:center;color:#8aa5a9;font-size:10px}
+#fjPtMirrorMaster .ptm53-data-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+#fjPtMirrorMaster .ptm53-data-grid>div{border:1px solid #e0eaf0;border-radius:7px;padding:6px;background:#fbfdfe}
+#fjPtMirrorMaster .ptm53-data-grid b{display:block;font-size:9px;color:#6d879e;text-transform:uppercase}
+#fjPtMirrorMaster .ptm53-data-grid span{display:block;font-size:11px;font-weight:800;color:#31576f;margin-top:2px;overflow-wrap:anywhere}
+#fjPtMirrorMaster .ptm53-table{width:100%;border-collapse:collapse;font-size:12px}
+#fjPtMirrorMaster .ptm53-table th,#fjPtMirrorMaster .ptm53-table td{border-bottom:1px solid #e6eef3;padding:8px;text-align:left;vertical-align:top}
+#fjPtMirrorMaster .ptm53-table th{background:#f5f9fb;color:#31576f}
+#fjPtMirrorMaster .ptm53-search{width:100%;box-sizing:border-box;border:1px solid #cfe0e9;border-radius:9px;padding:9px;background:#fff}
+#fjPtMirrorMaster .ptm53-modal{position:fixed;inset:0;background:rgba(15,43,64,.68);display:none;align-items:center;justify-content:center;padding:14px;z-index:2147483001}
+#fjPtMirrorMaster .ptm53-modal.open{display:flex}
+#fjPtMirrorMaster .ptm53-modalbox{width:min(1000px,96vw);max-height:94vh;overflow:auto;background:#fff;border-radius:16px;padding:16px}
+#fjPtMirrorMaster .ptm53-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#fjPtMirrorMaster .ptm53-form .span4{grid-column:1/-1}
+#fjPtMirrorMaster .ptm53-form label{display:block;font-size:10px;font-weight:900;color:#31576f;margin-bottom:4px}
+#fjPtMirrorMaster .ptm53-form input,#fjPtMirrorMaster .ptm53-form select,#fjPtMirrorMaster .ptm53-form textarea{width:100%;box-sizing:border-box;border:1px solid #cfe0e9;border-radius:8px;padding:8px;background:#fff}
+#fjPtMirrorMaster .ptm53-ex{display:grid;grid-template-columns:minmax(170px,2fr) 80px 100px 90px 90px 100px 36px;gap:6px;align-items:start;margin-top:6px}
+#fjPtMirrorMaster .ptm53-ex input{min-width:0}
+#fjPtMirrorMaster .ptm53-ba-edit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#fjPtMirrorMaster .ptm53-section-title{margin:15px 0 7px;font-weight:950;color:#17364e}
+#fjPtMirrorMaster .ptm53-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+#fjPtMirrorMaster .ptm53-kpi{border:1px solid #dce8ef;border-radius:10px;padding:9px;background:#fbfdfe}
+#fjPtMirrorMaster .ptm53-kpi b{display:block;font-size:18px;color:#17364e}
+#fjPtMirrorMaster .ptm53-kpi span{font-size:9px;color:#6d879e}
+#fjPtMirrorMaster .ptm53-print-root{display:none}
+@media(max-width:900px){#fjPtMirrorMaster .ptm53-client-list{grid-template-columns:1fr 1fr}#fjPtMirrorMaster .ptm53-grid{grid-template-columns:1fr 1fr}#fjPtMirrorMaster .ptm53-kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){#fjPtMirrorMaster .ptm53-calendar{grid-template-columns:repeat(7,minmax(70px,1fr));min-width:520px}#fjPtMirrorMaster .ptm53-calendar-wrap{overflow-x:auto}#fjPtMirrorMaster .ptm53-client-list{grid-template-columns:1fr}#fjPtMirrorMaster .ptm53-form{grid-template-columns:1fr 1fr}#fjPtMirrorMaster .ptm53-form .span4{grid-column:1/-1}#fjPtMirrorMaster .ptm53-ex{grid-template-columns:minmax(150px,2fr) 65px 80px 75px 75px 90px 32px;min-width:620px}#fjPtMirrorMaster .ptm53-ex-wrap{overflow-x:auto}#fjPtMirrorMaster .ptm53-ba-edit{grid-template-columns:1fr}#fjPtMirrorMaster .ptm53-kpis{grid-template-columns:1fr 1fr}}
+@media print{
+  body.fj-ptm53-printing>*:not(#fjPtMPrintRoot){display:none!important}
+  body.fj-ptm53-printing #fjPtMPrintRoot{display:block!important;padding:10mm!important;font-family:Arial,sans-serif;color:#111;background:#fff}
+  #fjPtMPrintRoot .ptm53-print-cover{break-after:page;page-break-after:always;min-height:245mm}
+  #fjPtMPrintRoot .ptm53-print-event{break-inside:avoid;page-break-inside:avoid;margin-bottom:10mm}
+  #fjPtMPrintRoot table{width:100%;border-collapse:collapse;font-size:9px;margin:5px 0 9px}
+  #fjPtMPrintRoot th,#fjPtMPrintRoot td{border:1px solid #aaa;padding:4px;text-align:left;vertical-align:top}
+  #fjPtMPrintRoot .ptm53-client-fields{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  #fjPtMPrintRoot .ptm53-client-fields>div{border:1px solid #ccc;padding:4px}
+  #fjPtMPrintRoot .ptm53-client-fields b,#fjPtMPrintRoot .ptm53-client-fields span{display:block}
+  #fjPtMPrintRoot .ptm53-ba-print{display:grid;grid-template-columns:1fr 1fr;gap:7mm;margin-top:5mm}
+  #fjPtMPrintRoot .ptm53-ba-card{border:1px solid #777;padding:4mm;break-inside:avoid;page-break-inside:avoid}
+  #fjPtMPrintRoot .ptm53-ba-photo{width:52mm;height:62mm;margin:0 auto 4mm;border:1px dashed #aaa;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  #fjPtMPrintRoot .ptm53-ba-photo img{width:100%;height:100%;object-fit:cover}
+  #fjPtMPrintRoot .ptm53-ba-fields{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+  #fjPtMPrintRoot .ptm53-ba-fields>div{border:1px solid #ccc;padding:2.5mm}
+  #fjPtMPrintRoot .ptm53-ba-fields b,#fjPtMPrintRoot .ptm53-ba-fields span{display:block}
+}
+</style>
+<script id="fj-ptm-master-mirror-v53-runtime">
+(function(){
+'use strict';
+var P='fjPtMirrorMaster', NAV='fjPtOpsV2Nav', CAL='fj_client_calendar_v1', DIR='fj_client_directory_v1';
+var state={month:new Date(),tab:'calendar',search:'',selectedKey:null};
+function $(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
+function master(){var u=null;try{u=(typeof currentUser!=='undefined'&&currentUser)?currentUser:null}catch(e){};if(!u)u=window.currentUser||null;var em=String(u?.email||'').trim().toLowerCase();if(em==='aldenkhafi0203@gmail.com')return true;try{return typeof fjCurrentRole==='function'&&fjCurrentRole(em).role==='MASTER_ADMIN'}catch(e){return false}}
+function cal(){try{var p=JSON.parse(localStorage.getItem(CAL)||'null');return p&&p.calendar?p:null}catch(e){return null}}
+function dir(){try{return JSON.parse(localStorage.getItem(DIR)||'{}')||{}}catch(e){return {}}}
+function saveCal(p){try{localStorage.setItem(CAL,JSON.stringify(p));return true}catch(e){return false}}
+function saveDir(d){try{localStorage.setItem(DIR,JSON.stringify(d));return true}catch(e){return false}}
+function norm(v){return String(v==null?'':v).trim().toLowerCase()}
+function events(){var p=cal(),ev=p&&p.calendar&&p.calendar.events?p.calendar.events:{};return Object.keys(ev).sort().map(function(k){return {key:k,event:ev[k]}}).filter(function(x){return x.event&&x.event.client&&x.event.client.name})}
+function getClient(name){var d=dir(),keys=Object.keys(d);for(var i=0;i<keys.length;i++){if(norm(d[keys[i]].name)===norm(name))return d[keys[i]]}var e=events().find(function(x){return norm(x.event.client?.name)===norm(name)});return e?clone(e.event.client):{name:name}}
+function baOf(e,c){var a=(e&&e.beforeAfter&&typeof e.beforeAfter==='object')?e.beforeAfter:null,b=(c&&c.beforeAfter&&typeof c.beforeAfter==='object')?c.beforeAfter:null;return {before:Object.assign({},b?.before||{},c?.before||{},a?.before||{}),after:Object.assign({},b?.after||{},c?.after||{},a?.after||{})}}
+function hasBA(ba){return ['before','after'].some(function(s){var z=ba[s]||{};return Object.keys(z).some(function(k){return z[k]!==''&&z[k]!=null})})}
+function photo(z){return z&&(z.image||z.photo)||''}
+function baFields(z){z=z||{};return [['Date',z.date],['Weight',z.weight],['Height',z.height],['BMI',z.bmi],['Skeletal Muscle',z.skeletalMuscle],['Body Fat',z.bodyFat],['WHR',z.whr],['Visceral Fat',z.visceralFat],['BMR',z.bmr],['Chest',z.chest],['Waist',z.waist],['Hip',z.hip],['Arm',z.arm],['Thigh',z.thigh],['Notes',z.notes]].filter(function(x){return x[1]!==''&&x[1]!=null})}
+function packageOf(c){return (c&&c.package&&typeof c.package==='object')?c.package:{}}
+function clientData(c){var p=packageOf(c);return [['Client Name',c.name],['Age',c.age],['Gender',c.gender],['Weight',c.weight],['Height',c.height],['Goal',c.goal],['Fitness Level',c.level],['Workout Type',c.wtype],['Duration',c.duration],['Frequency',c.freq],['Phone',c.phone],['Email',c.email],['Notes',c.notes],['Paket PT',p.name],['Paket — Total Sesi',p.totalSessions],['Paket — Sesi Terpakai',p.usedSessions],['Paket — Sisa Sesi',Math.max(0,Number(p.totalSessions||0)-Number(p.usedSessions||0))],['Paket — Tanggal Beli',p.purchaseDate],['Paket — Expiry',p.expiryDate],['Paket — Harga',p.price]]}
+
+function clients(){var map={},d=dir();Object.keys(d).forEach(function(k){var c=d[k];if(c&&c.name)map[norm(c.name)]=clone(c)});events().forEach(function(x){var c=x.event.client;if(c&&c.name){var n=norm(c.name);if(!map[n])map[n]=clone(c);else{map[n]=Object.assign({},c,map[n]);}}});return Object.keys(map).map(function(k){return map[k]}).sort(function(a,b){return String(a.name).localeCompare(String(b.name))})}
+async function syncOnlineMirror(){
+  var s=window.sb;if(!s)return;
+  try{
+    var rs=await Promise.all([s.from('pt_clients').select('*').order('name'),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(5000),s.from('pt_packages').select('*').order('purchase_date',{ascending:false}).limit(5000)]);
+    if(rs.some(function(r){return r.error}))return;
+    var remClients=rs[0].data||[],remSchedules=rs[1].data||[],remPackages=rs[2].data||[],d=dir();
+    remClients.forEach(function(rc){var pr=rc.profile||{},key=Object.keys(d).find(function(k){return norm(d[k].name)===norm(rc.name)&&(norm(rc.phone)?norm(d[k].phone)===norm(rc.phone):true)})||('online_'+rc.id),old=d[key]||{};d[key]=Object.assign({},old,{id:old.id||key,name:rc.name,age:pr.age||old.age||'',gender:pr.gender||old.gender||'',weight:pr.weight||old.weight||'',height:pr.height||old.height||'',goal:pr.goal||old.goal||'',level:pr.level||old.level||'',wtype:pr.wtype||old.wtype||'',duration:pr.duration||old.duration||'',freq:pr.freq||old.freq||'',phone:rc.phone||old.phone||'',email:rc.email||old.email||'',notes:rc.notes||old.notes||'',before:pr.beforeAfter?.before||old.before||{},after:pr.beforeAfter?.after||old.after||{},package:pr.package||old.package||{}})});
+    remPackages.forEach(function(rp){var rc=remClients.find(function(c){return c.id===rp.client_id});if(!rc)return;var key=Object.keys(d).find(function(k){return norm(d[k].name)===norm(rc.name)});if(!key)return;var oldp=d[key].package||{};if(!oldp.name||String(rp.purchase_date||'')>=String(oldp.purchaseDate||''))d[key].package={name:rp.package_name||oldp.name,totalSessions:Number(rp.total_sessions||0),usedSessions:Number(rp.used_sessions||0),purchaseDate:rp.purchase_date||'',expiryDate:rp.expiry_date||'',price:Number(rp.price||oldp.price||0)}});
+    var cp=cal()||{version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};cp.calendar=cp.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};cp.calendar.events=cp.calendar.events||{};
+    var mark='[[FJ_EVENT_JSON_V48]]';remSchedules.forEach(function(rsx){var when=String(rsx.scheduled_at||'').slice(0,16);if(!when)return;var raw=String(rsx.notes||''),i=raw.indexOf(mark),e=null;if(i>=0){var rest=raw.slice(i+mark.length),nl=rest.indexOf('\n');try{e=JSON.parse(nl>=0?rest.slice(0,nl):rest)}catch(_){} }if(!e)e={title:rsx.schedule_type||'Training',notes:raw.replace(mark,'').trim(),client:{name:(remClients.find(function(c){return c.id===rsx.client_id})||{}).name||'Client'},exercises:[]};var rc=remClients.find(function(c){return c.id===rsx.client_id});if(rc){var pr=rc.profile||{};e.client=Object.assign({},e.client||{},{name:rc.name,age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',phone:rc.phone||'',email:rc.email||'',pt_email:rc.pt_email||''})}cp.calendar.events[when]=e});saveDir(d);saveCal(cp);
+  }catch(e){console.warn('PT Management online mirror',e)}
+}
+function render(){if(!master()){hide();return}ensure();var p=$(P);if(!p)return;renderTabs();if(state.tab==='calendar')renderCalendar();else if(state.tab==='clients')renderClients();else renderActivity()}
+function ensure(){var old=$(P);if(old)return old;var main=document.querySelector('main.main')||document.querySelector('.main');if(!main)return null;var sec=document.createElement('section');sec.className='panel';sec.id=P;sec.innerHTML='<div class="ptm53-shell"><div class="ptm53-head"><div><div class="label">PT MANAGEMENT — MASTER ADMIN</div><h2>Client Calendar Mirror</h2><div class="ptm53-muted">Satu sumber data: Client Calendar. Tidak ada Add Client / Add Schedule di sini. Master dapat memeriksa dan merevisi data yang dibuat PT.</div></div><div class="pill">MASTER ADMIN</div></div><div class="ptm53-toolbar"><button class="ptm53-btn alt" id="ptm53Prev">←</button><b id="ptm53Month"></b><button class="ptm53-btn alt" id="ptm53Next">→</button><span style="flex:1"></span><button class="ptm53-btn alt" id="ptm53PrintRange">▣ Print / Save PDF</button><button class="ptm53-btn alt" id="ptm53Refresh">↻ Refresh</button></div><div class="ptm53-tabs"><button class="ptm53-tab active" data-t="calendar">Client Calendar</button><button class="ptm53-tab" data-t="clients">Client List</button><button class="ptm53-tab" data-t="activity">All Activity</button></div><div id="ptm53Content"></div></div><div id="ptm53Modal" class="ptm53-modal"><div class="ptm53-modalbox" id="ptm53ModalBox"></div></div>';main.appendChild(sec);
+ sec.querySelectorAll('[data-t]').forEach(function(b){b.onclick=function(){state.tab=b.dataset.t;render()}});$('ptm53Prev').onclick=function(){state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);render()};$('ptm53Next').onclick=function(){state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);render()};$('ptm53Refresh').onclick=function(){syncOnlineMirror().then(render).catch(function(){render()})};$('ptm53PrintRange').onclick=function(){openRangePrint()};
+ return sec}
+function renderTabs(){var p=$(P);if(!p)return;p.classList.add('active');document.querySelectorAll('.panel').forEach(function(x){if(x.id!==P)x.classList.remove('active')});p.querySelectorAll('[data-t]').forEach(function(b){b.classList.toggle('active',b.dataset.t===state.tab)});$('ptm53Month').textContent=state.month.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}
+function renderCalendar(){var b=$('ptm53Content');if(!b)return;var y=state.month.getFullYear(),m=state.month.getMonth(),first=new Date(y,m,1),start=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),ev=events(),by={};ev.forEach(function(x){var d=x.key.slice(0,10);(by[d]||(by[d]=[])).push(x)});var h='<div class="ptm53-card"><div class="ptm53-kpis"><div class="ptm53-kpi"><b>'+clients().length+'</b><span>CLIENTS</span></div><div class="ptm53-kpi"><b>'+ev.length+'</b><span>SESSIONS</span></div><div class="ptm53-kpi"><b>'+ev.filter(function(x){return /done|complete|conduct/i.test(String(x.event.status||x.event.notes||''))}).length+'</b><span>CONDUCT / DONE</span></div><div class="ptm53-kpi"><b>'+ev.filter(function(x){return hasBA(baOf(x.event,getClient(x.event.client.name)))}).length+'</b><span>SESSIONS WITH B/A</span></div><div class="ptm53-kpi"><b>'+new Set(ev.map(function(x){return x.event.client?.pt_email||x.event.client?.pt||x.event.pt_email||'—'})).size+'</b><span>PT SOURCES</span></div></div></div><div class="ptm53-card ptm53-calendar-wrap"><div class="ptm53-calendar">';['Sen','Sel','Rab','Kam','Jum','Sab','Min'].forEach(function(x){h+='<div style="font-size:10px;font-weight:900;color:#6d879e;text-align:center;padding:4px">'+x+'</div>'});for(var i=0;i<start;i++)h+='<div class="ptm53-day" style="background:#f8fbfd;opacity:.55"></div>';for(var d=1;d<=days;d++){var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');h+='<div class="ptm53-day"><div class="ptm53-daynum">'+d+'</div>'+(by[ds]||[]).map(function(x){var e=x.event;return '<div class="ptm53-event" data-key="'+esc(x.key)+'"><b>'+esc(e.client.name)+'</b><br>'+esc(x.key.slice(11,16))+' • '+esc(e.title||e.client.wtype||'Training')+'</div>'}).join('')+'</div>'}h+='</div></div>';
+ h+='<div class="ptm53-card"><div class="ptm53-muted">Klik session untuk melihat <b>data client lengkap, latihan, pencatatan, Before/After</b> dan melakukan revisi sebagai Master Admin.</div></div>';b.innerHTML=h;b.querySelectorAll('[data-key]').forEach(function(x){x.onclick=function(e){e.stopPropagation();openEvent(x.dataset.key)}})}
+function renderClients(){var b=$('ptm53Content'),a=clients(),q=state.search.toLowerCase();a=a.filter(function(c){return !q||String(c.name).toLowerCase().includes(q)||String(c.phone||'').includes(q)});var h='<div class="ptm53-card"><input id="ptm53Search" class="ptm53-search" placeholder="Search client" value="'+esc(state.search)+'"></div><div class="ptm53-client-list">';a.forEach(function(c){var ev=events().filter(function(x){return norm(x.event.client.name)===norm(c.name)}),last=ev[ev.length-1],ba=baOf(last&&last.event,c),make=function(s,z){var src=photo(z);return '<div><b style="font-size:9px;color:#6d879e">'+s+'</b>'+(src?'<img src="'+esc(src)+'">':'<div class="ptm53-nophoto">NO PHOTO</div>')+'<div class="ptm53-data-grid">'+baFields(z).slice(0,6).map(function(v){return '<div><b>'+esc(v[0])+'</b><span>'+esc(v[1])+'</span></div>'}).join('')+'</div></div>'};h+='<div class="ptm53-client" data-client="'+esc(c.name)+'"><h3>'+esc(c.name)+'</h3><div class="ptm53-muted">'+ev.length+' session(s) in Client Calendar</div><div class="ptm53-muted">Goal: '+esc(c.goal||'—')+' • Level: '+esc(c.level||'—')+'</div>'+(function(){var p=packageOf(c),total=Number(p.totalSessions||0),used=Number(p.usedSessions||0);return '<div class="ptm53-muted"><b>Paket:</b> '+esc(p.name||'—')+' • '+used+'/'+total+' used • <b>'+Math.max(0,total-used)+'</b> remaining • Expiry: '+esc(p.expiryDate||'—')+'</div>'})()+'<div class="ptm53-ba">'+make('BEFORE',ba.before)+make('AFTER',ba.after)+'</div></div>'});h+='</div>';b.innerHTML=h||'<div class="ptm53-card">Belum ada client di Client Calendar.</div>';var s=$('ptm53Search');if(s)s.oninput=function(){state.search=this.value;renderClients()};b.querySelectorAll('[data-client]').forEach(function(x){x.onclick=function(){openClient(x.dataset.client)}})}
+function renderActivity(){var b=$('ptm53Content'),rows=events().sort(function(a,b){return String(b.key).localeCompare(String(a.key))});var h='<div class="ptm53-card"><h3 style="margin-top:0">All PT Activity</h3><div class="ptm53-muted">Dibaca langsung dari event Client Calendar; tidak ada duplikasi pencatatan di PT Management.</div><div style="overflow:auto;margin-top:9px"><table class="ptm53-table"><thead><tr><th>Date</th><th>Client</th><th>PT</th><th>Workout</th><th>Exercises</th><th>Status / Notes</th></tr></thead><tbody>';rows.forEach(function(x){var e=x.event;h+='<tr><td>'+esc(x.key.replace('T',' '))+'</td><td>'+esc(e.client.name)+'</td><td>'+esc(e.client.pt_email||e.client.pt||e.pt_email||'—')+'</td><td>'+esc(e.title||e.client.wtype||'Training')+'</td><td>'+((e.exercises||[]).length)+'</td><td>'+esc(e.status||e.notes||'—')+'</td></tr>';});h+='</tbody></table></div></div>';b.innerHTML=h}
+function openClient(name){var c=getClient(name),ev=events().filter(function(x){return norm(x.event.client.name)===norm(name)}),h='<div class="ptm53-toolbar"><div><div class="label">CLIENT</div><h2 style="margin:2px 0">'+esc(c.name)+'</h2><div class="ptm53-muted">'+ev.length+' session(s)</div></div><span style="flex:1"></span><button class="ptm53-btn alt" id="ptm53Close">Close</button></div><div class="ptm53-card"><div class="ptm53-data-grid">';clientData(c).forEach(function(v){h+='<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'});h+='</div></div>';ev.forEach(function(x){h+='<div class="ptm53-card"><b>'+esc(x.key.replace('T',' '))+'</b> — '+esc(x.event.title||'Training')+'<button class="ptm53-btn alt" data-key="'+esc(x.key)+'" style="float:right">Open / Revise</button></div>'});var mb=$('ptm53ModalBox');mb.innerHTML=h;$('ptm53Modal').classList.add('open');$('ptm53Close').onclick=closeModal;mb.querySelectorAll('[data-key]').forEach(function(b){b.onclick=function(){openEvent(b.dataset.key)}})}
+function openEvent(key){var p=cal(),e=p&&p.calendar&&p.calendar.events?p.calendar.events[key]:null;if(!e)return;state.selectedKey=key;var c=Object.assign({},getClient(e.client.name),e.client||{}),ba=baOf(e,c),h='<div class="ptm53-toolbar"><div><div class="label">CLIENT CALENDAR MIRROR</div><h2 style="margin:2px 0">'+esc(c.name||'Client')+'</h2><div class="ptm53-muted">'+esc(key.replace('T',' '))+' • '+esc(e.title||'Training')+'</div></div><span style="flex:1"></span><button class="ptm53-btn alt" id="ptm53PrintOne">▣ Print</button><button class="ptm53-btn alt" id="ptm53Close">Close</button></div>';
+h+='<div class="ptm53-section-title">Client Data</div><div class="ptm53-form">'+[['name','Name'],['age','Age'],['gender','Gender'],['weight','Weight (kg)'],['height','Height (cm)'],['goal','Goal'],['level','Fitness Level'],['wtype','Workout Type'],['duration','Duration (months)'],['freq','Frequency / week'],['phone','Phone'],['email','Email']] .map(function(x){return '<div><label>'+x[1]+'</label><input data-client-field="'+x[0]+'" value="'+esc(c[x[0]]||'')+'"></div>'}).join('')+'<div><label>Paket PT</label><input data-package-field="name" value="'+esc(packageOf(c).name||'')+'"></div><div><label>Total Sesi Paket</label><input type="number" data-package-field="totalSessions" value="'+esc(packageOf(c).totalSessions||0)+'"></div><div><label>Sesi Terpakai</label><input type="number" data-package-field="usedSessions" value="'+esc(packageOf(c).usedSessions||0)+'"></div><div><label>Tanggal Beli</label><input type="date" data-package-field="purchaseDate" value="'+esc(packageOf(c).purchaseDate||'')+'"></div><div><label>Tanggal Expiry</label><input type="date" data-package-field="expiryDate" value="'+esc(packageOf(c).expiryDate||'')+'"></div><div><label>Harga Paket</label><input type="number" data-package-field="price" value="'+esc(packageOf(c).price||0)+'"></div><div class="span4"><label>Client Notes / History</label><textarea data-client-field="notes" rows="2">'+esc(c.notes||'')+'</textarea></div></div>';
+h+='<div class="ptm53-section-title">Session Data</div><div class="ptm53-form"><div><label>Date</label><input id="ptm53Date" type="date" value="'+esc(key.slice(0,10))+'"></div><div><label>Time</label><input id="ptm53Time" type="time" value="'+esc(key.slice(11,16))+'"></div><div><label>Title</label><input id="ptm53Title" value="'+esc(e.title||'Training')+'"></div><div><label>Status</label><input id="ptm53Status" value="'+esc(e.status||'')+'"></div><div class="span4"><label>Session Notes / Conduct / Recording</label><textarea id="ptm53Notes" rows="3">'+esc(e.notes||'')+'</textarea></div></div>';
+h+='<div class="ptm53-section-title">Exercises — same records used by Client Calendar</div><div class="ptm53-ex-wrap"><div class="ptm53-ex" style="font-size:9px;font-weight:900;color:#6d879e"><span>Exercise</span><span>Sets</span><span>Reps / Time</span><span>Load</span><span>Rest</span><span>Instruction</span><span></span></div><div id="ptm53ExRows">'+(e.exercises||[]).map(function(r,i){return exRow(r,i)}).join('')+'</div></div><button class="ptm53-btn alt" id="ptm53AddEx" style="margin-top:7px">＋ Add Exercise</button>';
+h+='<div class="ptm53-section-title">Before / After</div><div class="ptm53-ba-edit">'+baEdit('before',ba.before)+baEdit('after',ba.after)+'</div>';
+h+='<div class="ptm53-toolbar" style="justify-content:flex-end"><button class="ptm53-btn alt" id="ptm53Delete">Delete Session</button><button class="ptm53-btn" id="ptm53Save">Save Revision to Client Calendar</button></div>';
+var mb=$('ptm53ModalBox');mb.innerHTML=h;$('ptm53Modal').classList.add('open');$('ptm53Close').onclick=closeModal;$('ptm53PrintOne').onclick=function(){printEvents([{key:key,event:e}],c.name)};$('ptm53AddEx').onclick=function(){var host=$('ptm53ExRows');host.insertAdjacentHTML('beforeend',exRow({},host.children.length))};mb.querySelectorAll('[data-remove-ex]').forEach(bindRemove);$('ptm53Save').onclick=function(){saveEventRevision(key,e,c,ba)};$('ptm53Delete').onclick=function(){if(confirm('Hapus session ini dari Client Calendar?')){delete p.calendar.events[key];p.savedAt=new Date().toISOString();saveCal(p);closeModal();render()}}}
+function exRow(r,i){return '<div class="ptm53-ex" data-ex-row="'+i+'"><input data-ex="exercise" value="'+esc(r.exercise||'')+'"><input data-ex="sets" value="'+esc(r.sets||'')+'"><input data-ex="reps" value="'+esc(r.reps||'')+'"><input data-ex="load" value="'+esc(r.load||'')+'"><input data-ex="rest" value="'+esc(r.rest||'')+'"><input data-ex="instruction" value="'+esc(r.instruction||r.instructions||'')+'"><button type="button" class="ptm53-btn alt" data-remove-ex="1">×</button></div>'}
+function bindRemove(b){b.onclick=function(){b.closest('[data-ex-row]').remove()}}
+function baEdit(side,z){var f=[['date','Date'],['weight','Weight'],['height','Height'],['bmi','BMI'],['skeletalMuscle','Skeletal Muscle'],['bodyFat','Body Fat'],['whr','WHR'],['visceralFat','Visceral Fat'],['bmr','BMR'],['chest','Chest'],['waist','Waist'],['hip','Hip'],['arm','Arm'],['thigh','Thigh']];return '<div class="ptm53-card"><h4 style="margin:0 0 7px">'+side.toUpperCase()+'</h4><div class="ptm53-form">'+f.map(function(x){return '<div><label>'+x[1]+'</label><input data-ba-side="'+side+'" data-ba-key="'+x[0]+'" value="'+esc(z?.[x[0]]||'')+'"></div>'}).join('')+'<div class="span4"><label>Notes</label><textarea data-ba-side="'+side+'" data-ba-key="notes" rows="2">'+esc(z?.notes||'')+'</textarea></div><div class="span4"><label>Photo</label><input type="file" accept="image/*" data-ba-file="'+side+'"><div style="margin-top:5px">'+(photo(z)?'<img data-ba-preview="'+side+'" src="'+esc(photo(z))+'" style="max-width:180px;max-height:180px;border-radius:8px;object-fit:cover">':'<span class="ptm53-muted" data-ba-preview="'+side+'">No photo</span>')+'</div></div></div></div>'}
+function readBA(side,base){var z=clone(base||{});document.querySelectorAll('[data-ba-side="'+side+'"]').forEach(function(x){z[x.dataset.baKey]=x.value||''});var inp=document.querySelector('[data-ba-file="'+side+'"]');if(inp&&inp._data)z.image=inp._data;return z}
+function bindPhotoInputs(){document.querySelectorAll('[data-ba-file]').forEach(function(inp){inp.onchange=function(){var f=inp.files&&inp.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){inp._data=rd.result;var p=document.querySelector('[data-ba-preview="'+inp.dataset.baFile+'"]');if(p.tagName==='IMG')p.src=rd.result;else{var im=document.createElement('img');im.dataset.baPreview=inp.dataset.baFile;im.src=rd.result;im.style.cssText='max-width:180px;max-height:180px;border-radius:8px;object-fit:cover';p.replaceWith(im)}};rd.readAsDataURL(f)}})}
+function saveEventRevision(oldKey,oldEvent,c,oldBA){var p=cal();if(!p||!p.calendar)return;var cc=clone(c);document.querySelectorAll('[data-client-field]').forEach(function(x){cc[x.dataset.clientField]=x.value||''});cc.package=Object.assign({},packageOf(c));document.querySelectorAll('[data-package-field]').forEach(function(x){var k=x.dataset.packageField;cc.package[k]=(k==='totalSessions'||k==='usedSessions'||k==='price')?Number(x.value||0):(x.value||'')});var date=$('ptm53Date').value,time=$('ptm53Time').value||'09:00',newKey=date+'T'+time,e=clone(oldEvent);e.client=Object.assign({},e.client||{},cc);e.title=$('ptm53Title').value||'Training';e.status=$('ptm53Status').value||'';e.notes=$('ptm53Notes').value||'';e.exercises=[];document.querySelectorAll('#ptm53ExRows [data-ex-row]').forEach(function(row){var r={};row.querySelectorAll('[data-ex]').forEach(function(x){r[x.dataset.ex]=x.value||''});if(r.exercise)e.exercises.push(r)});var ba={before:readBA('before',oldBA.before),after:readBA('after',oldBA.after)};e.beforeAfter=clone(ba);var d=dir(),dk=Object.keys(d).find(function(k){return norm(d[k].name)===norm(cc.name)});if(dk)d[dk]=Object.assign({},d[dk],cc,{before:clone(ba.before),after:clone(ba.after),beforeAfter:clone(ba)});else d['ptm53_'+Date.now().toString(36)] = Object.assign({},cc,{before:clone(ba.before),after:clone(ba.after),beforeAfter:clone(ba)});if(oldKey!==newKey)delete p.calendar.events[oldKey];p.calendar.events[newKey]=e;p.savedAt=new Date().toISOString();if(!saveCal(p)||!saveDir(d)){alert('Gagal menyimpan revisi. Data lama dipertahankan.');return}closeModal();state.month=new Date(date+'T00:00:00');render();/* fjPtM53-online-revision-sync */try{if(window.fjV48SaveOnline)setTimeout(function(){window.fjV48SaveOnline()},250)}catch(_){}try{document.dispatchEvent(new Event('fj-v50-refresh'))}catch(_){} }
+function closeModal(){var m=$('ptm53Modal');if(m)m.classList.remove('open')}
+function printEvents(list,clientName){var old=document.getElementById('fjPtMPrintRoot');if(old)old.remove();var root=document.createElement('div');root.id='fjPtMPrintRoot';var c=getClient(clientName),h='<section class="ptm53-print-cover"><h1>FITNESS JOURNEY — PT MANAGEMENT</h1><h2>'+esc(clientName||c.name||'Client')+'</h2><p>Client Calendar Mirror — Master Admin</p><div class="ptm53-client-fields">';clientData(c).forEach(function(v){h+='<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'});h+='</div><p style="margin-top:8mm">Printed sessions: '+list.length+'</p></section>';list.forEach(function(x,idx){var e=x.event,ba=baOf(e,c);h+='<section class="ptm53-print-event"><h2>SESSION '+(idx+1)+' — '+esc(x.key.replace('T',' '))+'</h2><p><b>Workout:</b> '+esc(e.title||e.client.wtype||'Training')+' &nbsp; <b>Status:</b> '+esc(e.status||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th><th>Instruction</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rest||'—')+'</td><td>'+esc(r.instruction||r.instructions||'')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Conduct / Notes:</b> '+esc(e.notes)+'</p>':'');if(hasBA(ba)){h+='<div class="ptm53-ba-print">';['before','after'].forEach(function(s){var z=ba[s]||{},src=photo(z);h+='<div class="ptm53-ba-card"><h2>'+s.toUpperCase()+'</h2><div class="ptm53-ba-photo">'+(src?'<img src="'+esc(src)+'">':'No photo')+'</div><div class="ptm53-ba-fields">'+baFields(z).map(function(v){return '<div><b>'+esc(v[0])+'</b><span>'+esc(v[1])+'</span></div>'}).join('')+'</div></div>'});h+='</div>'}h+='</section>'});root.innerHTML=h;document.body.appendChild(root);var oldTitle=document.title;document.title='PT Management — '+(clientName||'Client');document.body.classList.add('fj-ptm53-printing');function clean(){document.body.classList.remove('fj-ptm53-printing');var r=$('fjPtMPrintRoot');if(r)r.remove();document.title=oldTitle;window.removeEventListener('afterprint',clean)}window.addEventListener('afterprint',clean,{once:true});try{window.print()}catch(e){clean()}}
+function openRangePrint(){var ev=events(),from=prompt('From (YYYY-MM-DD)',new Date(state.month.getFullYear(),state.month.getMonth(),1).toISOString().slice(0,10));if(!from)return;var to=prompt('To (YYYY-MM-DD)',new Date(state.month.getFullYear(),state.month.getMonth()+1,0).toISOString().slice(0,10));if(!to)return;if(from>to){alert('Tanggal From / To tidak benar.');return}var name=prompt('Client name (kosong = semua client)','');var list=ev.filter(function(x){var d=x.key.slice(0,10);return d>=from&&d<=to&&(!name||norm(x.event.client.name)===norm(name))});printEvents(list,name||'All Clients')}
+function hide(){var p=$(P);if(p)p.classList.remove('active');var n=$(NAV);if(n)n.style.display='none';var old=$('fjPtOpsV2');if(old)old.classList.remove('active')}
+async function boot(){var n=$(NAV);if(!master()){hide();return}if(n){n.style.display='';n.textContent='▣ PT Management — Master';n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();render()};}var old=$('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}/* READY: render first; online sync is background and time-limited */render();try{await Promise.race([syncOnlineMirror(),new Promise(function(resolve){setTimeout(resolve,2500)})]);}catch(e){console.warn('PT Management background sync',e)}render()}
+document.addEventListener('click',function(e){var n=e.target.closest&&e.target.closest('#'+NAV);if(n&&master()){e.preventDefault();e.stopImmediatePropagation();render()}},true);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);window.addEventListener('load',function(){setTimeout(boot,1200)});
+var lastMaster='';setTimeout(function(){var m=master()?'1':'0';if(m!==lastMaster){lastMaster=m;boot()}},3000);
+document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#ptm53Modal')){if(e.target.id==='ptm53Modal')closeModal()}},true);
+window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
+})();
+</script>
+<!-- V58: PT MANAGEMENT MASTER MIRROR - minimal isolated navigation bridge. Original base preserved. -->
+<style id="fj-v58-pt-master-bridge">
+/* PT Tracker Management replaces the obsolete PT Management entry while reusing the original PT feature engine. */
+#fjPtOpsV2Nav{display:none!important}
+#fjPtOpsV2{display:none!important}
+#fjPtOpsV2.fj-pt-tracker-open{display:block!important;visibility:visible!important;opacity:1!important}
+#fjPtMirrorMaster{display:none!important}
+#fjPtMasterNav{display:none!important}
+#fjPtTrackerNav{display:flex!important}
+</style>
+<script id="fj-v58-pt-master-bridge-runtime">
+(function(){
+  'use strict';
+  var NAV_ID='fjPtTrackerNav', OLD_NAV='fjPtOpsV2Nav', OLD_PANEL='fjPtOpsV2';
+  function el(id){return document.getElementById(id)}
+  function user(){try{return (typeof currentUser!=='undefined'&&currentUser)||window.currentUser||null}catch(_){return window.currentUser||null}}
+  function role(){
+    var u=user(),email=String(u&&u.email||'').trim().toLowerCase();
+    try{if(email==='aldenkhafi0203@gmail.com')return 'MASTER_ADMIN';if(typeof fjCurrentRole==='function')return String(fjCurrentRole(email).role||'').toUpperCase()}catch(_){ }
+    return '';
+  }
+  function allowed(){return ['MASTER_ADMIN','PT','MANAGER','ADMIN'].includes(role())||!!window.__fjPtAccessApproved}
+  function ensureNav(){
+    var side=document.querySelector('.side');if(!side)return;
+    var n=el(NAV_ID);
+    if(!n){
+      n=document.createElement('button');n.id=NAV_ID;n.type='button';n.className='navbtn';n.textContent='▣ PT Tracker Management';
+      n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openTracker()};
+      var cc=document.getElementById('clientCalendarNav');
+      if(cc&&cc.parentNode)cc.parentNode.insertBefore(n,cc.nextSibling);else side.appendChild(n);
+    }
+    n.style.display=allowed()?'flex':'none';
+    var old=el(OLD_NAV);if(old)old.style.display='none';
+  }
+  function renameUI(){
+    var p=el(OLD_PANEL);if(!p)return;
+    p.classList.add('fj-pt-tracker-open');p.style.display='block';
+    var label=p.querySelector('.ptv2-head .label');if(label)label.textContent='PT TRACKER MANAGEMENT';
+    var h=p.querySelector('.ptv2-head h2');if(h)h.textContent='PT Tracker Management';
+    var sub=p.querySelector('.ptv2-head .ptv2-muted');if(sub)sub.textContent='';
+    var tabs=p.querySelectorAll('.ptv2-tab');tabs.forEach(function(t){if(t.dataset.v==='calendar')t.textContent='PT Schedule';if(t.dataset.v==='clients')t.textContent='Client List';if(t.dataset.v==='detail')t.textContent='Client Detail';if(t.dataset.v==='monitor')t.textContent='Master Monitor'});
+    var dt=p.querySelector('.ptv2-tab[data-v="detail"]');if(dt)dt.style.display='';
+  }
+  function openTracker(){
+    if(!allowed())return;
+    var p=el(OLD_PANEL);if(!p){try{window.fjPtV2Build&&window.fjPtV2Build()}catch(_){ }p=el(OLD_PANEL)}
+    if(!p)return;
+    try{if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar')}catch(err){console.error('PT Tracker open',err)}
+    renameUI();
+    document.querySelectorAll('.panel').forEach(function(x){if(x!==p)x.classList.remove('active')});
+    p.classList.add('active');p.classList.add('fj-pt-tracker-open');p.style.display='block';
+    document.querySelectorAll('.side .navbtn').forEach(function(x){x.classList.toggle('active',x.id===NAV_ID)});
+    /* Native PT Management render is the only renderer used here. */
+  }
+  function bind(){
+    ensureNav();
+    var p=el(OLD_PANEL);if(p)renameUI();
+    var n=el(NAV_ID);if(n&&!n.dataset.bound){n.dataset.bound='1';n.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();openTracker()},true)}
+  }
+  var tries=0;function boot(){bind();tries++;if(tries<40&&!el(NAV_ID))setTimeout(boot,500)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);
+  window.addEventListener('load',function(){setTimeout(boot,1100)});
+  setTimeout(function(){bind();var p=el(OLD_PANEL);if(p&&p.classList.contains('active'))renameUI()},1800);
+})();
+</script>
+<style id="fj-pt-tracker-native-header-css">
+/* The global app header is reused by the original shell. Hide the empty subtitle cleanly. */
+</style>
+<script id="fj-pt-tracker-native-header-runtime">
+(function(){
+  'use strict';
+  function q(s){return document.querySelector(s)}
+  function syncShellHeader(){
+    var top=q('main.main > .top');
+    if(!top)return;
+    var h=top.querySelector('h1'),p=top.querySelector('p');
+    if(!h)return;
+    var active=document.querySelector('main.main > .panel.active');
+    var id=active&&active.id||'';
+    var map={
+      'training':['Training Program','Create and manage personalized training programs'],
+      'trainingPro':['Training Program PRO','Professional training program management'],
+      'trainingClientCalendar':['Client Calendar',''],
+      'fjExerciseLibrary':['Exercise Library',''],
+      'fjPtOpsV2':['PT Tracker Management',''],
+      'adminAccess':['Admin Access','']
+    };
+    var v=map[id];
+    if(!v)return;
+    h.textContent=v[0];
+    if(p){p.textContent=v[1];p.style.display=v[1]?'':'none';}
+  }
+  function bind(){
+    document.querySelectorAll('.side .navbtn[data-tab]').forEach(function(b){
+      if(b.dataset.fjShellHeaderBound)return;
+      b.dataset.fjShellHeaderBound='1';
+      b.addEventListener('click',function(){setTimeout(syncShellHeader,0);setTimeout(syncShellHeader,80)},true);
+    });
+    syncShellHeader();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,700)},{once:true});else setTimeout(bind,700);
+  window.addEventListener('load',function(){setTimeout(bind,900)});
+  setTimeout(bind,1800);
+})();
+</script>
+<script id="fj-pt-tracker-native-schedule-runtime">
+(function(){
+  'use strict';
+  function q(id){return document.getElementById(id)}
+  function sb(){return window.sb||null}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  async function clients(){
+    var s=sb(); if(!s)return [];
+    var r=await s.from('pt_clients').select('*').order('name');
+    if(r.error){console.warn('PT Tracker clients',r.error.message);return []}
+    return r.data||[];
+  }
+  function modal(html){var b=q('ptv2ModalBody'),m=q('ptv2Modal');if(!b||!m)return false;b.innerHTML=html;m.classList.add('open');return true}
+  window.fjPtV2NewSchedule=function(date){
+    (async function(){
+      var cs=await clients();
+      if(!cs.length){alert('Belum ada client di PT Tracker Management.');return}
+      var d=date||new Date().toISOString().slice(0,10);
+      var opts=cs.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join('');
+      if(!modal('<h2>New PT Schedule</h2><div class="ptv2-form">'+
+        '<div><label>Client</label><select id="pttClient">'+opts+'</select></div>'+
+        '<div><label>Date</label><input id="pttDate" type="date" value="'+esc(d)+'"></div>'+
+        '<div><label>Time</label><input id="pttTime" type="time" value="09:00"></div>'+
+        '<div><label>Schedule Type</label><select id="pttType"><option>PT Session</option><option>Assessment</option><option>Consultation</option><option>Follow Up</option></select></div>'+
+        '<div class="span3"><label>Notes</label><textarea id="pttNotes"></textarea></div>'+
+        '</div><div class="ptv2-actions" style="margin-top:12px"><button class="ptv2-btn alt" id="pttCancel">Cancel</button><button class="ptv2-btn" id="pttSave">Save Schedule</button></div>'))return;
+      q('pttCancel').onclick=function(){q('ptv2Modal').classList.remove('open')};
+      q('pttSave').onclick=async function(){
+        var s=sb();if(!s)return;
+        var cid=q('pttClient').value,day=q('pttDate').value,time=q('pttTime').value||'09:00';
+        if(!cid||!day){alert('Client dan tanggal wajib diisi.');return}
+        var u=window.currentUser||{}, selected=cs.find(function(c){return String(c.id)===String(cid)})||{}, pr=selected.profile||{};
+        var event={title:'PT Session',notes:q('pttNotes').value.trim(),day:new Date(day+'T00:00:00').toLocaleDateString(undefined,{weekday:'long'}),time:time,client:{name:selected.name||'Client',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||''},pt_user_id:u.id||selected.pt_user_id||null,pt_name:(selected.profile&&selected.profile.pt_name)||selected.pt_name||'',pt_email:u.email||selected.pt_email||'',exercises:[]};
+        var row={client_id:cid,pt_user_id:u.id||selected.pt_user_id||null,scheduled_at:day+'T'+time+':00',schedule_type:'PT Session',notes:'[[FJ_EVENT_JSON_V48]]'+JSON.stringify(event)+'\n'+event.notes,status:'SCHEDULED'};
+        var r=await s.from('pt_schedules').insert(row).select().single();
+        if(r.error){alert(r.error.message);return}
+        event._fjOnlineScheduleId=r.data&&r.data.id||null;event._fjSyncId='remote_'+(r.data&&r.data.id||Date.now().toString(36));event._fjOnlineClientId=cid;
+        q('ptv2Modal').classList.remove('open');
+        if(typeof window.fjLivePull==='function')await window.fjLivePull();
+        else if(typeof window.fjPtV2Refresh==='function')await window.fjPtV2Refresh();
+        if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar');
+      };
+    })();
+  };
+})();
+</script>
+<script id="fj-pt-tracker-refresh-hook">
+(function(){
+  window.fjPtV2Refresh=async function(){
+    try{window.dispatchEvent(new Event('focus'))}catch(e){}
+    await new Promise(function(r){setTimeout(r,250)});
+  };
+})();
+</script>
+<!-- FJ SUPABASE REALTIME CANONICAL SYNC V2 -->
+<!-- FJ PT TRACKER EDITOR V1 -->
+<style id="fj-pt-tracker-editor-css">
+#fjPTLiveEdit{position:fixed;inset:0;z-index:2147483606;display:none;align-items:center;justify-content:center;background:rgba(15,43,64,.68);padding:12px}
+#fjPTLiveEdit.open{display:flex}
+#fjPTLiveEdit .box{width:min(980px,97vw);max-height:94vh;overflow:auto;background:#fff;border-radius:16px;padding:16px;box-sizing:border-box}
+#fjPTLiveEdit .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#fjPTLiveEdit .span3{grid-column:1/-1}
+#fjPTLiveEdit label{display:block;font-size:10px;font-weight:900;color:#31576f;margin-bottom:4px}
+#fjPTLiveEdit input,#fjPTLiveEdit select,#fjPTLiveEdit textarea{width:100%;box-sizing:border-box;border:1px solid #cfe0e9;border-radius:8px;padding:8px;background:#fff}
+#fjPTLiveEdit textarea{min-height:70px;resize:vertical}
+#fjPTLiveEdit .exwrap{overflow:auto;border:1px solid #dce8ef;border-radius:10px;margin-top:9px}
+#fjPTLiveEdit table{width:100%;border-collapse:collapse;min-width:720px}
+#fjPTLiveEdit th,#fjPTLiveEdit td{border-bottom:1px solid #e6eef3;padding:6px;text-align:left;font-size:10px}
+#fjPTLiveEdit th{background:#f5f9fb}
+#fjPTLiveEdit td input{padding:6px}
+@media(max-width:700px){#fjPTLiveEdit .grid{grid-template-columns:1fr 1fr}#fjPTLiveEdit .span3{grid-column:1/-1}}
+</style>
+<script id="fj-pt-tracker-editor-runtime">
+(function(){
+'use strict';
+var MARK='[[FJ_EVENT_JSON_V48]]';
+function q(id){return document.getElementById(id)}
+function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function sb(){return window.sb||null}
+function norm(v){return String(v==null?'':v).trim().toLowerCase()}
+function parseNotes(notes){var s=String(notes||''),i=s.indexOf(MARK);if(i<0)return null;var r=s.slice(i+MARK.length),n=r.indexOf('\n');try{return JSON.parse(n>=0?r.slice(0,n):r)}catch(e){return null}}
+function eventNotes(e){return MARK+JSON.stringify(e)+'\n'+String(e&&e.notes||'')}
+function close(){var m=q('fjPTLiveEdit');if(m)m.classList.remove('open')}
+function ensure(){var m=q('fjPTLiveEdit');if(m)return m;m=document.createElement('div');m.id='fjPTLiveEdit';m.innerHTML='<div class="box"><div class="ptv2-actions" style="justify-content:space-between"><div><div class="label" id="fjPTEditLabel">EDIT</div><h2 id="fjPTEditTitle" style="margin:2px 0"></h2><div class="ptv2-muted" id="fjPTEditSub"></div></div><button type="button" class="ptv2-btn alt" id="fjPTEditClose">Close</button></div><div id="fjPTEditBody" style="margin-top:12px"></div></div>';document.body.appendChild(m);q('fjPTEditClose').onclick=close;return m}
+function profileFields(pr,c){pr=pr||{};return '<div class="grid">'+[
+ ['name','Client Name',c.name||'','text'],['phone','Phone',c.phone||'','text'],['email','Email',c.email||'','email'],['age','Age',pr.age||'','number'],['gender','Gender',pr.gender||'','text'],['weight','Weight (kg)',pr.weight||'','number'],['height','Height (cm)',pr.height||'','number'],['goal','Goal',pr.goal||'','text'],['level','Fitness Level',pr.level||'','text'],['wtype','Workout Type',pr.wtype||'','text'],['duration','Duration (months)',pr.duration||'','number'],['freq','Frequency / week',pr.freq||'','number'],
+ ['notes','Notes',c.notes||'','textarea']].map(function(x){return '<div class="'+(x[0]==='notes'?'span3':'')+'"><label>'+E(x[1])+'</label>'+(x[3]==='textarea'?'<textarea id="fjPTF_'+x[0]+'">'+E(x[2])+'</textarea>':'<input id="fjPTF_'+x[0]+'" type="'+x[3]+'" value="'+E(x[2])+'">')+'</div>'}).join('')+'</div>'}
+async function editClient(id){var s=sb();if(!s)return;var r=await s.from('pt_clients').select('*').eq('id',id).limit(1);if(r.error||!r.data||!r.data[0]){alert(r.error?.message||'Client tidak ditemukan.');return}var c=r.data[0],pr=c.profile||{},m=ensure();q('fjPTEditLabel').textContent='PT TRACKER MANAGEMENT';q('fjPTEditTitle').textContent='Edit Client — '+(c.name||'');q('fjPTEditSub').textContent='Perubahan disimpan langsung ke database online.';q('fjPTEditBody').innerHTML=profileFields(pr,c)+'<div class="ptv2-actions" style="justify-content:flex-end;margin-top:12px"><button class="ptv2-btn alt" id="fjPTCancelEdit">Cancel</button><button class="ptv2-btn" id="fjPTSaveClient">Save Online</button></div>';q('fjPTCancelEdit').onclick=close;q('fjPTSaveClient').onclick=async function(){var payload={name:q('fjPTF_name').value.trim(),phone:q('fjPTF_phone').value.trim()||null,email:q('fjPTF_email').value.trim()||null,notes:q('fjPTF_notes').value.trim()};var np=Object.assign({},pr,{age:q('fjPTF_age').value.trim(),gender:q('fjPTF_gender').value.trim(),weight:q('fjPTF_weight').value.trim(),height:q('fjPTF_height').value.trim(),goal:q('fjPTF_goal').value.trim(),level:q('fjPTF_level').value.trim(),wtype:q('fjPTF_wtype').value.trim(),duration:q('fjPTF_duration').value.trim(),freq:q('fjPTF_freq').value.trim()});payload.profile=np;var u=window.currentUser||{};payload.pt_user_id=c.pt_user_id||u.id||null;payload.pt_email=c.pt_email||u.email||'';var z=await s.from('pt_clients').update(payload).eq('id',id);if(z.error){alert(z.error.message);return}close();try{window.dispatchEvent(new Event('focus'))}catch(e){}if(window.fjLivePull)window.fjLivePull()}}
+function rowsHtml(rows){rows=rows||[];return '<div class="exwrap"><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>Rest</th></tr></thead><tbody id="fjPTExBody">'+(rows.length?rows:[]).map(function(r){return '<tr><td><input data-fj-ex="exercise" value="'+E(r.exercise||'')+'"></td><td><input data-fj-ex="sets" value="'+E(r.sets||'')+'"></td><td><input data-fj-ex="reps" value="'+E(r.reps||'')+'"></td><td><input data-fj-ex="load" value="'+E(r.load||'')+'"></td><td><input data-fj-ex="rest" value="'+E(r.rest||'')+'"></td></tr>'}).join('')+'</tbody></table></div>'}
+async function editSchedule(id){var s=sb();if(!s)return;var r=await s.from('pt_schedules').select('*').eq('id',id).limit(1);if(r.error||!r.data||!r.data[0]){alert(r.error?.message||'Schedule tidak ditemukan.');return}var row=r.data[0],e=parseNotes(row.notes)||{title:row.schedule_type||'PT Session',notes:String(row.notes||'').replace(MARK,'').trim(),client:{},exercises:[]},m=ensure();q('fjPTEditLabel').textContent='PT TRACKER MANAGEMENT';q('fjPTEditTitle').textContent='Edit Training Session';q('fjPTEditSub').textContent='Perubahan disimpan langsung ke database online dan akan muncul di Client Calendar.';q('fjPTEditBody').innerHTML='<div class="grid"><div><label>Client</label><input id="fjPTEClient" value="'+E(e.client?.name||'')+'" readonly></div><div><label>Date</label><input id="fjPTEDate" type="date" value="'+E(String(row.scheduled_at||'').slice(0,10))+'"></div><div><label>Time</label><input id="fjPTETime" type="time" value="'+E(String(row.scheduled_at||'').slice(11,16)||'09:00')+'"></div><div class="span3"><label>Training Title</label><input id="fjPETitle" value="'+E(e.title||row.schedule_type||'PT Session')+'"></div><div class="span3"><label>Notes / Conduct Notes</label><textarea id="fjPTENotes">'+E(e.notes||'')+'</textarea></div></div><h3 style="margin:14px 0 6px">Exercises</h3>'+rowsHtml(e.exercises||[])+'<div class="ptv2-actions" style="justify-content:flex-end;margin-top:12px"><button class="ptv2-btn alt" id="fjPTCancelEdit">Cancel</button><button class="ptv2-btn" id="fjPTSaveSchedule">Save Online</button></div>';q('fjPTCancelEdit').onclick=close;q('fjPTSaveSchedule').onclick=async function(){var ne=Object.assign({},e,{title:q('fjPETitle').value.trim()||'Training',notes:q('fjPTENotes').value.trim(),client:Object.assign({},e.client||{},{name:q('fjPTEClient').value.trim()}),exercises:Array.from(document.querySelectorAll('#fjPTExBody tr')).map(function(tr){var g=function(k){return (tr.querySelector('[data-fj-ex="'+k+'"]')||{}).value||''};return {exercise:g('exercise'),sets:g('sets'),reps:g('reps'),load:g('load'),rest:g('rest')}})});var when=q('fjPTEDate').value+'T'+(q('fjPTETime').value||'09:00')+':00';var z=await s.from('pt_schedules').update({scheduled_at:when,schedule_type:ne.title,notes:eventNotes(ne)}).eq('id',id);if(z.error){alert(z.error.message);return}close();if(window.fjLivePull)window.fjLivePull();else try{window.dispatchEvent(new Event('focus'))}catch(e){}}}
+function addButtons(){var p=q('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;p.querySelectorAll('.ptv2-event').forEach(function(el){if(el.dataset.fjEditAdded)return;el.dataset.fjEditAdded='1';var id=(el.getAttribute('onclick')||'').match(/fjPtV2Open\\'?,?\\?\\'([^'\\]+)\\'/);if(!id){var txt=el.getAttribute('onclick')||'';var m=txt.match(/fjPtV2Open\(['"]([^'"]+)['"]\)/);if(m)id=m[1]}if(!id)return;var b=document.createElement('button');b.type='button';b.className='ptv2-btn alt';b.textContent='✎';b.title='Edit session';b.style.cssText='font-size:9px;padding:2px 5px;margin-top:3px';b.onclick=function(e){e.stopPropagation();editSchedule(id)};el.appendChild(b)});
+p.querySelectorAll('#ptv2ClientCards .ptv2-client').forEach(function(card){if(card.dataset.fjEditClient)return;card.dataset.fjEditClient='1';var txt=card.getAttribute('onclick')||'',m=txt.match(/fjPtV2OpenClient\(['"]([^'"]+)['"]\)/);if(!m)return;var b=document.createElement('button');b.type='button';b.className='ptv2-btn alt';b.textContent='✎ Edit Client';b.style.cssText='margin-top:8px;font-size:9px;padding:5px 7px';b.onclick=function(e){e.stopPropagation();editClient(m[1])};card.appendChild(b)})}
+function boot(){ensure();addButtons();if(!window.__fjPtEditorTimer)window.__fjPtEditorTimer=setTimeout(addButtons,900)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1600)},{once:true});else setTimeout(boot,1600);window.addEventListener('load',function(){setTimeout(boot,1800)});
+window.fjPTEditClient=editClient;window.fjPTEditSchedule=editSchedule;
+})();
+</script>
+<!-- FJ ROOT DEVELOPMENT: PT PUBLIC DIRECTORY + SAFE CLIENT CALENDAR SAVE -->
+<script id="fj-v60-clean-online-master">
+(function(){'use strict';
+var CAL='fj_client_calendar_v1',DIR='fj_client_directory_v1',PTD='fj_pt_directory_v1',MARK='[[FJ_EVENT_JSON_V48]]';
+var pushTimer=0,pullBusy=false,pushBusy=false,channel=null;
+function q(id){return document.getElementById(id)} function sb(){return window.sb||null} function user(){return window.currentUser||null}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function norm(v){return String(v==null?'':v).trim().toLowerCase()}
+function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
+function read(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v}catch(e){return d}}
+function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+function cal(){var p=read(CAL,null);return p&&p.calendar?p:null}
+function dir(){return read(DIR,{})||{}}
+function badge(msg,kind){var b=q('fjLiveOnlineBadge');if(!b){b=document.createElement('div');b.id='fjLiveOnlineBadge';document.body.appendChild(b)}b.textContent=msg;b.className=kind||'sync';b.style.display='block';if(kind==='live')setTimeout(function(){if(b.className==='live')b.style.display='none'},1800)}
+function ptRows(){var a=read(PTD,[]);return Array.isArray(a)?a:[]}
+async function getPTs(){var rows=[],s=sb();if(s){try{var r=await s.from('pt_directory').select('id,user_id,pt_name,email,status,outlet').eq('status','active').order('pt_name');if(!r.error)rows=r.data||[]}catch(e){}}
+ if(!rows.length&&s){try{var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').in('role',['PT','MANAGER']).order('email');if(!u.error)(u.data||[]).forEach(function(x){if(!rows.some(function(y){return y.user_id===x.user_id}))rows.push({user_id:x.user_id,email:x.email||'',pt_name:x.full_name||x.email||x.user_id,status:'active',outlet:x.outlet||''})})}catch(e){}}
+ return rows;
+}
+function ensurePTField(){var modal=q('ccModal');if(!modal)return null;var el=q('ccEditPT');if(el)return el;var anchor=q('ccEditClientName');if(!anchor)return null;var host=anchor.closest('.field')||anchor.parentElement;var wrap=document.createElement('div');wrap.className='field';wrap.innerHTML='<label>PT</label><select id="ccEditPT" required><option value="">Pilih PT</option></select>';if(host&&host.parentNode)host.parentNode.insertBefore(wrap,host);else modal.querySelector('.modal-body')?.prepend(wrap);return q('ccEditPT')}
+async function fillPT(selected){var el=ensurePTField();if(!el)return;var rows=await getPTs();var html='<option value="">Pilih PT</option>'+rows.map(function(x){return '<option value="'+esc(x.user_id||'')+'" data-name="'+esc(x.pt_name||x.email||x.user_id||'')+'" data-email="'+esc(x.email||'')+'">'+esc(x.pt_name||x.email||x.user_id)+(x.outlet?' • '+esc(x.outlet):'')+'</option>'}).join('');el.innerHTML=html;if(selected){el.value=selected;if(!el.value){for(var i=0;i<el.options.length;i++)if(el.options[i].dataset.email===selected){el.value=el.options[i].value;break}}}}
+function ptOpenObserver(){var m=q('ccModal');if(!m||m.dataset.fj60obs)return;m.dataset.fj60obs='1';var ob=new MutationObserver(function(){if(m.classList.contains('open')){var k=(q('ccEditKey')||{}).value||'',p=cal(),e=p&&p.calendar&&p.calendar.events?p.calendar.events[k]:{};fillPT(e&& (e.pt_user_id||e.pt_email)||'')}});ob.observe(m,{attributes:true,attributeFilter:['class']})}
+function parseNotes(n){var s=String(n||''),i=s.indexOf(MARK);if(i<0)return null;var r=s.slice(i+MARK.length),nl=r.indexOf('\n');try{return JSON.parse(nl>=0?r.slice(0,nl):r)}catch(e){return null}}
+function eventNotes(e){return MARK+JSON.stringify(e||{})+'\n'+String(e&&e.notes||'')}
+function syncId(){return 'cc_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9)}
+window.fjMakeSyncId=syncId;
+function localEvents(){var p=cal();var ev=p&&p.calendar&&p.calendar.events||{};var out=[];Object.keys(ev).forEach(function(k){if(ev[k]&&ev[k].client&&ev[k].client.name){ev[k]._fjSyncId=ev[k]._fjSyncId||syncId();out.push({key:k,event:ev[k]})}});if(p)write(CAL,p);return out}
+function clientPayload(e){var c=e.client||{},pr={age:c.age||'',gender:c.gender||'',weight:c.weight||'',height:c.height||'',goal:c.goal||'',level:c.level||'',wtype:c.wtype||'',duration:c.duration||'',freq:c.freq||'',pt_name:e.pt_name||'',beforeAfter:e.beforeAfter||null};return {name:c.name,phone:c.phone||null,email:c.email||null,profile:pr,notes:c.notes||'',pt_user_id:e.pt_user_id||null,pt_email:e.pt_email||''}}
+async function pushCalendar(){var s=sb();if(!s)throw new Error('Supabase belum terhubung');var events=localEvents();var access=fjCurrentRole(currentUser?.email);if(access.role==='PT')events=events.filter(function(x){return String(x.event?.pt_user_id||'')===String(currentUser?.id||'')});else if(access.role==='MANAGER'){var pts=await getPTs();var allowed={};pts.forEach(function(x){if(x.outlet===access.outlet)allowed[String(x.user_id)]=1});events=events.filter(function(x){return allowed[String(x.event?.pt_user_id||'')]});}var cr=await s.from('pt_clients').select('*').limit(5000);if(cr.error)throw cr.error;var clients=cr.data||[];var sr=await s.from('pt_schedules').select('id,client_id,scheduled_at,status,notes,pt_user_id').limit(5000);if(sr.error)throw sr.error;var remote=sr.data||[];
+ for(var i=0;i<events.length;i++){var x=events[i],e=x.event,c=e.client||{},rc=clients.find(function(z){return (e._fjOnlineClientId&&z.id===e._fjOnlineClientId)||(c.phone&&norm(z.phone)===norm(c.phone))||(c.email&&norm(z.email)===norm(c.email))||(norm(z.name)===norm(c.name)&&c.name)});var cp=clientPayload(e),rr=rc?await s.from('pt_clients').update(cp).eq('id',rc.id).select().single():await s.from('pt_clients').insert(cp).select().single();if(rr.error)throw rr.error;rc=rr.data;e._fjOnlineClientId=rc.id;clients=clients.filter(function(z){return z.id!==rc.id}).concat([rc]);
+  var when=String(x.key).length===16?x.key+':00':x.key;var old=remote.find(function(z){var p=parseNotes(z.notes);return (p&&p._fjSyncId===e._fjSyncId)||(e._fjOnlineScheduleId&&z.id===e._fjOnlineScheduleId)});var sp={client_id:rc.id,pt_user_id:e.pt_user_id||rc.pt_user_id||null,scheduled_at:when,schedule_type:'PT Session',notes:eventNotes(e),status:(old&&old.status)||'SCHEDULED'};var wr=old?await s.from('pt_schedules').update(sp).eq('id',old.id).select().single():await s.from('pt_schedules').insert(sp).select().single();if(wr.error)throw wr.error;e._fjOnlineScheduleId=wr.data.id;remote=remote.filter(function(z){return z.id!==wr.data.id}).concat([wr.data]);
+ }
+ var p=cal();if(p)write(CAL,p);return true}
+function mergeRemoteCalendar(clients,schedules){var p=cal()||{version:'CLIENT_CALENDAR_V1',calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};p.calendar=p.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};p.calendar.events=p.calendar.events||{};var seen={};
+ schedules.forEach(function(r){if(isDeletedOnline(r.client_id))return;var when=String(r.scheduled_at||'').slice(0,16);if(!when)return;var pe=parseNotes(r.notes),c=clients.find(function(z){return String(z.id)===String(r.client_id)}),pr=c&&c.profile||{};var e=pe||{title:r.schedule_type||'PT Session',notes:String(r.notes||''),exercises:[]};e._fjOnlineScheduleId=r.id;e._fjOnlineClientId=r.client_id;e._fjSyncId=e._fjSyncId||('remote_'+r.id);e.pt_user_id=e.pt_user_id||r.pt_user_id||(c&&c.pt_user_id)||null;e.pt_name=e.pt_name||(pr.pt_name||c&&c.pt_name)||'';e.pt_email=e.pt_email||(c&&c.pt_email)||'';e.client=Object.assign({name:c&&c.name||'Client',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||''},e.client||{});p.calendar.events[when]=e;seen[String(r.id)]=1});
+ Object.keys(p.calendar.events).forEach(function(k){var e=p.calendar.events[k];if(e&&e._fjOnlineScheduleId&&!seen[String(e._fjOnlineScheduleId)])delete p.calendar.events[k]});p.savedAt=new Date().toISOString();write(CAL,p);
+ var d=dir();clients.forEach(function(c){if(isDeletedOnline(c.id))return;var pr=c.profile||{},key=Object.keys(d).find(function(k){return d[k]&&((c.id&&d[k].onlineId===c.id)||(norm(d[k].name)===norm(c.name)&&(!c.phone||norm(d[k].phone)===norm(c.phone))))})||('online_'+c.id);d[key]=Object.assign({},d[key]||{},{id:key,name:c.name,phone:c.phone||'',email:c.email||'',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||'',notes:c.notes||'',onlineId:c.id,pt_user_id:c.pt_user_id||'',pt_email:c.pt_email||'',pt_name:pr.pt_name||d[key]?.pt_name||'',before:pr.beforeAfter?.before||d[key]?.before||null,after:pr.beforeAfter?.after||d[key]?.after||null});});write(DIR,d);return p}
+function renderAll(){try{var p=cal(),api=window.fjClientCalendar;if(api&&typeof api.state==='function'&&p){var st=api.state();st.events=p.calendar.events||{};if(typeof p.calendar.year==='number')st.year=p.calendar.year;if(typeof p.calendar.month==='number')st.month=p.calendar.month;if(typeof api.render==='function')api.render()}}catch(e){}try{if(window.fjPtV2Refresh)window.fjPtV2Refresh()}catch(e){}}
+async function pullRemote(silent){var s=sb();if(!s||pullBusy)return;pullBusy=true;try{var rs=await Promise.all([s.from('pt_clients').select('*').order('name'),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(5000),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(5000),s.from('pt_packages').select('*').order('purchase_date',{ascending:false}).limit(5000)]);var bad=rs.find(function(x){return x.error});if(bad)throw bad.error;mergeRemoteCalendar(rs[0].data||[],rs[1].data||[]);renderAll();if(!silent)badge('ONLINE • data terbaru','live')}catch(e){console.error('V60 pull',e);badge('ONLINE ERROR • '+(e.message||e),'err')}finally{pullBusy=false}}
+async function pushNow(){if(pushBusy)return;pushBusy=true;badge('Menyimpan online…','sync');try{await pushCalendar();await pullRemote(true);badge('ONLINE • tersimpan','live')}catch(e){console.error('V60 push',e);badge('ONLINE ERROR • '+(e.message||e),'err')}finally{pushBusy=false}}
+function queue(ms){clearTimeout(pushTimer);pushTimer=setTimeout(pushNow,ms||500)}
+async function deleteRemoteSchedule(id){var s=sb();if(!s||!id)return;try{var r=await s.from('pt_schedules').delete().eq('id',id);if(r.error)throw r.error;queue(100)}catch(e){badge('ONLINE ERROR • '+(e.message||e),'err')}}
+async function directorySave(row){var s=sb();if(!s)throw new Error('Supabase belum terhubung');var r=await s.from('pt_directory').upsert(row,{onConflict:'user_id'}).select().single();if(r.error)throw r.error;var a=ptRows().filter(function(x){return x.user_id!==row.user_id});a.push(r.data);write(PTD,a);return r.data}
+async function directoryDelete(id){var s=sb();if(s){var r=await s.from('pt_directory').delete().eq('user_id',id);if(r.error)throw r.error}write(PTD,ptRows().filter(function(x){return x.user_id!==id}))}
+function master(){var u=user();return norm(u&&u.email)==='aldenkhafi0203@gmail.com'}
+async function renderDirectory(){if(!master())return;var p=q('fjPtOpsV2');if(!p)return;var tabs=p.querySelector('.ptv2-tabs');if(!tabs)return;var b=tabs.querySelector('[data-v="public-directory"]');if(!b){b=document.createElement('button');b.type='button';b.className='ptv2-tab';b.dataset.v='public-directory';b.textContent='PT Public Directory';tabs.appendChild(b)}var v=q('fjPtPublicDirectory');if(!v){v=document.createElement('div');v.id='fjPtPublicDirectory';v.className='ptv2-view';v.innerHTML='<div class="ptv2-card"><div class="fj-pd-head"><div><h3 style="margin:0">PT PUBLIC DIRECTORY</h3><div class="ptv2-muted">Master membuat nama PT dan menghubungkannya ke akun PT.</div></div><span id="fjPdStatus" class="ptv2-muted"></span></div><div class="fj-pd-form"><div class="wide"><label>Nama PT</label><input id="fjPdName" placeholder="Nama PT"></div><div class="wide"><label>Akun PT</label><select id="fjPdUser"><option value="">Pilih akun PT</option></select></div><div><label>Outlet</label><input id="fjPdOutlet" placeholder="Outlet"></div><div><label>Status</label><select id="fjPdActive"><option value="active">Active</option><option value="inactive">Inactive</option></select></div><button type="button" class="ptv2-btn" id="fjPdSave">Save PT</button></div><div id="fjPdList"></div></div>';p.appendChild(v)}
+ b.onclick=function(e){e.preventDefault();p.querySelectorAll('.ptv2-view').forEach(function(x){x.classList.remove('active')});v.classList.add('active');p.querySelectorAll('.ptv2-tab').forEach(function(x){x.classList.toggle('active',x===b)});loadDirectoryUI()};
+ if(!b.dataset.fj60bound){b.dataset.fj60bound='1';}
+ if(!q('fjPdSave').dataset.fj60bound){q('fjPdSave').dataset.fj60bound='1';q('fjPdSave').onclick=async function(){var u=q('fjPdUser'),o=u.options[u.selectedIndex],id=u.value,name=q('fjPdName').value.trim();if(!id||!name){alert('Nama PT dan akun PT wajib diisi.');return}try{var row={user_id:id,pt_name:name,email:o.dataset.email||'',outlet:q('fjPdOutlet').value.trim(),status:q('fjPdActive').value};await directorySave(row);alert('PT berhasil disimpan online.');q('fjPdName').value='';q('fjPdOutlet').value='';await loadDirectoryUI();await fillPT('')}catch(e){alert('Gagal menyimpan PT: '+(e.message||e))}}}
+ await loadDirectoryUI();}
+async function loadDirectoryUI(){var s=sb(),pts=await getPTs(),users=[];if(s){try{var r=await s.from('user_access').select('user_id,email,status').eq('status','approved').order('email');if(!r.error)users=r.data||[]}catch(e){}}var me=user();if(me&&me.id&&!users.some(function(x){return x.user_id===me.id}))users.push({user_id:me.id,email:me.email,status:'approved'});var u=q('fjPdUser');if(u)u.innerHTML='<option value="">Pilih akun PT</option>'+users.map(function(x){var z=pts.find(function(p){return p.user_id===x.user_id});return '<option value="'+esc(x.user_id)+'" data-email="'+esc(x.email||'')+'">'+esc(z&&z.pt_name||x.email||x.user_id)+'</option>'}).join('');var list=q('fjPdList');if(!list)return;list.innerHTML=pts.map(function(x){return '<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #e4edf2"><div><b>'+esc(x.pt_name||x.email||x.user_id)+'</b><div class="ptv2-muted">'+esc(x.email||'')+(x.outlet?' • '+esc(x.outlet):'')+'</div></div><div><button type="button" class="ptv2-btn alt" data-pd-edit="'+esc(x.user_id)+'">Edit</button> <button type="button" class="ptv2-btn alt" data-pd-del="'+esc(x.user_id)+'">Delete</button></div></div>'}).join('')||'<div class="ptv2-muted">Belum ada PT.</div>';list.querySelectorAll('[data-pd-edit]').forEach(function(b){b.onclick=function(){var x=pts.find(function(z){return z.user_id===b.dataset.pdEdit});q('fjPdName').value=x.pt_name||'';q('fjPdOutlet').value=x.outlet||'';q('fjPdUser').value=x.user_id;q('fjPdActive').value=x.status||'active'}});list.querySelectorAll('[data-pd-del]').forEach(function(b){b.onclick=async function(){if(!confirm('Hapus PT dari directory?'))return;try{await directoryDelete(b.dataset.pdDel);await loadDirectoryUI()}catch(e){alert('Gagal menghapus PT: '+(e.message||e))}}});var st=q('fjPdStatus');if(st)st.textContent='ONLINE • '+pts.length+' PT'}
+var U={pts:[],clients:[],schedules:[],conducts:[],packages:[]};
+function remaining(cid){return U.packages.filter(function(x){return x.client_id===cid}).reduce(function(n,x){return n+Math.max(0,Number(x.total_sessions||0)-Number(x.used_sessions||0))},0)}
+function ptLabel(pt){return pt&&pt.pt_name||pt&&pt.email||pt&&pt.user_id||'Unassigned'}
+function showPTList(){var host=q('fjPcuDetail');if(host)host.innerHTML='';renderPTCards()}
+function renderPTCards(){var list=q('fjPcuList');if(!list)return;var z=norm((q('fjPcuSearch')||{}).value),pts=U.pts.filter(function(pt){return !z||norm(ptLabel(pt)).indexOf(z)>=0||norm(pt.email).indexOf(z)>=0});list.innerHTML=pts.map(function(pt){var cs=U.clients.filter(function(c){return String(c.pt_user_id||'')===String(pt.user_id)}),sch=U.schedules.filter(function(x){return String(x.pt_user_id||'')===String(pt.user_id)}),co=U.conducts.filter(function(x){return String(x.pt_user_id||'')===String(pt.user_id)});return '<div class="fj-pcu-pt" data-pt="'+esc(pt.user_id)+'"><h3>'+esc(ptLabel(pt))+'</h3><div class="fj-pcu-muted">'+esc(pt.email||'')+(pt.outlet?' • '+esc(pt.outlet):'')+'</div><div class="fj-pcu-grid"><div class="fj-pcu-kpi"><b>'+cs.length+'</b><span>Client</span></div><div class="fj-pcu-kpi"><b>'+sch.length+'</b><span>Training</span></div><div class="fj-pcu-kpi"><b>'+co.length+'</b><span>Conduct</span></div><div class="fj-pcu-kpi"><b>'+cs.reduce(function(n,c){return n+remaining(c.id)},0)+'</b><span>Sisa Sesi</span></div></div></div>'}).join('')||'<div class="fj-pcu-muted">PT tidak ditemukan.</div>'}
+function showClients(ptid){var pt=U.pts.find(function(x){return String(x.user_id)===String(ptid)}),cs=U.clients.filter(function(c){return String(c.pt_user_id||'')===String(ptid)}),d=q('fjPcuDetail');if(!d)return;d.innerHTML='<div class="fj-pcu-detail"><div class="fj-pcu-head"><div><h3 style="margin:0">'+esc(ptLabel(pt))+'</h3><div class="fj-pcu-muted">'+cs.length+' client</div></div><button type="button" class="ptv2-btn alt" data-pcu-back>← Kembali</button></div><div id="fjPcuClients"></div></div>';var box=q('fjPcuClients');box.innerHTML=cs.map(function(c){var pr=c.profile||{},sch=U.schedules.filter(function(x){return String(x.client_id)===String(c.id)}),co=U.conducts.filter(function(x){return String(x.client_id)===String(c.id)});return '<div class="fj-pcu-client" data-client="'+esc(c.id)+'" data-pt="'+esc(ptid)+'"><b>'+esc(c.name)+'</b><div class="fj-pcu-muted">'+esc(pr.goal||'')+' • '+esc(pr.level||'')+'</div><div class="fj-pcu-grid"><div class="fj-pcu-kpi"><b>'+sch.length+'</b><span>Training</span></div><div class="fj-pcu-kpi"><b>'+co.length+'</b><span>Conduct</span></div><div class="fj-pcu-kpi"><b>'+remaining(c.id)+'</b><span>Sisa Sesi</span></div><div class="fj-pcu-kpi"><b>'+esc(pr.wtype||'—')+'</b><span>Workout</span></div></div></div>'}).join('')||'<div class="fj-pcu-muted">Belum ada client.</div>'}
+function showClient(cid,ptid){var c=U.clients.find(function(x){return String(x.id)===String(cid)}),pt=U.pts.find(function(x){return String(x.user_id)===String(ptid)}),d=q('fjPcuDetail');if(!c||!d)return;var pr=c.profile||{},sch=U.schedules.filter(function(x){return String(x.client_id)===String(cid)}),co=U.conducts.filter(function(x){return String(x.client_id)===String(cid)}),packs=U.packages.filter(function(x){return String(x.client_id)===String(cid)}),ba=pr.beforeAfter||{};var hist=sch.map(function(x){var z=parseNotes(x.notes)||{};return '<tr><td>'+esc(x.scheduled_at||'')+'</td><td>'+esc(z.title||x.schedule_type||'PT Session')+'</td><td>'+esc(Array.isArray(z.exercises)?z.exercises.length:0)+'</td><td>'+esc(x.status||'')+'</td></tr>'}).join('')||'<tr><td colspan="4">Belum ada training.</td></tr>';var pack=packs.map(function(x){return '<tr><td>'+esc(x.package_name||'')+'</td><td>'+esc(x.total_sessions||0)+'</td><td>'+esc(x.used_sessions||0)+'</td><td>'+Math.max(0,Number(x.total_sessions||0)-Number(x.used_sessions||0))+'</td><td>'+esc(x.expiry_date||'')+'</td></tr>'}).join('')||'<tr><td colspan="5">Belum ada package.</td></tr>';var cond=co.map(function(x){return '<tr><td>'+esc(x.conducted_at||'')+'</td><td>'+esc(x.notes||'')+'</td></tr>'}).join('')||'<tr><td colspan="2">Belum ada conduct.</td></tr>';d.innerHTML='<div class="fj-pcu-detail"><button type="button" class="ptv2-btn alt" data-pcu-back-client>← Kembali</button><h3>'+esc(c.name)+'</h3><p><b>PT:</b> '+esc(ptLabel(pt))+' &nbsp; <b>Training:</b> '+sch.length+' &nbsp; <b>Conduct:</b> '+co.length+' &nbsp; <b>Sisa:</b> '+remaining(c.id)+'</p><div class="fj-pcu-detailgrid"><div><b>Profile</b><table class="fj-pcu-table"><tr><th>Age</th><td>'+esc(pr.age||'—')+'</td><th>Gender</th><td>'+esc(pr.gender||'—')+'</td></tr><tr><th>Weight</th><td>'+esc(pr.weight||'—')+'</td><th>Height</th><td>'+esc(pr.height||'—')+'</td></tr><tr><th>Goal</th><td>'+esc(pr.goal||'—')+'</td><th>Level</th><td>'+esc(pr.level||'—')+'</td></tr><tr><th>Workout</th><td colspan="3">'+esc(pr.wtype||'—')+'</td></tr></table></div><div><b>Before / After</b><div class="fj-pcu-detailgrid"><div>'+(ba.before&&(ba.before.image||ba.before.photo)?'<img class="fj-pcu-photo" src="'+esc(ba.before.image||ba.before.photo)+'">':'—')+'</div><div>'+(ba.after&&(ba.after.image||ba.after.photo)?'<img class="fj-pcu-photo" src="'+esc(ba.after.image||ba.after.photo)+'">':'—')+'</div></div></div></div><h4>Training History</h4><table class="fj-pcu-table"><tr><th>Date</th><th>Training</th><th>Exercise</th><th>Status</th></tr>'+hist+'</table><h4>Packages / Sesi</h4><table class="fj-pcu-table"><tr><th>Package</th><th>Total</th><th>Used</th><th>Remaining</th><th>Expiry</th></tr>'+pack+'</table><h4>Conduct History</h4><table class="fj-pcu-table"><tr><th>Date</th><th>Notes</th></tr>'+cond+'</table></div>'}
+window.fjOpenPtClientUnified=loadUnified;
+async function loadUnified(){var p=q('fjPtOpsV2');if(!p)return;var v=q('fjPtClientUnified');if(!v){v=document.createElement('div');v.id='fjPtClientUnified';v.className='ptv2-view';v.innerHTML='<div class="fj-pcu-shell"><div class="fj-pcu-head"><div><h2>PT & Client</h2><div class="fj-pcu-muted">Cari PT → lihat client, conduct, sisa sesi, Before/After, dan riwayat training.</div></div><span id="fjPcuStatus" class="fj-pcu-muted"></span></div><input id="fjPcuSearch" class="fj-pcu-search" placeholder="Cari nama PT..."><div id="fjPcuList" class="fj-pcu-list"></div><div id="fjPcuDetail"></div></div>';p.appendChild(v)}var tabs=p.querySelector('.ptv2-tabs'),b=tabs&&tabs.querySelector('[data-v="pt-client"]');if(!b){b=document.createElement('button');b.type='button';b.className='ptv2-tab';b.dataset.v='pt-client';b.textContent='PT & Client';tabs.appendChild(b)}p.querySelectorAll('.ptv2-view').forEach(function(x){x.classList.remove('active')});v.classList.add('active');p.querySelectorAll('.ptv2-tab').forEach(function(x){x.classList.toggle('active',x===b)});var s=sb();if(!s)return;var rs=await Promise.all([getPTs(),s.from('pt_clients').select('*').order('name'),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:false}).limit(5000),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(5000),s.from('pt_packages').select('*').order('purchase_date',{ascending:false}).limit(5000)]);var bad=rs.slice(1).find(function(x){return x.error});if(bad){alert('PT & Client gagal memuat: '+bad.error.message);return}var me=user(), masterUser=master(), ownId=String(me&&me.id||'');
+var allPts=rs[0]||[], allClients=rs[1].data||[], allSchedules=rs[2].data||[], allConducts=rs[3].data||[], allPackages=rs[4].data||[];
+if(!masterUser){
+  allPts=allPts.filter(function(pt){return String(pt.user_id||'')===ownId});
+  allClients=allClients.filter(function(c){return String(c.pt_user_id||'')===ownId});
+  var ownClientIds={};allClients.forEach(function(c){ownClientIds[String(c.id)]=1});
+  allSchedules=allSchedules.filter(function(x){return String(x.pt_user_id||'')===ownId||ownClientIds[String(x.client_id)]});
+  allConducts=allConducts.filter(function(x){return String(x.pt_user_id||'')===ownId||ownClientIds[String(x.client_id)]});
+  allPackages=allPackages.filter(function(x){return ownClientIds[String(x.client_id)]});
+}
+U={pts:allPts,clients:allClients,schedules:allSchedules,conducts:allConducts,packages:allPackages};q('fjPcuSearch').oninput=renderPTCards;renderPTCards();q('fjPcuStatus').textContent='ONLINE • '+U.clients.length+' client'}
+
+function bind(){ptOpenObserver();var save=q('ccSaveEvent');if(save&&!save.dataset.fj60){save.dataset.fj60='1';save.addEventListener('click',function(){queue(250)},true)}var del=q('ccDeleteEvent');if(del&&!del.dataset.fj60){del.dataset.fj60='1';del.addEventListener('click',function(){var k=(q('ccEditKey')||{}).value,p=cal(),e=p&&p.calendar&&p.calendar.events&&p.calendar.events[k],id=e&&e._fjOnlineScheduleId;setTimeout(function(){if(id)deleteRemoteSchedule(id)},200)},true)}
+ var side=document.querySelector('.side');if(side&&!q('fjV60PtDirectoryNav')){var n=document.createElement('button');n.id='fjV60PtDirectoryNav';n.type='button';n.className='navbtn';n.textContent='PT & Client';n.onclick=function(){if(window.fjPtM53Show)window.fjPtM53Show();setTimeout(function(){var p=q('fjPtOpsV2');if(p){p.classList.add('active');var tab=p.querySelector('[data-v="pt-client"]');if(tab)tab.click()}},100)};side.appendChild(n)}
+ if(q('fjPtOpsV2')){renderDirectory();}
+}
+document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('[data-pt]'):null;if(a&&a.closest&&a.closest('#fjPcuList')){showClients(a.dataset.pt)}var c=e.target&&e.target.closest?e.target.closest('[data-client]'):null;if(c&&c.closest&&c.closest('#fjPcuClients')){showClient(c.dataset.client,c.dataset.pt)}var b=e.target&&e.target.closest?e.target.closest('[data-pcu-back-client]'):null;if(b){showClients(b.dataset.pt||'')}} ,true);
+async function boot(){bind();if(sb()){await pullRemote(true);try{channel=sb().channel('fj-v61-online').on('postgres_changes',{event:'*',schema:'public',table:'user_access'},function(){handleSession(window.currentSession||null);loadAdminAccess()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_directory'},function(){pullRemote(true);if(typeof fillPT==='function')fillPT()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_clients'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_conducts'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){pullRemote(true)}).subscribe()}catch(e){console.warn('Realtime subscribe',e)}}}
+window.fjLivePush=pushNow;window.fjLivePull=function(){return pullRemote(false)};window.fjCanonicalSync=pushNow;window.fjRefreshOnline=boot;
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,600)},{once:true});else setTimeout(boot,600);window.addEventListener('load',function(){setTimeout(boot,800)});window.addEventListener('online',function(){queue(300)});window.addEventListener('focus',function(){pullRemote(true)});document.addEventListener('visibilitychange',function(){if(!document.hidden)pullRemote(true)});
+// Exercise de-duplication: one display item per normalized exercise name.
+try{var a=window.__fjExerciseData||[],seen={};for(var i=a.length-1;i>=0;i--){var key=norm(a[i]&&a[i].name).replace(/[^a-z0-9]+/g,'');if(seen[key])a.splice(i,1);else seen[key]=1}}catch(e){}
+})();
+</script>
+<!-- V61 STABILITY PATCH: PT access, PT & Client navigation/editor, deleted-client tombstones,
+     and a rebuilt cascading Materi & Edukasi explorer. -->
+<style id="fj-v61-stability-css">
+#fjPtClientNav{display:flex!important}
+#fjPtClientNav.fj-v61-hidden{display:none!important}
+.fj-v61-edit-modal{position:fixed;inset:0;z-index:2147483608;display:none;align-items:center;justify-content:center;background:rgba(8,35,51,.68);padding:12px}
+.fj-v61-edit-modal.open{display:flex}
+.fj-v61-edit-box{width:min(900px,96vw);max-height:94vh;overflow:auto;background:#fff;border-radius:16px;padding:16px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.fj-v61-edit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.fj-v61-edit-grid .span3{grid-column:1/-1}
+.fj-v61-edit-box label{display:block;font-size:10px;font-weight:900;color:#31576f;margin-bottom:4px}
+.fj-v61-edit-box input,.fj-v61-edit-box select,.fj-v61-edit-box textarea{width:100%;box-sizing:border-box;border:1px solid #cfe0e9;border-radius:8px;padding:9px;background:#fff}
+.fj-v61-edit-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.fj-v61-edu{margin-top:12px}
+.fj-v61-edu-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fj-v61-edu-filters label{font-size:10px;font-weight:900;color:#4d7186}
+.fj-v61-edu-filters select{width:100%;margin-top:4px;padding:9px;border:1px solid #cfe0e9;border-radius:9px;background:#fff}
+.fj-v61-edu-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.fj-v61-edu-card{border:1px solid #dbe8ef;border-radius:13px;background:#fff;padding:12px}
+.fj-v61-edu-card h4{margin:0 0 5px;color:#17364e}
+.fj-v61-edu-card .meta{font-size:10px;color:#6d879e}
+.fj-v61-edu-info{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.fj-v61-edu-info>div{border:1px solid #dbe8ef;border-radius:12px;background:#f8fcff;padding:12px}
+.fj-v61-edu-info b{display:block;color:#31576f;font-size:10px;text-transform:uppercase;margin-bottom:4px}
+.fj-v61-edu-info span{font-size:12px;color:#29485d;line-height:1.5}
+.fj-v61-edu-empty{padding:15px;border:1px dashed #cbdde8;border-radius:12px;color:#6d879e}
+@media(max-width:900px){
+  .fj-v61-edu-filters{grid-template-columns:1fr 1fr}
+  .fj-v61-edu-results{grid-template-columns:1fr 1fr}
+  .fj-v61-edu-info{grid-template-columns:1fr 1fr}
+  .fj-v61-edit-grid{grid-template-columns:1fr 1fr}
+  .fj-v61-edit-grid .span3{grid-column:1/-1}
+}
+@media(max-width:560px){
+  .fj-v61-edu-filters,.fj-v61-edu-results,.fj-v61-edu-info,.fj-v61-edit-grid{grid-template-columns:1fr}
+  .fj-v61-edit-grid .span3{grid-column:auto}
+}
+</style>
+<script id="fj-v61-stability-runtime">
+(function(){
+'use strict';
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function me(){return window.currentUser||null}
+function isMaster(){return String((me()||{}).email||'').toLowerCase()==='aldenkhafi0203@gmail.com'}
+function role(){try{return String((window.fjCurrentRole?window.fjCurrentRole((me()||{}).email):{}).role||'').toUpperCase()}catch(e){return ''}}
+function sb(){return window.sb||null}
+
+async function refreshPTAccess(){
+  var u=me(), ok=isMaster()||['PT','MANAGER','ADMIN'].indexOf(role())>=0;
+  if(!ok&&u&&sb()){
+    try{
+      var a=await sb().from('user_access').select('status').eq('user_id',u.id).maybeSingle();
+      var d=await sb().from('pt_directory').select('status').eq('user_id',u.id).maybeSingle();
+      ok=String(a.data&&a.data.status||'').toLowerCase()==='approved' &&
+         String(d.data&&d.data.status||'active').toLowerCase()==='active';
+    }catch(e){}
+  }
+  window.__fjPtAccessApproved=!!ok;
+  var n=q('fjPtTrackerNav'),pc=q('fjPtClientNav');
+  if(n)n.style.display=ok?'flex':'none';
+  if(pc)pc.classList.toggle('fj-v61-hidden',!ok);
+  return ok;
+}
+
+function ensurePTClientNav(){
+  var side=document.querySelector('.side'),tracker=q('fjPtTrackerNav');
+  if(!side||!tracker)return;
+  var n=q('fjPtClientNav');
+  if(!n){
+    n=document.createElement('button');
+    n.id='fjPtClientNav';n.type='button';n.className='navbtn';
+    n.textContent='▣ PT & Client';
+    tracker.parentNode.insertBefore(n,tracker.nextSibling);
+    n.addEventListener('click',function(e){
+      e.preventDefault();e.stopImmediatePropagation();
+      openPTClient();
+    },true);
+  }
+}
+async function openPTClient(){
+  if(!(await refreshPTAccess()))return;
+  var p=q('fjPtOpsV2');
+  if(!p)return;
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});
+  p.classList.add('active');p.classList.add('fj-pt-tracker-open');p.style.display='block';
+  document.querySelectorAll('.side .navbtn').forEach(function(x){x.classList.toggle('active',x.id==='fjPtClientNav')});
+  try{
+    if(typeof window.fjOpenPtClientUnified==='function')await window.fjOpenPtClientUnified();
+    else{
+      var b=p.querySelector('.ptv2-tab[data-v="pt-client"]');
+      if(b)b.click();
+    }
+  }catch(e){console.error('PT & Client open',e);alert('PT & Client gagal dibuka: '+(e.message||e))}
+}
+window.fjV61OpenPTClient=openPTClient;
+
+function installEditModal(){
+  if(q('fjV61EditModal'))return;
+  var m=document.createElement('div');m.id='fjV61EditModal';m.className='fj-v61-edit-modal';
+  m.innerHTML='<div class="fj-v61-edit-box"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><div class="label">PT & CLIENT</div><h2 style="margin:2px 0;color:#17364e">Edit Client</h2></div><button type="button" class="ptv2-btn alt" id="fjV61EditClose">Tutup</button></div>'+
+  '<input type="hidden" id="fjV61EditId"><div class="fj-v61-edit-grid">'+
+  '<div class="span3"><label>Nama Client</label><input id="fjV61Name"></div>'+
+  '<div><label>Umur</label><input id="fjV61Age" type="number"></div>'+
+  '<div><label>Gender</label><select id="fjV61Gender"><option value="">Pilih</option><option value="male">Male</option><option value="female">Female</option></select></div>'+
+  '<div><label>Berat (kg)</label><input id="fjV61Weight" type="number" step="0.1"></div>'+
+  '<div><label>Tinggi (cm)</label><input id="fjV61Height" type="number" step="0.1"></div>'+
+  '<div><label>Goal</label><input id="fjV61Goal"></div>'+
+  '<div><label>Level</label><input id="fjV61Level"></div>'+
+  '<div><label>Workout Type</label><input id="fjV61Wtype"></div>'+
+  '<div class="span3"><label>Catatan</label><textarea id="fjV61Notes"></textarea></div>'+
+  '</div><div class="fj-v61-edit-actions"><button type="button" class="ptv2-btn alt" id="fjV61EditCancel">Batal</button><button type="button" class="ptv2-btn" id="fjV61EditSave">Save Client</button></div></div>';
+  document.body.appendChild(m);
+  q('fjV61EditClose').onclick=q('fjV61EditCancel').onclick=function(){m.classList.remove('open')};
+  q('fjV61EditSave').onclick=saveClientEdit;
+}
+async function openClientEdit(id){
+  installEditModal();
+  var s=sb();if(!s)return;
+  var r=await s.from('pt_clients').select('*').eq('id',id).maybeSingle();
+  if(r.error||!r.data){alert('Client tidak ditemukan online.');return}
+  var c=r.data,pr=c.profile||{};
+  q('fjV61EditId').value=c.id;q('fjV61Name').value=c.name||'';q('fjV61Age').value=pr.age||'';
+  q('fjV61Gender').value=pr.gender||'';q('fjV61Weight').value=pr.weight||'';q('fjV61Height').value=pr.height||'';
+  q('fjV61Goal').value=pr.goal||'';q('fjV61Level').value=pr.level||'';q('fjV61Wtype').value=pr.wtype||'';q('fjV61Notes').value=c.notes||'';
+  q('fjV61EditModal').classList.add('open');
+}
+async function saveClientEdit(){
+  var s=sb(),id=q('fjV61EditId').value;if(!s||!id)return;
+  var old=await s.from('pt_clients').select('*').eq('id',id).maybeSingle();
+  if(old.error||!old.data){alert('Client tidak ditemukan.');return}
+  var c=old.data,pr=c.profile||{};
+  var next={age:q('fjV61Age').value||'',gender:q('fjV61Gender').value||'',weight:q('fjV61Weight').value||'',height:q('fjV61Height').value||'',goal:q('fjV61Goal').value||'',level:q('fjV61Level').value||'',wtype:q('fjV61Wtype').value||'',duration:pr.duration||'',freq:pr.freq||'',pt_name:pr.pt_name||'',beforeAfter:pr.beforeAfter||null};
+  var r=await s.from('pt_clients').update({name:q('fjV61Name').value.trim(),profile:next,notes:q('fjV61Notes').value.trim()}).eq('id',id).select().single();
+  if(r.error){alert('Gagal menyimpan client: '+r.error.message);return}
+  q('fjV61EditModal').classList.remove('open');
+  if(window.fjLivePull)await window.fjLivePull();
+  if(typeof window.fjOpenPtClientUnified==='function')await window.fjOpenPtClientUnified();
+  alert('Client berhasil diperbarui.');
+}
+
+function attachPTClientEdit(){
+  var d=q('fjPcuDetail');if(!d||d.dataset.fj61)return;
+  d.dataset.fj61='1';
+  d.addEventListener('click',function(e){
+    var b=e.target.closest('[data-fj61-edit-client]');
+    if(b){e.preventDefault();openClientEdit(b.dataset.fj61EditClient)}
+  },true);
+}
+
+function addEditButtonToDetail(){
+  var d=q('fjPcuDetail');if(!d)return;
+  var h=d.querySelector('h3');
+  if(!h||h.parentElement.querySelector('[data-fj61-edit-client]'))return;
+  var text=h.parentElement.textContent||'';
+  var m=text.match(/PT:\s*.*?Training:/);
+  // The current detail page has the client id in U internally, so use the first
+  // client-specific table context from the detail DOM when available.
+  var rows=d.querySelectorAll('table');
+  // Prefer a client id stored by the click bridge.
+  var cid=d.dataset.fj61ClientId||'';
+  if(!cid)return;
+  var b=document.createElement('button');b.type='button';b.className='ptv2-btn';b.textContent='Edit Client';b.setAttribute('data-fj61-edit-client',cid);
+  h.parentElement.appendChild(b);
+}
+document.addEventListener('click',function(e){
+  var c=e.target.closest&&e.target.closest('#fjPcuClients [data-client]');
+  if(c){setTimeout(function(){var d=q('fjPcuDetail');if(d)d.dataset.fj61ClientId=c.dataset.client;setTimeout(addEditButtonToDetail,0)},0)}
+},true);
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-pcu-back-client]');
+  if(b){setTimeout(function(){var d=q('fjPcuDetail');if(d)d.dataset.fj61ClientId=''},0)}
+},true);
+
+function boot(){
+  ensurePTClientNav();installEditModal();refreshPTAccess();attachPTClientEdit();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1200)},{once:true});else setTimeout(boot,1200);
+window.addEventListener('load',function(){setTimeout(function(){ensurePTClientNav();refreshPTAccess();attachPTClientEdit()},1600)});
+setInterval(function(){ensurePTClientNav();refreshPTAccess()},4000);
+})();
+</script>
+
+<script id="fj-v61-education-rebuild">
+(function(){
+'use strict';
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function data(){return Array.isArray(window.__fjExerciseData)?window.__fjExerciseData:[]}
+var ANATOMY={
+  'Punggung':{
+    muscles:[
+      ['Latissimus Dorsi',['lat','latissimus','pulldown','pull up','row']],
+      ['Trapezius',['trap','trapezius','shrug','face pull']],
+      ['Rhomboids',['rhomboid','row','scapula']],
+      ['Erector Spinae',['erector','spine','deadlift','back extension']],
+      ['Teres Major',['teres','pulldown','row']],
+      ['Rear Deltoid',['rear delt','posterior delt','face pull','reverse fly']]
+    ],
+    joints:['Shoulder','Elbow','Spine'],
+    bones:['Scapula','Thoracic Spine','Lumbar Spine','Humerus','Ribs'],
+    patterns:['Pull','Hinge','Carry'],
+    function:'Menarik lengan, mengontrol scapula, membantu ekstensi/adduksi bahu, stabilisasi trunk, dan transfer gaya.',
+    risk:'Teknik, ROM, fatigue, dan beban perlu dikontrol. Momentum berlebihan atau beban yang terlalu berat dapat mengurangi kualitas gerak.',
+    warm:'5–8 menit aktivitas ringan + scapular movement + row/pulldown ringan + ramp-up set.',
+    stretch:'Lat stretch, child-pose/lat reach, thoracic rotation, dan gentle posterior-shoulder stretch sesuai kebutuhan.'
+  },
+  'Dada':{muscles:[['Pectoralis Major',['chest','dada','press','fly','push up']]],joints:['Shoulder','Elbow'],bones:['Sternum','Ribs','Scapula','Humerus'],patterns:['Push'],function:'Mendorong dan membantu gerak lengan melalui horizontal adduction/flexion bahu.',risk:'Kontrol bahu dan ROM perlu disesuaikan dengan kapasitas individu.',warm:'Cardio ringan + arm circles + ramp-up press.',stretch:'Doorway chest stretch dan dynamic arm sweep.'},
+  'Bahu':{muscles:[['Anterior Deltoid',['shoulder press','front raise','press']],['Medial Deltoid',['lateral raise','shoulder']],['Rear Deltoid',['rear delt','face pull','reverse fly']]],joints:['Shoulder'],bones:['Scapula','Clavicle','Humerus'],patterns:['Push','Pull'],function:'Menghasilkan dan mengontrol elevasi serta gerak lengan.',risk:'Overhead load dan volume perlu disesuaikan dengan toleransi bahu.',warm:'Arm circles + scapular movement + light raise/press.',stretch:'Cross-body shoulder stretch dan gentle posterior shoulder stretch.'},
+  'Lengan':{muscles:[['Biceps Brachii',['biceps','curl','row','pulldown']],['Triceps Brachii',['triceps','extension','press']]],joints:['Elbow','Shoulder'],bones:['Humerus','Radius','Ulna'],patterns:['Push','Pull'],function:'Elbow flexion/extension dan kontribusi pada push/pull.',risk:'Beban dan momentum perlu dikontrol agar siku dan bahu tetap toleran.',warm:'Gerak siku ringan + set pemanasan curl/extension.',stretch:'Biceps wall stretch dan overhead triceps stretch.'},
+  'Pinggul & Paha':{muscles:[['Gluteus Maximus',['glute','hip thrust','deadlift','squat']],['Quadriceps',['quad','squat','lunge','leg press']],['Hamstrings',['hamstring','deadlift','hinge','leg curl']]],joints:['Hip','Knee'],bones:['Pelvis','Femur','Tibia','Patella'],patterns:['Squat','Hinge','Lunge'],function:'Menghasilkan dan mengontrol hip/knee extension serta locomotion.',risk:'ROM, volume, dan impact perlu diprogreskan bertahap.',warm:'Walk/bike + lunge + squat/hinge drill + ramp-up.',stretch:'Quad, hamstring, dan glute stretch sesuai kebutuhan.'},
+  'Core':{muscles:[['Core / Trunk',['core','plank','dead bug','carry','anti rotation']]],joints:['Spine','Hip'],bones:['Spine / Vertebrae','Pelvis','Rib cage'],patterns:['Core / Anti-Rotation','Carry'],function:'Bracing, stabilitas trunk, transfer gaya, dan kontrol posisi tubuh.',risk:'Fatigue dapat menurunkan kontrol trunk; jangan mengejar beban saat bracing hilang.',warm:'Breathing/bracing + dead bug ringan + movement prep.',stretch:'Child pose reach, open book, dan gentle trunk mobility.'}
+};
+
+function norm(v){return String(v||'').toLowerCase()}
+function muscleList(region){return ANATOMY[region]?ANATOMY[region].muscles.map(function(x){return x[0]}):[]}
+function exMatches(region,muscle,pattern,joint,bone){
+  var r=ANATOMY[region]||ANATOMY.Punggung, keys=[];
+  if(muscle){var mm=r.muscles.find(function(x){return x[0]===muscle});if(mm)keys=mm[1]}
+  var arr=data().map(function(d){
+    var hay=norm([d.name,d.cat,d.move,d.movement].concat(d.primary||[],d.secondary||[]).join(' ')),score=0;
+    if(!hay)return {d:d,s:-1};
+    if(muscle&&keys.some(function(k){return hay.indexOf(norm(k))>=0}))score+=12;
+    if(!muscle&&r.muscles.some(function(mm){return mm[1].some(function(k){return hay.indexOf(norm(k))>=0})}))score+=8;
+    if(pattern&&norm(d.move)===norm(pattern))score+=8;
+    if(joint&&['shoulder','elbow','spine','hip','knee','ankle'].some(function(k){return norm(joint).indexOf(k)>=0&&hay.indexOf(k)>=0}))score+=2;
+    if(bone&&hay.indexOf(norm(bone))>=0)score+=2;
+    if(score===0)return {d:d,s:-1};
+    return {d:d,s:score};
+  }).filter(function(x){return x.s>=0}).sort(function(a,b){return b.s-a.s||String(a.d.name).localeCompare(String(b.d.name))});
+  return arr.slice(0,24);
+}
+function render(){
+  var b=q('exlMateri');if(!b)return;
+  var regions=Object.keys(ANATOMY),region=q('fjV61EduRegion')?q('fjV61EduRegion').value:'Punggung';
+  var r=ANATOMY[region]||ANATOMY.Punggung,muscles=muscleList(region);
+  var muscle=q('fjV61EduMuscle')?q('fjV61EduMuscle').value:'';
+  var pattern=q('fjV61EduPattern')?q('fjV61EduPattern').value:'';
+  var joint=q('fjV61EduJoint')?q('fjV61EduJoint').value:'';
+  var bone=q('fjV61EduBone')?q('fjV61EduBone').value:'';
+  var ex=exMatches(region,muscle,pattern,joint,bone);
+  var mopts='<option value="">Semua bagian / otot</option>'+muscles.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
+  var popts='<option value="">Semua pattern</option>'+r.patterns.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
+  var jopts='<option value="">Semua sendi</option>'+r.joints.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
+  var bopts='<option value="">Semua tulang</option>'+r.bones.map(function(x){return '<option>'+esc(x)+'</option>'}).join('');
+  b.innerHTML='<div class="exl-card fj-v61-edu"><div class="label">MATERI & EDUKASI — AUTOMATION</div>'+
+    '<h2 style="margin:4px 0">Pilih bagian tubuh → otot → latihan → anatomi → rekomendasi</h2>'+
+    '<p class="exl-muted">Contoh: pilih <b>Punggung</b>. Sistem lalu menyaring otot punggung, latihan yang relevan, pattern, sendi, tulang, lalu menampilkan fungsi, risiko, warm up, stretching dan rekomendasi.</p>'+
+    '<div class="fj-v61-edu-filters">'+
+      '<label>Bagian tubuh<select id="fjV61EduRegion">'+regions.map(function(x){return '<option '+(x===region?'selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label>'+
+      '<label>Otot bagian mana<select id="fjV61EduMuscle">'+mopts+'</select></label>'+
+      '<label>Pattern / nama gerakan<select id="fjV61EduPattern">'+popts+'</select></label>'+
+      '<label>Sendi terlibat<select id="fjV61EduJoint">'+jopts+'</select></label>'+
+      '<label>Tulang terkait<select id="fjV61EduBone">'+bopts+'</select></label>'+
+    '</div>'+
+    '<div class="fj-v61-edu-info">'+
+      '<div><b>Fungsi</b><span>'+esc(r.function)+'</span></div>'+
+      '<div><b>Risiko / perhatian</b><span>'+esc(r.risk)+'</span></div>'+
+      '<div><b>Warm Up</b><span>'+esc(r.warm)+'</span></div>'+
+      '<div><b>Stretching</b><span>'+esc(r.stretch)+'</span></div>'+
+      '<div><b>Sendi</b><span>'+esc(joint||r.joints.join(' • '))+'</span></div>'+
+      '<div><b>Tulang</b><span>'+esc(bone||r.bones.join(' • '))+'</span></div>'+
+    '</div>'+
+    '<div style="margin-top:14px"><div class="label">LATIHAN YANG TERKAIT</div><div class="fj-v61-edu-results">'+
+      (ex.length?ex.map(function(x){var d=x.d;return '<article class="fj-v61-edu-card"><h4>'+esc(d.emoji||'🏋️')+' '+esc(d.name)+'</h4><div class="meta">Otot: '+esc((d.primary||[]).join(', ')||'—')+'</div><div class="meta">Pattern: '+esc(d.move||'—')+' • Alat: '+esc(d.equip||'—')+' • Level: '+esc(d.level||'—')+'</div><p style="font-size:11px;color:#516f80">'+esc(d.desc||'')+'</p><button type="button" class="exl-btn alt" onclick="window.fjExlOpen(&quot;'+esc(d.id)+'&quot;)">Lihat Detail</button></article>'}).join(''):'<div class="fj-v61-edu-empty">Belum ada latihan yang cocok dengan kombinasi pilihan ini.</div>')+
+    '</div></div></div>';
+  ['fjV61EduRegion','fjV61EduMuscle','fjV61EduPattern','fjV61EduJoint','fjV61EduBone'].forEach(function(id){
+    var el=q(id);if(el)el.onchange=render;
+  });
+}
+function boot(){
+  var nav=q('fjExLibNav');if(nav&&!nav.dataset.fj61edu){
+    nav.dataset.fj61edu='1';
+    nav.addEventListener('click',function(){setTimeout(function(){
+      var tab=document.querySelector('#fjExerciseLibrary .exl-tab[data-v="materi"]');
+      if(tab&&!tab.classList.contains('active'))tab.click();
+      setTimeout(render,80);
+    },80)},true);
+  }
+  if(q('exlMateri'))render();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1400)},{once:true});else setTimeout(boot,1400);
+window.addEventListener('load',function(){setTimeout(boot,1700)});
+setInterval(function(){if(q('exlMateri')&&q('fjV61EduRegion')==null)render()},2500);
+})();
+</script>
 </body></html>
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -8835,6 +9704,10 @@ window.__fjExerciseData.push(
 .edu-topic-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.edu-topic-tabs .exl-chip{cursor:pointer}.edu-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}.edu-library-card{border:1px solid #d5e6eb;border-radius:14px;background:#fff;padding:13px}.edu-library-card h3{margin:0 0 10px;color:#174f72}.edu-library-card>div{border-top:1px solid #edf2f4;padding-top:7px;margin-top:7px}.edu-library-card b{font-size:11px;color:#315f73}.edu-library-card p{font-size:12px;line-height:1.45;color:#5c7480;margin:3px 0 0}
 @media(max-width:760px){.exl-prescription{grid-template-columns:1fr 1fr}.edu-library-grid{grid-template-columns:1fr}.edu-filter-grid,.edu-info-grid,.edu-anatomy-grid,.edu-ex-grid{grid-template-columns:1fr 1fr}.edu-prep-grid,.edu-dodont{grid-template-columns:1fr}.edu-profile-head{display:block}.edu-context{margin-top:9px}}
 </style>
+<style id="fj-v612-edu-clean">
+#exlMateri img,#exlMateri .prescard-icon,#exlMateri .edu-icon,#exlMateri .icon,#exlMateri [class*="icon"]{display:none!important}
+#exlMateri .edu-ex-title b{display:block}
+</style>
 <script id="fj-exlib-runtime">
 (function(){'use strict';
 function q(id){return document.getElementById(id)}
@@ -9002,6 +9875,36 @@ var EDU_MUSCLES={
  'core':{name:'Core / Trunk',region:'Trunk',desc:'Kelompok otot trunk yang membantu menghasilkan, menahan dan mentransfer gaya.',function:'Membantu stabilitas trunk, bracing, transfer gaya dan kontrol posisi tubuh.',risk:'Fatigue dapat menurunkan kontrol; jangan mengejar beban dengan kehilangan posisi trunk.',daily:'Gunakan kombinasi anti-extension, anti-rotation, carry atau controlled rotation sesuai tujuan.',dont:'Jangan memaksakan ROM atau beban ketika bracing dan kontrol sudah hilang.',moves:['Core / Anti-Rotation','Carry'],joints:['Spine','Hip'],bones:['Spine / Vertebrae','Pelvis','Rib cage'],warmup:'Breathing/bracing drill + dead bug ringan + movement prep sesuai sesi.',stretching:'Child pose/lat reach atau gentle trunk rotation sesuai kebutuhan.',stretchList:['Child Pose Reach','Open Book Rotation','Quadruped Rock Back'],types:'Anti-extension + anti-rotation + carry + controlled rotation.',keywords:['core','perut','trunk','abdomen']}
 };
 
+
+/* V61.2 — MATERI & EDUKASI authoritative muscle dataset.
+   This is intentionally scoped to the local EDU_MUSCLES object used by renderMateri(). */
+Object.assign(EDU_MUSCLES,{
+ 'pectoralis-major':{name:'Pectoralis Major',region:'Dada',desc:'Otot besar dada dengan serabut clavicular, sternocostal, dan abdominal yang terutama membantu gerak lengan terhadap trunk.',function:'Horizontal adduction dan internal rotation bahu; bagian clavicular membantu shoulder flexion dan bagian sternocostal berkontribusi pada extension dari posisi fleksi.',risk:'Atur ROM, beban, dan posisi scapula sesuai kontrol. Nyeri tajam bukan target latihan.',daily:'Gunakan press, push-up, atau fly sesuai tujuan dan kemampuan; progreskan beban atau volume bertahap.',dont:'Jangan memantulkan beban atau memaksa ROM ketika posisi bahu tidak dapat dikontrol.',moves:['Push','Horizontal Adduction'],joints:['Shoulder'],bones:['Clavicle','Sternum / Ribs','Humerus'],warmup:'5–8 menit aktivitas ringan, arm circles terkontrol, lalu 2–4 set ramp-up push/press.',stretching:'Doorway chest stretch atau standing chest stretch dengan ROM nyaman.',stretchList:['Doorway Chest Stretch','Standing Chest Opener','Dynamic Arm Sweep'],types:'Bench press, push-up, cable/dumbbell fly, chest press.',keywords:['dada','chest','pec','pectoralis']},
+ 'pectoralis-minor':{name:'Pectoralis Minor',region:'Dada',desc:'Otot kecil di bawah pectoralis major yang menghubungkan tulang rusuk bagian atas dengan processus coracoid scapula.',function:'Membantu scapular protraction, depression, dan downward rotation serta membantu stabilisasi scapula.',risk:'Kompensasi scapula dan posisi bahu perlu diperhatikan pada gerakan berulang.',daily:'Latih kontrol scapula melalui push-up plus, serratus work, dan pola pushing yang terkontrol.',dont:'Jangan memaksa bahu ke posisi anterior/rounded tanpa kontrol.',moves:['Push','Scapular Protraction'],joints:['Shoulder'],bones:['Scapula','Rib cage'],warmup:'Scapular circles, wall slide ringan, dan push-up plus ringan.',stretching:'Doorway/pec stretch dengan fokus membuka area anterior shoulder secara nyaman.',stretchList:['Doorway Pec Stretch','Wall Chest Opener'],types:'Push-up plus, scapular control, controlled pressing.',keywords:['pectoralis minor','pec minor','dada']},
+ 'latissimus-dorsi':{name:'Latissimus Dorsi',region:'Punggung',desc:'Otot luas punggung yang menghubungkan trunk dengan humerus dan dominan pada gerak menarik lengan.',function:'Shoulder extension, adduction, dan internal rotation serta membantu kontrol trunk dan scapula.',risk:'Jangan mengganti gerak bahu dengan ayunan trunk berlebihan.',daily:'Gunakan vertical pull dan/atau row sesuai tujuan, lalu progreskan beban bertahap.',dont:'Jangan menarik dengan momentum besar atau memaksa ROM bahu yang tidak nyaman.',moves:['Pull','Shoulder Extension','Shoulder Adduction'],joints:['Shoulder'],bones:['Scapula','Humerus','Spine / Vertebrae','Pelvis'],warmup:'Scapular pull/row ringan dan ramp-up pulldown/row.',stretching:'Lat stretch dengan tangan di bench/dinding atau side reach.',stretchList:['Bench Lat Stretch','Wall Lat Stretch','Side Reach'],types:'Lat pulldown, pull-up, chin-up, row variations.',keywords:['punggung','lat','lats','latissimus']},
+ 'trapezius':{name:'Trapezius',region:'Punggung atas',desc:'Otot luas berbentuk trapezoid pada leher dan punggung atas dengan serabut upper, middle, dan lower.',function:'Membantu elevasi, retraksi, depresi, dan upward rotation scapula.',risk:'Hindari shrugging atau retraksi berlebihan jika gerakan mengganggu leher/bahu.',daily:'Gunakan row, carry, shrug, dan kontrol scapula sesuai fungsi serabut.',dont:'Jangan memaksa beban ketika leher mengambil alih gerakan.',moves:['Pull','Scapular Retraction','Scapular Elevation'],joints:['Shoulder','Spine'],bones:['Scapula','Clavicle','Spine / Vertebrae'],warmup:'Scapular circles, light rows, dan carries ringan.',stretching:'Upper-trap/neck stretch lembut dan thoracic mobility.',stretchList:['Gentle Upper Trap Stretch','Thoracic Extension'],types:'Rows, carries, shrug, face-pull/scapular control.',keywords:['trapezius','trap','traps','punggung atas']},
+ 'rhomboids':{name:'Rhomboids',region:'Punggung atas',desc:'Otot di antara tulang belakang dan medial border scapula yang berperan pada kontrol scapula.',function:'Scapular retraction dan downward rotation serta membantu stabilisasi scapula.',risk:'Pastikan gerak berasal dari scapula tanpa mengangkat bahu berlebihan.',daily:'Gunakan row dan latihan kontrol scapula dengan tempo terkontrol.',dont:'Jangan menarik beban dengan momentum atau hyperextension trunk.',moves:['Pull','Scapular Retraction'],joints:['Shoulder'],bones:['Scapula','Spine / Vertebrae'],warmup:'Band row ringan dan scapular retraction.',stretching:'Cross-body/upper-back stretch secara nyaman.',stretchList:['Upper Back Stretch','Cross-Body Reach'],types:'Rows, reverse fly, scapular retraction drills.',keywords:['rhomboid','rhomboids','upper back','punggung']},
+ 'erector-spinae':{name:'Erector Spinae',region:'Punggung bawah / trunk',desc:'Kelompok otot longitudinal di sepanjang tulang belakang yang berperan besar pada ekstensi dan kontrol tulang belakang.',function:'Membantu spinal extension dan menjaga posisi trunk saat squat, hinge, carry, dan locomotion.',risk:'Fatigue dapat mengurangi kontrol trunk; beban perlu diprogreskan bertahap.',daily:'Latih hinge, carry, back-extension, dan bracing dengan teknik konsisten.',dont:'Jangan mengejar beban ketika posisi spine tidak lagi dapat dipertahankan.',moves:['Hinge','Spinal Extension','Carry'],joints:['Spine','Hip'],bones:['Spine / Vertebrae','Pelvis','Rib cage'],warmup:'Breathing/bracing, hip hinge drill, dan ramp-up set.',stretching:'Gentle child pose atau thoracic/hip mobility sesuai kebutuhan.',stretchList:['Child Pose Reach','Cat-Camel','Hip Hinge Drill'],types:'Deadlift/RDL, back extension, good morning, carries.',keywords:['erector','erector spinae','lower back','punggung bawah']},
+ 'deltoid':{name:'Deltoid',region:'Bahu',desc:'Kelompok otot bahu dengan bagian anterior, middle, dan posterior yang menggerakkan lengan dalam berbagai arah.',function:'Anterior membantu flexion; middle membantu abduction; posterior membantu extension/horizontal abduction.',risk:'Overhead loading dan volume harus sesuai kapasitas shoulder complex.',daily:'Kombinasikan press, raise, dan pulling yang relevan tanpa menumpuk volume berlebihan.',dont:'Jangan menggunakan momentum saat raise atau memaksa overhead ROM.',moves:['Push','Pull','Shoulder Abduction'],joints:['Shoulder'],bones:['Scapula','Clavicle','Humerus'],warmup:'Arm circles, scapular movement, band/cable light raise, dan ramp-up set.',stretching:'Cross-body shoulder stretch dan gentle posterior shoulder mobility.',stretchList:['Cross-Body Shoulder Stretch','Posterior Shoulder Stretch','Dynamic Arm Circle'],types:'Overhead press, lateral raise, front/rear raise, controlled pulling.',keywords:['bahu','shoulder','deltoid']},
+ 'rotator-cuff':{name:'Rotator Cuff',region:'Bahu',desc:'Kelompok supraspinatus, infraspinatus, teres minor, dan subscapularis yang membantu stabilisasi kepala humerus.',function:'Menstabilkan glenohumeral joint dan berkontribusi pada rotasi serta kontrol elevasi lengan.',risk:'Gerakan rotasi harus dikontrol; hindari beban yang membuat kompensasi bahu/leher.',daily:'Gunakan external/internal rotation ringan, row, dan shoulder control sesuai kebutuhan.',dont:'Jangan mengejar beban tinggi pada latihan rotasi kecil.',moves:['Shoulder Rotation','Shoulder Stabilization'],joints:['Shoulder'],bones:['Scapula','Humerus'],warmup:'Band external rotation ringan, scapular control, dan progressive warm-up.',stretching:'Gentle posterior shoulder/chest mobility.',stretchList:['Cross-Body Stretch','Gentle Shoulder Rotation'],types:'Cable/band external rotation, internal rotation, controlled raises.',keywords:['rotator cuff','rotator','supraspinatus','infraspinatus','teres minor','subscapularis']},
+ 'biceps':{name:'Biceps Brachii',region:'Lengan',desc:'Otot lengan depan dengan long head dan short head yang melintasi shoulder dan elbow.',function:'Elbow flexion dan forearm supination; juga membantu shoulder flexion serta stabilisasi bahu.',risk:'Beban dan ROM perlu dikontrol terutama pada posisi bahu teregang.',daily:'Gunakan curl dan pola pull seperti chin-up sesuai tujuan dan level.',dont:'Jangan mengayun badan untuk menyelesaikan repetisi atau memaksa posisi siku/bahu.',moves:['Pull','Elbow Flexion','Forearm Supination'],joints:['Shoulder','Elbow'],bones:['Scapula','Humerus','Radius'],warmup:'Row ringan, elbow flexion-extension, lalu beberapa set curl ringan.',stretching:'Gentle biceps wall stretch dengan shoulder/elbow dalam posisi nyaman.',stretchList:['Wall Biceps Stretch','Gentle Arm Extension'],types:'Dumbbell/cable curl, incline curl, preacher curl, chin-up.',keywords:['biceps','bisep','biceps brachii','lengan depan']},
+ 'brachialis':{name:'Brachialis',region:'Lengan',desc:'Otot flexor utama siku yang berada di bawah biceps brachii dan melekat pada ulna.',function:'Elbow flexion pada berbagai posisi forearm.',risk:'Kontrol volume curl dan posisi siku saat latihan berulang.',daily:'Gunakan curl dengan grip netral/pronated sesuai tujuan, termasuk hammer curl.',dont:'Jangan memakai momentum atau beban yang mengubah posisi siku.',moves:['Pull','Elbow Flexion'],joints:['Elbow'],bones:['Humerus','Ulna'],warmup:'Light curls dan elbow mobility.',stretching:'Gentle elbow extension/biceps-arm stretch.',stretchList:['Arm Extension Stretch'],types:'Hammer curl, reverse curl, controlled cable curl.',keywords:['brachialis','elbow flexor','lengan']},
+ 'brachioradialis':{name:'Brachioradialis',region:'Lengan bawah',desc:'Otot lengan bawah yang membantu flexion siku terutama ketika forearm berada pada posisi netral.',function:'Elbow flexion dan membantu membawa forearm menuju posisi netral.',risk:'Grip dan volume curl perlu dikelola pada latihan berulang.',daily:'Hammer curl dan neutral-grip pulling dapat melatihnya.',dont:'Jangan memaksa grip atau wrist position saat beban terlalu berat.',moves:['Pull','Elbow Flexion'],joints:['Elbow','Wrist'],bones:['Humerus','Radius'],warmup:'Grip ringan dan hammer curl ringan.',stretching:'Gentle wrist/elbow extension stretch.',stretchList:['Forearm Stretch','Gentle Arm Extension'],types:'Hammer curl, neutral-grip row/pull.',keywords:['brachioradialis','forearm','lengan bawah']},
+ 'triceps':{name:'Triceps Brachii',region:'Lengan',desc:'Otot posterior lengan dengan tiga kepala yang melewati elbow; long head juga melewati shoulder.',function:'Elbow extension; long head juga membantu shoulder extension/adduction.',risk:'Volume pressing dan extension perlu dikelola agar siku toleran.',daily:'Gabungkan pressing dengan extension spesifik bila membutuhkan volume tambahan.',dont:'Jangan memakai beban yang membuat siku kehilangan kontrol.',moves:['Push','Elbow Extension'],joints:['Elbow','Shoulder'],bones:['Humerus','Ulna','Scapula'],warmup:'Push-up/press ringan dan elbow extension resistance rendah.',stretching:'Overhead triceps stretch dengan ROM nyaman.',stretchList:['Overhead Triceps Stretch','Cross-Body Triceps Stretch'],types:'Pressing, cable pushdown, overhead extension, close-grip press.',keywords:['triceps','trisep','triceps brachii','lengan belakang']},
+ 'serratus-anterior':{name:'Serratus Anterior',region:'Dada samping / scapula',desc:'Otot pada sisi rib cage yang membantu menempelkan dan menggerakkan scapula terhadap thorax.',function:'Scapular protraction dan upward rotation serta membantu stabilitas scapula.',risk:'Fokus pada kontrol scapula, bukan sekadar mendorong beban.',daily:'Gunakan push-up plus, wall slide, dan controlled pressing.',dont:'Jangan mengejar ROM scapula dengan kompensasi lumbar.',moves:['Push','Scapular Protraction','Upward Rotation'],joints:['Shoulder'],bones:['Scapula','Rib cage'],warmup:'Wall slide dan scapular push-up ringan.',stretching:'Gentle side-body/lat mobility.',stretchList:['Wall Slide','Side Reach'],types:'Push-up plus, serratus punch, wall slide.',keywords:['serratus','serratus anterior','scapula','dada']},
+ 'rectus-abdominis':{name:'Rectus Abdominis',region:'Core',desc:'Otot anterior trunk yang memanjang dari pubis menuju sternum dan costal cartilage.',function:'Spinal flexion dan membantu meningkatkan trunk stiffness/brace.',risk:'Kualitas brace dan kontrol lumbar lebih penting daripada mengejar repetisi tinggi.',daily:'Gunakan curl-up/crunch terkontrol, dead bug, dan bracing sesuai tujuan.',dont:'Jangan memaksa neck flexion atau momentum.',moves:['Core / Anti-Rotation','Spinal Flexion'],joints:['Spine','Hip'],bones:['Spine / Vertebrae','Pelvis','Sternum / Ribs'],warmup:'Breathing/bracing dan dead bug ringan.',stretching:'Gentle trunk extension jika nyaman.',stretchList:['Child Pose','Gentle Cobra/Extension'],types:'Crunch, curl-up, dead bug, bracing.',keywords:['rectus','abdominis','abs','perut','core']},
+ 'obliques':{name:'Obliques',region:'Core',desc:'Internal dan external obliques pada sisi trunk yang mengontrol rotasi, lateral flexion, dan stabilitas.',function:'Trunk rotation, lateral flexion, compression, dan anti-rotation/stabilization.',risk:'Rotasi dan beban perlu dikontrol tanpa momentum.',daily:'Gunakan carries, Pallof press, side plank, dan controlled rotation.',dont:'Jangan memaksa rotasi dengan beban besar atau momentum.',moves:['Core / Anti-Rotation','Rotation','Lateral Flexion'],joints:['Spine','Hip'],bones:['Rib cage','Spine / Vertebrae','Pelvis'],warmup:'Breathing/bracing dan trunk rotation ringan.',stretching:'Side bend dan open-book mobility secara nyaman.',stretchList:['Open Book Rotation','Side Reach','Child Pose Reach'],types:'Pallof press, side plank, cable chop, carries.',keywords:['oblique','obliques','perut samping','core']},
+ 'gluteus-maximus':{name:'Gluteus Maximus',region:'Pinggul',desc:'Otot terbesar bokong dan kontributor utama hip extension.',function:'Hip extension dan membantu external rotation/abduction sesuai posisi; penting pada squat, hinge, lunge, sprint.',risk:'Kontrol pelvis dan trunk harus dipertahankan saat loading meningkat.',daily:'Gunakan squat, hinge, lunge, hip thrust sesuai tujuan.',dont:'Jangan mengejar beban dengan kehilangan kontrol pelvis atau lumbar extension berlebihan.',moves:['Squat','Hinge','Lunge','Hip Extension'],joints:['Hip','Knee'],bones:['Pelvis','Femur'],warmup:'Walking/lunge ringan, glute bridge, bodyweight squat/hinge, lalu ramp-up.',stretching:'Figure-4/glute stretch dan hip mobility.',stretchList:['Figure-4 Glute Stretch','Supine Glute Stretch','Dynamic Lunge'],types:'Squat, deadlift/RDL, hip thrust, lunge.',keywords:['glute','glutes','gluteus maximus','bokong']},
+ 'gluteus-medius':{name:'Gluteus Medius',region:'Pinggul samping',desc:'Otot lateral hip yang penting untuk abduction dan kontrol pelvis pada single-leg stance.',function:'Hip abduction serta membantu stabilisasi pelvis dan kontrol femur.',risk:'Kontrol knee/hip alignment penting terutama pada single-leg exercise.',daily:'Gunakan lateral step, side-lying abduction, band walk, dan single-leg patterns.',dont:'Jangan membiarkan pelvis jatuh atau femur collapse tanpa kontrol.',moves:['Lunge','Hip Abduction','Single-Leg Stability'],joints:['Hip','Knee'],bones:['Pelvis','Femur'],warmup:'Lateral walk ringan dan single-leg balance.',stretching:'Gentle glute/hip mobility.',stretchList:['Figure-4 Stretch','Lateral Hip Mobility'],types:'Side-lying abduction, band walk, step-down, single-leg squat.',keywords:['glute med','gluteus medius','hip abduction','pinggul samping']},
+ 'hip-flexors':{name:'Hip Flexors',region:'Pinggul depan',desc:'Kelompok otot yang mengangkat femur terhadap pelvis, termasuk iliopsoas dan rectus femoris.',function:'Hip flexion dan membantu kontrol pelvis/trunk dalam locomotion.',risk:'Kekakuan atau fatigue dapat memengaruhi posisi pelvis dan gerak hip.',daily:'Latih hip flexion dengan kontrol dan seimbangkan dengan glute/hamstring work.',dont:'Jangan memaksa hip extension stretch sampai menimbulkan nyeri.',moves:['Lunge','Hip Flexion'],joints:['Hip'],bones:['Pelvis','Femur','Spine / Vertebrae'],warmup:'Marching, leg swings, walking lunge.',stretching:'Half-kneeling hip flexor stretch dengan pelvis terkontrol.',stretchList:['Half-Kneeling Hip Flexor Stretch','Lunge Mobility'],types:'March, knee drive, resisted hip flexion, locomotion drills.',keywords:['hip flexor','hip flexors','iliopsoas','psoas','pinggul depan']},
+ 'adductors':{name:'Adductors',region:'Paha dalam',desc:'Kelompok otot medial paha yang menggerakkan femur menuju garis tengah dan membantu stabilisasi hip.',function:'Hip adduction dan kontribusi pada flexion/extension/rotation tergantung otot dan posisi.',risk:'Lateral/cutting load harus diprogreskan bertahap.',daily:'Gunakan adductor strengthening dan lateral/lunge patterns sesuai kemampuan.',dont:'Jangan memaksa stretch atau lateral loading secara mendadak.',moves:['Lunge','Hip Adduction','Lateral Movement'],joints:['Hip','Knee'],bones:['Pelvis','Femur'],warmup:'Lateral lunge ringan dan adductor rock-back.',stretching:'Adductor rock-back atau gentle side lunge stretch.',stretchList:['Adductor Rock Back','Gentle Side Lunge'],types:'Copenhagen plank, adductor machine, lateral lunge.',keywords:['adductor','adductors','paha dalam','groin']},
+ 'quadriceps':{name:'Quadriceps',region:'Paha depan',desc:'Kelompok rectus femoris, vastus lateralis, vastus medialis, dan vastus intermedius.',function:'Knee extension; rectus femoris juga berkontribusi pada hip flexion.',risk:'Volume, ROM, dan impact perlu dinaikkan bertahap sesuai toleransi.',daily:'Gunakan squat, lunge, leg press, atau knee extension sesuai tujuan.',dont:'Jangan menambah volume/impact mendadak atau mengorbankan kontrol lutut.',moves:['Squat','Lunge','Knee Extension'],joints:['Knee','Hip','Ankle'],bones:['Femur','Tibia','Patella','Pelvis'],warmup:'Bike/walk ringan, dynamic lunge, squat pattern, ramp-up.',stretching:'Standing quad stretch atau couch stretch dengan ROM nyaman.',stretchList:['Standing Quadriceps Stretch','Couch Stretch','Dynamic Knee Bend'],types:'Squat, split squat, lunge, leg press, knee extension.',keywords:['quadriceps','quad','paha depan']},
+ 'hamstrings':{name:'Hamstrings',region:'Paha belakang',desc:'Kelompok biceps femoris, semitendinosus, dan semimembranosus di posterior paha.',function:'Knee flexion dan hip extension serta kontrol pelvis/femur.',risk:'ROM dan loading harus dikontrol terutama pada posisi hip flexion besar.',daily:'Gabungkan hip hinge dan/atau knee-flexion exercise sesuai tujuan.',dont:'Jangan memaksa stretch sampai nyeri atau kehilangan posisi trunk/pelvis.',moves:['Hinge','Lunge','Knee Flexion'],joints:['Hip','Knee'],bones:['Pelvis','Femur','Tibia'],warmup:'Walking/bike ringan, leg swing terkontrol, hip hinge drill.',stretching:'Supine hamstring stretch atau active hamstring sweep.',stretchList:['Supine Hamstring Stretch','Active Hamstring Sweep','Half-Kneeling Hinge'],types:'RDL/deadlift, leg curl, good morning, Nordic progression.',keywords:['hamstring','hamstrings','paha belakang']},
+ 'gastrocnemius':{name:'Gastrocnemius',region:'Tungkai bawah',desc:'Otot betis superfisial yang melintasi knee dan ankle.',function:'Plantarflexion ankle dan membantu knee flexion.',risk:'Impact, calf volume, dan return-to-running perlu diprogreskan bertahap.',daily:'Gunakan standing calf raise dan locomotion sesuai kebutuhan.',dont:'Jangan menambah volume lari/lompat secara mendadak.',moves:['Calf Raise','Plantarflexion','Cardio'],joints:['Ankle','Knee'],bones:['Femur','Tibia','Fibula','Talus'],warmup:'Jalan/bike, ankle circles, calf raises ringan.',stretching:'Wall calf stretch dengan lutut lurus.',stretchList:['Wall Calf Stretch','Ankle Rock'],types:'Standing calf raise, jumping/running progression.',keywords:['gastrocnemius','calf','betis']},
+ 'soleus':{name:'Soleus',region:'Tungkai bawah',desc:'Otot betis dalam yang bekerja kuat pada plantarflexion terutama ketika lutut menekuk.',function:'Plantarflexion dan membantu kontrol ankle saat berdiri, berjalan, dan berlari.',risk:'Volume dan impact tetap perlu diprogreskan bertahap.',daily:'Gunakan seated/bent-knee calf raise dan weight-bearing locomotion.',dont:'Jangan menambah impact mendadak.',moves:['Calf Raise','Plantarflexion','Cardio'],joints:['Ankle','Knee'],bones:['Tibia','Fibula','Talus'],warmup:'Walking/bike dan bent-knee calf raises ringan.',stretching:'Bent-knee calf stretch.',stretchList:['Bent-Knee Soleus Stretch','Ankle Rock'],types:'Seated/bent-knee calf raise, running progression.',keywords:['soleus','calf','betis']},
+ 'tibialis-anterior':{name:'Tibialis Anterior',region:'Tungkai bawah depan',desc:'Otot anterior tungkai yang dominan pada dorsiflexion ankle.',function:'Dorsiflexion dan membantu kontrol kaki saat heel strike dan locomotion.',risk:'Volume lari dan repetitive ankle work perlu dinaikkan bertahap.',daily:'Gunakan tibialis raises, controlled walking, dan ankle mobility.',dont:'Jangan menambah repetitive impact mendadak.',moves:['Dorsiflexion','Cardio'],joints:['Ankle'],bones:['Tibia','Fibula','Talus'],warmup:'Ankle circles, tibialis raises ringan, walking.',stretching:'Gentle plantarflexion stretch bila nyaman.',stretchList:['Ankle Mobility','Gentle Shin Stretch'],types:'Tibialis raises, dorsiflexion resistance, locomotion.',keywords:['tibialis anterior','tibialis','shin','tulang kering']}
+});
+
 var EDU_JOINTS={
  'Shoulder':{desc:'Kompleks bahu dengan ROM besar yang mendukung gerak lengan.',function:'Menghubungkan upper limb dengan trunk dan memungkinkan push, pull, reach dan carry.',risk:'ROM, overhead loading dan volume harus sesuai kemampuan.',muscles:['Pectoralis Major','Latissimus Dorsi','Deltoid'],bones:['Scapula','Clavicle','Humerus'],warmup:'Arm circles, scapular control, light push/pull dan ramp-up.',stretch:'Cross-body, chest dan lat stretching sesuai kebutuhan.'},
  'Elbow':{desc:'Kompleks sendi yang dominan pada flexion-extension lengan.',function:'Mentransfer gaya antara bahu dan tangan saat push/pull.',risk:'Overuse dan beban mendadak dapat mengganggu toleransi jaringan.',muscles:['Biceps Brachii','Triceps Brachii'],bones:['Humerus','Radius','Ulna'],warmup:'Light curl/extension dan easy row/press.',stretch:'Gentle biceps/triceps stretch.'},
@@ -9058,7 +9961,7 @@ function eduRelatedExercises(){
   if(EDU_FILTER.exercise){var exact=arr.filter(function(x){return x.d.name===EDU_FILTER.exercise});arr=exact.concat(arr.filter(function(x){return x.d.name!==EDU_FILTER.exercise}));}
   return arr.slice(0,8);
 }
-function eduCardExercise(x){var d=x.d,m=x.d?fjExMeta(d):{};return '<article class="edu-ex-card"><div class="edu-ex-title"><b>'+E(d.emoji||'🏋️')+' '+E(d.name)+'</b><span>'+E(d.level)+'</span></div><div class="edu-ex-tags"><span>'+E(m.type)+'</span><span>'+E(m.pattern)+'</span><span>'+E(d.equip)+'</span></div><div class="edu-ex-small"><b>Otot utama:</b> '+E(m.primary)+'<br><b>Sendi kerja:</b> '+E(m.joints)+'</div><div class="edu-ex-small"><b>Program library:</b> '+E((d.sets&&d.sets.hipertrofi)||'lihat detail exercise')+'</div><button type="button" class="exl-btn alt" onclick="window.fjExlOpen(\''+d.id+'\')">Lihat Detail Exercise</button></article>'}
+function eduCardExercise(x){var d=x.d,m=x.d?fjExMeta(d):{};return '<article class="edu-ex-card"><div class="edu-ex-title"><b>'+E(d.name)+'</b><span>'+E(d.level)+'</span></div><div class="edu-ex-tags"><span>'+E(m.type)+'</span><span>'+E(m.pattern)+'</span><span>'+E(d.equip)+'</span></div><div class="edu-ex-small"><b>Otot utama:</b> '+E(m.primary)+'<br><b>Sendi kerja:</b> '+E(m.joints)+'</div><div class="edu-ex-small"><b>Program library:</b> '+E((d.sets&&d.sets.hipertrofi)||'lihat detail exercise')+'</div><button type="button" class="exl-btn alt" onclick="window.fjExlOpen(\''+d.id+'\')">Lihat Detail Exercise</button></article>'}
 function eduRender(){
   var b=q('exlMateri');if(!b)return;
   var muscleNames=eduMuscleNames().sort(), exerciseNames=DATA.map(function(d){return d.name}).sort(), sports=Object.keys(EDU_SPORTS), joints=Object.keys(EDU_JOINTS);

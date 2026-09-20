@@ -1420,7 +1420,12 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #fjPtOpsV2 .ptv2-calendar-scroll .ptv2-calendar{grid-template-columns:repeat(7,minmax(104px,1fr))!important;min-width:760px}
 #fjPtOpsV2 .ptv2-calendar-scroll .ptv2-day{min-height:86px}
 @media(max-width:760px){#fjPtPublicDirectory .fj-pd-form{grid-template-columns:1fr 1fr}#fjPtPublicDirectory .fj-pd-form .wide{grid-column:1/-1}.fj-pcu-list{grid-template-columns:1fr}.fj-pcu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fj-pcu-detailgrid{grid-template-columns:1fr}.fj-pcu-shell{padding:10px}#fjPtOpsV2 .ptv2-calendar-scroll{max-width:100vw}.fj-pcu-table{font-size:10px}}
-</style></head><body>
+</style><style id="fj-v69-pt-edit-responsive">
+/* V69: PT name edit button is compact only on phones; desktop/laptop stays comfortable. */
+#fjPtNameManager .fj-ptm-row button{font-size:12px!important;padding:8px 12px!important;min-height:34px!important;line-height:1.2!important}
+@media(max-width:760px){#fjPtNameManager .fj-ptm-row button{font-size:9px!important;padding:5px 8px!important;min-height:28px!important}}
+</style>
+</head><body>
 
 
 <div class="auth" id="auth"><div class="authbox"><div class="label">FITNESS JOURNEY — NEW APP</div><h2 id="authTitle">Login diperlukan</h2><p id="authDesc">Aplikasi ini hanya dapat digunakan oleh akun yang sudah mendapatkan persetujuan Admin.</p><div id="supabaseSetup" style="display:none"><div class="notice warn">Konfigurasi Supabase tersimpan. Gunakan form ini hanya untuk mengganti project secara manual.</div><div class="field" style="margin-top:10px"><label>Supabase Project URL</label><input id="sbUrl" placeholder="https://xxxxx.supabase.co"/></div><div class="field" style="margin-top:10px"><label>Supabase Anon / Publishable Key</label><textarea id="sbKey" placeholder="eyJ..." rows="3"></textarea></div><div class="actions"><button class="btn" onclick="saveSupabaseConfig()">Simpan &amp; Hubungkan</button></div></div><div id="authLogin"><div class="actions"><button class="btn" id="btnGoogleLogin" type="button">G Masuk dengan Google</button></div><div class="notice" id="authMsg" style="display:none;margin-top:12px"></div></div><p class="small">Admin satu-satunya: <b>aldenkhafi0203@gmail.com</b>. Admin Access Approval berbeda dari Manager Approval transaksi.</p></div></div>
@@ -7910,6 +7915,8 @@ function exercise(){return $('fjExLibNav')}
 function panel(){return $('fjPtOpsV2')}
 function supa(){return window.sb||null}
 function user(){return window.currentUser||null}
+function isUUID(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''))}
+function safeUUID(v){var z=String(v||'').trim();return isUUID(z)?z:''}
 function mergePTRows(dir,users){
   var out=[],seen={};
   (dir||[]).concat(users||[]).forEach(function(x){
@@ -7924,7 +7931,7 @@ async function activePTs(){
   if(d.error)throw d.error;
   var u=await s.from('user_access').select('user_id,email,full_name,role,status,outlet').eq('status','approved').order('email');
   if(u.error)throw u.error;
-  return mergePTRows(d.data||[],(u.data||[]));
+  return mergePTRows(d.data||[],(u.data||[])).filter(function(x){return isUUID(x.user_id)});
 }
 function ensureModal(){
   var m=$('fjV617AssignModal');if(m)return m;
@@ -7938,8 +7945,8 @@ var assignClientId='';
 function closeAssign(){var m=$('fjV617AssignModal');if(m)m.classList.remove('open');assignClientId='';var n=$('fjV617AssignName');if(n)n.value=''}
 async function resolveCurrentPT(id,current){
   if(current)return current;
-  var s=supa();if(!s||!id)return '';
-  try{var r=await s.from('pt_clients').select('pt_user_id').eq('id',id).single();return r.data&&r.data.pt_user_id||''}catch(e){return ''}
+  var s=supa(),cid=safeUUID(id);if(!s||!cid)return '';
+  try{var r=await s.from('pt_clients').select('pt_user_id').eq('id',cid).single();return safeUUID(r.data&&r.data.pt_user_id)||''}catch(e){return ''}
 }
 async function openAssign(id,name,current){
   var m=ensureModal();assignClientId=id;$('fjV617AssignTitle').textContent='Assign PT — '+(name||'Client');$('fjV617AssignStatus').textContent='Memuat daftar PT…';
@@ -7953,7 +7960,7 @@ async function openAssign(id,name,current){
   }catch(e){$('fjV617AssignStatus').textContent='Gagal memuat PT: '+(e.message||e);m.classList.add('open')}
 }
 async function saveAssign(){
-  var id=assignClientId,sel=$('fjV617AssignSelect'),ptid=sel&&sel.value||'';if(!id||!ptid){alert('Pilih PT terlebih dahulu.');return}
+  var id=safeUUID(assignClientId),sel=$('fjV617AssignSelect'),ptid=safeUUID(sel&&sel.value||'');if(!id||!ptid){alert('PT atau Client ID tidak valid. Silakan pilih ulang.');return}
   var opt=sel.options[sel.selectedIndex],email=opt&&opt.dataset.email||'',name=String(($('fjV617AssignName')||{}).value||'').trim()||(opt&&opt.dataset.name)||opt&&opt.textContent||'',s=supa();if(!s){alert('Supabase belum terhubung.');return}
   var st=$('fjV617AssignStatus');st.textContent='Menyimpan assignment…';
   try{
@@ -8041,6 +8048,7 @@ setInterval(boot,3000);
 var $=function(id){return document.getElementById(id)};
 function sb(){return window.sb||null}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function isUUID(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''))}
 var rows=[];
 async function loadRows(){
  var s=sb();if(!s)throw new Error('Supabase belum terhubung');
@@ -8059,8 +8067,8 @@ function ensure(){
  }
  return box;
 }
-function render(){var box=ensure();if(!box)return;var sel=$('fjPtmUser'),list=$('fjPtmList');sel.innerHTML='<option value="">Pilih akun approved</option>'+rows.map(function(x){return '<option value="'+esc(x.user_id)+'" data-name="'+esc(x.pt_name||'')+'" data-email="'+esc(x.email||'')+'" data-outlet="'+esc(x.outlet||'')+'">'+esc(x.pt_name?x.pt_name+' — '+x.email:x.email||x.user_id)+'</option>'}).join('');list.innerHTML=rows.filter(function(x){return x.pt_name}).map(function(x){return '<div class="fj-ptm-row"><div><b>'+esc(x.pt_name)+'</b><div class="fj-pcu-muted">'+esc(x.email||'')+(x.outlet?' • '+esc(x.outlet):'')+'</div></div><button type="button" class="ptv2-btn alt" data-edit-pt="'+esc(x.user_id)+'">Edit Nama</button></div>'}).join('')||'<div class="fj-pcu-muted">Belum ada nama PT yang didaftarkan.</div>';list.querySelectorAll('[data-edit-pt]').forEach(function(b){b.onclick=function(){var x=rows.find(function(z){return String(z.user_id)===String(b.dataset.editPt)});if(!x)return;sel.value=x.user_id;$('fjPtmName').value=x.pt_name||'';$('fjPtmOutlet').value=x.outlet||''}});$('fjPtmStatus').textContent=rows.length+' akun approved';}
-async function save(){var s=sb(),sel=$('fjPtmUser'),name=String(($('fjPtmName')||{}).value||'').trim(),outlet=String(($('fjPtmOutlet')||{}).value||'').trim();if(!s){alert('Supabase belum terhubung.');return}if(!sel||!sel.value||!name){alert('Pilih akun Access dan isi Nama PT.');return}var o=sel.options[sel.selectedIndex],email=o&&o.dataset.email||'',st=$('fjPtmStatus');st.textContent='Menyimpan…';try{var r=await s.from('pt_directory').upsert({user_id:sel.value,pt_name:name,email:email,outlet:outlet,status:'active'},{onConflict:'user_id'});if(r.error)throw r.error;st.textContent='Nama PT tersimpan.';await loadRows();render();try{if(typeof window.fillPT==='function')await window.fillPT()}catch(e){}try{if(typeof window.loadClientDirectoryPT==='function')await window.loadClientDirectoryPT()}catch(e){}try{if(typeof window.fjPtV2Reload==='function')await window.fjPtV2Reload()}catch(e){}try{if(typeof window.fjOpenPtClientUnified==='function')await window.fjOpenPtClientUnified()}catch(e){} }catch(e){st.textContent='Gagal menyimpan';alert('Gagal menyimpan nama PT: '+(e.message||e))}}
+function render(){var box=ensure();if(!box)return;var sel=$('fjPtmUser'),list=$('fjPtmList');sel.innerHTML='<option value="">Pilih akun approved</option>'+rows.filter(function(x){return isUUID(x.user_id)}).map(function(x){return '<option value="'+esc(x.user_id)+'" data-name="'+esc(x.pt_name||'')+'" data-email="'+esc(x.email||'')+'" data-outlet="'+esc(x.outlet||'')+'">'+esc(x.pt_name?x.pt_name+' — '+x.email:x.email||x.user_id)+'</option>'}).join('');list.innerHTML=rows.filter(function(x){return x.pt_name&&isUUID(x.user_id)}).map(function(x){return '<div class="fj-ptm-row"><div><b>'+esc(x.pt_name)+'</b><div class="fj-pcu-muted">'+esc(x.email||'')+(x.outlet?' • '+esc(x.outlet):'')+'</div></div><button type="button" class="ptv2-btn alt" data-edit-pt="'+esc(x.user_id)+'">Edit Nama</button></div>'}).join('')||'<div class="fj-pcu-muted">Belum ada nama PT yang didaftarkan.</div>';list.querySelectorAll('[data-edit-pt]').forEach(function(b){b.onclick=function(){var x=rows.find(function(z){return String(z.user_id)===String(b.dataset.editPt)});if(!x)return;sel.value=x.user_id;$('fjPtmName').value=x.pt_name||'';$('fjPtmOutlet').value=x.outlet||''}});$('fjPtmStatus').textContent=rows.length+' akun approved';}
+async function save(){var s=sb(),sel=$('fjPtmUser'),ptid=String(sel&&sel.value||'').trim(),name=String(($('fjPtmName')||{}).value||'').trim(),outlet=String(($('fjPtmOutlet')||{}).value||'').trim();if(!s){alert('Supabase belum terhubung.');return}if(!sel||!ptid||!name){alert('Pilih akun Access dan isi Nama PT.');return}if(!isUUID(ptid)){alert('Akun Access memiliki User ID yang tidak valid. Pilih akun approved yang valid.');return}var o=sel.options[sel.selectedIndex],email=o&&o.dataset.email||'',st=$('fjPtmStatus');st.textContent='Menyimpan…';try{var r=await s.from('pt_directory').upsert({user_id:sel.value,pt_name:name,email:email,outlet:outlet,status:'active'},{onConflict:'user_id'});if(r.error)throw r.error;st.textContent='Nama PT tersimpan.';await loadRows();render();try{if(typeof window.fillPT==='function')await window.fillPT()}catch(e){}try{if(typeof window.loadClientDirectoryPT==='function')await window.loadClientDirectoryPT()}catch(e){}try{if(typeof window.fjPtV2Reload==='function')await window.fjPtV2Reload()}catch(e){}try{if(typeof window.fjOpenPtClientUnified==='function')await window.fjOpenPtClientUnified()}catch(e){} }catch(e){st.textContent='Gagal menyimpan';alert('Gagal menyimpan nama PT: '+(e.message||e))}}
 async function refresh(){try{await loadRows();render()}catch(e){var st=$('fjPtmStatus');if(st)st.textContent='Gagal memuat: '+(e.message||e)}}
 window.fjPTNameManagerRefresh=refresh;
 function hook(){var old=window.fjOpenPtClientUnified;if(typeof old!=='function')return; if(old.__fj65)return; var wrap=async function(){var r=await old.apply(this,arguments);setTimeout(refresh,0);return r};wrap.__fj65=true;window.fjOpenPtClientUnified=wrap}

@@ -9088,7 +9088,7 @@ function install(){
  var obs=new MutationObserver(function(){
    if(activeExerciseLibrary()){
      refreshBrowse();
-     if(q('exlMateri')&&q('exlMateri').classList.contains('active')&&!q('fjV46EduTopics'))edu();
+     if(q('exlMateri')&&q('exlMateri').classList.contains('active')&&!q('fjV46EduTopics')&&!q('fjV58EduPro'))edu();
    }
  });
  obs.observe(document.body,{childList:true,subtree:true});
@@ -10033,24 +10033,31 @@ function install(){
       return;
     }
   },true);
-  var obs=new MutationObserver(function(){
+  var obs=new MutationObserver(function(records){
+    // Ignore mutations created by our own recommendation renderer. The old
+    // observer re-rendered fjV58RecoHost on every mutation, causing a
+    // mutation -> render -> mutation loop that could freeze the whole app.
+    var ownMutation=records.some(function(r){
+      return r.target && r.target.closest && r.target.closest('#fjV58RecoHost');
+    });
+    if(ownMutation)return;
     normalizeEquipment();
     var p=q('fjExerciseLibrary');
     if(!p||!p.classList.contains('active'))return;
     var browse=q('exlBrowse');
     if(browse&&browse.classList.contains('active')){
-      // Existing search filters remain intact; only the recommendation block is added.
-      ensureBrowseEnhancement();
+      // Initialize only once; do not continuously re-render the host.
+      if(!q('fjV58RecoHost'))ensureBrowseEnhancement();
     }
     var gen=q('exlGenerator');
     if(gen&&gen.classList.contains('active'))expandGeneratorGoals();
   });
   obs.observe(document.body,{childList:true,subtree:true});
-  // Rebuild recommendation block after the existing filter controls have rendered.
+  // Safety net only: initialize if the host was not created normally.
   setInterval(function(){
     var p=q('fjExerciseLibrary');if(!p||!p.classList.contains('active'))return;
-    var browse=q('exlBrowse');if(browse&&browse.classList.contains('active'))ensureBrowseEnhancement();
-  },700);
+    var browse=q('exlBrowse');if(browse&&browse.classList.contains('active')&&!q('fjV58RecoHost'))ensureBrowseEnhancement();
+  },1000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

@@ -6929,13 +6929,13 @@ function matchClient(list,c){var n=norm(c&&c.name),ph=norm(c&&c.phone),em=norm(c
 function eventClient(c){c=c||{};return {name:c.name||'',age:c.age||'',gender:c.gender||'',weight:c.weight||'',height:c.height||'',goal:c.goal||'',level:c.level||'',wtype:c.wtype||'',duration:c.duration||'',freq:c.freq||''}}
 function mergeClientIntoCalendar(rc){
  var p=localCal();if(!p||!p.calendar||!p.calendar.events)return false;var changed=false;
- Object.keys(p.calendar.events).forEach(function(k){var e=p.calendar.events[k],c=e&&e.client;if(!c||!rc)return;var same=(rc.id&&e._fjOnlineClientId===rc.id)||(rc.name&&norm(c.name)===norm(rc.name));if(!same)return;e._fjOnlineClientId=rc.id;e.client=Object.assign({},c,eventClient(rc.profile||{}),{name:rc.name||c.name,phone:rc.phone||c.phone||'',email:rc.email||c.email||''});changed=true});
- if(changed){p.savedAt=new Date().toISOString();writeCal(p)}return changed;
+ Object.keys(p.calendar.events).forEach(function(k){var e=p.calendar.events[k],c=e&&e.client;if(!c||!rc)return;var same=(rc.id&&e._fjOnlineClientId===rc.id)||(rc.name&&norm(c.name)===norm(rc.name));if(!same)return;e._fjOnlineClientId=rc.id;e.client=Object.assign({},c,eventClient(rc.profile||{}),{name:rc.name||c.name,phone:rc.phone||c.phone||'',email:rc.email||c.email||''});e.pt_user_id=e.pt_user_id||rc.pt_user_id||null;e.pt_email=e.pt_email||rc.pt_email||'';changed=true});
+ if(changed){p.savedAt=new Date().toISOString();writeCal(p);try{var st=window.fjClientCalendar&&window.fjClientCalendar.state&&window.fjClientCalendar.state();if(st&&st.events){Object.keys(p.calendar.events).forEach(function(k){if(st.events[k])st.events[k]=p.calendar.events[k]})}}catch(_){} }return changed;
 }
 function mergeScheduleIntoCalendar(row,clients){
  var payload=parseNotes(row.notes);if(!payload)return false;var p=localCal()||{version:'CLIENT_CALENDAR_V1',calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};p.calendar=p.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};p.calendar.events=p.calendar.events||{};
- var rc=(clients||[]).find(function(c){return c.id===row.client_id}),when=String(row.scheduled_at||'').slice(0,16);if(!when)return false;
- var ev=payload||{};ev._fjSyncId=ev._fjSyncId||('remote_'+row.id);ev._fjOnlineScheduleId=row.id;ev._fjOnlineClientId=rc&&rc.id||row.client_id||null;ev.title=ev.title||row.schedule_type||'PT Session';ev.notes=ev.notes||'';ev.client=Object.assign({},eventClient(rc&&rc.profile||{}),ev.client||{}, {name:(rc&&rc.name)||ev.client?.name||'Client'});p.calendar.events[when]=ev;p.savedAt=new Date().toISOString();writeCal(p);return true;
+ var rc=(clients||[]).find(function(c){return String(c.id)===String(row.client_id)}),when=String(row.scheduled_at||'').slice(0,16);if(!when)return false;
+ var ev=payload||{};ev._fjSyncId=ev._fjSyncId||('remote_'+row.id);ev._fjOnlineScheduleId=row.id;ev._fjOnlineClientId=rc&&rc.id||row.client_id||null;ev.title=ev.title||row.schedule_type||'PT Session';ev.notes=ev.notes||'';ev.pt_user_id=ev.pt_user_id||row.pt_user_id||(rc&&rc.pt_user_id)||null;ev.pt_email=ev.pt_email||(rc&&rc.pt_email)||user()?.email||'';ev.pt_name=ev.pt_name||'';ev.client=Object.assign({},eventClient(rc&&rc.profile||{}),ev.client||{}, {name:(rc&&rc.name)||ev.client?.name||'Client',phone:(rc&&rc.phone)||ev.client?.phone||'',email:(rc&&rc.email)||ev.client?.email||''});p.calendar.events[when]=ev;p.savedAt=new Date().toISOString();writeCal(p);try{var st=window.fjClientCalendar&&window.fjClientCalendar.state&&window.fjClientCalendar.state();if(st){st.events=st.events||{};st.events[when]=ev;st.year=Number(when.slice(0,4));st.month=Math.max(0,Number(when.slice(5,7))-1)}}catch(_){}return true;
 }
 function removeMissingCalendarSchedules(remote){
  var p=localCal();if(!p||!p.calendar||!p.calendar.events)return false;var ids={};(remote||[]).forEach(function(r){if(String(r.notes||'').indexOf(MARK)>=0)ids[String(r.id)]=1});var changed=false;Object.keys(p.calendar.events).forEach(function(k){var e=p.calendar.events[k];if(e&&e._fjOnlineScheduleId&&!ids[String(e._fjOnlineScheduleId)]){delete p.calendar.events[k];changed=true}});if(changed){p.savedAt=new Date().toISOString();writeCal(p)}return changed}
@@ -6945,7 +6945,7 @@ function calendarFormSnapshot(){
  var p=localCal()||{version:'CLIENT_CALENDAR_V1',calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};p.calendar=p.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};p.calendar.events=p.calendar.events||{};var old=p.calendar.events[key.value]||{};
  var c={};[['name','ccEditClientName'],['age','ccEditAge'],['gender','ccEditGender'],['weight','ccEditWeight'],['height','ccEditHeight'],['goal','ccEditGoal'],['level','ccEditLevel'],['wtype','ccEditWtype'],['duration','ccEditDuration'],['freq','ccEditFreq']].forEach(function(a){var e=q(a[1]);c[a[0]]=e?String(e.value||'').trim():''});
  var rows=[];document.querySelectorAll('#ccExercises .fj-cc-ex-row').forEach(function(row){rows.push({exercise:(row.querySelector('[data-cc-field="exercise"]')||{}).value||'',sets:(row.querySelector('[data-cc-field="sets"]')||{}).value||'',reps:(row.querySelector('[data-cc-field="reps"]')||{}).value||'',load:(row.querySelector('[data-cc-field="load"]')||{}).value||'',rest:(row.querySelector('[data-cc-field="rest"]')||{}).value||'',poolMode:row.dataset.poolMode||'recommended'})});
- var pte=q('ccEditPT'),pto=pte&&pte.options[pte.selectedIndex];old.pt_user_id=pte?String(pte.value||'').trim():old.pt_user_id||'';old.pt_email=pto?String(pto.dataset.email||pto.textContent||'').trim():old.pt_email||'';old.title=String((q('ccEditTitle')||{}).value||'Training').trim()||'Training';old.notes=String((q('ccEditNotes')||{}).value||'').trim();old.client=c;old.exercises=rows;old._fjSyncId=old._fjSyncId||syncId();p.calendar.events[key.value]=old;p.savedAt=new Date().toISOString();writeCal(p);return true;
+ var pte=q('ccEditPT'),pto=pte&&pte.options[pte.selectedIndex];old.pt_user_id=pte?String(pte.value||'').trim():old.pt_user_id||'';old.pt_email=pto?String(pto.dataset.email||'').trim():old.pt_email||'';old.pt_name=pto?String(pto.getAttribute('data-pt-name')||pto.textContent||'').trim():old.pt_name||'';old.title=String((q('ccEditTitle')||{}).value||'Training').trim()||'Training';old.notes=String((q('ccEditNotes')||{}).value||'').trim();old.client=c;old.exercises=rows;old._fjSyncId=old._fjSyncId||syncId();p.calendar.events[key.value]=old;p.savedAt=new Date().toISOString();writeCal(p);return true;
 }
 async function syncFromCalendar(){
  var s=sb();if(!s)throw new Error('Supabase belum terhubung');ensureIds();var events=localEvents();
@@ -6978,8 +6978,8 @@ async function pullRemote(silent){
     }else{
       /* Legacy PT Tracker schedules without the canonical marker must still appear in Client Calendar. */
       var pr=rc&&rc.profile||{};
-      var legacy={title:r.schedule_type||'PT Session',notes:String(r.notes||''),day:new Date(when.split('T')[0]+'T00:00:00').toLocaleDateString(undefined,{weekday:'long'}),time:when.slice(11,16)||'00:00',client:{name:rc&&rc.name||'Client',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||''},pt_user_id:r.pt_user_id||(rc&&rc.pt_user_id)||null,pt_email:(rc&&rc.pt_email)||user()?.email||'',exercises:[] ,_fjOnlineScheduleId:r.id,_fjOnlineClientId:r.client_id,_fjSyncId:'legacy_'+r.id};
-      var lp=localCal()||{version:'CLIENT_CALENDAR_V1',calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};lp.calendar=lp.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};lp.calendar.events=lp.calendar.events||{};lp.calendar.events[when]=legacy;lp.savedAt=new Date().toISOString();writeCal(lp);
+      var legacy={title:r.schedule_type||'PT Session',notes:String(r.notes||''),day:new Date(when.split('T')[0]+'T00:00:00').toLocaleDateString(undefined,{weekday:'long'}),time:when.slice(11,16)||'00:00',client:{name:rc&&rc.name||'Client',age:pr.age||'',gender:pr.gender||'',weight:pr.weight||'',height:pr.height||'',goal:pr.goal||'',level:pr.level||'',wtype:pr.wtype||'',duration:pr.duration||'',freq:pr.freq||''},pt_user_id:r.pt_user_id||(rc&&rc.pt_user_id)||null,pt_email:(rc&&rc.pt_email)||user()?.email||'',pt_name:'',exercises:[] ,_fjOnlineScheduleId:r.id,_fjOnlineClientId:r.client_id,_fjSyncId:'legacy_'+r.id};
+      var lp=localCal()||{version:'CLIENT_CALENDAR_V1',calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};lp.calendar=lp.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};lp.calendar.events=lp.calendar.events||{};lp.calendar.events[when]=legacy;lp.savedAt=new Date().toISOString();writeCal(lp);try{var st2=window.fjClientCalendar&&window.fjClientCalendar.state&&window.fjClientCalendar.state();if(st2){st2.events=st2.events||{};st2.events[when]=legacy;st2.year=Number(when.slice(0,4));st2.month=Math.max(0,Number(when.slice(5,7))-1)}}catch(_){}
     }
   });/* keep local events until their online write is confirmed */
   renderLocal();
@@ -7037,6 +7037,58 @@ p.querySelectorAll('#ptv2ClientCards .ptv2-client').forEach(function(card){if(ca
 function boot(){ensure();addButtons();if(!window.__fjPtEditorTimer)window.__fjPtEditorTimer=setInterval(addButtons,900)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1600)},{once:true});else setTimeout(boot,1600);window.addEventListener('load',function(){setTimeout(boot,1800)});
 window.fjPTEditClient=editClient;window.fjPTEditSchedule=editSchedule;
+})();
+</script>
+
+<!-- FJ PT DIRECTORY ROOT DEVELOPMENT V1
+     Scope: PT identity only. Uses a separate pt_directory table so existing PT tables/features are untouched. -->
+<style id="fj-pt-directory-root-css">
+#fjPTDirectoryModal{position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;background:rgba(10,35,52,.62);padding:12px}
+#fjPTDirectoryModal.open{display:flex}
+#fjPTDirectoryModal .box{width:min(720px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:15px;padding:16px;box-sizing:border-box}
+#fjPTDirectoryModal .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#fjPTDirectoryModal .span2{grid-column:1/-1}
+#fjPTDirectoryModal label{display:block;font-size:10px;font-weight:900;color:#31576f;margin-bottom:4px}
+#fjPTDirectoryModal input,#fjPTDirectoryModal select{width:100%;box-sizing:border-box;border:1px solid #cfe0e9;border-radius:8px;padding:8px;background:#fff}
+#fjPTDirectoryList{margin-top:12px;border:1px solid #dce8ef;border-radius:10px;overflow:auto}
+#fjPTDirectoryList table{width:100%;border-collapse:collapse;min-width:560px}
+#fjPTDirectoryList th,#fjPTDirectoryList td{padding:7px;border-bottom:1px solid #e7eef2;text-align:left;font-size:10px}
+#fjPTDirectoryList th{background:#f5f9fb}
+@media(max-width:650px){#fjPTDirectoryModal .grid{grid-template-columns:1fr}.span2{grid-column:auto!important}}
+</style>
+<script id="fj-pt-directory-root-runtime">
+(function(){
+'use strict';
+var DIRTABLE='pt_directory';
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function sb(){return window.sb||null}
+function user(){return window.currentUser||null}
+function isMaster(){var u=user(),em=String(u&&u.email||'').trim().toLowerCase();if(em==='aldenkhafi0203@gmail.com')return true;try{return typeof fjCurrentRole==='function'&&fjCurrentRole(em).role==='MASTER_ADMIN'}catch(e){return false}}
+async function rows(){var s=sb();if(!s)return[];var r=await s.from(DIRTABLE).select('id,user_id,pt_name,email,status,outlet').order('pt_name');if(r.error)throw r.error;return r.data||[]}
+async function approvedUsers(){var s=sb();if(!s)return[];var r=await s.from('user_access').select('user_id,email,status,role,outlet').eq('status','approved').order('email');if(r.error)throw r.error;return r.data||[]}
+function modalOpen(){return q('fjPTDirectoryModal')&&q('fjPTDirectoryModal').classList.contains('open')}
+function ensureModal(){if(q('fjPTDirectoryModal'))return;var d=document.createElement('div');d.id='fjPTDirectoryModal';d.innerHTML='<div class="box"><h2 style="margin:0 0 4px">Master PT</h2><div style="font-size:11px;color:#6d879e;margin-bottom:10px">Buat nama PT dan hubungkan ke akun PT yang sudah approved.</div><div class="grid"><div class="span2"><label>Nama PT</label><input id="fjPTDirName" placeholder="Contoh: Andi Pratama"></div><div><label>Akun PT</label><select id="fjPTDirUser"><option value="">Pilih akun PT</option></select></div><div><label>Status</label><select id="fjPTDirStatus"><option value="active">Active</option><option value="inactive">Inactive</option></select></div><div><label>Outlet</label><input id="fjPTDirOutlet" placeholder="Optional"></div><div><label>Email</label><input id="fjPTDirEmail" readonly></div><div class="span2" style="display:flex;gap:7px;justify-content:flex-end;margin-top:4px"><button type="button" class="ptv2-btn alt" id="fjPTDirClose">Close</button><button type="button" class="ptv2-btn" id="fjPTDirSave">Save PT</button></div></div><div id="fjPTDirectoryList"></div></div>';document.body.appendChild(d);q('fjPTDirClose').onclick=function(){d.classList.remove('open')};q('fjPTDirUser').onchange=function(){var o=this.options[this.selectedIndex];q('fjPTDirEmail').value=o?o.dataset.email||'':''};q('fjPTDirSave').onclick=save}
+async function renderList(){ensureModal();var box=q('fjPTDirectoryList');if(!box)return;try{var a=await rows();box.innerHTML='<table><thead><tr><th>Nama PT</th><th>Email</th><th>Status</th><th>Outlet</th></tr></thead><tbody>'+(a.map(function(x){return '<tr><td><b>'+esc(x.pt_name)+'</b></td><td>'+esc(x.email)+'</td><td>'+esc(x.status)+'</td><td>'+esc(x.outlet||'—')+'</td></tr>'}).join('')||'<tr><td colspan="4">Belum ada PT.</td></tr>')+'</tbody></table>'}catch(e){box.innerHTML='<div style="padding:9px;color:#b43b2f;font-size:11px">PT Directory belum terhubung. Jalankan PT_DIRECTORY_SETUP.sql terlebih dahulu.</div>'}}
+async function open(){if(!isMaster()){alert('Hanya Master/Admin yang dapat membuat nama PT.');return}ensureModal();try{var us=await approvedUsers(),sel=q('fjPTDirUser');sel.innerHTML='<option value="">Pilih akun PT</option>'+us.map(function(x){return '<option value="'+esc(x.user_id)+'" data-email="'+esc(x.email||'')+'">'+esc(x.email||x.user_id)+(x.role?' • '+esc(x.role):'')+'</option>'}).join('');await renderList();q('fjPTDirectoryModal').classList.add('open')}catch(e){alert('Gagal memuat akun PT: '+(e.message||e))}}
+async function save(){var s=sb();if(!s){alert('Supabase belum terhubung.');return}var name=(q('fjPTDirName').value||'').trim(),uid=q('fjPTDirUser').value,email=q('fjPTDirEmail').value||'',status=q('fjPTDirStatus').value,outlet=(q('fjPTDirOutlet').value||'').trim();if(!name||!uid){alert('Nama PT dan akun PT wajib diisi.');return}var r=await s.from(DIRTABLE).upsert({user_id:uid,pt_name:name,email:email,status:status,outlet:outlet},{onConflict:'user_id'}).select().single();if(r.error){alert('Gagal menyimpan PT: '+r.error.message);return}q('fjPTDirName').value='';q('fjPTDirUser').value='';q('fjPTDirEmail').value='';q('fjPTDirOutlet').value='';await renderList();if(typeof window.fjLoadCalendarPTs==='function')window.fjLoadCalendarPTs();alert('Nama PT berhasil disimpan.');}
+function injectButton(){var p=q('fjPtOpsV2');if(!p||!p.classList.contains('active'))return;var host=p.querySelector('.fj-v2-online-toolbar')||p.querySelector('.ptv2-head');if(!host)return;if(q('fjPTDirectoryBtn'))return;var b=document.createElement('button');b.id='fjPTDirectoryBtn';b.type='button';b.className='ptv2-btn alt';b.textContent='👤 Master PT';b.title='Buat / kelola nama PT';b.onclick=open;host.appendChild(b)}
+window.fjPTDirectoryRows=rows;
+window.fjPTDirectoryOpen=open;
+window.fjPTDirectoryNameFor=async function(uid){try{var a=await rows(),x=a.find(function(z){return String(z.user_id)===String(uid)});return x?x.pt_name:''}catch(e){return ''}};
+setInterval(injectButton,1200);
+})();
+</script>
+<script id="fj-pt-directory-calendar-bridge">
+(function(){
+'use strict';
+var CAL='fj_client_calendar_v1';
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function sb(){return window.sb||null}
+async function getDir(){var s=sb();if(!s)return[];try{var r=await s.from('pt_directory').select('user_id,pt_name,email,status,outlet').eq('status','active').order('pt_name');return r.error?[]:(r.data||[])}catch(e){return[]}}
+window.fjLoadCalendarPTs=async function(selected){var el=q('ccEditPT');if(!el)return;var pts=await getDir();if(!pts.length&&window.currentUser)pts=[{user_id:window.currentUser.id,pt_name:window.currentUser.email,email:window.currentUser.email,status:'active'}];var html='<option value="">Pilih PT terlebih dahulu</option>';pts.forEach(function(x){html+='<option value="'+esc(x.user_id)+'" data-email="'+esc(x.email||'')+'" data-pt-name="'+esc(x.pt_name||'')+'">'+esc(x.pt_name||x.email||x.user_id)+'</option>'});el.innerHTML=html;if(selected){var hit=pts.find(function(x){return String(x.user_id)===String(selected)||String(x.email||'').toLowerCase()===String(selected).toLowerCase()});if(hit)el.value=hit.user_id}if(!el.value&&window.currentUser&&pts.some(function(x){return String(x.user_id)===String(window.currentUser.id)}))el.value=window.currentUser.id};
+window.fjCalendarPTSnapshot=function(){var e=q('ccEditPT'),o=e&&e.options[e.selectedIndex];return {pt_user_id:e?String(e.value||'').trim():'',pt_email:o?String(o.dataset.email||'').trim():'',pt_name:o?String(o.dataset.ptName||o.dataset['pt-name']||o.getAttribute('data-pt-name')||o.textContent||'').trim():''}};
 })();
 </script>
 </body></html>

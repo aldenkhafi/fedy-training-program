@@ -6601,7 +6601,111 @@ function printRange(name,from,to){
   if(!evs.length)h+='<p>No sessions found in selected range.</p>';
   evs.forEach(function(x,i){var e=x.event||{},ba=baOf(e,ci);h+='<section class="session"><h2>'+(i+1)+'. '+esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2><p><b>Client:</b> '+esc(e.client?.name||'—')+' &nbsp; <b>Goal:</b> '+esc(e.client?.goal||ci.goal||'—')+' &nbsp; <b>Type:</b> '+esc(e.client?.wtype||ci.wtype||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe||'—')+'</td><td>'+esc(r.rir||'—')+'</td><td>'+esc(r.rest||'—')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'');
     if((ba.before&&Object.keys(ba.before).length)||(ba.after&&Object.keys(ba.after).length)){h+='<div class="ba">';['before','after'].forEach(function(side){var z=ba[side]||{},src=z.image||z.photo;h+='<div class="baCard"><h3>'+side.toUpperCase()+'</h3><div class="baPhoto">'+(src?'<img src="'+esc(src)+'" alt="'+side+'">':'<span class="muted">No photo</span>')+'</div><div class="baFields">'+fields(z).replace(/class="fj-v48[^\"]*"/g,'')+'</div></div>'});h+='</div>'}h+='</section>'});
-h+='</body></html>';
+h+='
+<!-- FITNESS JOURNEY V77: CLEAN EXERCISE RULE ENGINE / ALL MUSCLES / SHARED RULES -->
+<style id="fj-v77-clean-exlib-css">
+#fjExerciseLibrary .fj77-wrap{background:#f7fbf9;border:1px solid #d9efe3;border-radius:18px;padding:16px}
+#fjExerciseLibrary .fj77-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}
+#fjExerciseLibrary .fj77-field label{display:block;font-size:10px;font-weight:900;color:#3f7a63;margin-bottom:4px;text-transform:uppercase}
+#fjExerciseLibrary .fj77-field select,#fjExerciseLibrary .fj77-field input{width:100%;box-sizing:border-box;border:1px solid #cfe6da;border-radius:9px;padding:9px;background:#fff}
+#fjExerciseLibrary .fj77-search{grid-column:1/-1}
+#fjExerciseLibrary .fj77-status{padding:9px 11px;border:1px solid #d5e7ef;border-radius:10px;background:#f7fbfd;color:#53758a;font-size:11px;margin:8px 0}
+#fjExerciseLibrary .fj77-warning{padding:10px 12px;border:1px solid #f0d9a6;border-radius:10px;background:#fff9eb;color:#75551a;font-size:11px;margin:8px 0}
+#fjExerciseLibrary .fj77-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+#fjExerciseLibrary .fj77-card{border:1px solid #d7e9e0;border-radius:13px;background:#fff;padding:13px}
+#fjExerciseLibrary .fj77-card h3{margin:0 0 7px;font-size:14px;color:#174f42}
+#fjExerciseLibrary .fj77-meta{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 8px}
+#fjExerciseLibrary .fj77-chip{display:inline-block;padding:4px 7px;border-radius:999px;background:#edf8f2;color:#39705a;font-size:9px;font-weight:800}
+#fjExerciseLibrary .fj77-lines{font-size:11px;color:#5c7480;line-height:1.5}
+#fjExerciseLibrary .fj77-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+#fjExerciseLibrary .fj77-btn{border:1px solid #c8dfd3;border-radius:9px;background:#fff;padding:8px 10px;font-weight:800;cursor:pointer}
+#fjExerciseLibrary .fj77-btn.primary{background:#e9fbf1;color:#08784a}
+#fjExerciseLibrary .fj77-empty{padding:15px;border:1px dashed #cbdde8;border-radius:12px;color:#6d879e}
+#fjExerciseLibrary .fj77-detail{position:fixed;inset:0;z-index:2147483609;background:rgba(8,35,51,.68);display:none;align-items:center;justify-content:center;padding:12px}
+#fjExerciseLibrary .fj77-detail.open{display:flex}
+#fjExerciseLibrary .fj77-detail-box{width:min(850px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:17px}
+#fjExerciseLibrary .fj77-pres{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin-top:10px}
+#fjExerciseLibrary .fj77-pres>div{border:1px solid #dbe8ef;border-radius:9px;padding:8px;background:#f8fcff}
+#fjExerciseLibrary .fj77-pres b{display:block;font-size:9px;color:#607985;text-transform:uppercase}
+#fjExerciseLibrary .fj77-pres span{font-size:11px;color:#29485d}
+@media(max-width:900px){#fjExerciseLibrary .fj77-filters{grid-template-columns:repeat(2,minmax(0,1fr))}#fjExerciseLibrary .fj77-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fj77-pres{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:650px){#fjExerciseLibrary .fj77-filters{grid-template-columns:1fr}#fjExerciseLibrary .fj77-grid{grid-template-columns:1fr}.fj77-pres{grid-template-columns:1fr 1fr!important}}
+</style>
+<script id="fj-v77-clean-exlib-runtime">
+(function(){'use strict';
+var started=false, selected={};
+var MUSCLES=['Chest','Upper Chest','Lower Chest','Lats','Upper Back','Traps','Anterior Deltoid','Lateral Deltoid','Rear Deltoid','Biceps','Triceps','Forearms','Core / Abdominals','Glutes','Quadriceps','Hamstrings','Adductors','Abductors','Calves'];
+var LEVELS=['Beginner','Intermediate','Advanced'];
+var GOALS=['General Fitness','Strength','Hypertrophy','Power','Endurance','Fat Loss'];
+var PATTERNS=['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation','Core / Rotation','Isolation / Adduction','Isolation / Abduction','Calf Raise','Mobility'];
+var TYPES=['Compound','Isolation','Compound + Isolation'];
+var EXTRA=[
+['Barbell Bench Press','Chest','Barbell','Intermediate','Push','Compound'],['Dumbbell Bench Press','Chest','Dumbbell','Beginner','Push','Compound'],['Machine Chest Press','Chest','Machine','Beginner','Push','Compound'],['Smith Machine Bench Press','Chest','Smith Machine','Intermediate','Push','Compound'],['Cable Chest Press','Chest','Cable','Beginner','Push','Compound'],['Push-Up','Chest','Bodyweight','Beginner','Push','Compound'],['Incline Barbell Bench Press','Upper Chest','Barbell','Intermediate','Push','Compound'],['Incline Dumbbell Press','Upper Chest','Dumbbell','Beginner','Push','Compound'],['Incline Machine Chest Press','Upper Chest','Machine','Beginner','Push','Compound'],['Incline Cable Press','Upper Chest','Cable','Intermediate','Push','Compound'],['Incline Dumbbell Fly','Upper Chest','Dumbbell','Intermediate','Push','Isolation'],['Low-to-High Cable Fly','Upper Chest','Cable','Beginner','Push','Isolation'],['Incline Push-Up','Upper Chest','Bodyweight','Beginner','Push','Compound'],['Decline Barbell Bench Press','Lower Chest','Barbell','Intermediate','Push','Compound'],['Decline Dumbbell Press','Lower Chest','Dumbbell','Intermediate','Push','Compound'],['Chest Dips','Lower Chest','Bodyweight','Advanced','Push','Compound'],['High-to-Low Cable Fly','Lower Chest','Cable','Beginner','Push','Isolation'],
+['Pull-Up','Lats','Bodyweight','Advanced','Pull','Compound'],['Assisted Pull-Up','Lats','Machine','Beginner','Pull','Compound'],['Lat Pulldown','Lats','Cable','Beginner','Pull','Compound'],['Neutral-Grip Lat Pulldown','Lats','Cable','Beginner','Pull','Compound'],['Single-Arm Cable Lat Pulldown','Lats','Cable','Intermediate','Pull','Compound'],['Straight-Arm Cable Pulldown','Lats','Cable','Beginner','Pull','Isolation'],['Single-Arm Dumbbell Row','Lats','Dumbbell','Beginner','Pull','Compound'],['Chest-Supported Dumbbell Row','Upper Back','Dumbbell','Beginner','Pull','Compound'],['Seated Cable Row','Upper Back','Cable','Beginner','Pull','Compound'],['Machine Row','Upper Back','Machine','Beginner','Pull','Compound'],['Chest-Supported Machine Row','Upper Back','Machine','Beginner','Pull','Compound'],['Barbell Row','Upper Back','Barbell','Intermediate','Pull','Compound'],['T-Bar Row','Upper Back','Machine','Intermediate','Pull','Compound'],['Face Pull','Rear Deltoid','Cable','Beginner','Pull','Isolation'],['Reverse Pec Deck','Rear Deltoid','Machine','Beginner','Pull','Isolation'],['Cable Rear Delt Fly','Rear Deltoid','Cable','Beginner','Pull','Isolation'],['Dumbbell Rear Delt Fly','Rear Deltoid','Dumbbell','Beginner','Pull','Isolation'],
+['Barbell Biceps Curl','Biceps','Barbell','Intermediate','Isolation','Isolation'],['EZ-Bar Curl','Biceps','Barbell','Beginner','Isolation','Isolation'],['Dumbbell Biceps Curl','Biceps','Dumbbell','Beginner','Isolation','Isolation'],['Alternating Dumbbell Curl','Biceps','Dumbbell','Beginner','Isolation','Isolation'],['Hammer Curl','Biceps','Dumbbell','Beginner','Isolation','Isolation'],['Cable Biceps Curl','Biceps','Cable','Beginner','Isolation','Isolation'],['Alternating Cable Biceps Curl','Biceps','Cable','Intermediate','Isolation','Isolation'],['Preacher Curl Machine','Biceps','Machine','Beginner','Isolation','Isolation'],['Seated Biceps Curl Machine','Biceps','Machine','Beginner','Isolation','Isolation'],['Resistance Band Biceps Curl','Biceps','Resistance Band','Beginner','Isolation','Isolation'],['Close-Grip Bench Press','Triceps','Barbell','Intermediate','Push','Compound'],['Cable Triceps Pressdown','Triceps','Cable','Beginner','Isolation','Isolation'],['Rope Triceps Pressdown','Triceps','Cable','Beginner','Isolation','Isolation'],['Overhead Cable Triceps Extension','Triceps','Cable','Beginner','Isolation','Isolation'],['Dumbbell Overhead Triceps Extension','Triceps','Dumbbell','Beginner','Isolation','Isolation'],['Dumbbell Triceps Kickback','Triceps','Dumbbell','Beginner','Isolation','Isolation'],['Assisted Dip','Triceps','Machine','Beginner','Push','Compound'],
+['Dumbbell Lateral Raise','Lateral Deltoid','Dumbbell','Beginner','Isolation','Isolation'],['Cable Lateral Raise','Lateral Deltoid','Cable','Beginner','Isolation','Isolation'],['Lateral Raise Machine','Lateral Deltoid','Machine','Beginner','Isolation','Isolation'],['Resistance Band Lateral Raise','Lateral Deltoid','Resistance Band','Beginner','Isolation','Isolation'],['Lean-Away Cable Lateral Raise','Lateral Deltoid','Cable','Intermediate','Isolation','Isolation'],['Dumbbell Shoulder Press','Anterior Deltoid','Dumbbell','Beginner','Push','Compound'],['Barbell Overhead Press','Anterior Deltoid','Barbell','Intermediate','Push','Compound'],['Machine Shoulder Press','Anterior Deltoid','Machine','Beginner','Push','Compound'],['Cable Front Raise','Anterior Deltoid','Cable','Beginner','Isolation','Isolation'],['Dumbbell Front Raise','Anterior Deltoid','Dumbbell','Beginner','Isolation','Isolation'],['Machine Rear Delt Fly','Rear Deltoid','Machine','Beginner','Isolation','Isolation'],['Cable Rear Delt Fly','Rear Deltoid','Cable','Beginner','Isolation','Isolation'],
+['Barbell Shrug','Traps','Barbell','Intermediate','Carry','Compound + Isolation'],['Dumbbell Shrug','Traps','Dumbbell','Beginner','Carry','Compound + Isolation'],['Machine Shrug','Traps','Machine','Beginner','Carry','Compound + Isolation'],['Cable Shrug','Traps','Cable','Beginner','Carry','Compound + Isolation'],
+['Back Squat','Quadriceps','Barbell','Intermediate','Squat','Compound'],['Front Squat','Quadriceps','Barbell','Advanced','Squat','Compound'],['Goblet Squat','Quadriceps','Dumbbell','Beginner','Squat','Compound'],['Leg Press','Quadriceps','Machine','Beginner','Squat','Compound'],['Hack Squat','Quadriceps','Machine','Intermediate','Squat','Compound'],['Leg Extension','Quadriceps','Machine','Beginner','Isolation','Isolation'],['Bodyweight Squat','Quadriceps','Bodyweight','Beginner','Squat','Compound'],['Split Squat','Quadriceps','Bodyweight','Beginner','Lunge','Compound'],['Dumbbell Split Squat','Quadriceps','Dumbbell','Beginner','Lunge','Compound'],['Walking Lunge','Quadriceps','Bodyweight','Beginner','Lunge','Compound'],['Dumbbell Walking Lunge','Quadriceps','Dumbbell','Intermediate','Lunge','Compound'],['Reverse Lunge','Quadriceps','Bodyweight','Beginner','Lunge','Compound'],['Dumbbell Reverse Lunge','Quadriceps','Dumbbell','Intermediate','Lunge','Compound'],
+['Romanian Deadlift','Hamstrings','Barbell','Intermediate','Hinge','Compound'],['Dumbbell Romanian Deadlift','Hamstrings','Dumbbell','Beginner','Hinge','Compound'],['Kettlebell Romanian Deadlift','Hamstrings','Kettlebell','Beginner','Hinge','Compound'],['Barbell Good Morning','Hamstrings','Barbell','Advanced','Hinge','Compound'],['Lying Leg Curl','Hamstrings','Machine','Beginner','Isolation','Isolation'],['Seated Leg Curl','Hamstrings','Machine','Beginner','Isolation','Isolation'],['Standing Single-Leg Leg Curl','Hamstrings','Machine','Intermediate','Isolation','Isolation'],
+['Barbell Hip Thrust','Glutes','Barbell','Intermediate','Hinge','Compound'],['Dumbbell Hip Thrust','Glutes','Dumbbell','Beginner','Hinge','Compound'],['Hip Thrust Machine','Glutes','Machine','Beginner','Hinge','Compound'],['Glute Bridge','Glutes','Bodyweight','Beginner','Hinge','Compound'],['Cable Pull-Through','Glutes','Cable','Beginner','Hinge','Compound'],['Kettlebell Swing','Glutes','Kettlebell','Intermediate','Hinge','Compound'],
+['Hip Abduction Machine','Abductors','Machine','Beginner','Isolation / Abduction','Isolation'],['Cable Hip Abduction','Abductors','Cable','Beginner','Isolation / Abduction','Isolation'],['Resistance Band Hip Abduction','Abductors','Resistance Band','Beginner','Isolation / Abduction','Isolation'],['Side-Lying Hip Abduction','Abductors','Bodyweight','Beginner','Isolation / Abduction','Isolation'],['Adductor Machine','Adductors','Machine','Beginner','Isolation / Adduction','Isolation'],['Cable Hip Adduction','Adductors','Cable','Beginner','Isolation / Adduction','Isolation'],['Side-Lying Hip Adduction','Adductors','Bodyweight','Beginner','Isolation / Adduction','Isolation'],['Copenhagen Plank','Adductors','Bodyweight','Advanced','Core / Anti-Rotation','Compound + Isolation'],['Sumo Squat','Adductors','Bodyweight','Beginner','Squat','Compound'],
+['Standing Calf Raise','Calves','Bodyweight','Beginner','Calf Raise','Isolation'],['Single-Leg Calf Raise','Calves','Bodyweight','Beginner','Calf Raise','Isolation'],['Standing Calf Raise Machine','Calves','Machine','Beginner','Calf Raise','Isolation'],['Seated Calf Raise','Calves','Machine','Beginner','Calf Raise','Isolation'],['Dumbbell Calf Raise','Calves','Dumbbell','Beginner','Calf Raise','Isolation'],['Barbell Calf Raise','Calves','Barbell','Intermediate','Calf Raise','Isolation'],
+['Plank','Core / Abdominals','Bodyweight','Beginner','Core / Anti-Rotation','Compound + Isolation'],['Dead Bug','Core / Abdominals','Bodyweight','Beginner','Core / Anti-Rotation','Compound + Isolation'],['Pallof Press','Core / Abdominals','Cable','Beginner','Core / Anti-Rotation','Compound + Isolation'],['Cable Wood Chop','Core / Abdominals','Cable','Beginner','Core / Rotation','Compound + Isolation'],['Cable Crunch','Core / Abdominals','Cable','Beginner','Isolation','Isolation'],['Hanging Knee Raise','Core / Abdominals','Bodyweight','Intermediate','Isolation','Isolation'],['Ab Wheel Rollout','Core / Abdominals','Ab Wheel','Advanced','Core / Anti-Rotation','Compound + Isolation'],
+['Farmer Carry','Forearms','Dumbbell','Beginner','Carry','Compound + Isolation'],['Trap Bar Farmer Carry','Forearms','Trap Bar','Intermediate','Carry','Compound + Isolation'],['Suitcase Carry','Forearms','Dumbbell','Beginner','Carry','Compound + Isolation'],['Wrist Curl','Forearms','Dumbbell','Beginner','Isolation','Isolation'],['Reverse Wrist Curl','Forearms','Dumbbell','Beginner','Isolation','Isolation'],['Reverse Curl','Forearms','Barbell','Intermediate','Isolation','Isolation']
+];
+var EQUIP_ORDER=['Bodyweight','Resistance Band','Dumbbell','Kettlebell','Cable','Machine','Barbell','Smith Machine','Trap Bar','Ab Wheel'];
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function canonLevel(v){v=String(v||'').toLowerCase();if(/pemula|beginner|basic/.test(v))return 'Beginner';if(/lanjutan|advanced|expert/.test(v))return 'Advanced';return 'Intermediate'}
+function canonEquip(v){v=String(v||'').toLowerCase();if(/tanpa alat|bodyweight|body weight|no equipment/.test(v))return 'Bodyweight';if(/band|resistance/.test(v))return 'Resistance Band';if(/dumbbell/.test(v))return 'Dumbbell';if(/kettlebell/.test(v))return 'Kettlebell';if(/kabel|cable/.test(v))return 'Cable';if(/mesin|machine/.test(v))return 'Machine';if(/smith/.test(v))return 'Smith Machine';if(/trap bar/.test(v))return 'Trap Bar';if(/ab wheel/.test(v))return 'Ab Wheel';if(/barbell|barbel/.test(v))return 'Barbell';return String(v||'Other')}
+function canonMuscle(d){var h=[d.cat||'',d.name||''].concat(d.primary||[]).join(' ').toLowerCase();
+ if(/upper chest|upper pec|clavicular|incline/.test(h))return 'Upper Chest';
+ if(/lower chest|lower pec|decline|chest dip/.test(h))return 'Lower Chest';
+ if(/chest|dada|pectoral|pec/.test(h))return 'Chest';
+ if(/lat|lats|latissimus|pulldown|pull-up|pull up/.test(h))return 'Lats';
+ if(/rear delt|posterior delt|rear deltoid|reverse pec|face pull/.test(h))return 'Rear Deltoid';
+ if(/lateral delt|side delt|lateral raise/.test(h))return 'Lateral Deltoid';
+ if(/anterior delt|front delt|front raise|shoulder press|overhead press/.test(h))return 'Anterior Deltoid';
+ if(/trap/.test(h))return 'Traps';
+ if(/biceps|bicep|curl/.test(h))return 'Biceps';
+ if(/triceps|tricep|pressdown|kickback|overhead.*extension/.test(h))return 'Triceps';
+ if(/forearm|wrist|grip|farmer|suitcase|reverse curl/.test(h))return 'Forearms';
+ if(/adductor|paha dalam|copenhagen|hip adduction|sumo/.test(h))return 'Adductors';
+ if(/abductor|abduction|side-lying hip abduction/.test(h))return 'Abductors';
+ if(/calf|calves|betis|gastrocnemius|soleus/.test(h))return 'Calves';
+ if(/hamstring|leg curl|romanian deadlift|rdl|good morning/.test(h))return 'Hamstrings';
+ if(/glute|hip thrust|glute bridge|pull-through|swing/.test(h))return 'Glutes';
+ if(/quadriceps|quad|leg extension|squat|lunge|leg press|hack squat/.test(h))return 'Quadriceps';
+ if(/core|abdominal|abs|plank|dead bug|pallof|wood chop|crunch|rollout|knee raise/.test(h))return 'Core / Abdominals';
+ return null;
+}
+function patternOf(d){if(d.pattern)return d.pattern;var n=(d.name||'').toLowerCase();if(/squat|leg press|hack squat/.test(n))return 'Squat';if(/deadlift|rdl|good morning|hip thrust|bridge|pull-through|swing/.test(n))return 'Hinge';if(/row|pulldown|pull-up|pull up|curl|rear delt fly|face pull/.test(n))return 'Pull';if(/press|push-up|push up|dip|fly|extension|kickback|raise/.test(n))return 'Push';if(/lunge|split squat|step-up|step up/.test(n))return 'Lunge';if(/carry|farmer|suitcase/.test(n))return 'Carry';if(/plank|dead bug|pallof|wood chop|crunch|rollout|knee raise/.test(n))return /wood chop/.test(n)?'Core / Rotation':'Core / Anti-Rotation';if(/adduction/.test(n))return 'Isolation / Adduction';if(/abduction/.test(n))return 'Isolation / Abduction';if(/calf/.test(n))return 'Calf Raise';return 'Isolation'}
+function typeOf(d){if(d.type)return d.type;return /curl|raise|fly|extension|kickback|adduction|abduction|calf|crunch|wrist/.test((d.name||'').toLowerCase())?'Isolation':'Compound'}
+function primarySecondary(d,primary){var sec=(d.secondary||[]).join(' ').toLowerCase();var out=[];if(/chest|pectoral/.test(primary))out=['Triceps','Anterior Deltoid'];if(/upper chest|lower chest/.test(primary))out=['Chest','Triceps','Anterior Deltoid'];if(primary==='Lats')out=['Biceps','Upper Back'];if(primary==='Upper Back')out=['Lats','Rear Deltoid','Biceps'];if(primary==='Biceps')out=['Forearms','Upper Back'];if(primary==='Triceps')out=['Chest','Anterior Deltoid'];if(primary==='Anterior Deltoid')out=['Triceps','Upper Chest'];if(primary==='Lateral Deltoid')out=['Traps','Anterior Deltoid'];if(primary==='Rear Deltoid')out=['Upper Back','Lats'];if(primary==='Traps')out=['Upper Back','Forearms'];if(primary==='Quadriceps')out=['Glutes','Hamstrings'];if(primary==='Hamstrings')out=['Glutes','Quadriceps'];if(primary==='Glutes')out=['Hamstrings','Quadriceps','Adductors'];if(primary==='Adductors')out=['Glutes','Core / Abdominals'];if(primary==='Abductors')out=['Glutes','Core / Abdominals'];if(primary==='Calves')out=['Quadriceps','Hamstrings'];if(primary==='Forearms')out=['Biceps','Triceps'];if(primary==='Core / Abdominals')out=['Glutes','Lats'];return out.filter(function(x){return x!==primary}).slice(0,3)}
+function goalCanon(g){return GOALS.indexOf(g)>=0?g:'General Fitness'}
+function prescription(goal,level,type){var p={Strength:['3–5','3–6','2–4 min','2–3 RIR'],Hypertrophy:['2–4','6–12','60–120 sec','1–3 RIR'],Power:['3–5','2–5','2–4 min','2–3 RIR'],Endurance:['2–3','12–20+','30–90 sec','2–4 RIR'],'Fat Loss':['2–4','8–15','45–90 sec','2–4 RIR'],'General Fitness':['2–3','8–12','60–120 sec','2–4 RIR']}[goal]||['2–3','8–12','60–120 sec','2–4 RIR'];if(level==='Beginner'&&type==='Isolation')p[0]='2–3';return {sets:p[0],reps:p[1],rest:p[2],rir:p[3],tempo:goal==='Power'?'Controlled eccentric; explosive concentric':'Controlled eccentric; consistent technique'} }
+function buildCatalog(){var raw=(window.__fjExerciseData||[]).slice();var map={};raw.forEach(function(d){var primary=canonMuscle(d);if(!primary)return;var x={id:d.id||('base-'+Object.keys(map).length),name:String(d.name||'').trim(),primary:primary,equip:canonEquip(d.equip),level:canonLevel(d.level),pattern:patternOf(d),type:typeOf(d),secondary:primarySecondary(d,primary),desc:d.desc||('Resistance exercise targeting '+primary+'.'),steps:d.steps||['Set up with stable posture.','Perform the movement through a controlled range of motion.','Return under control and repeat.'],mistakes:d.mistakes||['Using momentum or losing position.','Loading beyond controlled technique.']};if(x.name)map[x.name.toLowerCase().replace(/[^a-z0-9]+/g,'')]=x});EXTRA.forEach(function(a,i){var key=a[0].toLowerCase().replace(/[^a-z0-9]+/g,'');if(!map[key])map[key]={id:'v77-'+i,name:a[0],primary:a[1],equip:a[2],level:a[3],pattern:a[4],type:a[5],secondary:primarySecondary({},a[1]),desc:'Direct exercise selection for '+a[1]+' with '+a[2]+'.',steps:['Set up the equipment and posture safely.','Move through the intended range with control.','Return slowly and repeat the target repetitions.'],mistakes:['Momentum that changes the intended movement.','Loss of stable posture.']}});return Object.keys(map).map(function(k){return map[k]})}
+var DATA=buildCatalog();
+var RULES=window.fjExerciseRules={version:'V77',muscles:MUSCLES,levels:LEVELS,goals:GOALS,patterns:PATTERNS,types:TYPES,equipment:EQUIP_ORDER,catalog:DATA,
+ filter:function(f){f=f||{};var muscle=f.muscle||'',level=f.level||'',equip=f.equip||'',pattern=f.pattern||'',type=f.type||'',q=String(f.q||'').toLowerCase();return DATA.filter(function(d){if(muscle&&d.primary!==muscle)return false;if(level&&d.level!==level)return false;if(equip&&d.equip!==equip)return false;if(pattern&&d.pattern!==pattern)return false;if(type&&d.type!==type)return false;if(q&&!([d.name,d.primary,d.equip,d.pattern,d.type].join(' ').toLowerCase().indexOf(q)>-1))return false;return true})},
+ rank:function(d,f){var score=0;if(f.muscle===d.primary)score+=100;if(f.level===d.level)score+=20;if(f.equip===d.equip)score+=20;if(f.pattern===d.pattern)score+=15;if(f.type===d.type)score+=10;var g=goalCanon(f.goal);if(g==='Strength'&&d.type==='Compound')score+=10;if(g==='Hypertrophy'&&(/Isolation/.test(d.type)))score+=6;if(g==='Power'&&/Squat|Hinge|Push|Lunge/.test(d.pattern))score+=8;return score},
+ recommend:function(f){f=f||{};var pool=DATA.filter(function(d){if(f.muscle&&d.primary!==f.muscle)return false;if(f.equip&&d.equip!==f.equip)return false;if(f.level&&Math.abs(LEVELS.indexOf(d.level)-LEVELS.indexOf(f.level))>1)return false;return true});pool.sort(function(a,b){return RULES.rank(b,f)-RULES.rank(a,f)||a.name.localeCompare(b.name)});return pool.slice(0,24)}};
+function q(id){return document.getElementById(id)}
+function opt(list,val,all){return '<option value="">'+esc(all||'All')+'</option>'+list.map(function(x){return '<option value="'+esc(x)+'"'+(x===val?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
+function validEquipment(f){var pool=DATA.filter(function(d){if(f.muscle&&d.primary!==f.muscle)return false;if(f.level&&Math.abs(LEVELS.indexOf(d.level)-LEVELS.indexOf(f.level))>1)return false;return true});var seen={};pool.forEach(function(d){seen[d.equip]=1});return EQUIP_ORDER.filter(function(x){return seen[x]})}
+function mount(){if(started)return;var panel=q('fjExerciseLibrary');if(!panel)return;started=true;panel.innerHTML='<div class="fj77-wrap"><div class="exl-head"><div><div class="label">EXERCISE LIBRARY</div><h2>Exercise Database & Recommendation Engine</h2><div class="exl-muted">Satu rule engine untuk semua muscle, goal, level, equipment dan movement pattern.</div></div></div><div class="fj77-filters"><div class="fj77-field"><label>Goal</label><select id="fj77Goal">'+opt(GOALS,'General Fitness','Select Goal')+'</select></div><div class="fj77-field"><label>Primary Muscle</label><select id="fj77Muscle">'+opt(MUSCLES,'','Select Muscle')+'</select></div><div class="fj77-field"><label>Level</label><select id="fj77Level">'+opt(LEVELS,'Beginner','Select Level')+'</select></div><div class="fj77-field"><label>Equipment</label><select id="fj77Equip"><option value="">All available equipment</option></select></div><div class="fj77-field"><label>Movement Pattern</label><select id="fj77Pattern">'+opt(PATTERNS,'','All Patterns')+'</select></div><div class="fj77-field"><label>Exercise Type</label><select id="fj77Type">'+opt(TYPES,'','All Types')+'</select></div><div class="fj77-field fj77-search"><label>Search</label><input id="fj77Q" placeholder="Exercise name / muscle / equipment"></div></div><div id="fj77Status" class="fj77-status"></div><div id="fj77Results" class="fj77-grid"></div></div><div id="fj77Detail" class="fj77-detail"><div class="fj77-detail-box" id="fj77DetailBox"></div></div>';
+['fj77Goal','fj77Muscle','fj77Level','fj77Equip','fj77Pattern','fj77Type','fj77Q'].forEach(function(id){q(id).addEventListener(id==='fj77Q'?'input':'change',render)});q('fj77Level').value='Beginner';q('fj77Goal').value='General Fitness';q('fj77Detail').addEventListener('click',function(e){if(e.target===q('fj77Detail'))q('fj77Detail').classList.remove('open')});render();}
+function current(){return {goal:q('fj77Goal').value,muscle:q('fj77Muscle').value,level:q('fj77Level').value,equip:q('fj77Equip').value,pattern:q('fj77Pattern').value,type:q('fj77Type').value,q:q('fj77Q').value}}
+function render(){var f=current(),eq=validEquipment(f),es=q('fj77Equip'),old=es.value;es.innerHTML='<option value="">All available equipment</option>'+eq.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join('');if(eq.indexOf(old)>-1)es.value=old;else es.value='';f.equip=es.value;var list=RULES.recommend(f);if(f.pattern)list=list.filter(function(d){return d.pattern===f.pattern});if(f.type)list=list.filter(function(d){return d.type===f.type});if(f.q){var z=f.q.toLowerCase();list=list.filter(function(d){return [d.name,d.primary,d.equip,d.pattern,d.type].join(' ').toLowerCase().indexOf(z)>-1})}list=list.slice(0,60);q('fj77Status').innerHTML='Database: <b>'+DATA.length+'</b> unique exercises • Matching: <b>'+list.length+'</b> • Primary target: <b>'+esc(f.muscle||'All muscles')+'</b> • Goal: <b>'+esc(f.goal)+'</b> • Level: <b>'+esc(f.level)+'</b>';if(f.muscle&&!list.length){q('fj77Results').innerHTML='<div class="fj77-empty">Tidak ada latihan yang tepat untuk kombinasi filter ini. Tidak ada latihan yang salah dipaksakan. Ubah equipment, level, pattern, atau goal untuk melihat alternatif yang valid.</div>';return}q('fj77Results').innerHTML=list.map(function(d){var p=prescription(f.goal,f.level,d.type);return '<article class="fj77-card"><h3>'+esc(d.name)+'</h3><div class="fj77-meta"><span class="fj77-chip">Primary: '+esc(d.primary)+'</span><span class="fj77-chip">'+esc(d.equip)+'</span><span class="fj77-chip">'+esc(d.level)+'</span><span class="fj77-chip">'+esc(d.pattern)+'</span></div><div class="fj77-lines"><b>Secondary:</b> '+esc(d.secondary.join(', ')||'—')+'<br><b>Prescription:</b> '+p.sets+' sets × '+p.reps+' reps • '+p.rest+' • '+p.rir+'</div><div class="fj77-actions"><button class="fj77-btn primary" data-detail="'+esc(d.id)+'">Exercise Detail</button><button class="fj77-btn" data-select="'+esc(d.id)+'">'+(selected[d.id]?'Remove':'Add Exercise')+'</button></div></article>'}).join('');q('fj77Results').querySelectorAll('[data-detail]').forEach(function(b){b.onclick=function(){detail(b.dataset.detail)}});q('fj77Results').querySelectorAll('[data-select]').forEach(function(b){b.onclick=function(){selected[b.dataset.select]=!selected[b.dataset.select];render()}})}
+function detail(id){var d=DATA.find(function(x){return x.id===id});if(!d)return;var f=current(),p=prescription(f.goal,f.level,d.type);q('fj77DetailBox').innerHTML='<h2 style="margin:0 0 6px;color:#174f42">'+esc(d.name)+'</h2><div class="fj77-meta"><span class="fj77-chip">Primary: '+esc(d.primary)+'</span><span class="fj77-chip">Secondary: '+esc(d.secondary.join(', '))+'</span><span class="fj77-chip">'+esc(d.equip)+'</span><span class="fj77-chip">'+esc(d.level)+'</span><span class="fj77-chip">'+esc(d.pattern)+'</span><span class="fj77-chip">'+esc(d.type)+'</span></div><p style="font-size:12px;color:#5c7480">'+esc(d.desc)+'</p><div class="fj77-pres"><div><b>Sets</b><span>'+p.sets+'</span></div><div><b>Reps</b><span>'+p.reps+'</span></div><div><b>Rest</b><span>'+p.rest+'</span></div><div><b>Tempo</b><span>'+esc(p.tempo)+'</span></div><div><b>RIR</b><span>'+p.rir+'</span></div><div><b>Goal</b><span>'+esc(f.goal)+'</span></div></div><h3>Steps</h3><ol>'+d.steps.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol><h3>Common mistakes</h3><ul>'+d.mistakes.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul><div class="fj77-actions"><button class="fj77-btn primary" onclick="document.getElementById(\'fj77Detail\').classList.remove(\'open\')">Close</button></div>';q('fj77Detail').classList.add('open')}
+function boot(){var p=q('fjExerciseLibrary');if(p){mount();}else setTimeout(boot,500)}
+/* Shared rule API for Training Program / Client Calendar. Existing modules can call this without maintaining a second exercise taxonomy. */
+window.fjGetExerciseRecommendations=function(filters){return window.fjExerciseRules.recommend(filters||{})};
+window.fjGetExercisePrescription=function(goal,level,type){return prescription(goalCanon(goal),canonLevel(level),type||'Compound')};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,700)},{once:true});else setTimeout(boot,700);window.addEventListener('load',function(){setTimeout(boot,900)});
+})();
+</script>
+
+</body></html>';
   try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
 
   try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
@@ -8061,6 +8165,110 @@ function hook(){var old=window.fjOpenPtClientUnified;if(typeof old!=='function')
 setTimeout(function(){hook();if($('fjPtClientUnified')?.classList.contains('active')&&!$('fjPtNameManager'))refresh()},250);
 })();
 </script>
+
+<!-- FITNESS JOURNEY V77: CLEAN EXERCISE RULE ENGINE / ALL MUSCLES / SHARED RULES -->
+<style id="fj-v77-clean-exlib-css">
+#fjExerciseLibrary .fj77-wrap{background:#f7fbf9;border:1px solid #d9efe3;border-radius:18px;padding:16px}
+#fjExerciseLibrary .fj77-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}
+#fjExerciseLibrary .fj77-field label{display:block;font-size:10px;font-weight:900;color:#3f7a63;margin-bottom:4px;text-transform:uppercase}
+#fjExerciseLibrary .fj77-field select,#fjExerciseLibrary .fj77-field input{width:100%;box-sizing:border-box;border:1px solid #cfe6da;border-radius:9px;padding:9px;background:#fff}
+#fjExerciseLibrary .fj77-search{grid-column:1/-1}
+#fjExerciseLibrary .fj77-status{padding:9px 11px;border:1px solid #d5e7ef;border-radius:10px;background:#f7fbfd;color:#53758a;font-size:11px;margin:8px 0}
+#fjExerciseLibrary .fj77-warning{padding:10px 12px;border:1px solid #f0d9a6;border-radius:10px;background:#fff9eb;color:#75551a;font-size:11px;margin:8px 0}
+#fjExerciseLibrary .fj77-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+#fjExerciseLibrary .fj77-card{border:1px solid #d7e9e0;border-radius:13px;background:#fff;padding:13px}
+#fjExerciseLibrary .fj77-card h3{margin:0 0 7px;font-size:14px;color:#174f42}
+#fjExerciseLibrary .fj77-meta{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 8px}
+#fjExerciseLibrary .fj77-chip{display:inline-block;padding:4px 7px;border-radius:999px;background:#edf8f2;color:#39705a;font-size:9px;font-weight:800}
+#fjExerciseLibrary .fj77-lines{font-size:11px;color:#5c7480;line-height:1.5}
+#fjExerciseLibrary .fj77-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+#fjExerciseLibrary .fj77-btn{border:1px solid #c8dfd3;border-radius:9px;background:#fff;padding:8px 10px;font-weight:800;cursor:pointer}
+#fjExerciseLibrary .fj77-btn.primary{background:#e9fbf1;color:#08784a}
+#fjExerciseLibrary .fj77-empty{padding:15px;border:1px dashed #cbdde8;border-radius:12px;color:#6d879e}
+#fjExerciseLibrary .fj77-detail{position:fixed;inset:0;z-index:2147483609;background:rgba(8,35,51,.68);display:none;align-items:center;justify-content:center;padding:12px}
+#fjExerciseLibrary .fj77-detail.open{display:flex}
+#fjExerciseLibrary .fj77-detail-box{width:min(850px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;padding:17px}
+#fjExerciseLibrary .fj77-pres{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin-top:10px}
+#fjExerciseLibrary .fj77-pres>div{border:1px solid #dbe8ef;border-radius:9px;padding:8px;background:#f8fcff}
+#fjExerciseLibrary .fj77-pres b{display:block;font-size:9px;color:#607985;text-transform:uppercase}
+#fjExerciseLibrary .fj77-pres span{font-size:11px;color:#29485d}
+@media(max-width:900px){#fjExerciseLibrary .fj77-filters{grid-template-columns:repeat(2,minmax(0,1fr))}#fjExerciseLibrary .fj77-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fj77-pres{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:650px){#fjExerciseLibrary .fj77-filters{grid-template-columns:1fr}#fjExerciseLibrary .fj77-grid{grid-template-columns:1fr}.fj77-pres{grid-template-columns:1fr 1fr!important}}
+</style>
+<script id="fj-v77-clean-exlib-runtime">
+(function(){'use strict';
+var started=false, selected={};
+var MUSCLES=['Chest','Upper Chest','Lower Chest','Lats','Upper Back','Traps','Anterior Deltoid','Lateral Deltoid','Rear Deltoid','Biceps','Triceps','Forearms','Core / Abdominals','Glutes','Quadriceps','Hamstrings','Adductors','Abductors','Calves'];
+var LEVELS=['Beginner','Intermediate','Advanced'];
+var GOALS=['General Fitness','Strength','Hypertrophy','Power','Endurance','Fat Loss'];
+var PATTERNS=['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation','Core / Rotation','Isolation / Adduction','Isolation / Abduction','Calf Raise','Mobility'];
+var TYPES=['Compound','Isolation','Compound + Isolation'];
+var EXTRA=[
+['Barbell Bench Press','Chest','Barbell','Intermediate','Push','Compound'],['Dumbbell Bench Press','Chest','Dumbbell','Beginner','Push','Compound'],['Machine Chest Press','Chest','Machine','Beginner','Push','Compound'],['Smith Machine Bench Press','Chest','Smith Machine','Intermediate','Push','Compound'],['Cable Chest Press','Chest','Cable','Beginner','Push','Compound'],['Push-Up','Chest','Bodyweight','Beginner','Push','Compound'],['Incline Barbell Bench Press','Upper Chest','Barbell','Intermediate','Push','Compound'],['Incline Dumbbell Press','Upper Chest','Dumbbell','Beginner','Push','Compound'],['Incline Machine Chest Press','Upper Chest','Machine','Beginner','Push','Compound'],['Incline Cable Press','Upper Chest','Cable','Intermediate','Push','Compound'],['Incline Dumbbell Fly','Upper Chest','Dumbbell','Intermediate','Push','Isolation'],['Low-to-High Cable Fly','Upper Chest','Cable','Beginner','Push','Isolation'],['Incline Push-Up','Upper Chest','Bodyweight','Beginner','Push','Compound'],['Decline Barbell Bench Press','Lower Chest','Barbell','Intermediate','Push','Compound'],['Decline Dumbbell Press','Lower Chest','Dumbbell','Intermediate','Push','Compound'],['Chest Dips','Lower Chest','Bodyweight','Advanced','Push','Compound'],['High-to-Low Cable Fly','Lower Chest','Cable','Beginner','Push','Isolation'],
+['Pull-Up','Lats','Bodyweight','Advanced','Pull','Compound'],['Assisted Pull-Up','Lats','Machine','Beginner','Pull','Compound'],['Lat Pulldown','Lats','Cable','Beginner','Pull','Compound'],['Neutral-Grip Lat Pulldown','Lats','Cable','Beginner','Pull','Compound'],['Single-Arm Cable Lat Pulldown','Lats','Cable','Intermediate','Pull','Compound'],['Straight-Arm Cable Pulldown','Lats','Cable','Beginner','Pull','Isolation'],['Single-Arm Dumbbell Row','Lats','Dumbbell','Beginner','Pull','Compound'],['Chest-Supported Dumbbell Row','Upper Back','Dumbbell','Beginner','Pull','Compound'],['Seated Cable Row','Upper Back','Cable','Beginner','Pull','Compound'],['Machine Row','Upper Back','Machine','Beginner','Pull','Compound'],['Chest-Supported Machine Row','Upper Back','Machine','Beginner','Pull','Compound'],['Barbell Row','Upper Back','Barbell','Intermediate','Pull','Compound'],['T-Bar Row','Upper Back','Machine','Intermediate','Pull','Compound'],['Face Pull','Rear Deltoid','Cable','Beginner','Pull','Isolation'],['Reverse Pec Deck','Rear Deltoid','Machine','Beginner','Pull','Isolation'],['Cable Rear Delt Fly','Rear Deltoid','Cable','Beginner','Pull','Isolation'],['Dumbbell Rear Delt Fly','Rear Deltoid','Dumbbell','Beginner','Pull','Isolation'],
+['Barbell Biceps Curl','Biceps','Barbell','Intermediate','Isolation','Isolation'],['EZ-Bar Curl','Biceps','Barbell','Beginner','Isolation','Isolation'],['Dumbbell Biceps Curl','Biceps','Dumbbell','Beginner','Isolation','Isolation'],['Alternating Dumbbell Curl','Biceps','Dumbbell','Beginner','Isolation','Isolation'],['Hammer Curl','Biceps','Dumbbell','Beginner','Isolation','Isolation'],['Cable Biceps Curl','Biceps','Cable','Beginner','Isolation','Isolation'],['Alternating Cable Biceps Curl','Biceps','Cable','Intermediate','Isolation','Isolation'],['Preacher Curl Machine','Biceps','Machine','Beginner','Isolation','Isolation'],['Seated Biceps Curl Machine','Biceps','Machine','Beginner','Isolation','Isolation'],['Resistance Band Biceps Curl','Biceps','Resistance Band','Beginner','Isolation','Isolation'],['Close-Grip Bench Press','Triceps','Barbell','Intermediate','Push','Compound'],['Cable Triceps Pressdown','Triceps','Cable','Beginner','Isolation','Isolation'],['Rope Triceps Pressdown','Triceps','Cable','Beginner','Isolation','Isolation'],['Overhead Cable Triceps Extension','Triceps','Cable','Beginner','Isolation','Isolation'],['Dumbbell Overhead Triceps Extension','Triceps','Dumbbell','Beginner','Isolation','Isolation'],['Dumbbell Triceps Kickback','Triceps','Dumbbell','Beginner','Isolation','Isolation'],['Assisted Dip','Triceps','Machine','Beginner','Push','Compound'],
+['Dumbbell Lateral Raise','Lateral Deltoid','Dumbbell','Beginner','Isolation','Isolation'],['Cable Lateral Raise','Lateral Deltoid','Cable','Beginner','Isolation','Isolation'],['Lateral Raise Machine','Lateral Deltoid','Machine','Beginner','Isolation','Isolation'],['Resistance Band Lateral Raise','Lateral Deltoid','Resistance Band','Beginner','Isolation','Isolation'],['Lean-Away Cable Lateral Raise','Lateral Deltoid','Cable','Intermediate','Isolation','Isolation'],['Dumbbell Shoulder Press','Anterior Deltoid','Dumbbell','Beginner','Push','Compound'],['Barbell Overhead Press','Anterior Deltoid','Barbell','Intermediate','Push','Compound'],['Machine Shoulder Press','Anterior Deltoid','Machine','Beginner','Push','Compound'],['Cable Front Raise','Anterior Deltoid','Cable','Beginner','Isolation','Isolation'],['Dumbbell Front Raise','Anterior Deltoid','Dumbbell','Beginner','Isolation','Isolation'],['Machine Rear Delt Fly','Rear Deltoid','Machine','Beginner','Isolation','Isolation'],['Cable Rear Delt Fly','Rear Deltoid','Cable','Beginner','Isolation','Isolation'],
+['Barbell Shrug','Traps','Barbell','Intermediate','Carry','Compound + Isolation'],['Dumbbell Shrug','Traps','Dumbbell','Beginner','Carry','Compound + Isolation'],['Machine Shrug','Traps','Machine','Beginner','Carry','Compound + Isolation'],['Cable Shrug','Traps','Cable','Beginner','Carry','Compound + Isolation'],
+['Back Squat','Quadriceps','Barbell','Intermediate','Squat','Compound'],['Front Squat','Quadriceps','Barbell','Advanced','Squat','Compound'],['Goblet Squat','Quadriceps','Dumbbell','Beginner','Squat','Compound'],['Leg Press','Quadriceps','Machine','Beginner','Squat','Compound'],['Hack Squat','Quadriceps','Machine','Intermediate','Squat','Compound'],['Leg Extension','Quadriceps','Machine','Beginner','Isolation','Isolation'],['Bodyweight Squat','Quadriceps','Bodyweight','Beginner','Squat','Compound'],['Split Squat','Quadriceps','Bodyweight','Beginner','Lunge','Compound'],['Dumbbell Split Squat','Quadriceps','Dumbbell','Beginner','Lunge','Compound'],['Walking Lunge','Quadriceps','Bodyweight','Beginner','Lunge','Compound'],['Dumbbell Walking Lunge','Quadriceps','Dumbbell','Intermediate','Lunge','Compound'],['Reverse Lunge','Quadriceps','Bodyweight','Beginner','Lunge','Compound'],['Dumbbell Reverse Lunge','Quadriceps','Dumbbell','Intermediate','Lunge','Compound'],
+['Romanian Deadlift','Hamstrings','Barbell','Intermediate','Hinge','Compound'],['Dumbbell Romanian Deadlift','Hamstrings','Dumbbell','Beginner','Hinge','Compound'],['Kettlebell Romanian Deadlift','Hamstrings','Kettlebell','Beginner','Hinge','Compound'],['Barbell Good Morning','Hamstrings','Barbell','Advanced','Hinge','Compound'],['Lying Leg Curl','Hamstrings','Machine','Beginner','Isolation','Isolation'],['Seated Leg Curl','Hamstrings','Machine','Beginner','Isolation','Isolation'],['Standing Single-Leg Leg Curl','Hamstrings','Machine','Intermediate','Isolation','Isolation'],
+['Barbell Hip Thrust','Glutes','Barbell','Intermediate','Hinge','Compound'],['Dumbbell Hip Thrust','Glutes','Dumbbell','Beginner','Hinge','Compound'],['Hip Thrust Machine','Glutes','Machine','Beginner','Hinge','Compound'],['Glute Bridge','Glutes','Bodyweight','Beginner','Hinge','Compound'],['Cable Pull-Through','Glutes','Cable','Beginner','Hinge','Compound'],['Kettlebell Swing','Glutes','Kettlebell','Intermediate','Hinge','Compound'],
+['Hip Abduction Machine','Abductors','Machine','Beginner','Isolation / Abduction','Isolation'],['Cable Hip Abduction','Abductors','Cable','Beginner','Isolation / Abduction','Isolation'],['Resistance Band Hip Abduction','Abductors','Resistance Band','Beginner','Isolation / Abduction','Isolation'],['Side-Lying Hip Abduction','Abductors','Bodyweight','Beginner','Isolation / Abduction','Isolation'],['Adductor Machine','Adductors','Machine','Beginner','Isolation / Adduction','Isolation'],['Cable Hip Adduction','Adductors','Cable','Beginner','Isolation / Adduction','Isolation'],['Side-Lying Hip Adduction','Adductors','Bodyweight','Beginner','Isolation / Adduction','Isolation'],['Copenhagen Plank','Adductors','Bodyweight','Advanced','Core / Anti-Rotation','Compound + Isolation'],['Sumo Squat','Adductors','Bodyweight','Beginner','Squat','Compound'],
+['Standing Calf Raise','Calves','Bodyweight','Beginner','Calf Raise','Isolation'],['Single-Leg Calf Raise','Calves','Bodyweight','Beginner','Calf Raise','Isolation'],['Standing Calf Raise Machine','Calves','Machine','Beginner','Calf Raise','Isolation'],['Seated Calf Raise','Calves','Machine','Beginner','Calf Raise','Isolation'],['Dumbbell Calf Raise','Calves','Dumbbell','Beginner','Calf Raise','Isolation'],['Barbell Calf Raise','Calves','Barbell','Intermediate','Calf Raise','Isolation'],
+['Plank','Core / Abdominals','Bodyweight','Beginner','Core / Anti-Rotation','Compound + Isolation'],['Dead Bug','Core / Abdominals','Bodyweight','Beginner','Core / Anti-Rotation','Compound + Isolation'],['Pallof Press','Core / Abdominals','Cable','Beginner','Core / Anti-Rotation','Compound + Isolation'],['Cable Wood Chop','Core / Abdominals','Cable','Beginner','Core / Rotation','Compound + Isolation'],['Cable Crunch','Core / Abdominals','Cable','Beginner','Isolation','Isolation'],['Hanging Knee Raise','Core / Abdominals','Bodyweight','Intermediate','Isolation','Isolation'],['Ab Wheel Rollout','Core / Abdominals','Ab Wheel','Advanced','Core / Anti-Rotation','Compound + Isolation'],
+['Farmer Carry','Forearms','Dumbbell','Beginner','Carry','Compound + Isolation'],['Trap Bar Farmer Carry','Forearms','Trap Bar','Intermediate','Carry','Compound + Isolation'],['Suitcase Carry','Forearms','Dumbbell','Beginner','Carry','Compound + Isolation'],['Wrist Curl','Forearms','Dumbbell','Beginner','Isolation','Isolation'],['Reverse Wrist Curl','Forearms','Dumbbell','Beginner','Isolation','Isolation'],['Reverse Curl','Forearms','Barbell','Intermediate','Isolation','Isolation']
+];
+var EQUIP_ORDER=['Bodyweight','Resistance Band','Dumbbell','Kettlebell','Cable','Machine','Barbell','Smith Machine','Trap Bar','Ab Wheel'];
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function canonLevel(v){v=String(v||'').toLowerCase();if(/pemula|beginner|basic/.test(v))return 'Beginner';if(/lanjutan|advanced|expert/.test(v))return 'Advanced';return 'Intermediate'}
+function canonEquip(v){v=String(v||'').toLowerCase();if(/tanpa alat|bodyweight|body weight|no equipment/.test(v))return 'Bodyweight';if(/band|resistance/.test(v))return 'Resistance Band';if(/dumbbell/.test(v))return 'Dumbbell';if(/kettlebell/.test(v))return 'Kettlebell';if(/kabel|cable/.test(v))return 'Cable';if(/mesin|machine/.test(v))return 'Machine';if(/smith/.test(v))return 'Smith Machine';if(/trap bar/.test(v))return 'Trap Bar';if(/ab wheel/.test(v))return 'Ab Wheel';if(/barbell|barbel/.test(v))return 'Barbell';return String(v||'Other')}
+function canonMuscle(d){var h=[d.cat||'',d.name||''].concat(d.primary||[]).join(' ').toLowerCase();
+ if(/upper chest|upper pec|clavicular|incline/.test(h))return 'Upper Chest';
+ if(/lower chest|lower pec|decline|chest dip/.test(h))return 'Lower Chest';
+ if(/chest|dada|pectoral|pec/.test(h))return 'Chest';
+ if(/lat|lats|latissimus|pulldown|pull-up|pull up/.test(h))return 'Lats';
+ if(/rear delt|posterior delt|rear deltoid|reverse pec|face pull/.test(h))return 'Rear Deltoid';
+ if(/lateral delt|side delt|lateral raise/.test(h))return 'Lateral Deltoid';
+ if(/anterior delt|front delt|front raise|shoulder press|overhead press/.test(h))return 'Anterior Deltoid';
+ if(/trap/.test(h))return 'Traps';
+ if(/biceps|bicep|curl/.test(h))return 'Biceps';
+ if(/triceps|tricep|pressdown|kickback|overhead.*extension/.test(h))return 'Triceps';
+ if(/forearm|wrist|grip|farmer|suitcase|reverse curl/.test(h))return 'Forearms';
+ if(/adductor|paha dalam|copenhagen|hip adduction|sumo/.test(h))return 'Adductors';
+ if(/abductor|abduction|side-lying hip abduction/.test(h))return 'Abductors';
+ if(/calf|calves|betis|gastrocnemius|soleus/.test(h))return 'Calves';
+ if(/hamstring|leg curl|romanian deadlift|rdl|good morning/.test(h))return 'Hamstrings';
+ if(/glute|hip thrust|glute bridge|pull-through|swing/.test(h))return 'Glutes';
+ if(/quadriceps|quad|leg extension|squat|lunge|leg press|hack squat/.test(h))return 'Quadriceps';
+ if(/core|abdominal|abs|plank|dead bug|pallof|wood chop|crunch|rollout|knee raise/.test(h))return 'Core / Abdominals';
+ return null;
+}
+function patternOf(d){if(d.pattern)return d.pattern;var n=(d.name||'').toLowerCase();if(/squat|leg press|hack squat/.test(n))return 'Squat';if(/deadlift|rdl|good morning|hip thrust|bridge|pull-through|swing/.test(n))return 'Hinge';if(/row|pulldown|pull-up|pull up|curl|rear delt fly|face pull/.test(n))return 'Pull';if(/press|push-up|push up|dip|fly|extension|kickback|raise/.test(n))return 'Push';if(/lunge|split squat|step-up|step up/.test(n))return 'Lunge';if(/carry|farmer|suitcase/.test(n))return 'Carry';if(/plank|dead bug|pallof|wood chop|crunch|rollout|knee raise/.test(n))return /wood chop/.test(n)?'Core / Rotation':'Core / Anti-Rotation';if(/adduction/.test(n))return 'Isolation / Adduction';if(/abduction/.test(n))return 'Isolation / Abduction';if(/calf/.test(n))return 'Calf Raise';return 'Isolation'}
+function typeOf(d){if(d.type)return d.type;return /curl|raise|fly|extension|kickback|adduction|abduction|calf|crunch|wrist/.test((d.name||'').toLowerCase())?'Isolation':'Compound'}
+function primarySecondary(d,primary){var sec=(d.secondary||[]).join(' ').toLowerCase();var out=[];if(/chest|pectoral/.test(primary))out=['Triceps','Anterior Deltoid'];if(/upper chest|lower chest/.test(primary))out=['Chest','Triceps','Anterior Deltoid'];if(primary==='Lats')out=['Biceps','Upper Back'];if(primary==='Upper Back')out=['Lats','Rear Deltoid','Biceps'];if(primary==='Biceps')out=['Forearms','Upper Back'];if(primary==='Triceps')out=['Chest','Anterior Deltoid'];if(primary==='Anterior Deltoid')out=['Triceps','Upper Chest'];if(primary==='Lateral Deltoid')out=['Traps','Anterior Deltoid'];if(primary==='Rear Deltoid')out=['Upper Back','Lats'];if(primary==='Traps')out=['Upper Back','Forearms'];if(primary==='Quadriceps')out=['Glutes','Hamstrings'];if(primary==='Hamstrings')out=['Glutes','Quadriceps'];if(primary==='Glutes')out=['Hamstrings','Quadriceps','Adductors'];if(primary==='Adductors')out=['Glutes','Core / Abdominals'];if(primary==='Abductors')out=['Glutes','Core / Abdominals'];if(primary==='Calves')out=['Quadriceps','Hamstrings'];if(primary==='Forearms')out=['Biceps','Triceps'];if(primary==='Core / Abdominals')out=['Glutes','Lats'];return out.filter(function(x){return x!==primary}).slice(0,3)}
+function goalCanon(g){return GOALS.indexOf(g)>=0?g:'General Fitness'}
+function prescription(goal,level,type){var p={Strength:['3–5','3–6','2–4 min','2–3 RIR'],Hypertrophy:['2–4','6–12','60–120 sec','1–3 RIR'],Power:['3–5','2–5','2–4 min','2–3 RIR'],Endurance:['2–3','12–20+','30–90 sec','2–4 RIR'],'Fat Loss':['2–4','8–15','45–90 sec','2–4 RIR'],'General Fitness':['2–3','8–12','60–120 sec','2–4 RIR']}[goal]||['2–3','8–12','60–120 sec','2–4 RIR'];if(level==='Beginner'&&type==='Isolation')p[0]='2–3';return {sets:p[0],reps:p[1],rest:p[2],rir:p[3],tempo:goal==='Power'?'Controlled eccentric; explosive concentric':'Controlled eccentric; consistent technique'} }
+function buildCatalog(){var raw=(window.__fjExerciseData||[]).slice();var map={};raw.forEach(function(d){var primary=canonMuscle(d);if(!primary)return;var x={id:d.id||('base-'+Object.keys(map).length),name:String(d.name||'').trim(),primary:primary,equip:canonEquip(d.equip),level:canonLevel(d.level),pattern:patternOf(d),type:typeOf(d),secondary:primarySecondary(d,primary),desc:d.desc||('Resistance exercise targeting '+primary+'.'),steps:d.steps||['Set up with stable posture.','Perform the movement through a controlled range of motion.','Return under control and repeat.'],mistakes:d.mistakes||['Using momentum or losing position.','Loading beyond controlled technique.']};if(x.name)map[x.name.toLowerCase().replace(/[^a-z0-9]+/g,'')]=x});EXTRA.forEach(function(a,i){var key=a[0].toLowerCase().replace(/[^a-z0-9]+/g,'');if(!map[key])map[key]={id:'v77-'+i,name:a[0],primary:a[1],equip:a[2],level:a[3],pattern:a[4],type:a[5],secondary:primarySecondary({},a[1]),desc:'Direct exercise selection for '+a[1]+' with '+a[2]+'.',steps:['Set up the equipment and posture safely.','Move through the intended range with control.','Return slowly and repeat the target repetitions.'],mistakes:['Momentum that changes the intended movement.','Loss of stable posture.']}});return Object.keys(map).map(function(k){return map[k]})}
+var DATA=buildCatalog();
+var RULES=window.fjExerciseRules={version:'V77',muscles:MUSCLES,levels:LEVELS,goals:GOALS,patterns:PATTERNS,types:TYPES,equipment:EQUIP_ORDER,catalog:DATA,
+ filter:function(f){f=f||{};var muscle=f.muscle||'',level=f.level||'',equip=f.equip||'',pattern=f.pattern||'',type=f.type||'',q=String(f.q||'').toLowerCase();return DATA.filter(function(d){if(muscle&&d.primary!==muscle)return false;if(level&&d.level!==level)return false;if(equip&&d.equip!==equip)return false;if(pattern&&d.pattern!==pattern)return false;if(type&&d.type!==type)return false;if(q&&!([d.name,d.primary,d.equip,d.pattern,d.type].join(' ').toLowerCase().indexOf(q)>-1))return false;return true})},
+ rank:function(d,f){var score=0;if(f.muscle===d.primary)score+=100;if(f.level===d.level)score+=20;if(f.equip===d.equip)score+=20;if(f.pattern===d.pattern)score+=15;if(f.type===d.type)score+=10;var g=goalCanon(f.goal);if(g==='Strength'&&d.type==='Compound')score+=10;if(g==='Hypertrophy'&&(/Isolation/.test(d.type)))score+=6;if(g==='Power'&&/Squat|Hinge|Push|Lunge/.test(d.pattern))score+=8;return score},
+ recommend:function(f){f=f||{};var pool=DATA.filter(function(d){if(f.muscle&&d.primary!==f.muscle)return false;if(f.equip&&d.equip!==f.equip)return false;if(f.level&&Math.abs(LEVELS.indexOf(d.level)-LEVELS.indexOf(f.level))>1)return false;return true});pool.sort(function(a,b){return RULES.rank(b,f)-RULES.rank(a,f)||a.name.localeCompare(b.name)});return pool.slice(0,24)}};
+function q(id){return document.getElementById(id)}
+function opt(list,val,all){return '<option value="">'+esc(all||'All')+'</option>'+list.map(function(x){return '<option value="'+esc(x)+'"'+(x===val?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
+function validEquipment(f){var pool=DATA.filter(function(d){if(f.muscle&&d.primary!==f.muscle)return false;if(f.level&&Math.abs(LEVELS.indexOf(d.level)-LEVELS.indexOf(f.level))>1)return false;return true});var seen={};pool.forEach(function(d){seen[d.equip]=1});return EQUIP_ORDER.filter(function(x){return seen[x]})}
+function mount(){if(started)return;var panel=q('fjExerciseLibrary');if(!panel)return;started=true;panel.innerHTML='<div class="fj77-wrap"><div class="exl-head"><div><div class="label">EXERCISE LIBRARY</div><h2>Exercise Database & Recommendation Engine</h2><div class="exl-muted">Satu rule engine untuk semua muscle, goal, level, equipment dan movement pattern.</div></div></div><div class="fj77-filters"><div class="fj77-field"><label>Goal</label><select id="fj77Goal">'+opt(GOALS,'General Fitness','Select Goal')+'</select></div><div class="fj77-field"><label>Primary Muscle</label><select id="fj77Muscle">'+opt(MUSCLES,'','Select Muscle')+'</select></div><div class="fj77-field"><label>Level</label><select id="fj77Level">'+opt(LEVELS,'Beginner','Select Level')+'</select></div><div class="fj77-field"><label>Equipment</label><select id="fj77Equip"><option value="">All available equipment</option></select></div><div class="fj77-field"><label>Movement Pattern</label><select id="fj77Pattern">'+opt(PATTERNS,'','All Patterns')+'</select></div><div class="fj77-field"><label>Exercise Type</label><select id="fj77Type">'+opt(TYPES,'','All Types')+'</select></div><div class="fj77-field fj77-search"><label>Search</label><input id="fj77Q" placeholder="Exercise name / muscle / equipment"></div></div><div id="fj77Status" class="fj77-status"></div><div id="fj77Results" class="fj77-grid"></div></div><div id="fj77Detail" class="fj77-detail"><div class="fj77-detail-box" id="fj77DetailBox"></div></div>';
+['fj77Goal','fj77Muscle','fj77Level','fj77Equip','fj77Pattern','fj77Type','fj77Q'].forEach(function(id){q(id).addEventListener(id==='fj77Q'?'input':'change',render)});q('fj77Level').value='Beginner';q('fj77Goal').value='General Fitness';q('fj77Detail').addEventListener('click',function(e){if(e.target===q('fj77Detail'))q('fj77Detail').classList.remove('open')});render();}
+function current(){return {goal:q('fj77Goal').value,muscle:q('fj77Muscle').value,level:q('fj77Level').value,equip:q('fj77Equip').value,pattern:q('fj77Pattern').value,type:q('fj77Type').value,q:q('fj77Q').value}}
+function render(){var f=current(),eq=validEquipment(f),es=q('fj77Equip'),old=es.value;es.innerHTML='<option value="">All available equipment</option>'+eq.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join('');if(eq.indexOf(old)>-1)es.value=old;else es.value='';f.equip=es.value;var list=RULES.recommend(f);if(f.pattern)list=list.filter(function(d){return d.pattern===f.pattern});if(f.type)list=list.filter(function(d){return d.type===f.type});if(f.q){var z=f.q.toLowerCase();list=list.filter(function(d){return [d.name,d.primary,d.equip,d.pattern,d.type].join(' ').toLowerCase().indexOf(z)>-1})}list=list.slice(0,60);q('fj77Status').innerHTML='Database: <b>'+DATA.length+'</b> unique exercises • Matching: <b>'+list.length+'</b> • Primary target: <b>'+esc(f.muscle||'All muscles')+'</b> • Goal: <b>'+esc(f.goal)+'</b> • Level: <b>'+esc(f.level)+'</b>';if(f.muscle&&!list.length){q('fj77Results').innerHTML='<div class="fj77-empty">Tidak ada latihan yang tepat untuk kombinasi filter ini. Tidak ada latihan yang salah dipaksakan. Ubah equipment, level, pattern, atau goal untuk melihat alternatif yang valid.</div>';return}q('fj77Results').innerHTML=list.map(function(d){var p=prescription(f.goal,f.level,d.type);return '<article class="fj77-card"><h3>'+esc(d.name)+'</h3><div class="fj77-meta"><span class="fj77-chip">Primary: '+esc(d.primary)+'</span><span class="fj77-chip">'+esc(d.equip)+'</span><span class="fj77-chip">'+esc(d.level)+'</span><span class="fj77-chip">'+esc(d.pattern)+'</span></div><div class="fj77-lines"><b>Secondary:</b> '+esc(d.secondary.join(', ')||'—')+'<br><b>Prescription:</b> '+p.sets+' sets × '+p.reps+' reps • '+p.rest+' • '+p.rir+'</div><div class="fj77-actions"><button class="fj77-btn primary" data-detail="'+esc(d.id)+'">Exercise Detail</button><button class="fj77-btn" data-select="'+esc(d.id)+'">'+(selected[d.id]?'Remove':'Add Exercise')+'</button></div></article>'}).join('');q('fj77Results').querySelectorAll('[data-detail]').forEach(function(b){b.onclick=function(){detail(b.dataset.detail)}});q('fj77Results').querySelectorAll('[data-select]').forEach(function(b){b.onclick=function(){selected[b.dataset.select]=!selected[b.dataset.select];render()}})}
+function detail(id){var d=DATA.find(function(x){return x.id===id});if(!d)return;var f=current(),p=prescription(f.goal,f.level,d.type);q('fj77DetailBox').innerHTML='<h2 style="margin:0 0 6px;color:#174f42">'+esc(d.name)+'</h2><div class="fj77-meta"><span class="fj77-chip">Primary: '+esc(d.primary)+'</span><span class="fj77-chip">Secondary: '+esc(d.secondary.join(', '))+'</span><span class="fj77-chip">'+esc(d.equip)+'</span><span class="fj77-chip">'+esc(d.level)+'</span><span class="fj77-chip">'+esc(d.pattern)+'</span><span class="fj77-chip">'+esc(d.type)+'</span></div><p style="font-size:12px;color:#5c7480">'+esc(d.desc)+'</p><div class="fj77-pres"><div><b>Sets</b><span>'+p.sets+'</span></div><div><b>Reps</b><span>'+p.reps+'</span></div><div><b>Rest</b><span>'+p.rest+'</span></div><div><b>Tempo</b><span>'+esc(p.tempo)+'</span></div><div><b>RIR</b><span>'+p.rir+'</span></div><div><b>Goal</b><span>'+esc(f.goal)+'</span></div></div><h3>Steps</h3><ol>'+d.steps.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ol><h3>Common mistakes</h3><ul>'+d.mistakes.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul><div class="fj77-actions"><button class="fj77-btn primary" onclick="document.getElementById(\'fj77Detail\').classList.remove(\'open\')">Close</button></div>';q('fj77Detail').classList.add('open')}
+function boot(){var p=q('fjExerciseLibrary');if(p){mount();}else setTimeout(boot,500)}
+/* Shared rule API for Training Program / Client Calendar. Existing modules can call this without maintaining a second exercise taxonomy. */
+window.fjGetExerciseRecommendations=function(filters){return window.fjExerciseRules.recommend(filters||{})};
+window.fjGetExercisePrescription=function(goal,level,type){return prescription(goalCanon(goal),canonLevel(level),type||'Compound')};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,700)},{once:true});else setTimeout(boot,700);window.addEventListener('load',function(){setTimeout(boot,900)});
+})();
+</script>
+
 </body></html>
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -10305,491 +10513,3 @@ window.addEventListener('load',function(){setTimeout(boot,1100)});
 <style id="fj-v73-smart-library">
 .exl-result-head,.exl-related-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0 7px;padding:9px 11px;border:1px solid #d8e7eb;border-radius:10px;background:#f8fbfc;color:#4f6f7b;font-size:11px}.exl-result-head b,.exl-related-head b{color:#174f72}.exl-related-head{background:#fffaf0;border-color:#efdfb7}.exl-related-card{background:#fffdf8}.exl-result-head span,.exl-related-head span{font-size:10px}@media(max-width:700px){.exl-result-head,.exl-related-head{display:block}.exl-result-head span,.exl-related-head span{display:block;margin-top:3px}}
 </style>
-
-
-<!-- FJ V75 SURGICAL LIBRARY / CALENDAR / MASTER-ADMIN ACCESS REPAIR
-     Scope: Exercise Library data/filtering, Materi & Edukasi muscle targeting,
-     Client Calendar directory pagination, PT calendar event density, PT-only panels.
-     Existing correct modules are not replaced. -->
-<style id="fj-v75-surgical-repair-css">
-/* Exercise Library: compact, readable, English muscle labels */
-#fjExerciseLibrary .exl-smart-input select,
-#fjExerciseLibrary #exlFLevel,
-#fjExerciseLibrary #exlFEquip,
-#fjExerciseLibrary #exlGoalReco{min-height:38px}
-#fjExerciseLibrary .exl-filter-note{font-size:10px;color:#607b8c;margin-top:5px}
-#fjExerciseLibrary .exl-disabled-option{opacity:.55}
-
-/* Client directory: never let a large client list consume the whole phone */
-#fjClientDirectory .fj-v75-client-pager{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  margin-top:9px;padding:7px 8px;border:1px solid #dcebea;border-radius:9px;
-  background:#f8fdfd;font-size:10px;color:#52736f
-}
-#fjClientDirectory .fj-v75-client-pager button{
-  border:1px solid #cbdedb;background:#fff;border-radius:7px;padding:5px 8px;
-  font-size:10px;font-weight:800;cursor:pointer
-}
-#fjClientDirectory .fj-v75-client-pager button:disabled{opacity:.45;cursor:not-allowed}
-
-/* Dense calendar days: show a small stack + "more" instead of filling the screen */
-#fjPtOpsV2 .ptv2-day .fj-v75-more{
-  display:block;width:100%;box-sizing:border-box;margin-top:3px;padding:4px 5px;
-  border:1px dashed #a9c9c4;border-radius:6px;background:#f7fcfb;color:#17685f;
-  font-size:8px;font-weight:900;cursor:pointer
-}
-#fjPtOpsV2 .ptv2-day.fj-v75-dense{overflow:hidden}
-#fjV75DayModal{
-  position:fixed;inset:0;z-index:2147483100;display:none;align-items:center;justify-content:center;
-  padding:10px;background:rgba(7,35,42,.68)
-}
-#fjV75DayModal.open{display:flex}
-#fjV75DayModal .fj-v75-day-box{
-  width:min(620px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:15px;
-  padding:13px;box-shadow:0 20px 60px rgba(0,0,0,.28)
-}
-#fjV75DayModal .fj-v75-day-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
-#fjV75DayModal .fj-v75-day-row{
-  display:flex;justify-content:space-between;gap:8px;align-items:center;
-  padding:8px;border:1px solid #e0ebeb;border-radius:9px;margin-top:6px;background:#fbfefe
-}
-#fjV75DayModal .fj-v75-day-row button{
-  flex:none;border:1px solid #cbdedb;background:#fff;border-radius:7px;padding:5px 7px;font-size:9px;font-weight:800
-}
-@media(max-width:760px){
-  #fjClientDirectory .fj-v75-client-pager{position:sticky;bottom:4px;z-index:3}
-  #fjV75DayModal .fj-v75-day-box{width:100%;max-height:94vh;border-radius:12px;padding:10px}
-  #fjPtOpsV2 .ptv2-day .fj-v75-more{font-size:7px;padding:3px}
-}
-</style>
-<script id="fj-v75-surgical-repair-runtime">
-(function(){
-'use strict';
-
-var MASTER='aldenkhafi0203@gmail.com';
-
-function q(id){return document.getElementById(id)}
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function isMaster(){
-  try{
-    var u=(typeof currentUser!=='undefined'&&currentUser)||window.currentUser||null;
-    return String(u&&u.email||'').trim().toLowerCase()===MASTER;
-  }catch(e){return false}
-}
-
-/* ============================================================
-   1–5. AUTHORITATIVE EXERCISE TAXONOMY + VARIANTS
-   ============================================================ */
-var muscleMap={
-  'dada':'Chest','dada (pectoralis major)':'Chest','dada (bagian tengah)':'Chest',
-  'dada atas (pectoralis major bagian klavikula)':'Upper Chest',
-  'dada atas':'Upper Chest','dada bawah':'Lower Chest',
-  'bahu':'Deltoids','deltoid':'Deltoids','deltoids':'Deltoids',
-  'bahu depan (deltoid anterior)':'Anterior Deltoid','deltoid anterior':'Anterior Deltoid',
-  'bahu tengah (deltoid lateral)':'Lateral Deltoid','deltoid lateral':'Lateral Deltoid',
-  'bahu belakang':'Rear Deltoid','bahu belakang (deltoid posterior)':'Rear Deltoid','deltoid posterior':'Rear Deltoid',
-  'punggung':'Back','punggung tengah':'Mid Back','mid back':'Mid Back',
-  'punggung bawah (erector spinae)':'Erector Spinae',
-  'latissimus dorsi (punggung lebar)':'Latissimus Dorsi','latissimus dorsi':'Latissimus Dorsi',
-  'bisep':'Biceps Brachii','biceps':'Biceps Brachii',
-  'trisep':'Triceps Brachii','triceps':'Triceps Brachii',
-  'lengan':'Arms','brachialis':'Brachialis','forearm / lengan bawah':'Forearms','forearm':'Forearms',
-  'glutes':'Gluteus Maximus','gluteus maximus':'Gluteus Maximus','quadriceps':'Quadriceps',
-  'quadriceps (pelepasan miofasial)':'Quadriceps','hamstring':'Hamstrings','hamstrings':'Hamstrings',
-  'betis (gastrocnemius)':'Gastrocnemius','calves':'Calves','calves / betis':'Calves',
-  'adductors':'Adductors','paha dalam':'Adductors',
-  'obliques':'Obliques','oblique (perut samping)':'Obliques',
-  'deep core':'Deep Core','core':'Core','core (rectus abdominis, transverse abdominis)':'Core',
-  'perut (rectus abdominis)':'Rectus Abdominis','perut bawah (rectus abdominis)':'Rectus Abdominis',
-  'core (stabilisasi tulang belakang)':'Core','rotator cuff':'Rotator Cuff',
-  'jantung & paru-paru':'Cardiorespiratory','jantung & paru-paru (kardiovaskular)':'Cardiorespiratory',
-  'full body':'Full Body','hip (mobilitas)':'Hip','hip (rotasi internal & eksternal)':'Hip',
-  'thoracic spine':'Thoracic Spine','tulang belakang (mobilitas)':'Spine'
-};
-function canonMuscle(v){
-  var s=String(v||'').trim(),k=s.toLowerCase();
-  return muscleMap[k]||s;
-}
-function normName(v){return String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
-function completeness(x){
-  var n=0;
-  ['name','cat','equip','level','move','pattern','desc'].forEach(function(k){if(x&&x[k])n++});
-  ['primary','secondary','steps','mistakes'].forEach(function(k){if(Array.isArray(x&&x[k])&&x[k].length)n+=x[k].length>3?2:1});
-  return n;
-}
-function canonEquip(v){
-  var s=String(v||'').trim(),k=s.toLowerCase();
-  var m={'kabel':'Cable','cable':'Cable','mesin':'Machine','machine':'Machine',
-    'tanpa alat':'Bodyweight','bodyweight':'Bodyweight','dumbbell / kettlebell':'Dumbbell / Kettlebell',
-    'band':'Resistance Band','resistance band':'Resistance Band'};
-  return m[k]||s;
-}
-function canonicalizeExercises(){
-  var a=window.__fjExerciseData;
-  if(!Array.isArray(a))return;
-  a.forEach(function(x){
-    if(Array.isArray(x.primary))x.primary=x.primary.map(canonMuscle).filter(Boolean);
-    if(Array.isArray(x.secondary))x.secondary=x.secondary.map(canonMuscle).filter(Boolean);
-    if(x.equip)x.equip=canonEquip(x.equip);
-  });
-  /* Remove exact-name duplicates, keeping the most complete record. */
-  var best={},order=[];
-  a.forEach(function(x){
-    var k=normName(x.name);
-    if(!k)return;
-    if(!best[k]){best[k]=x;order.push(k)}
-    else if(completeness(x)>completeness(best[k]))best[k]=x;
-  });
-  a.splice(0,a.length);
-  order.forEach(function(k){a.push(best[k])});
-}
-function addExercise(x){
-  var a=window.__fjExerciseData;
-  if(!Array.isArray(a))return;
-  var key=normName(x.name);
-  if(a.some(function(d){return normName(d.name)===key}))return;
-  x.primary=(x.primary||[]).map(canonMuscle);x.secondary=(x.secondary||[]).map(canonMuscle);x.equip=canonEquip(x.equip);
-  a.push(x);
-}
-function sets(){return {kekuatan:'3 x 6-10',hipertrofi:'3-4 x 8-15',ketahanan:'2-3 x 12-20'}}
-
-/* Missing/common variants. These are deliberately explicit so equipment is real,
-   muscle targeting is direct, and a biceps selection does not fall back to back. */
-function addVariants(){
-  var s=sets(),base={desc:'Controlled resistance exercise selected for direct muscle targeting.',steps:['Set up with stable posture and the appropriate equipment.','Move through a controlled range of motion.','Return under control without momentum.'],mistakes:['Using momentum to complete repetitions.','Loading beyond the available technique.'],sets:s};
-  [
-   ['Barbell Biceps Curl','Arms','Barbell','Menengah','isolation',['Biceps Brachii'],['Brachialis']],
-   ['Dumbbell Biceps Curl','Arms','Dumbbell','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
-   ['Alternating Cable Biceps Curl','Arms','Cable','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
-   ['Seated Biceps Curl Machine','Arms','Machine','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
-   ['Preacher Curl Machine','Arms','Machine','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
-   ['EZ-Bar Curl','Arms','EZ Bar','Menengah','isolation',['Biceps Brachii'],['Brachialis']],
-   ['Hammer Curl','Arms','Dumbbell','Pemula','isolation',['Brachialis','Biceps Brachii'],['Forearms']],
-   ['Cable Hammer Curl','Arms','Cable','Pemula','isolation',['Brachialis','Biceps Brachii'],['Forearms']],
-   ['Lateral Raise Machine','Shoulders','Machine','Pemula','isolation',['Lateral Deltoid'],['Anterior Deltoid']],
-   ['Cable Lateral Raise','Shoulders','Cable','Pemula','isolation',['Lateral Deltoid'],['Upper Trapezius']],
-   ['Resistance Band Lateral Raise','Shoulders','Resistance Band','Pemula','isolation',['Lateral Deltoid'],['Upper Trapezius']],
-   ['Lean-Away Cable Lateral Raise','Shoulders','Cable','Menengah','isolation',['Lateral Deltoid'],['Upper Trapezius']],
-   ['Machine Rear Delt Fly','Shoulders','Machine','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
-   ['Cable Rear Delt Fly','Shoulders','Cable','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
-   ['Dumbbell Rear Delt Fly','Shoulders','Dumbbell','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
-   ['Reverse Pec Deck','Shoulders','Machine','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
-   ['Cable Chest Fly','Chest','Cable','Pemula','isolation',['Chest'],['Anterior Deltoid']],
-   ['Machine Chest Fly','Chest','Machine','Pemula','isolation',['Chest'],['Anterior Deltoid']],
-   ['Dumbbell Chest Fly','Chest','Dumbbell','Pemula','isolation',['Chest'],['Anterior Deltoid']],
-   ['Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
-   ['Knee Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
-   ['Standard Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
-   ['Dumbbell Floor Press','Chest','Dumbbell','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
-   ['Chest Press Machine','Chest','Machine','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
-   ['Smith Machine Bench Press','Chest','Smith Machine','Menengah','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
-   ['Assisted Pull-Up','Back','Machine','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
-   ['Lat Pulldown Machine','Back','Machine','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
-   ['Cable Lat Pulldown','Back','Cable','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
-   ['Straight-Arm Cable Pulldown','Back','Cable','Pemula','isolation',['Latissimus Dorsi'],['Core']],
-   ['Inverted Row','Back','Bodyweight','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
-   ['Seated Cable Row','Back','Cable','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
-   ['Machine Row','Back','Machine','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
-   ['Chest-Supported Machine Row','Back','Machine','Pemula','compound',['Mid Back'],['Latissimus Dorsi','Biceps Brachii','Rear Deltoid']],
-   ['Bodyweight Squat','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings','Calves','Core']],
-   ['Split Squat','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings','Calves','Core']],
-   ['Walking Lunge','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings','Adductors','Calves','Core']],
-   ['Reverse Lunge','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings','Adductors','Calves','Core']],
-   ['Leg Press Machine','Legs','Machine','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings']],
-   ['Hack Squat Machine','Legs','Machine','Menengah','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings']],
-   ['Leg Curl Machine','Legs','Machine','Pemula','isolation',['Hamstrings'],['Calves']],
-   ['Seated Leg Curl Machine','Legs','Machine','Pemula','isolation',['Hamstrings'],['Calves']],
-   ['Standing Calf Raise Machine','Legs','Machine','Pemula','isolation',['Calves'],[]],
-   ['Seated Calf Raise Machine','Legs','Machine','Pemula','isolation',['Calves'],[]],
-   ['Single-Leg Calf Raise','Legs','Bodyweight','Pemula','isolation',['Calves'],[]],
-   ['Wall Sit','Legs','Bodyweight','Pemula','isolation',['Quadriceps'],['Gluteus Maximus']],
-   ['Glute Bridge','Hips','Bodyweight','Pemula','compound',['Gluteus Maximus'],['Hamstrings','Core']],
-   ['Hip Thrust Machine','Hips','Machine','Pemula','compound',['Gluteus Maximus'],['Hamstrings']],
-   ['Barbell Hip Thrust','Hips','Barbell','Menengah','compound',['Gluteus Maximus'],['Hamstrings','Core']],
-   ['Cable Pull-Through','Hips','Cable','Pemula','compound',['Gluteus Maximus','Hamstrings'],['Core']],
-   ['Romanian Deadlift','Hips','Barbell','Menengah','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae','Adductors']],
-   ['Dumbbell Romanian Deadlift','Hips','Dumbbell','Pemula','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae','Adductors']],
-   ['Kettlebell Romanian Deadlift','Hips','Kettlebell','Menengah','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae']],
-   ['Bodyweight Hip Hinge','Hips','Bodyweight','Pemula','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae']],
-   ['Side-Lying Leg Raise','Hips','Bodyweight','Pemula','isolation',['Gluteus Medius'],['Core']],
-   ['Cable Hip Abduction','Hips','Cable','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
-   ['Hip Abduction Machine','Hips','Machine','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
-   ['Band Hip Abduction','Hips','Resistance Band','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
-   ['Bodyweight Adductor Raise','Hips','Bodyweight','Pemula','isolation',['Adductors'],['Core']],
-   ['Cable Hip Adduction','Hips','Cable','Pemula','isolation',['Adductors'],['Core']],
-   ['Adductor Machine','Hips','Machine','Pemula','isolation',['Adductors'],['Core']],
-   ['Side-Lying Hip Adduction','Hips','Bodyweight','Pemula','isolation',['Adductors'],['Core']],
-   ['Copenhagen Plank','Core','Bodyweight','Menengah','isolation',['Adductors'],['Obliques','Core']],
-   ['Dead Bug','Core','Bodyweight','Pemula','isolation',['Deep Core'],['Hip Flexors']],
-   ['Bird Dog','Core','Bodyweight','Pemula','compound',['Core'],['Gluteus Maximus','Rear Deltoid']],
-   ['Front Plank','Core','Bodyweight','Pemula','isolation',['Core'],['Rectus Abdominis','Obliques']],
-   ['Side Plank','Core','Bodyweight','Pemula','isolation',['Obliques'],['Core','Gluteus Medius']],
-   ['Cable Pallof Press','Core','Cable','Pemula','isolation',['Core'],['Obliques']],
-   ['Ab Crunch Machine','Core','Machine','Pemula','isolation',['Rectus Abdominis'],['Obliques']]
-  ].forEach(function(v){
-    var x=Object.assign({},base,{name:v[0],cat:v[1],equip:v[2],level:v[3],move:v[4],primary:v[5],secondary:v[6]});
-    addExercise(x);
-  });
-}
-function rebuildExerciseData(){canonicalizeExercises();addVariants();canonicalizeExercises()}
-rebuildExerciseData();
-
-/* Muscle selector: primary target only, canonical English, no duplicate aliases. */
-function exercisePrimaryMuscles(){
-  var set={};
-  (window.__fjExerciseData||[]).forEach(function(d){(d.primary||[]).forEach(function(m){m=canonMuscle(m);if(m)set[m]=1})});
-  return Object.keys(set).sort();
-}
-function currentExerciseFocus(){
-  var m=q('exlFMuscle'),p=q('exlFPattern'),s=q('exlSearch');
-  return {muscle:m&&m.value||'',pattern:p&&p.value||'',search:s&&s.value||''};
-}
-function directExerciseMatch(d,focus){
-  var f=focus||currentExerciseFocus(),hay=(d.primary||[]).concat(d.secondary||[]).map(canonMuscle).join(' ').toLowerCase();
-  var name=String(d.name||'').toLowerCase();
-  if(f.muscle)return hay.indexOf(String(f.muscle).toLowerCase())>=0;
-  if(f.pattern){
-    var p=String(d.pattern||d.move||'').toLowerCase();
-    return p.indexOf(String(f.pattern).toLowerCase())>=0;
-  }
-  if(f.search)return name.indexOf(String(f.search).toLowerCase())>=0||hay.indexOf(String(f.search).toLowerCase())>=0;
-  return true;
-}
-function refreshExerciseMuscleSelect(){
-  var s=q('exlFMuscle');if(!s)return;
-  var val=s.value,opts=exercisePrimaryMuscles();
-  s.innerHTML='<option value="">Choose muscle</option>'+opts.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join('');
-  if(opts.indexOf(val)>=0)s.value=val;
-}
-function refreshEquipmentAvailability(){
-  var s=q('exlFEquip');if(!s)return;
-  var f=currentExerciseFocus(),level=(q('exlFLevel')||{}).value||'';
-  var all={};
-  (window.__fjExerciseData||[]).forEach(function(d){
-    if(f.muscle&&!directExerciseMatch(d,{muscle:f.muscle}))return;
-    if(f.pattern&&!directExerciseMatch(d,{pattern:f.pattern}))return;
-    if(f.search&&!directExerciseMatch(d,{search:f.search}))return;
-    if(level&&d.level!==level)return;
-    all[String(d.equip||'')]=1;
-  });
-  var current=s.value;
-  Array.prototype.forEach.call(s.options,function(o){
-    if(!o.value){o.disabled=false;return}
-    o.disabled=!all[o.value];
-    o.classList.toggle('exl-disabled-option',o.disabled);
-  });
-  if(current&&(!all[current])){s.value='';s.dispatchEvent(new Event('change',{bubbles:true}))}
-}
-function refreshExerciseControls(){
-  refreshExerciseMuscleSelect();
-  refreshEquipmentAvailability();
-  var g=q('exlGoalReco');if(g)g.title='Goal changes recommendation/programming context only; muscle/equipment filters remain direct.';
-}
-var exObserver=new MutationObserver(function(){
-  if(q('fjExerciseLibrary'))setTimeout(refreshExerciseControls,0);
-});
-exObserver.observe(document.documentElement,{childList:true,subtree:true});
-
-/* ============================================================
-   6. MATERI & EDUKASI: ONE SELECTED MUSCLE = ONE PRIMARY
-   ============================================================ */
-function eduCanonicalName(v){return canonMuscle(v)}
-function selectedEduMuscle(){
-  var s=q('eduMuscle');return s&&s.value?eduCanonicalName(s.value):'';
-}
-function dataMuscleHas(d,target){
-  target=eduCanonicalName(target).toLowerCase();
-  var p=(d.primary||[]).map(canonMuscle),s=(d.secondary||[]).map(canonMuscle);
-  return p.concat(s).some(function(x){return String(x).toLowerCase()===target});
-}
-function eduDirectList(target){
-  var a=(window.__fjExerciseData||[]).filter(function(d){return dataMuscleHas(d,target)});
-  var seen={},out=[];
-  a.sort(function(x,y){
-    var xi=(x.primary||[]).map(canonMuscle).map(function(z){return z.toLowerCase()}).indexOf(String(target).toLowerCase())>=0?1:0;
-    var yi=(y.primary||[]).map(canonMuscle).map(function(z){return z.toLowerCase()}).indexOf(String(target).toLowerCase())>=0?1:0;
-    return yi-xi||String(x.name).localeCompare(String(y.name));
-  }).forEach(function(d){var k=normName(d.name);if(!seen[k]){seen[k]=1;out.push(d)}});
-  return out.slice(0,18);
-}
-function eduMetaText(d){
-  var p=(d.primary||[]).map(canonMuscle),s=(d.secondary||[]).map(canonMuscle);
-  return {p:p,s:s};
-}
-function repairMateriOutput(){
-  var root=q('exlMateri');if(!root)return;
-  var target=selectedEduMuscle();if(!target)return;
-  var primarySec=Array.prototype.find.call(root.querySelectorAll('section'),function(sec){
-    var h=sec.querySelector('h3');return h&&h.textContent.trim()==='Otot Primer';
-  });
-  var secondarySec=Array.prototype.find.call(root.querySelectorAll('section'),function(sec){
-    var h=sec.querySelector('h3');return h&&h.textContent.trim()==='Otot Sekunder';
-  });
-  var list=eduDirectList(target),secSet={},primarySet={};
-  list.forEach(function(d){
-    var m=eduMetaText(d);
-    m.p.forEach(function(x){if(x.toLowerCase()!==target.toLowerCase())primarySet[x]=1});
-    m.s.forEach(function(x){if(x.toLowerCase()!==target.toLowerCase())secSet[x]=1});
-  });
-  if(primarySec){
-    var p=primarySec.querySelector('p');if(p)p.textContent=target;
-  }
-  if(secondarySec){
-    var sp=secondarySec.querySelector('p');
-    if(sp)sp.textContent=Object.keys(secSet).filter(function(x){return !primarySet[x]}).slice(0,8).join(' • ')||'—';
-  }
-  var grid=root.querySelector('.edu-ex-grid');
-  if(grid){
-    function card(d){
-      var p=(d.primary||[]).map(canonMuscle).join(', ')||'—';
-      var m=fjExMeta(d);
-      return '<article class="edu-ex-card"><div class="edu-ex-title"><b>'+esc(d.name)+'</b><span>'+esc(d.level)+'</span></div>'+
-        '<div class="edu-ex-tags"><span>'+esc(m.type)+'</span><span>'+esc(m.pattern)+'</span><span>'+esc(d.equip)+'</span></div>'+
-        '<div class="edu-ex-small"><b>Primary:</b> '+esc(p)+'<br><b>Joints:</b> '+esc(m.joints)+'</div>'+
-        '<div class="edu-ex-small"><b>Programming:</b> '+esc((d.sets&&d.sets.hipertrofi)||'see exercise detail')+'</div>'+
-        '<button type="button" class="exl-btn alt" onclick="window.fjExlOpen(\''+esc(d.id)+'\')">View Exercise Detail</button></article>';
-    }
-    grid.innerHTML=list.map(card).join('');
-    var count=root.querySelector('.edu-section-head>span');if(count)count.textContent=list.length+' direct target';
-  }
-}
-var eduObserver=new MutationObserver(function(){
-  if(q('exlMateri')&&q('eduMuscle'))setTimeout(repairMateriOutput,0);
-});
-eduObserver.observe(document.documentElement,{childList:true,subtree:true});
-
-/* ============================================================
-   7. CLIENT DIRECTORY PAGINATION
-   ============================================================ */
-var clientPage=1,clientPageSize=12;
-function setupClientPager(){
-  var box=q('fjcdList'),dir=q('fjClientDirectory');if(!box||!dir)return;
-  var cards=Array.prototype.slice.call(box.querySelectorAll('.fj-cd-card'));
-  if(!cards.length)return;
-  var pager=q('fjV75ClientPager');
-  if(!pager){
-    pager=document.createElement('div');pager.id='fjV75ClientPager';pager.className='fj-v75-client-pager';
-    pager.innerHTML='<button type="button" data-p="prev">← Previous</button><span data-p="info"></span><button type="button" data-p="next">Next →</button>';
-    box.parentNode.insertBefore(pager,box.nextSibling);
-    pager.querySelector('[data-p="prev"]').onclick=function(){if(clientPage>1){clientPage--;applyClientPage()}};
-    pager.querySelector('[data-p="next"]').onclick=function(){if(clientPage<Math.ceil(cards.length/clientPageSize)){clientPage++;applyClientPage()}};
-  }
-  var max=Math.max(1,Math.ceil(cards.length/clientPageSize));
-  if(clientPage>max)clientPage=max;
-  function applyClientPage(){
-    var current=Array.prototype.slice.call(box.querySelectorAll('.fj-cd-card'));
-    current.forEach(function(c,i){c.style.display=(i>=(clientPage-1)*clientPageSize&&i<clientPage*clientPageSize)?'':'none'});
-    var p=q('fjV75ClientPager');if(!p)return;
-    p.querySelector('[data-p="info"]').textContent='Clients '+((clientPage-1)*clientPageSize+1)+'–'+Math.min(clientPage*clientPageSize,current.length)+' of '+current.length;
-    p.querySelector('[data-p="prev"]').disabled=clientPage<=1;
-    p.querySelector('[data-p="next"]').disabled=clientPage>=max;
-    p.style.display=max>1?'flex':'none';
-  }
-  applyClientPage();
-}
-var clientObserver=new MutationObserver(function(){setTimeout(setupClientPager,0)});
-clientObserver.observe(document.documentElement,{childList:true,subtree:true});
-
-/* ============================================================
-   8. PT CALENDAR: CAP VISIBLE EVENTS + DAY DETAIL
-   ============================================================ */
-function ensureDayModal(){
-  if(q('fjV75DayModal'))return;
-  var m=document.createElement('div');m.id='fjV75DayModal';
-  m.innerHTML='<div class="fj-v75-day-box"><div class="fj-v75-day-head"><div><b id="fjV75DayTitle">Conducts</b><div id="fjV75DayCount" style="font-size:10px;color:#66827e;margin-top:2px"></div></div><button type="button" class="ptv2-btn alt" id="fjV75DayClose">Close</button></div><div id="fjV75DayRows"></div></div>';
-  document.body.appendChild(m);
-  q('fjV75DayClose').onclick=function(){m.classList.remove('open')};
-  m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open')});
-}
-function showDayEvents(day,events){
-  ensureDayModal();
-  q('fjV75DayTitle').textContent='Conducts — '+day;
-  q('fjV75DayCount').textContent=events.length+' session/event'+(events.length===1?'':'s')+' on this date';
-  q('fjV75DayRows').innerHTML=events.map(function(e){
-    var name=e.clientName||e.name||'Client',time=e.time||'',type=e.type||'PT Session',id=e.id||'';
-    return '<div class="fj-v75-day-row"><div><b>'+esc(name)+'</b><div style="font-size:9px;color:#6a8582">'+esc(time)+' • '+esc(type)+'</div></div>'+
-      (id?'<button type="button" data-open="'+esc(id)+'">Open</button>':'')+'</div>';
-  }).join('');
-  q('fjV75DayRows').querySelectorAll('[data-open]').forEach(function(b){
-    b.onclick=function(){mclose();if(window.fjPtV2Open)window.fjPtV2Open(b.getAttribute('data-open'))};
-  });
-  function mclose(){q('fjV75DayModal').classList.remove('open')}
-  q('fjV75DayModal').classList.add('open');
-}
-function capPtDays(){
-  var panel=q('fjPtOpsV2');if(!panel)return;
-  panel.querySelectorAll('.ptv2-day').forEach(function(day){
-    if(day.dataset.fjV75Done==='1')return;
-    var ev=Array.prototype.slice.call(day.querySelectorAll(':scope > .ptv2-event'));
-    if(ev.length<=5){day.dataset.fjV75Done='1';return}
-    day.dataset.fjV75Done='1';day.classList.add('fj-v75-dense');
-    var all=ev.map(function(el){
-      var onclick=el.getAttribute('onclick')||'',mm=onclick.match(/fjPtV2Open\(['"]([^'"]+)['"]\)/);
-      return {id:mm?mm[1]:'',name:(el.querySelector('b')||{}).textContent||'Client',time:(el.textContent||'').match(/\b\d{1,2}:\d{2}\b/)?.[0]||'',type:(el.textContent||'').replace((el.querySelector('b')||{}).textContent||'','').trim()};
-    });
-    ev.slice(5).forEach(function(x){x.style.display='none'});
-    var more=document.createElement('button');more.type='button';more.className='fj-v75-more';more.textContent='+'+(ev.length-5)+' more';
-    more.onclick=function(e){e.stopPropagation();showDayEvents(day.querySelector('.ptv2-daynum')?.textContent||'Selected day',all)};
-    day.appendChild(more);
-  });
-}
-var ptObserver=new MutationObserver(function(){setTimeout(capPtDays,0)});
-ptObserver.observe(document.documentElement,{childList:true,subtree:true});
-
-/* ============================================================
-   9. MASTER-ADMIN-ONLY PT TRACKER + PT & CLIENT
-   UI gate only; Supabase RLS should also enforce the same rule.
-   ============================================================ */
-function gatePTPanels(){
-  var trackerNav=q('fjPtTrackerNav'),clientNav=q('fjPtClientNav'),panel=q('fjPtOpsV2');
-  var allowed=isMaster();
-  [trackerNav,clientNav].forEach(function(el){
-    if(!el)return;
-    el.style.setProperty('display',allowed?'flex':'none','important');
-    el.style.setProperty('visibility',allowed?'visible':'hidden','important');
-    el.setAttribute('aria-hidden',allowed?'false':'true');
-  });
-  if(panel&&!allowed){
-    panel.classList.remove('active');
-    panel.style.setProperty('display','none','important');
-    panel.setAttribute('aria-hidden','true');
-  }else if(panel&&allowed){
-    panel.style.removeProperty('display');
-    panel.removeAttribute('aria-hidden');
-  }
-  /* Prevent direct client-side entry points for non-master accounts. */
-  if(!allowed){
-    try{
-      if(window.location.hash&&/pt|client/i.test(window.location.hash))history.replaceState(null,'',location.pathname+location.search);
-    }catch(e){}
-  }
-}
-function wrapMasterAction(name){
-  try{
-    if(typeof window[name]!=='function'||window[name]['fjV75Guarded'])return;
-    var orig=window[name];
-    var fn=function(){
-      if(!isMaster()){alert('PT Tracker dan PT & Client hanya dapat diakses oleh Master Admin.');return false}
-      return orig.apply(this,arguments);
-    };
-    fn.fjV75Guarded=true;window[name]=fn;
-  }catch(e){}
-}
-function masterGateBoot(){
-  gatePTPanels();
-  ['fjPtV2Show','fjOpenPtClientUnified','fjPtV2Open','fjPtV2NewSchedule'].forEach(wrapMasterAction);
-}
-var gateObserver=new MutationObserver(function(){setTimeout(masterGateBoot,0)});
-gateObserver.observe(document.documentElement,{childList:true,subtree:true});
-setInterval(masterGateBoot,1200);
-
-/* Initial refreshes after existing library renderers have appeared. */
-[250,700,1500,3000].forEach(function(ms){setTimeout(function(){
-  canonicalizeExercises();addVariants();canonicalizeExercises();
-  refreshExerciseControls();setupClientPager();capPtDays();masterGateBoot();
-  repairMateriOutput();
-},ms)});
-
-})();
-</script>
-

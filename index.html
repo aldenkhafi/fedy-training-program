@@ -1426,6 +1426,35 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #fjPtNameManager .fj-ptm-row button{font-size:12px!important;padding:8px 12px!important;min-height:34px!important;line-height:1.2!important}
 @media(max-width:760px){#fjPtNameManager .fj-ptm-row button{font-size:9px!important;padding:5px 8px!important;min-height:28px!important}}
 </style>
+
+<style id="fj-v90-materi-css-only-fix">
+/* V90 — ONLY fixes visibility of the existing Materi & Edukasi view.
+   No content, renderer, data, navigation, calendar, or other panel is changed. */
+#fjExerciseLibrary #exlMateri.exl-view.active{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:relative!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:1px!important;
+  overflow:visible!important;
+}
+#fjExerciseLibrary #exlBrowse.exl-view:not(.active),
+#fjExerciseLibrary #exlSelected.exl-view:not(.active){
+  display:none!important;
+}
+#fjExerciseLibrary .exl-tabs{position:relative!important;z-index:2!important;}
+#fjExerciseLibrary #exlMateri .edu-main-card,
+#fjExerciseLibrary #exlMateri .edu-profile-head,
+#fjExerciseLibrary #exlMateri .edu-info-grid,
+#fjExerciseLibrary #exlMateri .edu-anatomy-grid,
+#fjExerciseLibrary #exlMateri .edu-prep-grid,
+#fjExerciseLibrary #exlMateri .edu-exercise-results{
+  visibility:visible!important;
+  opacity:1!important;
+}
+</style>
 </head><body>
 
 

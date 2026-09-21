@@ -1,3 +1,4 @@
+<!-- FJ V88 — MATERI & EDUKASI ONLY FUNCTION FIX -->
 <!DOCTYPE html>
 
 <html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/><meta content="#102a43" name="theme-color"/><meta content="yes" name="mobile-web-app-capable"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/><meta content="FITNESS JOURNEY" name="apple-mobile-web-app-title"/><link href="manifest.webmanifest" rel="manifest"/><link href="icon-192.png" rel="apple-touch-icon"/><title>FITNESS JOURNEY — Final</title>
@@ -9542,9 +9543,27 @@ function build(){
   '<div id="exlModal" class="exl-modal"><div class="exl-modalbox" id="exlModalBody"></div></div>';
   m.appendChild(sec);
   sec.querySelectorAll('.exl-tab').forEach(function(b){b.onclick=function(){show(b.dataset.v)}});
+  /* Materi-only direct binding: no navigation rebuild. */
+  var materiTab=sec.querySelector('.exl-tab[data-v=\"materi\"]');
+  if(materiTab)materiTab.onclick=function(e){e.preventDefault();e.stopPropagation();show('materi')};
 }
 
 function show(v){
+  /* Materi & Edukasi: switch only the existing Exercise Library view.
+     Do not rebuild navigation/panels here; that was causing the empty/laggy
+     transition when this tab was clicked. Other Exercise Library tabs keep
+     their existing behavior. */
+  if(v==='materi'){
+    var panel=q('fjExerciseLibrary'),view=q('exlMateri');
+    if(!panel||!view)return;
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+    panel.classList.add('active');
+    panel.querySelectorAll('.exl-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v==='materi')});
+    panel.querySelectorAll('.exl-view').forEach(function(x){x.classList.remove('active')});
+    view.classList.add('active');
+    renderMateri();
+    return;
+  }
   nav();build();
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
   q('fjExerciseLibrary').classList.add('active');
@@ -9554,7 +9573,6 @@ function show(v){
   q(map[v]).classList.add('active');
   if(v==='browse')renderBrowse();
   if(v==='selected')renderSelected();
-  if(v==='materi')renderMateri();
 }
 
 function filterData(){

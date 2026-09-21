@@ -1432,15 +1432,9 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 <div class="app"><aside class="side">
 <div class="brand">FITNESS JOURNEY<small>TRAINING PROGRAM</small></div>
 <div class="navgroup">PROGRAM</div>
-<button class="navbtn active" data-tab="training" type="button">▣ Training Program</button>
-<button class="navbtn" data-tab="trainingPro" id="trainingProNav" type="button">▣ Training Program PRO</button>
-<button class="navbtn" data-tab="trainingClientCalendar" id="clientCalendarNav" type="button">▣ Client Calendar</button>
-<button class="navbtn" id="fjExLibNav" type="button">📚 Exercise Library</button>
-<button class="navbtn" id="fjMateriEduNav" type="button">📖 Materi &amp; Edukasi</button>
-<button class="navbtn" id="fjPtTrackerNav" type="button" style="display:none">▣ PT Tracker Management</button>
-<button class="navbtn" id="fjPtClientNav" type="button" style="display:none">▣ PT &amp; Client</button>
+<button class="navbtn active" data-tab="training">▣ Training Program</button>
 <div class="navgroup" id="adminGroup" style="display:none">ADMIN</div>
-<button class="navbtn" data-tab="adminAccess" id="adminNav" style="display:none" type="button">✓ Admin Access Approval</button>
+<button class="navbtn" data-tab="adminAccess" id="adminNav" style="display:none">✓ Admin Access Approval</button>
 <div class="navgroup account-group">ACCOUNT</div>
 <button class="navbtn" id="btnLockApp" type="button">↪ Lock</button>
 <div class="side-footer"><b id="sideUserName">Aldenkhafi</b><span id="sideUserRole">Master Admin</span></div>
@@ -4074,9 +4068,119 @@ var fjV31Style=document.createElement('style');fjV31Style.id='fj-v31-print-choos
 }
 </style>
 <!-- CLEAN STANDALONE RUNTIME: Training Program + Admin Access Approval only -->
+<style id="fj-clean-standalone-css">
+*{box-sizing:border-box}html,body{margin:0;width:100%;min-width:0;overflow-x:hidden}body{background:#f5f8fb}
+.app{display:grid!important;grid-template-columns:230px minmax(0,1fr)!important;min-height:100vh;width:100%;overflow:visible!important}
+.side{width:230px!important;min-width:230px!important;max-width:230px!important;height:100vh!important;position:sticky!important;top:0;overflow:auto!important;background:#07577f!important}
+.main{min-width:0!important;width:auto!important;max-width:none!important;padding:28px 30px!important;overflow-x:hidden!important}
+.top{min-width:0!important}.top h1{margin:0}.panel{min-width:0!important;max-width:100%!important}.panel:not(#training):not(#adminAccess){display:none!important}
+#training .grid,#training .grid2,#training .grid3,#training .grid4{width:100%!important;min-width:0!important;max-width:100%!important}
+#training .field,#training input,#training select,#training textarea{min-width:0!important;max-width:100%!important;width:100%;box-sizing:border-box}
+#training .actions{display:flex!important;flex-wrap:wrap!important;gap:10px!important;width:100%!important;max-width:100%!important}
+#training .actions .btn{flex:0 1 auto;min-width:0;max-width:100%}
+#trainingResult{width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important}
+#trainingResult img{max-width:100%!important;height:auto!important}.fj-table-scroll{max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+.program-day-table{min-width:760px}
+#adminAccess{display:none}.panel.active#adminAccess{display:block!important}
+#fjPtOpsV2.active,#fjPtOpsV2.panel.active,#fjPtOpsV2.panel:not(#training):not(#adminAccess).active{display:block!important;visibility:visible!important;opacity:1!important}
+#fjExerciseLibrary.active,#fjExerciseLibrary.panel.active,#fjExerciseLibrary.panel:not(#training):not(#adminAccess).active{display:block!important;visibility:visible!important;opacity:1!important}
+@media(max-width:900px){.app{grid-template-columns:200px minmax(0,1fr)!important}.side{width:200px!important;min-width:200px!important;max-width:200px!important}.main{padding:22px 18px!important}}
+@media(max-width:680px){.app{display:block!important}.side{position:relative!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:0!important}.main{width:100%!important;padding:16px 12px!important}.top{display:block!important}.top h1{font-size:26px!important}.top p{font-size:13px!important}.pill{margin-top:8px!important}.nav{display:flex!important;flex-wrap:wrap!important;gap:8px!important}.navbtn{flex:1 1 140px!important}.side-footer{margin-top:12px!important}.panel{padding:0!important}.panel .grid,.panel .grid2,.panel .grid3,.panel .grid4{grid-template-columns:1fr!important}.actions{display:grid!important;grid-template-columns:1fr!important}.actions .btn{width:100%!important}.program-day-table{min-width:700px}}
+/* Print is a dedicated document: only client data + generated result. */
+@page{size:A4;margin:10mm}
+@media print{html,body{background:#fff!important;overflow:visible!important}.app,#auth,.toast,.modal,.side,.main,.top{display:none!important}#fj-training-print-root{display:block!important;position:static!important;width:100%!important;color:#111!important;background:#fff!important;font-family:Arial,sans-serif!important}.fj-print-header{border-bottom:2px solid #17364e;padding-bottom:8px;margin-bottom:12px}.fj-print-brand{font-size:12px;font-weight:700;letter-spacing:1px;color:#17364e}.fj-print-title{font-size:22px;font-weight:800;margin-top:2px}.fj-print-date{font-size:9px;color:#666;margin-top:3px}.fj-print-client{border:1px solid #d7dee5;border-radius:8px;padding:10px;margin-bottom:14px}.fj-print-client-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 18px}.fj-print-client-item{min-width:0}.fj-print-label{font-size:8px;text-transform:uppercase;color:#6b7280;font-weight:700}.fj-print-value{font-size:10px;font-weight:600;margin-top:1px;overflow-wrap:anywhere}.fj-print-result{width:100%}.fj-print-result *{max-width:100%!important}.fj-print-result table{width:100%!important;border-collapse:collapse!important;table-layout:auto!important}.fj-print-result th,.fj-print-result td{font-size:8px!important;padding:4px!important;vertical-align:top!important;overflow-wrap:anywhere!important}.fj-print-result .program-session-card,.fj-print-result .session-card,.fj-print-result .card{break-inside:avoid!important}.fj-print-result .program-week,.fj-print-result .month-card{break-inside:avoid!important}.fj-print-result h1,.fj-print-result h2,.fj-print-result h3{break-after:avoid!important}.fj-print-result tr{break-inside:avoid!important}.fj-print-result .fj-table-scroll{overflow:visible!important}.fj-print-result .program-day-table{min-width:0!important}.fj-print-result button,.fj-print-result .btn{display:none!important}}
+</style>
+<script id="fj-clean-runtime">
+(function(){'use strict';
+ function $(id){return document.getElementById(id)}
+ function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+ function val(id,fb){var e=$(id),v=e?String(e.value||'').trim():'';return v||fb||'—'}
+ function clientRows(){return [
+  ['Client',val('clientName')],['Age',val('programAge','—')+' years'],['Gender',val('programGender','—')],
+  ['Body Weight',val('programWeight','—')+' kg'],['Height',val('programHeight','—')+' cm'],
+  ['Goal',val('programGoal')],['Fitness Level',val('programLevel','AUTO')],['Workout Type',val('programWorkoutType')],
+  ['Duration',val('programMonths')+' months'],['Frequency',val('programFreq')+' / week']
+ ];}
+ window.fjBuildTrainingPrintRoot=function(){
+  var old=$('fj-training-print-root');if(old)old.remove();
+  var root=document.createElement('div');root.id='fj-training-print-root';
+  var now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  var h='<div class="fj-print-header"><div class="fj-print-brand">FITNESS JOURNEY</div><div class="fj-print-title">Training Program</div><div class="fj-print-date">Generated '+esc(now)+'</div></div>';
+  h+='<div class="fj-print-client"><div class="fj-print-client-grid">';
+  clientRows().forEach(function(r){h+='<div class="fj-print-client-item"><div class="fj-print-label">'+esc(r[0])+'</div><div class="fj-print-value">'+esc(r[1])+'</div></div>';});
+  h+='</div></div><div class="fj-print-result">';
+  var r=$('trainingResult');h+=(r&&r.innerHTML.trim())?r.innerHTML:'<p>No generated training program.</p>';
+  h+='</div>';root.innerHTML=h;return root;
+ };
+ window.printSection=function(id){if(id!=='training'){window.print();return}var root=window.fjBuildTrainingPrintRoot();document.body.appendChild(root);var title=document.title;document.title='Fitness Journey - Training Program - '+val('clientName','Client');setTimeout(function(){window.print();setTimeout(function(){if(root.parentNode)root.remove();document.title=title},1000)},80)};
+ window.saveFullTrainingProgramPDF=function(){if(!$('trainingResult')||!$('trainingResult').innerHTML.trim()){alert('Generate Training Program terlebih dahulu.');return}window.printSection('training')};
+ function bind(){
+  var map={btnGenerateTraining:function(){try{window.generateProgram()}catch(e){console.error(e);alert('Generate Training Program gagal: '+e.message)}},btnResetTraining:function(){try{window.resetAdvancedProgram()}catch(e){console.error(e);if($('trainingResult'))$('trainingResult').innerHTML=''}},btnSaveTraining:function(){try{if(typeof window.saveFullTrainingProgram==='function')window.saveFullTrainingProgram();else alert('Save belum tersedia.')}catch(e){console.error(e);alert('Save gagal: '+e.message)}},btnLoadTraining:function(){try{if(typeof window.loadFullTrainingProgram==='function')window.loadFullTrainingProgram();else if(typeof window.loadFullTrainingProgramFromDevice==='function')window.loadFullTrainingProgramFromDevice();else alert('Load belum tersedia.')}catch(e){console.error(e);alert('Load gagal: '+e.message)}},saveFullProgramPdfBtn:function(){window.saveFullTrainingProgramPDF()},btnPrintTraining:function(){window.printSection('training')},btnLockApp:function(){if(typeof window.lockApp==='function')window.lockApp();else{var a=$('auth'),app=document.querySelector('.app');if(app)app.style.display='none';if(a)a.style.display='flex'}}};
+  Object.keys(map).forEach(function(k){var e=$(k);if(e){e.onclick=map[k];e.style.pointerEvents='auto'}});
+  document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.onclick=function(){document.querySelectorAll('.navbtn[data-tab]').forEach(function(x){x.classList.remove('active')});b.classList.add('active');document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});var p=$(b.dataset.tab);if(p)p.classList.add('active');if(b.dataset.tab==='adminAccess'&&typeof window.loadAdminAccess==='function'){try{window.loadAdminAccess()}catch(e){console.error(e)}}}});
+  var d=$('todayPill');if(d)d.textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
+})();
+</script>
+<style id="fj-v9-final-layout">
+/* V9 — final layout: fixed sidebar, fluid content, mobile-first form, horizontal result scroll */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{min-height:100vh}
+.app{display:block!important;min-height:100vh;width:100%}
+.side{
+  position:fixed!important;left:0!important;top:0!important;bottom:0!important;
+  width:240px!important;height:100vh!important;min-height:100vh!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  padding:22px 16px!important;z-index:100!important;
+}
+.main{
+  margin-left:240px!important;width:calc(100% - 240px)!important;
+  min-width:0!important;padding:26px 30px 50px!important;overflow-x:hidden!important;
+}
+.brand{font-size:18px!important;margin:4px 6px 22px!important}
+.brand small{font-size:9px!important}
+.navgroup{font-size:11px!important;padding:8px 7px 4px!important}
+.navbtn{font-size:14px!important;padding:11px 12px!important;min-height:42px!important}
+.side-footer{font-size:13px!important}
+.panel{min-width:0!important;width:100%!important}
+#training .grid{min-width:0!important}
+#trainingResult{width:100%!important;min-width:0!important}
+#trainingResult>.grid{min-width:0!important;width:100%!important}
+#trainingResult>.grid>.card{min-width:0!important}
 
+/* Session exercise content stays horizontal; user scrolls the result area sideways. */
+#trainingResult .program-session-exercise,
+#trainingResult .program-session-detail,
+#trainingResult .fj-table-scroll{
+  max-width:100%!important;
+  min-width:0!important;
+}
+#trainingResult .program-session-exercise{
+  overflow-x:auto!important;overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#trainingResult .program-session-exercise>*{
+  min-width:980px;
+}
+#trainingResult .program-session-exercise .program-day-table,
+#trainingResult .program-session-exercise .fj-table-scroll{
+  min-width:980px!important;
+}
 
+/* Don't allow a very tall single exercise card to force the whole page sideways. */
+#trainingResult .program-session-detail{overflow:visible!important}
 
+/* Print/PDF root is the only thing printed. */
+@media print{
+  @page{size:A4 portrait;margin:9mm}
+  html,body{width:auto!important;overflow:visible!important;background:#fff!important}
+  .fj-pdf-cover{break-after:auto!important;page-break-after:auto!important}
+  .fj-pdf-full-program .fj-all-month{break-before:auto!important;page-break-before:auto!important}
+  .fj-pdf-full-program .fj-all-month:first-child{break-before:auto!important;page-break-before:auto!important}
+  .fj-pdf-full-program .fj-all-session{break-inside:avoid!important;page-break-inside:avoid!important}
+}
+</style>
 <style id="fj-v9-mobile">
 @media(max-width:700px){
   html,body{width:100vw;max-width:100vw;overflow-x:hidden!important}
@@ -4953,8 +5057,9 @@ function buildPanel(){
  if($('trainingPro'))return;
  const master=$('training'), side=document.querySelector('.side'), main=document.querySelector('.main');
  if(!master||!side||!main)return;
- const btn=document.getElementById('trainingProNav');
- if(!btn)return;
+ const navGroup=document.createElement('div');navGroup.className='navgroup';navGroup.textContent='PROGRAM';
+ const btn=document.createElement('button');btn.className='navbtn';btn.type='button';btn.dataset.tab='trainingPro';btn.id='trainingProNav';btn.textContent='▣ Training Program PRO';
+ const adminGroup=$('adminGroup');side.insertBefore(navGroup,adminGroup||null);side.insertBefore(btn,adminGroup||null);
  const panel=document.createElement('section');panel.className='panel';panel.id='trainingPro';panel.hidden=false;panel.setAttribute('aria-hidden','true');
  const goal=selectFrom('programGoal',PFX.goal), wt=selectFrom('programWorkoutType',PFX.wtype);
  panel.innerHTML=
@@ -5774,7 +5879,7 @@ function printRange(){var p=rangePayload();if(!p)return;var old=document.getElem
 function openRange(){fillRangeDialog();$('ccRangeModal').classList.add('open')}
 function bindRangeDialog(){if($('ccRangeClose'))$('ccRangeClose').onclick=function(){$('ccRangeModal').classList.remove('open')};if($('ccRangeSave'))$('ccRangeSave').onclick=saveRange;if($('ccRangeRestore'))$('ccRangeRestore').onclick=restoreRange;if($('ccRangePrint'))$('ccRangePrint').onclick=printRange}
 function renderCalendar(){var out=$('ccCalendar');if(!out)return;var y=ccState.year,m=ccState.month,days=daysInMonth(y,m);out.style.setProperty('--cc-days',days);var html='<div class="fj-cc-calendar">';html+='<div class="fj-cc-head" style="position:sticky;left:0;z-index:7">TIME</div>';var dnames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];for(var d=1;d<=days;d++){var dt=new Date(y,m,d),dow=dnames[dt.getDay()];html+='<div class="fj-cc-head"><span class="daynum">'+d+'</span><span class="dow">'+dow+'</span></div>'}for(var h=0;h<24;h++){html+='<div class="fj-cc-time">'+String(h).padStart(2,'0')+':00</div>';for(d=1;d<=days;d++){var date=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),k=key(date,h),ev=ccState.events[k],today=(new Date().getFullYear()===y&&new Date().getMonth()===m&&new Date().getDate()===d),owner=ev&&ev.client&&ev.client.name?String(ev.client.name):'',meta=ev?((owner?owner+' • ':'')+(ev.client&&ev.client.goal?'Goal: '+ev.client.goal+' • ':'')+(ev.client&&ev.client.wtype?'Type: '+ev.client.wtype:'')):'';var ex=ev&&ev.exercises?ev.exercises.map(function(x){return x.exercise}).filter(Boolean).join(' • '):'';html+='<div class="fj-cc-cell '+(today?'today':'')+'" data-cc-key="'+k+'">'+(ev?'<div class="fj-cc-event"><strong>'+esc(ev.title||'Training')+'</strong><small>'+esc(meta)+'</small><small>'+esc(ex)+'</small></div>':'')+'</div>'}}html+='</div>';out.innerHTML=html;out.querySelectorAll('[data-cc-key]').forEach(function(cell){cell.onclick=function(e){if(e)e.preventDefault();openEditor(this.dataset.ccKey)}});var title=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}),t=$('ccMonthTitle');if(t)t.textContent=title}
-function install(){var side=document.querySelector('.side');if(!side)return;var nav=$(NAV_ID);if(nav&&!nav.dataset.ccNavBound){nav.dataset.ccNavBound='1';nav.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.classList.toggle('active',b===nav)});document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id===PANEL_ID)});try{localStorage.setItem('fj_active_panel_v20',PANEL_ID);history.pushState({fjApp:true,fjPanel:PANEL_ID},'',location.href)}catch(e){}} ,true)}var main=document.querySelector('main.main')||document.querySelector('.main');if(!main)return;if(!$(PANEL_ID)){var panel=document.createElement('section');panel.className='panel';panel.id=PANEL_ID;panel.innerHTML='<div class="top"><div><h1>Client Calendar</h1></div></div><div class="fj-cc-toolbar"><button class="btn" id="ccPrev">← Previous</button><div class="fj-cc-month-title" id="ccMonthTitle"></div><button class="btn" id="ccNext">Next →</button><button class="btn alt" id="ccUndoBtn" disabled>↶ Undo</button><button class="btn alt" id="ccRedoBtn" disabled>↷ Redo</button><button class="btn alt" id="ccSaveBtn">💾 Save</button><button class="btn alt" id="ccLoadBtn">📂 Load</button><button class="btn alt" id="ccResetBtn" style="border-color:#c0392b;color:#c0392b;font-weight:900">⚠ Reset Calendar</button><button class="btn alt" id="ccPrintBtn">▣ Print / Save Date Range</button></div><div class="fj-cc-calendar-scroll"><div id="ccCalendar"></div></div><div class="fj-cc-modal" id="ccModal"><div class="fj-cc-dialog"><h3 id="ccEditHeading">Training</h3><input type="hidden" id="ccEditKey"><div class="fj-cc-form-grid"><div class="field span2"><label>PT</label><select id="ccEditPT" required><option value="">Pilih PT terlebih dahulu</option></select></div><div class="field span2"><label>Training Title</label><input id="ccEditTitle" placeholder="e.g. Strength Session"></div><div class="field span2"><label>Notes</label><input id="ccEditNotes" placeholder="Optional notes"></div></div><div class="fj-cc-form-grid" style="margin-top:10px"><div class="field"><label>Client Name</label><input id="ccEditClientName"></div><div class="field"><label>Age</label><input id="ccEditAge" type="number"></div><div class="field"><label>Gender</label><select id="ccEditGender"></select></div><div class="field"><label>Weight (kg)</label><input id="ccEditWeight" type="number"></div><div class="field"><label>Height (cm)</label><input id="ccEditHeight" type="number"></div><div class="field"><label>Goal</label><select id="ccEditGoal"></select></div><div class="field"><label>Fitness Level</label><select id="ccEditLevel"></select></div><div class="field"><label>Workout Type</label><select id="ccEditWtype"></select><p class="muted" id="ccEditWtypeNote" style="margin-top:6px;font-size:12px"></p></div><div class="field"><label>Duration (months)</label><input id="ccEditDuration" type="number" min="1"></div><div class="field"><label>Frequency / week</label><input id="ccEditFreq" type="number" min="1" max="7"></div></div><div class="fj-cc-exercises" id="ccExercises"></div><div class="fj-cc-dialog-actions"><span id="ccAddExerciseWrap" class="fj-cc-add-wrap"><button type="button" class="btn alt" id="ccAddRecommended">＋ Add Exercise Recommended</button><button type="button" class="btn alt" id="ccAddGeneral">＋ Add Exercise General</button></span><button type="button" class="btn alt" id="ccModalUndo">↶ Undo</button><button type="button" class="btn alt" id="ccModalRedo">↷ Redo</button><button type="button" class="btn alt" id="ccDeleteEvent">Delete</button><button type="button" class="btn alt" id="ccCancel">Cancel</button><button type="button" class="btn" id="ccSaveEvent">Save Training</button></div></div></div>';main.appendChild(panel)}var pairs=[['ccEditGender','programGender'],['ccEditGoal','programGoal'],['ccEditLevel','programLevel'],['ccEditWtype','programWorkoutType']];pairs.forEach(function(pair){var dst=$(pair[0]),src=$(pair[1]);if(dst&&src)dst.innerHTML=src.innerHTML});
+function install(){var side=document.querySelector('.side');if(!side)return;if(!$(NAV_ID)){var n=document.createElement('button');n.className='navbtn';n.id=NAV_ID;n.dataset.tab=PANEL_ID;n.textContent='▣ Client Calendar';var pro=document.getElementById('trainingProNav');if(pro&&pro.parentNode)pro.parentNode.insertBefore(n,pro.nextSibling);else{var t=side.querySelector('.navbtn[data-tab="training"]');t&&t.parentNode.insertBefore(n,t.nextSibling)}}var nav=$(NAV_ID);if(nav&&!nav.dataset.ccNavBound){nav.dataset.ccNavBound='1';nav.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();document.querySelectorAll('.navbtn[data-tab]').forEach(function(b){b.classList.toggle('active',b===nav)});document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id===PANEL_ID)});try{localStorage.setItem('fj_active_panel_v20',PANEL_ID);history.pushState({fjApp:true,fjPanel:PANEL_ID},'',location.href)}catch(e){}} ,true)}var main=document.querySelector('main.main')||document.querySelector('.main');if(!main)return;if(!$(PANEL_ID)){var panel=document.createElement('section');panel.className='panel';panel.id=PANEL_ID;panel.innerHTML='<div class="top"><div><h1>Client Calendar</h1></div></div><div class="fj-cc-toolbar"><button class="btn" id="ccPrev">← Previous</button><div class="fj-cc-month-title" id="ccMonthTitle"></div><button class="btn" id="ccNext">Next →</button><button class="btn alt" id="ccUndoBtn" disabled>↶ Undo</button><button class="btn alt" id="ccRedoBtn" disabled>↷ Redo</button><button class="btn alt" id="ccSaveBtn">💾 Save</button><button class="btn alt" id="ccLoadBtn">📂 Load</button><button class="btn alt" id="ccResetBtn" style="border-color:#c0392b;color:#c0392b;font-weight:900">⚠ Reset Calendar</button><button class="btn alt" id="ccPrintBtn">▣ Print / Save Date Range</button></div><div class="fj-cc-calendar-scroll"><div id="ccCalendar"></div></div><div class="fj-cc-modal" id="ccModal"><div class="fj-cc-dialog"><h3 id="ccEditHeading">Training</h3><input type="hidden" id="ccEditKey"><div class="fj-cc-form-grid"><div class="field span2"><label>PT</label><select id="ccEditPT" required><option value="">Pilih PT terlebih dahulu</option></select></div><div class="field span2"><label>Training Title</label><input id="ccEditTitle" placeholder="e.g. Strength Session"></div><div class="field span2"><label>Notes</label><input id="ccEditNotes" placeholder="Optional notes"></div></div><div class="fj-cc-form-grid" style="margin-top:10px"><div class="field"><label>Client Name</label><input id="ccEditClientName"></div><div class="field"><label>Age</label><input id="ccEditAge" type="number"></div><div class="field"><label>Gender</label><select id="ccEditGender"></select></div><div class="field"><label>Weight (kg)</label><input id="ccEditWeight" type="number"></div><div class="field"><label>Height (cm)</label><input id="ccEditHeight" type="number"></div><div class="field"><label>Goal</label><select id="ccEditGoal"></select></div><div class="field"><label>Fitness Level</label><select id="ccEditLevel"></select></div><div class="field"><label>Workout Type</label><select id="ccEditWtype"></select><p class="muted" id="ccEditWtypeNote" style="margin-top:6px;font-size:12px"></p></div><div class="field"><label>Duration (months)</label><input id="ccEditDuration" type="number" min="1"></div><div class="field"><label>Frequency / week</label><input id="ccEditFreq" type="number" min="1" max="7"></div></div><div class="fj-cc-exercises" id="ccExercises"></div><div class="fj-cc-dialog-actions"><span id="ccAddExerciseWrap" class="fj-cc-add-wrap"><button type="button" class="btn alt" id="ccAddRecommended">＋ Add Exercise Recommended</button><button type="button" class="btn alt" id="ccAddGeneral">＋ Add Exercise General</button></span><button type="button" class="btn alt" id="ccModalUndo">↶ Undo</button><button type="button" class="btn alt" id="ccModalRedo">↷ Redo</button><button type="button" class="btn alt" id="ccDeleteEvent">Delete</button><button type="button" class="btn alt" id="ccCancel">Cancel</button><button type="button" class="btn" id="ccSaveEvent">Save Training</button></div></div></div>';main.appendChild(panel)}var pairs=[['ccEditGender','programGender'],['ccEditGoal','programGoal'],['ccEditLevel','programLevel'],['ccEditWtype','programWorkoutType']];pairs.forEach(function(pair){var dst=$(pair[0]),src=$(pair[1]);if(dst&&src)dst.innerHTML=src.innerHTML});
 function filterCalendarWorkoutTypeByGoal(){
   var goal=$('ccEditGoal'),sel=$('ccEditWtype');if(!goal||!sel)return;
   var master=$('programWorkoutType');
@@ -7862,12 +7967,28 @@ function decorate(){
   var pd=$('fjPcuClients');if(pd)pd.querySelectorAll('.fj-pcu-client').forEach(function(c){addAssignButton(c,c.dataset.client,c.querySelector('b')?.textContent||'Client',c.dataset.pt||'')})
 }
 function canonicalNav(){
-  var t=$('fjPtTrackerNav'),c=$('fjPtClientNav');if(!t||!c)return;
-  var isMaster=false;try{isMaster=master()}catch(e){isMaster=String((window.currentUser||{}).email||'').toLowerCase()==='aldenkhafi0203@gmail.com'}
-  t.style.display=isMaster?'flex':'none';c.style.display=isMaster?'flex':'none';
-  t.style.pointerEvents=isMaster?'auto':'none';c.style.pointerEvents=isMaster?'auto':'none';
-  if(!t.dataset.fj617Bound){t.dataset.fj617Bound='1';t.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();if(isMaster)openTracker()}}
-  if(!c.dataset.fj617Bound){c.dataset.fj617Bound='1';c.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();if(isMaster)openClient()}}
+  var s=side();if(!s)return;
+  ['fjV616PtTracker','fjV616PtClient','fjV615PtTracker','fjV615PtClient','fjV60PtDirectoryNav','fjPtOpsV2Nav','fjPtMasterNav','fjPtMirrorMaster'].forEach(function(id){var x=$(id);if(x)x.remove()});
+  var t=$('fjPtTrackerNav'),c=$('fjPtClientNav'),ex=exercise();
+  if(!t){t=document.createElement('button');t.id='fjPtTrackerNav';t.type='button';t.className='navbtn';t.textContent='▣ PT Tracker Management'}
+  if(!c){c=document.createElement('button');c.id='fjPtClientNav';c.type='button';c.className='navbtn';c.textContent='▣ PT & Client'}
+  /* The PT buttons are authoritative sidebar entries. Do not depend on Exercise Library
+     being rendered first; that dependency was the reason the sidebar could disappear. */
+  var anchor=ex&&ex.parentNode===s?ex:null;
+  if(!anchor){
+    var candidates=s.querySelectorAll('.navbtn');
+    for(var i=0;i<candidates.length;i++){
+      var txt=String(candidates[i].textContent||'').toLowerCase();
+      if(txt.indexOf('exercise library')>=0){anchor=candidates[i];break}
+    }
+  }
+  if(anchor){
+    if(t.parentNode!==s||t.previousElementSibling!==anchor)s.insertBefore(t,anchor.nextSibling);
+  }else if(t.parentNode!==s){s.appendChild(t)}
+  if(c.parentNode!==s||c.previousElementSibling!==t)s.insertBefore(c,t.nextSibling);
+  t.style.display='flex';c.style.display='flex';t.style.pointerEvents='auto';c.style.pointerEvents='auto';
+  if(!t.dataset.fj617Bound){t.dataset.fj617Bound='1';t.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openTracker()}}
+  if(!c.dataset.fj617Bound){c.dataset.fj617Bound='1';c.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openClient()}}
 }
 function openTracker(){
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');p.style.removeProperty('display')});
@@ -7938,32 +8059,6 @@ async function refresh(){try{await loadRows();render()}catch(e){var st=$('fjPtmS
 window.fjPTNameManagerRefresh=refresh;
 function hook(){var old=window.fjOpenPtClientUnified;if(typeof old!=='function')return; if(old.__fj65)return; var wrap=async function(){var r=await old.apply(this,arguments);setTimeout(refresh,0);return r};wrap.__fj65=true;window.fjOpenPtClientUnified=wrap}
 setTimeout(function(){hook();if($('fjPtClientUnified')?.classList.contains('active')&&!$('fjPtNameManager'))refresh()},250);
-})();
-</script>
-
-<script id="fj-base-navigation">
-(function(){
-  'use strict';
-  function q(id){return document.getElementById(id)}
-  function activate(id){
-    document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id===id)});
-    document.querySelectorAll('.side .navbtn').forEach(function(b){b.classList.toggle('active',b.id===id || b.dataset.tab===id)});
-  }
-  function bind(){
-    var training=q('training');
-    document.querySelectorAll('.side .navbtn[data-tab]').forEach(function(b){
-      if(b.dataset.baseBound)return; b.dataset.baseBound='1';
-      b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var id=b.dataset.tab;activate(id);if(id==='adminAccess'&&typeof window.loadAdminAccess==='function')window.loadAdminAccess();});
-    });
-    var m=q('fjMateriEduNav');
-    if(m&&!m.dataset.baseBound){m.dataset.baseBound='1';m.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(typeof window.fjOpenMateriEdu==='function')window.fjOpenMateriEdu();});}
-    var lock=q('btnLockApp');
-    if(lock&&!lock.dataset.baseBound){lock.dataset.baseBound='1';lock.addEventListener('click',function(){if(typeof window.lockApp==='function')window.lockApp();});}
-    // The base engines bind their own feature buttons; this only makes sure the static nodes exist and have no overlay.
-    ['fjExLibNav','clientCalendarNav','trainingProNav'].forEach(function(id){var b=q(id);if(b)b.style.pointerEvents='auto'});
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  window.addEventListener('load',function(){setTimeout(bind,50)});
 })();
 </script>
 </body></html>
@@ -9563,7 +9658,13 @@ function can(){return true} // exercise library is informational; available to a
 
 function main(){return document.querySelector('main.main')||document.querySelector('.main')}
 
-function nav(){var n=q('fjExLibNav');if(!n)return;n.onclick=function(e){e.preventDefault();e.stopPropagation();show('browse')};}
+function nav(){var side=document.querySelector('.side');if(!side)return;if(q('fjExLibNav'))return;
+  var n=document.createElement('button');n.id='fjExLibNav';n.className='navbtn';n.type='button';
+  n.textContent='📚 Exercise Library';
+  n.onclick=function(){show('browse')};
+  var anchor=document.getElementById('fjPtOpsV2Nav')||document.getElementById('clientCalendarNav');
+  if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
+}
 
 function catList(){var s={};DATA.forEach(function(d){s[d.cat]=1});return Object.keys(s)}
 function equipList(){var s={};DATA.forEach(function(d){s[d.equip]=1});return Object.keys(s)}
@@ -9687,7 +9788,6 @@ function renderBrowse(){
   F.goal=currentGoal;F.level=currentLevel;F.equip='';renderInput();drawPrescription();drawGrid();
 }
 function drawPrescription(){var b=q('exlPrescriptionBox');if(!b)return;var f=fjBrowseFilters(),p=fjGoalPrescription(f.goal);b.innerHTML='<div class="exl-prescription"><div><b>PROGRAMMING OTOMATIS</b><span>Goal: '+E(f.goal)+'</span></div><div><b>Sets × Reps</b><span>'+E(p.sets)+' × '+E(p.reps)+'</span></div><div><b>Rest</b><span>'+E(p.rest)+'</span></div><div><b>Tempo</b><span>'+E(p.tempo)+'</span></div><div><b>RIR</b><span>'+E(p.rir)+'</span></div><div><b>Load</b><span>'+E(p.load)+'</span></div></div>';}
-window.fjOpenMateriEdu=function(){try{show('materi')}catch(e){console.error('Materi & Edukasi open',e)}};
 window.fjExlOpen=function(id){var d=DATA.find(function(x){return x.id===id});if(!d)return;var m=fjExMeta(d),p=fjGoalPrescription(fjBrowseFilters().goal),inSel=SELECTED.indexOf(id)>-1;var html='<h2>'+E(d.name)+'</h2><div class="exl-badges"><span class="exl-badge type">'+E(m.type)+'</span><span class="exl-badge">'+E(d.level)+'</span><span class="exl-badge">'+E(d.equip)+'</span><span class="exl-badge">'+E(m.pattern)+'</span></div><div class="exl-detail-grid"><div><b>Otot utama</b><span>'+E(m.primary)+'</span></div><div><b>Otot sekunder</b><span>'+E(m.secondary)+'</span></div><div><b>Sendi yang bekerja</b><span>'+E(m.joints)+'</span></div><div><b>Pattern</b><span>'+E(m.pattern)+'</span></div><div><b>Level</b><span>'+E(d.level)+'</span></div><div><b>Alat</b><span>'+E(d.equip)+'</span></div></div><p class="exl-muted">'+E(d.desc)+'</p><h3>Programming otomatis dari konteks client</h3><div class="exl-setsreps"><div><b>Sets × Reps</b>'+E(p.sets+' × '+p.reps)+'</div><div><b>Rest</b>'+E(p.rest)+'</div><div><b>Tempo</b>'+E(p.tempo)+'</div><div><b>RIR</b>'+E(p.rir)+'</div></div><h3>Cara melakukan</h3><ul>'+(d.steps||[]).map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul><h3>Tips & risiko teknik</h3><ul>'+(d.mistakes||[]).map(function(s){return '<li>'+E(s)+'</li>'}).join('')+'</ul><div class="exl-source-note"><b>Basis:</b> ACSM 2026 untuk penyesuaian goal/load/volume; NASM untuk RPE/RIR dan progressive programming; WHO untuk konteks frekuensi aktivitas penguatan otot. Ini adalah panduan library untuk healthy adults, bukan diagnosis atau resep medis.</div><div class="exl-modal-actions"><button class="exl-btn'+(inSel?' danger':'')+'" onclick="window.fjExlToggleSelect(\''+d.id+'\')">'+(inSel?'✕ Hapus dari Pilihan':'＋ Tambah ke Pilihan')+'</button><button class="exl-btn alt" onclick="window.fjExlCloseModal()">Tutup</button></div>';q('exlModalBody').innerHTML=html;q('exlModal').classList.add('open')};
 window.fjExlCloseModal=function(){q('exlModal').classList.remove('open')};
 
@@ -10205,3 +10305,491 @@ window.addEventListener('load',function(){setTimeout(boot,1100)});
 <style id="fj-v73-smart-library">
 .exl-result-head,.exl-related-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0 7px;padding:9px 11px;border:1px solid #d8e7eb;border-radius:10px;background:#f8fbfc;color:#4f6f7b;font-size:11px}.exl-result-head b,.exl-related-head b{color:#174f72}.exl-related-head{background:#fffaf0;border-color:#efdfb7}.exl-related-card{background:#fffdf8}.exl-result-head span,.exl-related-head span{font-size:10px}@media(max-width:700px){.exl-result-head,.exl-related-head{display:block}.exl-result-head span,.exl-related-head span{display:block;margin-top:3px}}
 </style>
+
+
+<!-- FJ V75 SURGICAL LIBRARY / CALENDAR / MASTER-ADMIN ACCESS REPAIR
+     Scope: Exercise Library data/filtering, Materi & Edukasi muscle targeting,
+     Client Calendar directory pagination, PT calendar event density, PT-only panels.
+     Existing correct modules are not replaced. -->
+<style id="fj-v75-surgical-repair-css">
+/* Exercise Library: compact, readable, English muscle labels */
+#fjExerciseLibrary .exl-smart-input select,
+#fjExerciseLibrary #exlFLevel,
+#fjExerciseLibrary #exlFEquip,
+#fjExerciseLibrary #exlGoalReco{min-height:38px}
+#fjExerciseLibrary .exl-filter-note{font-size:10px;color:#607b8c;margin-top:5px}
+#fjExerciseLibrary .exl-disabled-option{opacity:.55}
+
+/* Client directory: never let a large client list consume the whole phone */
+#fjClientDirectory .fj-v75-client-pager{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:9px;padding:7px 8px;border:1px solid #dcebea;border-radius:9px;
+  background:#f8fdfd;font-size:10px;color:#52736f
+}
+#fjClientDirectory .fj-v75-client-pager button{
+  border:1px solid #cbdedb;background:#fff;border-radius:7px;padding:5px 8px;
+  font-size:10px;font-weight:800;cursor:pointer
+}
+#fjClientDirectory .fj-v75-client-pager button:disabled{opacity:.45;cursor:not-allowed}
+
+/* Dense calendar days: show a small stack + "more" instead of filling the screen */
+#fjPtOpsV2 .ptv2-day .fj-v75-more{
+  display:block;width:100%;box-sizing:border-box;margin-top:3px;padding:4px 5px;
+  border:1px dashed #a9c9c4;border-radius:6px;background:#f7fcfb;color:#17685f;
+  font-size:8px;font-weight:900;cursor:pointer
+}
+#fjPtOpsV2 .ptv2-day.fj-v75-dense{overflow:hidden}
+#fjV75DayModal{
+  position:fixed;inset:0;z-index:2147483100;display:none;align-items:center;justify-content:center;
+  padding:10px;background:rgba(7,35,42,.68)
+}
+#fjV75DayModal.open{display:flex}
+#fjV75DayModal .fj-v75-day-box{
+  width:min(620px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:15px;
+  padding:13px;box-shadow:0 20px 60px rgba(0,0,0,.28)
+}
+#fjV75DayModal .fj-v75-day-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+#fjV75DayModal .fj-v75-day-row{
+  display:flex;justify-content:space-between;gap:8px;align-items:center;
+  padding:8px;border:1px solid #e0ebeb;border-radius:9px;margin-top:6px;background:#fbfefe
+}
+#fjV75DayModal .fj-v75-day-row button{
+  flex:none;border:1px solid #cbdedb;background:#fff;border-radius:7px;padding:5px 7px;font-size:9px;font-weight:800
+}
+@media(max-width:760px){
+  #fjClientDirectory .fj-v75-client-pager{position:sticky;bottom:4px;z-index:3}
+  #fjV75DayModal .fj-v75-day-box{width:100%;max-height:94vh;border-radius:12px;padding:10px}
+  #fjPtOpsV2 .ptv2-day .fj-v75-more{font-size:7px;padding:3px}
+}
+</style>
+<script id="fj-v75-surgical-repair-runtime">
+(function(){
+'use strict';
+
+var MASTER='aldenkhafi0203@gmail.com';
+
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function isMaster(){
+  try{
+    var u=(typeof currentUser!=='undefined'&&currentUser)||window.currentUser||null;
+    return String(u&&u.email||'').trim().toLowerCase()===MASTER;
+  }catch(e){return false}
+}
+
+/* ============================================================
+   1–5. AUTHORITATIVE EXERCISE TAXONOMY + VARIANTS
+   ============================================================ */
+var muscleMap={
+  'dada':'Chest','dada (pectoralis major)':'Chest','dada (bagian tengah)':'Chest',
+  'dada atas (pectoralis major bagian klavikula)':'Upper Chest',
+  'dada atas':'Upper Chest','dada bawah':'Lower Chest',
+  'bahu':'Deltoids','deltoid':'Deltoids','deltoids':'Deltoids',
+  'bahu depan (deltoid anterior)':'Anterior Deltoid','deltoid anterior':'Anterior Deltoid',
+  'bahu tengah (deltoid lateral)':'Lateral Deltoid','deltoid lateral':'Lateral Deltoid',
+  'bahu belakang':'Rear Deltoid','bahu belakang (deltoid posterior)':'Rear Deltoid','deltoid posterior':'Rear Deltoid',
+  'punggung':'Back','punggung tengah':'Mid Back','mid back':'Mid Back',
+  'punggung bawah (erector spinae)':'Erector Spinae',
+  'latissimus dorsi (punggung lebar)':'Latissimus Dorsi','latissimus dorsi':'Latissimus Dorsi',
+  'bisep':'Biceps Brachii','biceps':'Biceps Brachii',
+  'trisep':'Triceps Brachii','triceps':'Triceps Brachii',
+  'lengan':'Arms','brachialis':'Brachialis','forearm / lengan bawah':'Forearms','forearm':'Forearms',
+  'glutes':'Gluteus Maximus','gluteus maximus':'Gluteus Maximus','quadriceps':'Quadriceps',
+  'quadriceps (pelepasan miofasial)':'Quadriceps','hamstring':'Hamstrings','hamstrings':'Hamstrings',
+  'betis (gastrocnemius)':'Gastrocnemius','calves':'Calves','calves / betis':'Calves',
+  'adductors':'Adductors','paha dalam':'Adductors',
+  'obliques':'Obliques','oblique (perut samping)':'Obliques',
+  'deep core':'Deep Core','core':'Core','core (rectus abdominis, transverse abdominis)':'Core',
+  'perut (rectus abdominis)':'Rectus Abdominis','perut bawah (rectus abdominis)':'Rectus Abdominis',
+  'core (stabilisasi tulang belakang)':'Core','rotator cuff':'Rotator Cuff',
+  'jantung & paru-paru':'Cardiorespiratory','jantung & paru-paru (kardiovaskular)':'Cardiorespiratory',
+  'full body':'Full Body','hip (mobilitas)':'Hip','hip (rotasi internal & eksternal)':'Hip',
+  'thoracic spine':'Thoracic Spine','tulang belakang (mobilitas)':'Spine'
+};
+function canonMuscle(v){
+  var s=String(v||'').trim(),k=s.toLowerCase();
+  return muscleMap[k]||s;
+}
+function normName(v){return String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function completeness(x){
+  var n=0;
+  ['name','cat','equip','level','move','pattern','desc'].forEach(function(k){if(x&&x[k])n++});
+  ['primary','secondary','steps','mistakes'].forEach(function(k){if(Array.isArray(x&&x[k])&&x[k].length)n+=x[k].length>3?2:1});
+  return n;
+}
+function canonEquip(v){
+  var s=String(v||'').trim(),k=s.toLowerCase();
+  var m={'kabel':'Cable','cable':'Cable','mesin':'Machine','machine':'Machine',
+    'tanpa alat':'Bodyweight','bodyweight':'Bodyweight','dumbbell / kettlebell':'Dumbbell / Kettlebell',
+    'band':'Resistance Band','resistance band':'Resistance Band'};
+  return m[k]||s;
+}
+function canonicalizeExercises(){
+  var a=window.__fjExerciseData;
+  if(!Array.isArray(a))return;
+  a.forEach(function(x){
+    if(Array.isArray(x.primary))x.primary=x.primary.map(canonMuscle).filter(Boolean);
+    if(Array.isArray(x.secondary))x.secondary=x.secondary.map(canonMuscle).filter(Boolean);
+    if(x.equip)x.equip=canonEquip(x.equip);
+  });
+  /* Remove exact-name duplicates, keeping the most complete record. */
+  var best={},order=[];
+  a.forEach(function(x){
+    var k=normName(x.name);
+    if(!k)return;
+    if(!best[k]){best[k]=x;order.push(k)}
+    else if(completeness(x)>completeness(best[k]))best[k]=x;
+  });
+  a.splice(0,a.length);
+  order.forEach(function(k){a.push(best[k])});
+}
+function addExercise(x){
+  var a=window.__fjExerciseData;
+  if(!Array.isArray(a))return;
+  var key=normName(x.name);
+  if(a.some(function(d){return normName(d.name)===key}))return;
+  x.primary=(x.primary||[]).map(canonMuscle);x.secondary=(x.secondary||[]).map(canonMuscle);x.equip=canonEquip(x.equip);
+  a.push(x);
+}
+function sets(){return {kekuatan:'3 x 6-10',hipertrofi:'3-4 x 8-15',ketahanan:'2-3 x 12-20'}}
+
+/* Missing/common variants. These are deliberately explicit so equipment is real,
+   muscle targeting is direct, and a biceps selection does not fall back to back. */
+function addVariants(){
+  var s=sets(),base={desc:'Controlled resistance exercise selected for direct muscle targeting.',steps:['Set up with stable posture and the appropriate equipment.','Move through a controlled range of motion.','Return under control without momentum.'],mistakes:['Using momentum to complete repetitions.','Loading beyond the available technique.'],sets:s};
+  [
+   ['Barbell Biceps Curl','Arms','Barbell','Menengah','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Dumbbell Biceps Curl','Arms','Dumbbell','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Alternating Cable Biceps Curl','Arms','Cable','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Seated Biceps Curl Machine','Arms','Machine','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Preacher Curl Machine','Arms','Machine','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
+   ['EZ-Bar Curl','Arms','EZ Bar','Menengah','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Hammer Curl','Arms','Dumbbell','Pemula','isolation',['Brachialis','Biceps Brachii'],['Forearms']],
+   ['Cable Hammer Curl','Arms','Cable','Pemula','isolation',['Brachialis','Biceps Brachii'],['Forearms']],
+   ['Lateral Raise Machine','Shoulders','Machine','Pemula','isolation',['Lateral Deltoid'],['Anterior Deltoid']],
+   ['Cable Lateral Raise','Shoulders','Cable','Pemula','isolation',['Lateral Deltoid'],['Upper Trapezius']],
+   ['Resistance Band Lateral Raise','Shoulders','Resistance Band','Pemula','isolation',['Lateral Deltoid'],['Upper Trapezius']],
+   ['Lean-Away Cable Lateral Raise','Shoulders','Cable','Menengah','isolation',['Lateral Deltoid'],['Upper Trapezius']],
+   ['Machine Rear Delt Fly','Shoulders','Machine','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
+   ['Cable Rear Delt Fly','Shoulders','Cable','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
+   ['Dumbbell Rear Delt Fly','Shoulders','Dumbbell','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
+   ['Reverse Pec Deck','Shoulders','Machine','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
+   ['Cable Chest Fly','Chest','Cable','Pemula','isolation',['Chest'],['Anterior Deltoid']],
+   ['Machine Chest Fly','Chest','Machine','Pemula','isolation',['Chest'],['Anterior Deltoid']],
+   ['Dumbbell Chest Fly','Chest','Dumbbell','Pemula','isolation',['Chest'],['Anterior Deltoid']],
+   ['Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
+   ['Knee Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
+   ['Standard Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
+   ['Dumbbell Floor Press','Chest','Dumbbell','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
+   ['Chest Press Machine','Chest','Machine','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
+   ['Smith Machine Bench Press','Chest','Smith Machine','Menengah','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
+   ['Assisted Pull-Up','Back','Machine','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Lat Pulldown Machine','Back','Machine','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Cable Lat Pulldown','Back','Cable','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Straight-Arm Cable Pulldown','Back','Cable','Pemula','isolation',['Latissimus Dorsi'],['Core']],
+   ['Inverted Row','Back','Bodyweight','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Seated Cable Row','Back','Cable','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Machine Row','Back','Machine','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Chest-Supported Machine Row','Back','Machine','Pemula','compound',['Mid Back'],['Latissimus Dorsi','Biceps Brachii','Rear Deltoid']],
+   ['Bodyweight Squat','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings','Calves','Core']],
+   ['Split Squat','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings','Calves','Core']],
+   ['Walking Lunge','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings','Adductors','Calves','Core']],
+   ['Reverse Lunge','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings','Adductors','Calves','Core']],
+   ['Leg Press Machine','Legs','Machine','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings']],
+   ['Hack Squat Machine','Legs','Machine','Menengah','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings']],
+   ['Leg Curl Machine','Legs','Machine','Pemula','isolation',['Hamstrings'],['Calves']],
+   ['Seated Leg Curl Machine','Legs','Machine','Pemula','isolation',['Hamstrings'],['Calves']],
+   ['Standing Calf Raise Machine','Legs','Machine','Pemula','isolation',['Calves'],[]],
+   ['Seated Calf Raise Machine','Legs','Machine','Pemula','isolation',['Calves'],[]],
+   ['Single-Leg Calf Raise','Legs','Bodyweight','Pemula','isolation',['Calves'],[]],
+   ['Wall Sit','Legs','Bodyweight','Pemula','isolation',['Quadriceps'],['Gluteus Maximus']],
+   ['Glute Bridge','Hips','Bodyweight','Pemula','compound',['Gluteus Maximus'],['Hamstrings','Core']],
+   ['Hip Thrust Machine','Hips','Machine','Pemula','compound',['Gluteus Maximus'],['Hamstrings']],
+   ['Barbell Hip Thrust','Hips','Barbell','Menengah','compound',['Gluteus Maximus'],['Hamstrings','Core']],
+   ['Cable Pull-Through','Hips','Cable','Pemula','compound',['Gluteus Maximus','Hamstrings'],['Core']],
+   ['Romanian Deadlift','Hips','Barbell','Menengah','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae','Adductors']],
+   ['Dumbbell Romanian Deadlift','Hips','Dumbbell','Pemula','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae','Adductors']],
+   ['Kettlebell Romanian Deadlift','Hips','Kettlebell','Menengah','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae']],
+   ['Bodyweight Hip Hinge','Hips','Bodyweight','Pemula','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae']],
+   ['Side-Lying Leg Raise','Hips','Bodyweight','Pemula','isolation',['Gluteus Medius'],['Core']],
+   ['Cable Hip Abduction','Hips','Cable','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
+   ['Hip Abduction Machine','Hips','Machine','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
+   ['Band Hip Abduction','Hips','Resistance Band','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
+   ['Bodyweight Adductor Raise','Hips','Bodyweight','Pemula','isolation',['Adductors'],['Core']],
+   ['Cable Hip Adduction','Hips','Cable','Pemula','isolation',['Adductors'],['Core']],
+   ['Adductor Machine','Hips','Machine','Pemula','isolation',['Adductors'],['Core']],
+   ['Side-Lying Hip Adduction','Hips','Bodyweight','Pemula','isolation',['Adductors'],['Core']],
+   ['Copenhagen Plank','Core','Bodyweight','Menengah','isolation',['Adductors'],['Obliques','Core']],
+   ['Dead Bug','Core','Bodyweight','Pemula','isolation',['Deep Core'],['Hip Flexors']],
+   ['Bird Dog','Core','Bodyweight','Pemula','compound',['Core'],['Gluteus Maximus','Rear Deltoid']],
+   ['Front Plank','Core','Bodyweight','Pemula','isolation',['Core'],['Rectus Abdominis','Obliques']],
+   ['Side Plank','Core','Bodyweight','Pemula','isolation',['Obliques'],['Core','Gluteus Medius']],
+   ['Cable Pallof Press','Core','Cable','Pemula','isolation',['Core'],['Obliques']],
+   ['Ab Crunch Machine','Core','Machine','Pemula','isolation',['Rectus Abdominis'],['Obliques']]
+  ].forEach(function(v){
+    var x=Object.assign({},base,{name:v[0],cat:v[1],equip:v[2],level:v[3],move:v[4],primary:v[5],secondary:v[6]});
+    addExercise(x);
+  });
+}
+function rebuildExerciseData(){canonicalizeExercises();addVariants();canonicalizeExercises()}
+rebuildExerciseData();
+
+/* Muscle selector: primary target only, canonical English, no duplicate aliases. */
+function exercisePrimaryMuscles(){
+  var set={};
+  (window.__fjExerciseData||[]).forEach(function(d){(d.primary||[]).forEach(function(m){m=canonMuscle(m);if(m)set[m]=1})});
+  return Object.keys(set).sort();
+}
+function currentExerciseFocus(){
+  var m=q('exlFMuscle'),p=q('exlFPattern'),s=q('exlSearch');
+  return {muscle:m&&m.value||'',pattern:p&&p.value||'',search:s&&s.value||''};
+}
+function directExerciseMatch(d,focus){
+  var f=focus||currentExerciseFocus(),hay=(d.primary||[]).concat(d.secondary||[]).map(canonMuscle).join(' ').toLowerCase();
+  var name=String(d.name||'').toLowerCase();
+  if(f.muscle)return hay.indexOf(String(f.muscle).toLowerCase())>=0;
+  if(f.pattern){
+    var p=String(d.pattern||d.move||'').toLowerCase();
+    return p.indexOf(String(f.pattern).toLowerCase())>=0;
+  }
+  if(f.search)return name.indexOf(String(f.search).toLowerCase())>=0||hay.indexOf(String(f.search).toLowerCase())>=0;
+  return true;
+}
+function refreshExerciseMuscleSelect(){
+  var s=q('exlFMuscle');if(!s)return;
+  var val=s.value,opts=exercisePrimaryMuscles();
+  s.innerHTML='<option value="">Choose muscle</option>'+opts.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join('');
+  if(opts.indexOf(val)>=0)s.value=val;
+}
+function refreshEquipmentAvailability(){
+  var s=q('exlFEquip');if(!s)return;
+  var f=currentExerciseFocus(),level=(q('exlFLevel')||{}).value||'';
+  var all={};
+  (window.__fjExerciseData||[]).forEach(function(d){
+    if(f.muscle&&!directExerciseMatch(d,{muscle:f.muscle}))return;
+    if(f.pattern&&!directExerciseMatch(d,{pattern:f.pattern}))return;
+    if(f.search&&!directExerciseMatch(d,{search:f.search}))return;
+    if(level&&d.level!==level)return;
+    all[String(d.equip||'')]=1;
+  });
+  var current=s.value;
+  Array.prototype.forEach.call(s.options,function(o){
+    if(!o.value){o.disabled=false;return}
+    o.disabled=!all[o.value];
+    o.classList.toggle('exl-disabled-option',o.disabled);
+  });
+  if(current&&(!all[current])){s.value='';s.dispatchEvent(new Event('change',{bubbles:true}))}
+}
+function refreshExerciseControls(){
+  refreshExerciseMuscleSelect();
+  refreshEquipmentAvailability();
+  var g=q('exlGoalReco');if(g)g.title='Goal changes recommendation/programming context only; muscle/equipment filters remain direct.';
+}
+var exObserver=new MutationObserver(function(){
+  if(q('fjExerciseLibrary'))setTimeout(refreshExerciseControls,0);
+});
+exObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+/* ============================================================
+   6. MATERI & EDUKASI: ONE SELECTED MUSCLE = ONE PRIMARY
+   ============================================================ */
+function eduCanonicalName(v){return canonMuscle(v)}
+function selectedEduMuscle(){
+  var s=q('eduMuscle');return s&&s.value?eduCanonicalName(s.value):'';
+}
+function dataMuscleHas(d,target){
+  target=eduCanonicalName(target).toLowerCase();
+  var p=(d.primary||[]).map(canonMuscle),s=(d.secondary||[]).map(canonMuscle);
+  return p.concat(s).some(function(x){return String(x).toLowerCase()===target});
+}
+function eduDirectList(target){
+  var a=(window.__fjExerciseData||[]).filter(function(d){return dataMuscleHas(d,target)});
+  var seen={},out=[];
+  a.sort(function(x,y){
+    var xi=(x.primary||[]).map(canonMuscle).map(function(z){return z.toLowerCase()}).indexOf(String(target).toLowerCase())>=0?1:0;
+    var yi=(y.primary||[]).map(canonMuscle).map(function(z){return z.toLowerCase()}).indexOf(String(target).toLowerCase())>=0?1:0;
+    return yi-xi||String(x.name).localeCompare(String(y.name));
+  }).forEach(function(d){var k=normName(d.name);if(!seen[k]){seen[k]=1;out.push(d)}});
+  return out.slice(0,18);
+}
+function eduMetaText(d){
+  var p=(d.primary||[]).map(canonMuscle),s=(d.secondary||[]).map(canonMuscle);
+  return {p:p,s:s};
+}
+function repairMateriOutput(){
+  var root=q('exlMateri');if(!root)return;
+  var target=selectedEduMuscle();if(!target)return;
+  var primarySec=Array.prototype.find.call(root.querySelectorAll('section'),function(sec){
+    var h=sec.querySelector('h3');return h&&h.textContent.trim()==='Otot Primer';
+  });
+  var secondarySec=Array.prototype.find.call(root.querySelectorAll('section'),function(sec){
+    var h=sec.querySelector('h3');return h&&h.textContent.trim()==='Otot Sekunder';
+  });
+  var list=eduDirectList(target),secSet={},primarySet={};
+  list.forEach(function(d){
+    var m=eduMetaText(d);
+    m.p.forEach(function(x){if(x.toLowerCase()!==target.toLowerCase())primarySet[x]=1});
+    m.s.forEach(function(x){if(x.toLowerCase()!==target.toLowerCase())secSet[x]=1});
+  });
+  if(primarySec){
+    var p=primarySec.querySelector('p');if(p)p.textContent=target;
+  }
+  if(secondarySec){
+    var sp=secondarySec.querySelector('p');
+    if(sp)sp.textContent=Object.keys(secSet).filter(function(x){return !primarySet[x]}).slice(0,8).join(' • ')||'—';
+  }
+  var grid=root.querySelector('.edu-ex-grid');
+  if(grid){
+    function card(d){
+      var p=(d.primary||[]).map(canonMuscle).join(', ')||'—';
+      var m=fjExMeta(d);
+      return '<article class="edu-ex-card"><div class="edu-ex-title"><b>'+esc(d.name)+'</b><span>'+esc(d.level)+'</span></div>'+
+        '<div class="edu-ex-tags"><span>'+esc(m.type)+'</span><span>'+esc(m.pattern)+'</span><span>'+esc(d.equip)+'</span></div>'+
+        '<div class="edu-ex-small"><b>Primary:</b> '+esc(p)+'<br><b>Joints:</b> '+esc(m.joints)+'</div>'+
+        '<div class="edu-ex-small"><b>Programming:</b> '+esc((d.sets&&d.sets.hipertrofi)||'see exercise detail')+'</div>'+
+        '<button type="button" class="exl-btn alt" onclick="window.fjExlOpen(\''+esc(d.id)+'\')">View Exercise Detail</button></article>';
+    }
+    grid.innerHTML=list.map(card).join('');
+    var count=root.querySelector('.edu-section-head>span');if(count)count.textContent=list.length+' direct target';
+  }
+}
+var eduObserver=new MutationObserver(function(){
+  if(q('exlMateri')&&q('eduMuscle'))setTimeout(repairMateriOutput,0);
+});
+eduObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+/* ============================================================
+   7. CLIENT DIRECTORY PAGINATION
+   ============================================================ */
+var clientPage=1,clientPageSize=12;
+function setupClientPager(){
+  var box=q('fjcdList'),dir=q('fjClientDirectory');if(!box||!dir)return;
+  var cards=Array.prototype.slice.call(box.querySelectorAll('.fj-cd-card'));
+  if(!cards.length)return;
+  var pager=q('fjV75ClientPager');
+  if(!pager){
+    pager=document.createElement('div');pager.id='fjV75ClientPager';pager.className='fj-v75-client-pager';
+    pager.innerHTML='<button type="button" data-p="prev">← Previous</button><span data-p="info"></span><button type="button" data-p="next">Next →</button>';
+    box.parentNode.insertBefore(pager,box.nextSibling);
+    pager.querySelector('[data-p="prev"]').onclick=function(){if(clientPage>1){clientPage--;applyClientPage()}};
+    pager.querySelector('[data-p="next"]').onclick=function(){if(clientPage<Math.ceil(cards.length/clientPageSize)){clientPage++;applyClientPage()}};
+  }
+  var max=Math.max(1,Math.ceil(cards.length/clientPageSize));
+  if(clientPage>max)clientPage=max;
+  function applyClientPage(){
+    var current=Array.prototype.slice.call(box.querySelectorAll('.fj-cd-card'));
+    current.forEach(function(c,i){c.style.display=(i>=(clientPage-1)*clientPageSize&&i<clientPage*clientPageSize)?'':'none'});
+    var p=q('fjV75ClientPager');if(!p)return;
+    p.querySelector('[data-p="info"]').textContent='Clients '+((clientPage-1)*clientPageSize+1)+'–'+Math.min(clientPage*clientPageSize,current.length)+' of '+current.length;
+    p.querySelector('[data-p="prev"]').disabled=clientPage<=1;
+    p.querySelector('[data-p="next"]').disabled=clientPage>=max;
+    p.style.display=max>1?'flex':'none';
+  }
+  applyClientPage();
+}
+var clientObserver=new MutationObserver(function(){setTimeout(setupClientPager,0)});
+clientObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+/* ============================================================
+   8. PT CALENDAR: CAP VISIBLE EVENTS + DAY DETAIL
+   ============================================================ */
+function ensureDayModal(){
+  if(q('fjV75DayModal'))return;
+  var m=document.createElement('div');m.id='fjV75DayModal';
+  m.innerHTML='<div class="fj-v75-day-box"><div class="fj-v75-day-head"><div><b id="fjV75DayTitle">Conducts</b><div id="fjV75DayCount" style="font-size:10px;color:#66827e;margin-top:2px"></div></div><button type="button" class="ptv2-btn alt" id="fjV75DayClose">Close</button></div><div id="fjV75DayRows"></div></div>';
+  document.body.appendChild(m);
+  q('fjV75DayClose').onclick=function(){m.classList.remove('open')};
+  m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open')});
+}
+function showDayEvents(day,events){
+  ensureDayModal();
+  q('fjV75DayTitle').textContent='Conducts — '+day;
+  q('fjV75DayCount').textContent=events.length+' session/event'+(events.length===1?'':'s')+' on this date';
+  q('fjV75DayRows').innerHTML=events.map(function(e){
+    var name=e.clientName||e.name||'Client',time=e.time||'',type=e.type||'PT Session',id=e.id||'';
+    return '<div class="fj-v75-day-row"><div><b>'+esc(name)+'</b><div style="font-size:9px;color:#6a8582">'+esc(time)+' • '+esc(type)+'</div></div>'+
+      (id?'<button type="button" data-open="'+esc(id)+'">Open</button>':'')+'</div>';
+  }).join('');
+  q('fjV75DayRows').querySelectorAll('[data-open]').forEach(function(b){
+    b.onclick=function(){mclose();if(window.fjPtV2Open)window.fjPtV2Open(b.getAttribute('data-open'))};
+  });
+  function mclose(){q('fjV75DayModal').classList.remove('open')}
+  q('fjV75DayModal').classList.add('open');
+}
+function capPtDays(){
+  var panel=q('fjPtOpsV2');if(!panel)return;
+  panel.querySelectorAll('.ptv2-day').forEach(function(day){
+    if(day.dataset.fjV75Done==='1')return;
+    var ev=Array.prototype.slice.call(day.querySelectorAll(':scope > .ptv2-event'));
+    if(ev.length<=5){day.dataset.fjV75Done='1';return}
+    day.dataset.fjV75Done='1';day.classList.add('fj-v75-dense');
+    var all=ev.map(function(el){
+      var onclick=el.getAttribute('onclick')||'',mm=onclick.match(/fjPtV2Open\(['"]([^'"]+)['"]\)/);
+      return {id:mm?mm[1]:'',name:(el.querySelector('b')||{}).textContent||'Client',time:(el.textContent||'').match(/\b\d{1,2}:\d{2}\b/)?.[0]||'',type:(el.textContent||'').replace((el.querySelector('b')||{}).textContent||'','').trim()};
+    });
+    ev.slice(5).forEach(function(x){x.style.display='none'});
+    var more=document.createElement('button');more.type='button';more.className='fj-v75-more';more.textContent='+'+(ev.length-5)+' more';
+    more.onclick=function(e){e.stopPropagation();showDayEvents(day.querySelector('.ptv2-daynum')?.textContent||'Selected day',all)};
+    day.appendChild(more);
+  });
+}
+var ptObserver=new MutationObserver(function(){setTimeout(capPtDays,0)});
+ptObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+/* ============================================================
+   9. MASTER-ADMIN-ONLY PT TRACKER + PT & CLIENT
+   UI gate only; Supabase RLS should also enforce the same rule.
+   ============================================================ */
+function gatePTPanels(){
+  var trackerNav=q('fjPtTrackerNav'),clientNav=q('fjPtClientNav'),panel=q('fjPtOpsV2');
+  var allowed=isMaster();
+  [trackerNav,clientNav].forEach(function(el){
+    if(!el)return;
+    el.style.setProperty('display',allowed?'flex':'none','important');
+    el.style.setProperty('visibility',allowed?'visible':'hidden','important');
+    el.setAttribute('aria-hidden',allowed?'false':'true');
+  });
+  if(panel&&!allowed){
+    panel.classList.remove('active');
+    panel.style.setProperty('display','none','important');
+    panel.setAttribute('aria-hidden','true');
+  }else if(panel&&allowed){
+    panel.style.removeProperty('display');
+    panel.removeAttribute('aria-hidden');
+  }
+  /* Prevent direct client-side entry points for non-master accounts. */
+  if(!allowed){
+    try{
+      if(window.location.hash&&/pt|client/i.test(window.location.hash))history.replaceState(null,'',location.pathname+location.search);
+    }catch(e){}
+  }
+}
+function wrapMasterAction(name){
+  try{
+    if(typeof window[name]!=='function'||window[name]['fjV75Guarded'])return;
+    var orig=window[name];
+    var fn=function(){
+      if(!isMaster()){alert('PT Tracker dan PT & Client hanya dapat diakses oleh Master Admin.');return false}
+      return orig.apply(this,arguments);
+    };
+    fn.fjV75Guarded=true;window[name]=fn;
+  }catch(e){}
+}
+function masterGateBoot(){
+  gatePTPanels();
+  ['fjPtV2Show','fjOpenPtClientUnified','fjPtV2Open','fjPtV2NewSchedule'].forEach(wrapMasterAction);
+}
+var gateObserver=new MutationObserver(function(){setTimeout(masterGateBoot,0)});
+gateObserver.observe(document.documentElement,{childList:true,subtree:true});
+setInterval(masterGateBoot,1200);
+
+/* Initial refreshes after existing library renderers have appeared. */
+[250,700,1500,3000].forEach(function(ms){setTimeout(function(){
+  canonicalizeExercises();addVariants();canonicalizeExercises();
+  refreshExerciseControls();setupClientPager();capPtDays();masterGateBoot();
+  repairMateriOutput();
+},ms)});
+
+})();
+</script>
+

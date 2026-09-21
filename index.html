@@ -10305,3 +10305,491 @@ window.addEventListener('load',function(){setTimeout(boot,1100)});
 <style id="fj-v73-smart-library">
 .exl-result-head,.exl-related-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0 7px;padding:9px 11px;border:1px solid #d8e7eb;border-radius:10px;background:#f8fbfc;color:#4f6f7b;font-size:11px}.exl-result-head b,.exl-related-head b{color:#174f72}.exl-related-head{background:#fffaf0;border-color:#efdfb7}.exl-related-card{background:#fffdf8}.exl-result-head span,.exl-related-head span{font-size:10px}@media(max-width:700px){.exl-result-head,.exl-related-head{display:block}.exl-result-head span,.exl-related-head span{display:block;margin-top:3px}}
 </style>
+
+
+<!-- FJ V75 SURGICAL LIBRARY / CALENDAR / MASTER-ADMIN ACCESS REPAIR
+     Scope: Exercise Library data/filtering, Materi & Edukasi muscle targeting,
+     Client Calendar directory pagination, PT calendar event density, PT-only panels.
+     Existing correct modules are not replaced. -->
+<style id="fj-v75-surgical-repair-css">
+/* Exercise Library: compact, readable, English muscle labels */
+#fjExerciseLibrary .exl-smart-input select,
+#fjExerciseLibrary #exlFLevel,
+#fjExerciseLibrary #exlFEquip,
+#fjExerciseLibrary #exlGoalReco{min-height:38px}
+#fjExerciseLibrary .exl-filter-note{font-size:10px;color:#607b8c;margin-top:5px}
+#fjExerciseLibrary .exl-disabled-option{opacity:.55}
+
+/* Client directory: never let a large client list consume the whole phone */
+#fjClientDirectory .fj-v75-client-pager{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:9px;padding:7px 8px;border:1px solid #dcebea;border-radius:9px;
+  background:#f8fdfd;font-size:10px;color:#52736f
+}
+#fjClientDirectory .fj-v75-client-pager button{
+  border:1px solid #cbdedb;background:#fff;border-radius:7px;padding:5px 8px;
+  font-size:10px;font-weight:800;cursor:pointer
+}
+#fjClientDirectory .fj-v75-client-pager button:disabled{opacity:.45;cursor:not-allowed}
+
+/* Dense calendar days: show a small stack + "more" instead of filling the screen */
+#fjPtOpsV2 .ptv2-day .fj-v75-more{
+  display:block;width:100%;box-sizing:border-box;margin-top:3px;padding:4px 5px;
+  border:1px dashed #a9c9c4;border-radius:6px;background:#f7fcfb;color:#17685f;
+  font-size:8px;font-weight:900;cursor:pointer
+}
+#fjPtOpsV2 .ptv2-day.fj-v75-dense{overflow:hidden}
+#fjV75DayModal{
+  position:fixed;inset:0;z-index:2147483100;display:none;align-items:center;justify-content:center;
+  padding:10px;background:rgba(7,35,42,.68)
+}
+#fjV75DayModal.open{display:flex}
+#fjV75DayModal .fj-v75-day-box{
+  width:min(620px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:15px;
+  padding:13px;box-shadow:0 20px 60px rgba(0,0,0,.28)
+}
+#fjV75DayModal .fj-v75-day-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+#fjV75DayModal .fj-v75-day-row{
+  display:flex;justify-content:space-between;gap:8px;align-items:center;
+  padding:8px;border:1px solid #e0ebeb;border-radius:9px;margin-top:6px;background:#fbfefe
+}
+#fjV75DayModal .fj-v75-day-row button{
+  flex:none;border:1px solid #cbdedb;background:#fff;border-radius:7px;padding:5px 7px;font-size:9px;font-weight:800
+}
+@media(max-width:760px){
+  #fjClientDirectory .fj-v75-client-pager{position:sticky;bottom:4px;z-index:3}
+  #fjV75DayModal .fj-v75-day-box{width:100%;max-height:94vh;border-radius:12px;padding:10px}
+  #fjPtOpsV2 .ptv2-day .fj-v75-more{font-size:7px;padding:3px}
+}
+</style>
+<script id="fj-v75-surgical-repair-runtime">
+(function(){
+'use strict';
+
+var MASTER='aldenkhafi0203@gmail.com';
+
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function isMaster(){
+  try{
+    var u=(typeof currentUser!=='undefined'&&currentUser)||window.currentUser||null;
+    return String(u&&u.email||'').trim().toLowerCase()===MASTER;
+  }catch(e){return false}
+}
+
+/* ============================================================
+   1–5. AUTHORITATIVE EXERCISE TAXONOMY + VARIANTS
+   ============================================================ */
+var muscleMap={
+  'dada':'Chest','dada (pectoralis major)':'Chest','dada (bagian tengah)':'Chest',
+  'dada atas (pectoralis major bagian klavikula)':'Upper Chest',
+  'dada atas':'Upper Chest','dada bawah':'Lower Chest',
+  'bahu':'Deltoids','deltoid':'Deltoids','deltoids':'Deltoids',
+  'bahu depan (deltoid anterior)':'Anterior Deltoid','deltoid anterior':'Anterior Deltoid',
+  'bahu tengah (deltoid lateral)':'Lateral Deltoid','deltoid lateral':'Lateral Deltoid',
+  'bahu belakang':'Rear Deltoid','bahu belakang (deltoid posterior)':'Rear Deltoid','deltoid posterior':'Rear Deltoid',
+  'punggung':'Back','punggung tengah':'Mid Back','mid back':'Mid Back',
+  'punggung bawah (erector spinae)':'Erector Spinae',
+  'latissimus dorsi (punggung lebar)':'Latissimus Dorsi','latissimus dorsi':'Latissimus Dorsi',
+  'bisep':'Biceps Brachii','biceps':'Biceps Brachii',
+  'trisep':'Triceps Brachii','triceps':'Triceps Brachii',
+  'lengan':'Arms','brachialis':'Brachialis','forearm / lengan bawah':'Forearms','forearm':'Forearms',
+  'glutes':'Gluteus Maximus','gluteus maximus':'Gluteus Maximus','quadriceps':'Quadriceps',
+  'quadriceps (pelepasan miofasial)':'Quadriceps','hamstring':'Hamstrings','hamstrings':'Hamstrings',
+  'betis (gastrocnemius)':'Gastrocnemius','calves':'Calves','calves / betis':'Calves',
+  'adductors':'Adductors','paha dalam':'Adductors',
+  'obliques':'Obliques','oblique (perut samping)':'Obliques',
+  'deep core':'Deep Core','core':'Core','core (rectus abdominis, transverse abdominis)':'Core',
+  'perut (rectus abdominis)':'Rectus Abdominis','perut bawah (rectus abdominis)':'Rectus Abdominis',
+  'core (stabilisasi tulang belakang)':'Core','rotator cuff':'Rotator Cuff',
+  'jantung & paru-paru':'Cardiorespiratory','jantung & paru-paru (kardiovaskular)':'Cardiorespiratory',
+  'full body':'Full Body','hip (mobilitas)':'Hip','hip (rotasi internal & eksternal)':'Hip',
+  'thoracic spine':'Thoracic Spine','tulang belakang (mobilitas)':'Spine'
+};
+function canonMuscle(v){
+  var s=String(v||'').trim(),k=s.toLowerCase();
+  return muscleMap[k]||s;
+}
+function normName(v){return String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function completeness(x){
+  var n=0;
+  ['name','cat','equip','level','move','pattern','desc'].forEach(function(k){if(x&&x[k])n++});
+  ['primary','secondary','steps','mistakes'].forEach(function(k){if(Array.isArray(x&&x[k])&&x[k].length)n+=x[k].length>3?2:1});
+  return n;
+}
+function canonEquip(v){
+  var s=String(v||'').trim(),k=s.toLowerCase();
+  var m={'kabel':'Cable','cable':'Cable','mesin':'Machine','machine':'Machine',
+    'tanpa alat':'Bodyweight','bodyweight':'Bodyweight','dumbbell / kettlebell':'Dumbbell / Kettlebell',
+    'band':'Resistance Band','resistance band':'Resistance Band'};
+  return m[k]||s;
+}
+function canonicalizeExercises(){
+  var a=window.__fjExerciseData;
+  if(!Array.isArray(a))return;
+  a.forEach(function(x){
+    if(Array.isArray(x.primary))x.primary=x.primary.map(canonMuscle).filter(Boolean);
+    if(Array.isArray(x.secondary))x.secondary=x.secondary.map(canonMuscle).filter(Boolean);
+    if(x.equip)x.equip=canonEquip(x.equip);
+  });
+  /* Remove exact-name duplicates, keeping the most complete record. */
+  var best={},order=[];
+  a.forEach(function(x){
+    var k=normName(x.name);
+    if(!k)return;
+    if(!best[k]){best[k]=x;order.push(k)}
+    else if(completeness(x)>completeness(best[k]))best[k]=x;
+  });
+  a.splice(0,a.length);
+  order.forEach(function(k){a.push(best[k])});
+}
+function addExercise(x){
+  var a=window.__fjExerciseData;
+  if(!Array.isArray(a))return;
+  var key=normName(x.name);
+  if(a.some(function(d){return normName(d.name)===key}))return;
+  x.primary=(x.primary||[]).map(canonMuscle);x.secondary=(x.secondary||[]).map(canonMuscle);x.equip=canonEquip(x.equip);
+  a.push(x);
+}
+function sets(){return {kekuatan:'3 x 6-10',hipertrofi:'3-4 x 8-15',ketahanan:'2-3 x 12-20'}}
+
+/* Missing/common variants. These are deliberately explicit so equipment is real,
+   muscle targeting is direct, and a biceps selection does not fall back to back. */
+function addVariants(){
+  var s=sets(),base={desc:'Controlled resistance exercise selected for direct muscle targeting.',steps:['Set up with stable posture and the appropriate equipment.','Move through a controlled range of motion.','Return under control without momentum.'],mistakes:['Using momentum to complete repetitions.','Loading beyond the available technique.'],sets:s};
+  [
+   ['Barbell Biceps Curl','Arms','Barbell','Menengah','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Dumbbell Biceps Curl','Arms','Dumbbell','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Alternating Cable Biceps Curl','Arms','Cable','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Seated Biceps Curl Machine','Arms','Machine','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Preacher Curl Machine','Arms','Machine','Pemula','isolation',['Biceps Brachii'],['Brachialis']],
+   ['EZ-Bar Curl','Arms','EZ Bar','Menengah','isolation',['Biceps Brachii'],['Brachialis']],
+   ['Hammer Curl','Arms','Dumbbell','Pemula','isolation',['Brachialis','Biceps Brachii'],['Forearms']],
+   ['Cable Hammer Curl','Arms','Cable','Pemula','isolation',['Brachialis','Biceps Brachii'],['Forearms']],
+   ['Lateral Raise Machine','Shoulders','Machine','Pemula','isolation',['Lateral Deltoid'],['Anterior Deltoid']],
+   ['Cable Lateral Raise','Shoulders','Cable','Pemula','isolation',['Lateral Deltoid'],['Upper Trapezius']],
+   ['Resistance Band Lateral Raise','Shoulders','Resistance Band','Pemula','isolation',['Lateral Deltoid'],['Upper Trapezius']],
+   ['Lean-Away Cable Lateral Raise','Shoulders','Cable','Menengah','isolation',['Lateral Deltoid'],['Upper Trapezius']],
+   ['Machine Rear Delt Fly','Shoulders','Machine','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
+   ['Cable Rear Delt Fly','Shoulders','Cable','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
+   ['Dumbbell Rear Delt Fly','Shoulders','Dumbbell','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
+   ['Reverse Pec Deck','Shoulders','Machine','Pemula','isolation',['Rear Deltoid'],['Mid Back']],
+   ['Cable Chest Fly','Chest','Cable','Pemula','isolation',['Chest'],['Anterior Deltoid']],
+   ['Machine Chest Fly','Chest','Machine','Pemula','isolation',['Chest'],['Anterior Deltoid']],
+   ['Dumbbell Chest Fly','Chest','Dumbbell','Pemula','isolation',['Chest'],['Anterior Deltoid']],
+   ['Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
+   ['Knee Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
+   ['Standard Push-Up','Chest','Bodyweight','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid','Core']],
+   ['Dumbbell Floor Press','Chest','Dumbbell','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
+   ['Chest Press Machine','Chest','Machine','Pemula','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
+   ['Smith Machine Bench Press','Chest','Smith Machine','Menengah','compound',['Chest'],['Triceps Brachii','Anterior Deltoid']],
+   ['Assisted Pull-Up','Back','Machine','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Lat Pulldown Machine','Back','Machine','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Cable Lat Pulldown','Back','Cable','Pemula','compound',['Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Straight-Arm Cable Pulldown','Back','Cable','Pemula','isolation',['Latissimus Dorsi'],['Core']],
+   ['Inverted Row','Back','Bodyweight','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Seated Cable Row','Back','Cable','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Machine Row','Back','Machine','Pemula','compound',['Mid Back','Latissimus Dorsi'],['Biceps Brachii','Rear Deltoid']],
+   ['Chest-Supported Machine Row','Back','Machine','Pemula','compound',['Mid Back'],['Latissimus Dorsi','Biceps Brachii','Rear Deltoid']],
+   ['Bodyweight Squat','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings','Calves','Core']],
+   ['Split Squat','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings','Calves','Core']],
+   ['Walking Lunge','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings','Adductors','Calves','Core']],
+   ['Reverse Lunge','Legs','Bodyweight','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings','Adductors','Calves','Core']],
+   ['Leg Press Machine','Legs','Machine','Pemula','compound',['Quadriceps','Gluteus Maximus'],['Hamstrings']],
+   ['Hack Squat Machine','Legs','Machine','Menengah','compound',['Quadriceps','Gluteus Maximus'],['Adductors','Hamstrings']],
+   ['Leg Curl Machine','Legs','Machine','Pemula','isolation',['Hamstrings'],['Calves']],
+   ['Seated Leg Curl Machine','Legs','Machine','Pemula','isolation',['Hamstrings'],['Calves']],
+   ['Standing Calf Raise Machine','Legs','Machine','Pemula','isolation',['Calves'],[]],
+   ['Seated Calf Raise Machine','Legs','Machine','Pemula','isolation',['Calves'],[]],
+   ['Single-Leg Calf Raise','Legs','Bodyweight','Pemula','isolation',['Calves'],[]],
+   ['Wall Sit','Legs','Bodyweight','Pemula','isolation',['Quadriceps'],['Gluteus Maximus']],
+   ['Glute Bridge','Hips','Bodyweight','Pemula','compound',['Gluteus Maximus'],['Hamstrings','Core']],
+   ['Hip Thrust Machine','Hips','Machine','Pemula','compound',['Gluteus Maximus'],['Hamstrings']],
+   ['Barbell Hip Thrust','Hips','Barbell','Menengah','compound',['Gluteus Maximus'],['Hamstrings','Core']],
+   ['Cable Pull-Through','Hips','Cable','Pemula','compound',['Gluteus Maximus','Hamstrings'],['Core']],
+   ['Romanian Deadlift','Hips','Barbell','Menengah','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae','Adductors']],
+   ['Dumbbell Romanian Deadlift','Hips','Dumbbell','Pemula','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae','Adductors']],
+   ['Kettlebell Romanian Deadlift','Hips','Kettlebell','Menengah','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae']],
+   ['Bodyweight Hip Hinge','Hips','Bodyweight','Pemula','compound',['Hamstrings','Gluteus Maximus'],['Erector Spinae']],
+   ['Side-Lying Leg Raise','Hips','Bodyweight','Pemula','isolation',['Gluteus Medius'],['Core']],
+   ['Cable Hip Abduction','Hips','Cable','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
+   ['Hip Abduction Machine','Hips','Machine','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
+   ['Band Hip Abduction','Hips','Resistance Band','Pemula','isolation',['Gluteus Medius'],['Gluteus Maximus']],
+   ['Bodyweight Adductor Raise','Hips','Bodyweight','Pemula','isolation',['Adductors'],['Core']],
+   ['Cable Hip Adduction','Hips','Cable','Pemula','isolation',['Adductors'],['Core']],
+   ['Adductor Machine','Hips','Machine','Pemula','isolation',['Adductors'],['Core']],
+   ['Side-Lying Hip Adduction','Hips','Bodyweight','Pemula','isolation',['Adductors'],['Core']],
+   ['Copenhagen Plank','Core','Bodyweight','Menengah','isolation',['Adductors'],['Obliques','Core']],
+   ['Dead Bug','Core','Bodyweight','Pemula','isolation',['Deep Core'],['Hip Flexors']],
+   ['Bird Dog','Core','Bodyweight','Pemula','compound',['Core'],['Gluteus Maximus','Rear Deltoid']],
+   ['Front Plank','Core','Bodyweight','Pemula','isolation',['Core'],['Rectus Abdominis','Obliques']],
+   ['Side Plank','Core','Bodyweight','Pemula','isolation',['Obliques'],['Core','Gluteus Medius']],
+   ['Cable Pallof Press','Core','Cable','Pemula','isolation',['Core'],['Obliques']],
+   ['Ab Crunch Machine','Core','Machine','Pemula','isolation',['Rectus Abdominis'],['Obliques']]
+  ].forEach(function(v){
+    var x=Object.assign({},base,{name:v[0],cat:v[1],equip:v[2],level:v[3],move:v[4],primary:v[5],secondary:v[6]});
+    addExercise(x);
+  });
+}
+function rebuildExerciseData(){canonicalizeExercises();addVariants();canonicalizeExercises()}
+rebuildExerciseData();
+
+/* Muscle selector: primary target only, canonical English, no duplicate aliases. */
+function exercisePrimaryMuscles(){
+  var set={};
+  (window.__fjExerciseData||[]).forEach(function(d){(d.primary||[]).forEach(function(m){m=canonMuscle(m);if(m)set[m]=1})});
+  return Object.keys(set).sort();
+}
+function currentExerciseFocus(){
+  var m=q('exlFMuscle'),p=q('exlFPattern'),s=q('exlSearch');
+  return {muscle:m&&m.value||'',pattern:p&&p.value||'',search:s&&s.value||''};
+}
+function directExerciseMatch(d,focus){
+  var f=focus||currentExerciseFocus(),hay=(d.primary||[]).concat(d.secondary||[]).map(canonMuscle).join(' ').toLowerCase();
+  var name=String(d.name||'').toLowerCase();
+  if(f.muscle)return hay.indexOf(String(f.muscle).toLowerCase())>=0;
+  if(f.pattern){
+    var p=String(d.pattern||d.move||'').toLowerCase();
+    return p.indexOf(String(f.pattern).toLowerCase())>=0;
+  }
+  if(f.search)return name.indexOf(String(f.search).toLowerCase())>=0||hay.indexOf(String(f.search).toLowerCase())>=0;
+  return true;
+}
+function refreshExerciseMuscleSelect(){
+  var s=q('exlFMuscle');if(!s)return;
+  var val=s.value,opts=exercisePrimaryMuscles();
+  s.innerHTML='<option value="">Choose muscle</option>'+opts.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join('');
+  if(opts.indexOf(val)>=0)s.value=val;
+}
+function refreshEquipmentAvailability(){
+  var s=q('exlFEquip');if(!s)return;
+  var f=currentExerciseFocus(),level=(q('exlFLevel')||{}).value||'';
+  var all={};
+  (window.__fjExerciseData||[]).forEach(function(d){
+    if(f.muscle&&!directExerciseMatch(d,{muscle:f.muscle}))return;
+    if(f.pattern&&!directExerciseMatch(d,{pattern:f.pattern}))return;
+    if(f.search&&!directExerciseMatch(d,{search:f.search}))return;
+    if(level&&d.level!==level)return;
+    all[String(d.equip||'')]=1;
+  });
+  var current=s.value;
+  Array.prototype.forEach.call(s.options,function(o){
+    if(!o.value){o.disabled=false;return}
+    o.disabled=!all[o.value];
+    o.classList.toggle('exl-disabled-option',o.disabled);
+  });
+  if(current&&(!all[current])){s.value='';s.dispatchEvent(new Event('change',{bubbles:true}))}
+}
+function refreshExerciseControls(){
+  refreshExerciseMuscleSelect();
+  refreshEquipmentAvailability();
+  var g=q('exlGoalReco');if(g)g.title='Goal changes recommendation/programming context only; muscle/equipment filters remain direct.';
+}
+var exObserver=new MutationObserver(function(){
+  if(q('fjExerciseLibrary'))setTimeout(refreshExerciseControls,0);
+});
+exObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+/* ============================================================
+   6. MATERI & EDUKASI: ONE SELECTED MUSCLE = ONE PRIMARY
+   ============================================================ */
+function eduCanonicalName(v){return canonMuscle(v)}
+function selectedEduMuscle(){
+  var s=q('eduMuscle');return s&&s.value?eduCanonicalName(s.value):'';
+}
+function dataMuscleHas(d,target){
+  target=eduCanonicalName(target).toLowerCase();
+  var p=(d.primary||[]).map(canonMuscle),s=(d.secondary||[]).map(canonMuscle);
+  return p.concat(s).some(function(x){return String(x).toLowerCase()===target});
+}
+function eduDirectList(target){
+  var a=(window.__fjExerciseData||[]).filter(function(d){return dataMuscleHas(d,target)});
+  var seen={},out=[];
+  a.sort(function(x,y){
+    var xi=(x.primary||[]).map(canonMuscle).map(function(z){return z.toLowerCase()}).indexOf(String(target).toLowerCase())>=0?1:0;
+    var yi=(y.primary||[]).map(canonMuscle).map(function(z){return z.toLowerCase()}).indexOf(String(target).toLowerCase())>=0?1:0;
+    return yi-xi||String(x.name).localeCompare(String(y.name));
+  }).forEach(function(d){var k=normName(d.name);if(!seen[k]){seen[k]=1;out.push(d)}});
+  return out.slice(0,18);
+}
+function eduMetaText(d){
+  var p=(d.primary||[]).map(canonMuscle),s=(d.secondary||[]).map(canonMuscle);
+  return {p:p,s:s};
+}
+function repairMateriOutput(){
+  var root=q('exlMateri');if(!root)return;
+  var target=selectedEduMuscle();if(!target)return;
+  var primarySec=Array.prototype.find.call(root.querySelectorAll('section'),function(sec){
+    var h=sec.querySelector('h3');return h&&h.textContent.trim()==='Otot Primer';
+  });
+  var secondarySec=Array.prototype.find.call(root.querySelectorAll('section'),function(sec){
+    var h=sec.querySelector('h3');return h&&h.textContent.trim()==='Otot Sekunder';
+  });
+  var list=eduDirectList(target),secSet={},primarySet={};
+  list.forEach(function(d){
+    var m=eduMetaText(d);
+    m.p.forEach(function(x){if(x.toLowerCase()!==target.toLowerCase())primarySet[x]=1});
+    m.s.forEach(function(x){if(x.toLowerCase()!==target.toLowerCase())secSet[x]=1});
+  });
+  if(primarySec){
+    var p=primarySec.querySelector('p');if(p)p.textContent=target;
+  }
+  if(secondarySec){
+    var sp=secondarySec.querySelector('p');
+    if(sp)sp.textContent=Object.keys(secSet).filter(function(x){return !primarySet[x]}).slice(0,8).join(' • ')||'—';
+  }
+  var grid=root.querySelector('.edu-ex-grid');
+  if(grid){
+    function card(d){
+      var p=(d.primary||[]).map(canonMuscle).join(', ')||'—';
+      var m=fjExMeta(d);
+      return '<article class="edu-ex-card"><div class="edu-ex-title"><b>'+esc(d.name)+'</b><span>'+esc(d.level)+'</span></div>'+
+        '<div class="edu-ex-tags"><span>'+esc(m.type)+'</span><span>'+esc(m.pattern)+'</span><span>'+esc(d.equip)+'</span></div>'+
+        '<div class="edu-ex-small"><b>Primary:</b> '+esc(p)+'<br><b>Joints:</b> '+esc(m.joints)+'</div>'+
+        '<div class="edu-ex-small"><b>Programming:</b> '+esc((d.sets&&d.sets.hipertrofi)||'see exercise detail')+'</div>'+
+        '<button type="button" class="exl-btn alt" onclick="window.fjExlOpen(\''+esc(d.id)+'\')">View Exercise Detail</button></article>';
+    }
+    grid.innerHTML=list.map(card).join('');
+    var count=root.querySelector('.edu-section-head>span');if(count)count.textContent=list.length+' direct target';
+  }
+}
+var eduObserver=new MutationObserver(function(){
+  if(q('exlMateri')&&q('eduMuscle'))setTimeout(repairMateriOutput,0);
+});
+eduObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+/* ============================================================
+   7. CLIENT DIRECTORY PAGINATION
+   ============================================================ */
+var clientPage=1,clientPageSize=12;
+function setupClientPager(){
+  var box=q('fjcdList'),dir=q('fjClientDirectory');if(!box||!dir)return;
+  var cards=Array.prototype.slice.call(box.querySelectorAll('.fj-cd-card'));
+  if(!cards.length)return;
+  var pager=q('fjV75ClientPager');
+  if(!pager){
+    pager=document.createElement('div');pager.id='fjV75ClientPager';pager.className='fj-v75-client-pager';
+    pager.innerHTML='<button type="button" data-p="prev">← Previous</button><span data-p="info"></span><button type="button" data-p="next">Next →</button>';
+    box.parentNode.insertBefore(pager,box.nextSibling);
+    pager.querySelector('[data-p="prev"]').onclick=function(){if(clientPage>1){clientPage--;applyClientPage()}};
+    pager.querySelector('[data-p="next"]').onclick=function(){if(clientPage<Math.ceil(cards.length/clientPageSize)){clientPage++;applyClientPage()}};
+  }
+  var max=Math.max(1,Math.ceil(cards.length/clientPageSize));
+  if(clientPage>max)clientPage=max;
+  function applyClientPage(){
+    var current=Array.prototype.slice.call(box.querySelectorAll('.fj-cd-card'));
+    current.forEach(function(c,i){c.style.display=(i>=(clientPage-1)*clientPageSize&&i<clientPage*clientPageSize)?'':'none'});
+    var p=q('fjV75ClientPager');if(!p)return;
+    p.querySelector('[data-p="info"]').textContent='Clients '+((clientPage-1)*clientPageSize+1)+'–'+Math.min(clientPage*clientPageSize,current.length)+' of '+current.length;
+    p.querySelector('[data-p="prev"]').disabled=clientPage<=1;
+    p.querySelector('[data-p="next"]').disabled=clientPage>=max;
+    p.style.display=max>1?'flex':'none';
+  }
+  applyClientPage();
+}
+var clientObserver=new MutationObserver(function(){setTimeout(setupClientPager,0)});
+clientObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+/* ============================================================
+   8. PT CALENDAR: CAP VISIBLE EVENTS + DAY DETAIL
+   ============================================================ */
+function ensureDayModal(){
+  if(q('fjV75DayModal'))return;
+  var m=document.createElement('div');m.id='fjV75DayModal';
+  m.innerHTML='<div class="fj-v75-day-box"><div class="fj-v75-day-head"><div><b id="fjV75DayTitle">Conducts</b><div id="fjV75DayCount" style="font-size:10px;color:#66827e;margin-top:2px"></div></div><button type="button" class="ptv2-btn alt" id="fjV75DayClose">Close</button></div><div id="fjV75DayRows"></div></div>';
+  document.body.appendChild(m);
+  q('fjV75DayClose').onclick=function(){m.classList.remove('open')};
+  m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open')});
+}
+function showDayEvents(day,events){
+  ensureDayModal();
+  q('fjV75DayTitle').textContent='Conducts — '+day;
+  q('fjV75DayCount').textContent=events.length+' session/event'+(events.length===1?'':'s')+' on this date';
+  q('fjV75DayRows').innerHTML=events.map(function(e){
+    var name=e.clientName||e.name||'Client',time=e.time||'',type=e.type||'PT Session',id=e.id||'';
+    return '<div class="fj-v75-day-row"><div><b>'+esc(name)+'</b><div style="font-size:9px;color:#6a8582">'+esc(time)+' • '+esc(type)+'</div></div>'+
+      (id?'<button type="button" data-open="'+esc(id)+'">Open</button>':'')+'</div>';
+  }).join('');
+  q('fjV75DayRows').querySelectorAll('[data-open]').forEach(function(b){
+    b.onclick=function(){mclose();if(window.fjPtV2Open)window.fjPtV2Open(b.getAttribute('data-open'))};
+  });
+  function mclose(){q('fjV75DayModal').classList.remove('open')}
+  q('fjV75DayModal').classList.add('open');
+}
+function capPtDays(){
+  var panel=q('fjPtOpsV2');if(!panel)return;
+  panel.querySelectorAll('.ptv2-day').forEach(function(day){
+    if(day.dataset.fjV75Done==='1')return;
+    var ev=Array.prototype.slice.call(day.querySelectorAll(':scope > .ptv2-event'));
+    if(ev.length<=5){day.dataset.fjV75Done='1';return}
+    day.dataset.fjV75Done='1';day.classList.add('fj-v75-dense');
+    var all=ev.map(function(el){
+      var onclick=el.getAttribute('onclick')||'',mm=onclick.match(/fjPtV2Open\(['"]([^'"]+)['"]\)/);
+      return {id:mm?mm[1]:'',name:(el.querySelector('b')||{}).textContent||'Client',time:(el.textContent||'').match(/\b\d{1,2}:\d{2}\b/)?.[0]||'',type:(el.textContent||'').replace((el.querySelector('b')||{}).textContent||'','').trim()};
+    });
+    ev.slice(5).forEach(function(x){x.style.display='none'});
+    var more=document.createElement('button');more.type='button';more.className='fj-v75-more';more.textContent='+'+(ev.length-5)+' more';
+    more.onclick=function(e){e.stopPropagation();showDayEvents(day.querySelector('.ptv2-daynum')?.textContent||'Selected day',all)};
+    day.appendChild(more);
+  });
+}
+var ptObserver=new MutationObserver(function(){setTimeout(capPtDays,0)});
+ptObserver.observe(document.documentElement,{childList:true,subtree:true});
+
+/* ============================================================
+   9. MASTER-ADMIN-ONLY PT TRACKER + PT & CLIENT
+   UI gate only; Supabase RLS should also enforce the same rule.
+   ============================================================ */
+function gatePTPanels(){
+  var trackerNav=q('fjPtTrackerNav'),clientNav=q('fjPtClientNav'),panel=q('fjPtOpsV2');
+  var allowed=isMaster();
+  [trackerNav,clientNav].forEach(function(el){
+    if(!el)return;
+    el.style.setProperty('display',allowed?'flex':'none','important');
+    el.style.setProperty('visibility',allowed?'visible':'hidden','important');
+    el.setAttribute('aria-hidden',allowed?'false':'true');
+  });
+  if(panel&&!allowed){
+    panel.classList.remove('active');
+    panel.style.setProperty('display','none','important');
+    panel.setAttribute('aria-hidden','true');
+  }else if(panel&&allowed){
+    panel.style.removeProperty('display');
+    panel.removeAttribute('aria-hidden');
+  }
+  /* Prevent direct client-side entry points for non-master accounts. */
+  if(!allowed){
+    try{
+      if(window.location.hash&&/pt|client/i.test(window.location.hash))history.replaceState(null,'',location.pathname+location.search);
+    }catch(e){}
+  }
+}
+function wrapMasterAction(name){
+  try{
+    if(typeof window[name]!=='function'||window[name]['fjV75Guarded'])return;
+    var orig=window[name];
+    var fn=function(){
+      if(!isMaster()){alert('PT Tracker dan PT & Client hanya dapat diakses oleh Master Admin.');return false}
+      return orig.apply(this,arguments);
+    };
+    fn.fjV75Guarded=true;window[name]=fn;
+  }catch(e){}
+}
+function masterGateBoot(){
+  gatePTPanels();
+  ['fjPtV2Show','fjOpenPtClientUnified','fjPtV2Open','fjPtV2NewSchedule'].forEach(wrapMasterAction);
+}
+var gateObserver=new MutationObserver(function(){setTimeout(masterGateBoot,0)});
+gateObserver.observe(document.documentElement,{childList:true,subtree:true});
+setInterval(masterGateBoot,1200);
+
+/* Initial refreshes after existing library renderers have appeared. */
+[250,700,1500,3000].forEach(function(ms){setTimeout(function(){
+  canonicalizeExercises();addVariants();canonicalizeExercises();
+  refreshExerciseControls();setupClientPager();capPtDays();masterGateBoot();
+  repairMateriOutput();
+},ms)});
+
+})();
+</script>
+

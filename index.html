@@ -1,4 +1,3 @@
-<!-- FJ V88 — MATERI & EDUKASI ONLY FUNCTION FIX -->
 <!DOCTYPE html>
 
 <html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/><meta content="#102a43" name="theme-color"/><meta content="yes" name="mobile-web-app-capable"/><meta content="yes" name="apple-mobile-web-app-capable"/><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/><meta content="FITNESS JOURNEY" name="apple-mobile-web-app-title"/><link href="manifest.webmanifest" rel="manifest"/><link href="icon-192.png" rel="apple-touch-icon"/><title>FITNESS JOURNEY — Final</title>
@@ -1425,35 +1424,6 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 /* V69: PT name edit button is compact only on phones; desktop/laptop stays comfortable. */
 #fjPtNameManager .fj-ptm-row button{font-size:12px!important;padding:8px 12px!important;min-height:34px!important;line-height:1.2!important}
 @media(max-width:760px){#fjPtNameManager .fj-ptm-row button{font-size:9px!important;padding:5px 8px!important;min-height:28px!important}}
-</style>
-
-<style id="fj-v90-materi-css-only-fix">
-/* V90 — ONLY fixes visibility of the existing Materi & Edukasi view.
-   No content, renderer, data, navigation, calendar, or other panel is changed. */
-#fjExerciseLibrary #exlMateri.exl-view.active{
-  display:block!important;
-  visibility:visible!important;
-  opacity:1!important;
-  position:relative!important;
-  width:100%!important;
-  height:auto!important;
-  min-height:1px!important;
-  overflow:visible!important;
-}
-#fjExerciseLibrary #exlBrowse.exl-view:not(.active),
-#fjExerciseLibrary #exlSelected.exl-view:not(.active){
-  display:none!important;
-}
-#fjExerciseLibrary .exl-tabs{position:relative!important;z-index:2!important;}
-#fjExerciseLibrary #exlMateri .edu-main-card,
-#fjExerciseLibrary #exlMateri .edu-profile-head,
-#fjExerciseLibrary #exlMateri .edu-info-grid,
-#fjExerciseLibrary #exlMateri .edu-anatomy-grid,
-#fjExerciseLibrary #exlMateri .edu-prep-grid,
-#fjExerciseLibrary #exlMateri .edu-exercise-results{
-  visibility:visible!important;
-  opacity:1!important;
-}
 </style>
 </head><body>
 
@@ -7944,6 +7914,58 @@ function hook(){var old=window.fjOpenPtClientUnified;if(typeof old!=='function')
 setTimeout(function(){hook();if($('fjPtClientUnified')?.classList.contains('active')&&!$('fjPtNameManager'))refresh()},250);
 })();
 </script>
+<script id="fj-v92-materi-entry-only">
+(function(){'use strict';
+/* V92: Materi & Edukasi entry-point only.  Source baseline is V87.
+   Does not replace the education renderer, data, CSS, or any other module. */
+function byId(id){return document.getElementById(id)}
+function openMateri(){
+  var exNav=byId('fjExLibNav');
+  if(exNav){
+    try{exNav.click()}catch(e){}
+  }
+  var tab=document.querySelector('#fjExerciseLibrary .exl-tab[data-v="materi"]');
+  if(tab){
+    try{tab.click()}catch(e){
+      /* fallback only if the existing tab handler cannot be invoked */
+      var panel=byId('fjExerciseLibrary'),view=byId('exlMateri');
+      if(panel&&view){
+        document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+        panel.classList.add('active');
+        document.querySelectorAll('#fjExerciseLibrary .exl-view').forEach(function(v){v.classList.remove('active')});
+        view.classList.add('active');
+      }
+    }
+  }
+}
+function install(){
+  var side=document.querySelector('.side'); if(!side)return;
+  var n=byId('fjMateriNav');
+  if(!n){
+    n=document.createElement('button');
+    n.id='fjMateriNav'; n.type='button'; n.className='navbtn';
+    n.textContent='📖 Materi & Edukasi';
+    n.setAttribute('aria-label','Materi & Edukasi');
+    var ex=byId('fjExLibNav');
+    if(ex&&ex.parentNode)ex.parentNode.insertBefore(n,ex.nextSibling);
+    else side.appendChild(n);
+  }
+  if(n.dataset.fj92Bound!=='1'){
+    n.dataset.fj92Bound='1';
+    n.addEventListener('click',function(ev){
+      ev.preventDefault();ev.stopPropagation();
+      side.querySelectorAll('.navbtn').forEach(function(b){b.classList.remove('active');b.classList.remove('fj-v617-active')});
+      n.classList.add('active');
+      openMateri();
+    },true);
+  }
+}
+function ready(){install()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+setTimeout(install,250);
+setTimeout(install,800);
+})();
+</script>
 </body></html>
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -9563,7 +9585,7 @@ function build(){
     '<div class="exl-tabs">'+
       '<button class="exl-tab active" data-v="browse">Cari Exercise</button>'+
       '<button class="exl-tab" data-v="selected">Pilihan Saya (<span id="exlSelCount">0</span>)</button>'+
-      '<button type="button" class="exl-tab" data-v="materi" onclick="return window.fjOpenMateriDirect ? window.fjOpenMateriDirect(event) : false;">📖 Materi &amp; Edukasi</button>'+
+      '<button class="exl-tab" data-v="materi">📖 Materi &amp; Edukasi</button>'+
     '</div>'+
     '<div id="exlBrowse" class="exl-view active"></div>'+
     '<div id="exlSelected" class="exl-view"></div>'+
@@ -9572,27 +9594,9 @@ function build(){
   '<div id="exlModal" class="exl-modal"><div class="exl-modalbox" id="exlModalBody"></div></div>';
   m.appendChild(sec);
   sec.querySelectorAll('.exl-tab').forEach(function(b){b.onclick=function(){show(b.dataset.v)}});
-  /* Materi-only direct binding: no navigation rebuild. */
-  var materiTab=sec.querySelector('.exl-tab[data-v=\"materi\"]');
-  if(materiTab)materiTab.onclick=function(e){return window.fjOpenMateriDirect ? window.fjOpenMateriDirect(e) : show('materi')};
 }
 
 function show(v){
-  /* Materi & Edukasi: switch only the existing Exercise Library view.
-     Do not rebuild navigation/panels here; that was causing the empty/laggy
-     transition when this tab was clicked. Other Exercise Library tabs keep
-     their existing behavior. */
-  if(v==='materi'){
-    var panel=q('fjExerciseLibrary'),view=q('exlMateri');
-    if(!panel||!view)return;
-    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
-    panel.classList.add('active');
-    panel.querySelectorAll('.exl-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v==='materi')});
-    panel.querySelectorAll('.exl-view').forEach(function(x){x.classList.remove('active')});
-    view.classList.add('active');
-    renderMateri();
-    return;
-  }
   nav();build();
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
   q('fjExerciseLibrary').classList.add('active');
@@ -9602,6 +9606,7 @@ function show(v){
   q(map[v]).classList.add('active');
   if(v==='browse')renderBrowse();
   if(v==='selected')renderSelected();
+  if(v==='materi')renderMateri();
 }
 
 function filterData(){
@@ -9852,24 +9857,6 @@ function eduRender(){
   ['eduMuscle','eduJoint'].forEach(function(id){var el=q(id);if(el)el.onchange=function(){EDU_FILTER.muscle=q('eduMuscle').value;EDU_FILTER.joint=q('eduJoint').value;EDU_FILTER.exercise='';EDU_FILTER.pattern='';EDU_FILTER.bone='';EDU_FILTER.sport='';EDU_FILTER.level='';eduRender()}});
 }
 function renderMateri(){eduRender()}
-/* V89: expose the existing Materi view through one direct entry point.
-   This does not create a new panel, CSS layer, observer, or renderer. */
-window.fjOpenMateriDirect=function(ev){
-  try{
-    if(ev){ev.preventDefault();ev.stopPropagation();}
-    var panel=q('fjExerciseLibrary'),view=q('exlMateri');
-    if(!panel||!view)return false;
-    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
-    panel.classList.add('active');
-    panel.querySelectorAll('.exl-tab').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-v')==='materi')});
-    panel.querySelectorAll('.exl-view').forEach(function(x){x.classList.remove('active')});
-    view.classList.add('active');
-    renderMateri();
-  }catch(err){
-    console.error('Materi & Edukasi open failed',err);
-  }
-  return false;
-};
 function boot(){nav();}
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

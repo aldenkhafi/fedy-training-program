@@ -1514,7 +1514,19 @@ function ptRefreshSalesPackage(form='new',selectedCode=''){
 window.ptRefreshSalesPackage=ptRefreshSalesPackage;
 let regular=true,quota=false,selectedMembership=null,selectedPT=null,assessment=null,program=null;
 function priced(n){return n*(regular?1.05:1)}
-function nav(){document.querySelectorAll('.navbtn[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById(b.dataset.tab).classList.add('active')})}
+function nav(){
+  document.querySelectorAll('.navbtn[data-tab]').forEach(b=>{
+    if(b.dataset.fjNavBound==='1') return;
+    b.dataset.fjNavBound='1';
+    b.onclick=()=>{
+      document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      const target=document.getElementById(b.dataset.tab);
+      if(target) target.classList.add('active');
+    };
+  });
+}
 /* FITNESS JOURNEY — persistent form state
    Every dashboard feature keeps entered values through refresh/navigation/mobile scroll.
    Values are removed only through that feature's Reset button (or browser storage clear). */
@@ -6442,7 +6454,7 @@ function status(p){if(!p)return'EXPIRED';if(Number(p.used_sessions)>=Number(p.to
 function clients(){return V.clients.filter(function(c){return master()||manager()||c.pt_user_id===uid()})}
 function client(id){return V.clients.find(function(c){return c.id===id})}
 function activeP(id){return V.packages.filter(function(p){return p.client_id===id&&Number(p.used_sessions)<Number(p.total_sessions)&&p.expiry_date>=today()}).sort(function(a,b){return String(a.expiry_date).localeCompare(String(b.expiry_date))})}
-function nav(){if(!can())return;var side=document.querySelector('.side');if(!side)return;if(!q('fjPtOpsV2Nav')){var n=document.createElement('button');n.id='fjPtOpsV2Nav';n.className='navbtn';n.textContent='▣ PT Management';n.type='button';n.onclick=function(){show('calendar')};var anchor=document.getElementById('clientCalendarNav');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n)}}
+function nav(){if(!can())return;var side=document.querySelector('.side');if(!side)return;if(!q('fjPtOpsV2Nav')){var n=document.createElement('button');n.id='fjPtOpsV2Nav';n.className='navbtn';n.textContent='▣ PT Management';n.type='button';n.onclick=function(){document.querySelectorAll('.navbtn').forEach(function(x){x.classList.remove('active')});n.classList.add('active');show('calendar')};var anchor=document.getElementById('clientCalendarNav');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n)}}
 function build(){if(q('fjPtOpsV2')||!can())return;var main=document.querySelector('main.main')||document.querySelector('.main');if(!main)return;var sec=document.createElement('section');sec.className='panel';sec.id='fjPtOpsV2';sec.innerHTML='<div class="ptv2-shell"><div class="ptv2-head"><div><div class="label">PT MANAGEMENT</div><h2>Client Operations</h2><div class="ptv2-muted">Client Calendar • Client List • Client Detail • Package • Conduct • Master Monitor</div></div><div class="pill">'+E(master()?'MASTER ADMIN':access())+'</div></div><div class="ptv2-tabs"><button class="ptv2-tab active" data-v="calendar">Client Calendar</button><button class="ptv2-tab" data-v="clients">Client List</button><button class="ptv2-tab" data-v="detail">Client Detail</button><button class="ptv2-tab" data-v="monitor" style="display:'+(master()||manager()?'block':'none')+'">Master Monitor</button></div><div id="ptv2Calendar" class="ptv2-view active"></div><div id="ptv2Clients" class="ptv2-view"></div><div id="ptv2Detail" class="ptv2-view"></div><div id="ptv2Monitor" class="ptv2-view"></div></div><div id="ptv2Modal" class="ptv2-modal"><div class="ptv2-modalbox"><div id="ptv2ModalBody"></div></div></div>';main.appendChild(sec);sec.querySelectorAll('.ptv2-tab').forEach(function(b){b.onclick=function(){show(b.dataset.v)}});}
 function show(v){if(!can())return;nav();build();document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});q('fjPtOpsV2').classList.add('active');document.querySelectorAll('.ptv2-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v===v)});document.querySelectorAll('.ptv2-view').forEach(function(x){x.classList.remove('active')});q('ptv2'+v.charAt(0).toUpperCase()+v.slice(1)).classList.add('active');if(v==='calendar')renderCalendar();if(v==='clients')renderClients();if(v==='detail')renderDetail();if(v==='monitor')renderMonitor()}
 async function load(){var s=sbc();if(!s||!can())return;build();var qs=await Promise.all([s.from('pt_clients').select('*').limit(1000),s.from('pt_packages').select('*').limit(1000),s.from('pt_conducts').select('*').order('conducted_at',{ascending:false}).limit(1000),s.from('pt_schedules').select('*').order('scheduled_at',{ascending:true}).limit(1000),s.from('pt_extension_requests').select('*').order('created_at',{ascending:false}).limit(500)]);if(qs.some(function(r){return r.error})){console.warn('PT Management load',qs.map(function(r){return r.error}));return}V.clients=qs[0].data||[];V.packages=qs[1].data||[];V.conducts=qs[2].data||[];V.schedules=qs[3].data||[];V.extensions=qs[4].data||[];renderCalendar();}
@@ -8280,7 +8292,7 @@ function bind(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,80)},{once:true});else setTimeout(bind,80);
 window.addEventListener('load',function(){setTimeout(bind,120)});
-var mo=new MutationObserver(function(){reorderClientCalendarEditor();});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+/* stability: one-time layout sync; no DOM-wide observer */
 })();
 </script>
 <!-- V32 REQUESTED REVISION: move Delete / Cancel / Save Training buttons to AFTER Before/After. -->
@@ -8308,8 +8320,7 @@ function moveDialogActionsBottom(){
 function bind(){ moveDialogActionsBottom(); }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,150)},{once:true});else setTimeout(bind,150);
 window.addEventListener('load',function(){setTimeout(bind,220)});
-var mo=new MutationObserver(function(){moveDialogActionsBottom();});
-try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+/* stability: one-time dialog layout sync; no DOM-wide observer */
 })();
 </script>
 <!-- V34 REQUESTED REVISION: Print / Save Date Range — the cover sheet now includes the -->
@@ -8417,8 +8428,7 @@ function hookPrintButton(){
 function bind(){hookPrintButton();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,180)},{once:true});else setTimeout(bind,180);
 window.addEventListener('load',function(){setTimeout(bind,260)});
-var mo2=new MutationObserver(function(){hookPrintButton();});
-try{mo2.observe(document.body,{childList:true,subtree:true})}catch(e){}
+/* stability: one-time print hook; no DOM-wide observer */
 })();
 </script>
 <!-- ============================================================= -->
@@ -8504,11 +8514,10 @@ function wire(){
      re-apply whenever that happens. Setting .value alone does not mutate
      childList, so this converges instead of looping. */
   var sel=$('ccRangeSaved');
-  if(sel){try{new MutationObserver(function(){setTimeout(apply,0)}).observe(sel,{childList:true})}catch(e){}}
+  if(sel){try{/* stability: avoid select DOM observer; apply is called from boot */}catch(e){}}
 
   /* Dialog opens by toggling the .open class. */
-  try{new MutationObserver(function(){if(modal.classList.contains('open'))setTimeout(apply,0)})
-    .observe(modal,{attributes:true,attributeFilter:['class']})}catch(e){}
+  /* stability: avoid modal attribute observer */
 
   /* Safety net only: capture phase runs before the original onclick, so
      restoreRange() itself is untouched and just reads a fresh value. */
@@ -8528,8 +8537,7 @@ window.fjClientDirectoryEdit=function(id){openForm(id)};
 function boot(){wire()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,180)},{once:true});else setTimeout(boot,180);
 window.addEventListener('load',function(){setTimeout(boot,260)});
-var mo=new MutationObserver(function(){if($('ccRangeModal'))wire()});
-try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}
+/* stability: no DOM-wide range observer */
 })();
 </script>
 <!-- ================================================================= -->
@@ -8656,9 +8664,6 @@ function wire(){
 
   if(!modal.dataset.fjV37Obs){
     modal.dataset.fjV37Obs='1';
-    try{new MutationObserver(function(){
-      if(modal.classList.contains('open'))setTimeout(function(){updateNote();updateHint()},60);
-    }).observe(modal,{attributes:true,attributeFilter:['class']})}catch(e){}
   }
   if(modal.classList.contains('open')){updateNote();updateHint()}
 }
@@ -9074,11 +9079,8 @@ function fillModalFromActive(){
 function wireModal(){
   var m=$('ccModal');if(!m||m.dataset.fjV38)return;
   m.dataset.fjV38='1';
-  try{new MutationObserver(function(){
-    if(m.classList.contains('open'))setTimeout(fillModalFromActive,20);
-  }).observe(m,{attributes:true,attributeFilter:['class']})}catch(e){}
+  /* stability: active client modal is filled by explicit open flow */
 }
-
 function boot(){build();wireModal()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500)},{once:true});else setTimeout(boot,500);
 window.addEventListener('load',function(){setTimeout(boot,700)});
@@ -9312,7 +9314,6 @@ window.fjClientDirectory={list:sortedClients,get:getClient,active:function(){ret
     enhance();
     var list=byId('fjcdList');if(list&&!list.dataset.fjV39Observer){
       list.dataset.fjV39Observer='1';
-      try{new MutationObserver(function(){enhance()}).observe(list,{childList:true,subtree:true})}catch(e){}
     }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,650)},{once:true});else setTimeout(boot,650);
@@ -9661,7 +9662,7 @@ function main(){return document.querySelector('main.main')||document.querySelect
 function nav(){var side=document.querySelector('.side');if(!side)return;if(q('fjExLibNav'))return;
   var n=document.createElement('button');n.id='fjExLibNav';n.className='navbtn';n.type='button';
   n.textContent='📚 Exercise Library';
-  n.onclick=function(){show('browse')};
+  n.onclick=function(){document.querySelectorAll('.navbtn').forEach(function(x){x.classList.remove('active')});n.classList.add('active');show('browse')};
   var anchor=document.getElementById('fjPtOpsV2Nav')||document.getElementById('clientCalendarNav');
   if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
 }
@@ -10585,10 +10586,7 @@ function refreshExerciseControls(){
   refreshEquipmentAvailability();
   var g=q('exlGoalReco');if(g)g.title='Goal changes recommendation/programming context only; muscle/equipment filters remain direct.';
 }
-var exObserver=new MutationObserver(function(){
-  if(q('fjExerciseLibrary'))setTimeout(refreshExerciseControls,0);
-});
-exObserver.observe(document.documentElement,{childList:true,subtree:true});
+/* stability: refreshExerciseControls is invoked by the single feature boot pass */
 
 /* ============================================================
    6. MATERI & EDUKASI: ONE SELECTED MUSCLE = ONE PRIMARY
@@ -10653,10 +10651,7 @@ function repairMateriOutput(){
     var count=root.querySelector('.edu-section-head>span');if(count)count.textContent=list.length+' direct target';
   }
 }
-var eduObserver=new MutationObserver(function(){
-  if(q('exlMateri')&&q('eduMuscle'))setTimeout(repairMateriOutput,0);
-});
-eduObserver.observe(document.documentElement,{childList:true,subtree:true});
+/* stability: repairMateriOutput is invoked by the single feature boot pass */
 
 /* ============================================================
    7. CLIENT DIRECTORY PAGINATION
@@ -10687,8 +10682,7 @@ function setupClientPager(){
   }
   applyClientPage();
 }
-var clientObserver=new MutationObserver(function(){setTimeout(setupClientPager,0)});
-clientObserver.observe(document.documentElement,{childList:true,subtree:true});
+/* stability: setupClientPager is invoked by explicit calendar/client refreshes */
 
 /* ============================================================
    8. PT CALENDAR: CAP VISIBLE EVENTS + DAY DETAIL
@@ -10733,8 +10727,7 @@ function capPtDays(){
     day.appendChild(more);
   });
 }
-var ptObserver=new MutationObserver(function(){setTimeout(capPtDays,0)});
-ptObserver.observe(document.documentElement,{childList:true,subtree:true});
+/* stability: capPtDays is invoked after calendar render */
 
 /* ============================================================
    9. MASTER-ADMIN-ONLY PT TRACKER + PT & CLIENT
@@ -10779,16 +10772,19 @@ function masterGateBoot(){
   gatePTPanels();
   ['fjPtV2Show','fjOpenPtClientUnified','fjPtV2Open','fjPtV2NewSchedule'].forEach(wrapMasterAction);
 }
-var gateObserver=new MutationObserver(function(){setTimeout(masterGateBoot,0)});
-gateObserver.observe(document.documentElement,{childList:true,subtree:true});
-setInterval(masterGateBoot,1200);
+/* stability: masterGateBoot runs once at feature boot; no DOM-wide observer/timer */
 
 /* Initial refreshes after existing library renderers have appeared. */
-[250,700,1500,3000].forEach(function(ms){setTimeout(function(){
-  canonicalizeExercises();addVariants();canonicalizeExercises();
-  refreshExerciseControls();setupClientPager();capPtDays();masterGateBoot();
+setTimeout(function(){
+  canonicalizeExercises();
+  addVariants();
+  canonicalizeExercises();
+  refreshExerciseControls();
+  setupClientPager();
+  capPtDays();
+  masterGateBoot();
   repairMateriOutput();
-},ms)});
+},1200);
 
 })();
 </script>

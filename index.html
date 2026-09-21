@@ -1425,6 +1425,11 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #fjPtNameManager .fj-ptm-row button{font-size:12px!important;padding:8px 12px!important;min-height:34px!important;line-height:1.2!important}
 @media(max-width:760px){#fjPtNameManager .fj-ptm-row button{font-size:9px!important;padding:5px 8px!important;min-height:28px!important}}
 </style>
+
+<style id="fj-v93-education-nav">
+#fjEducationNav{white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;line-height:1!important;text-align:left!important;display:flex!important;align-items:center!important}
+#fjEducationNav.active{background:#2f7d6b!important;color:#fff!important;box-shadow:0 6px 16px rgba(47,125,107,.28)!important}
+</style>
 </head><body>
 
 
@@ -7914,58 +7919,6 @@ function hook(){var old=window.fjOpenPtClientUnified;if(typeof old!=='function')
 setTimeout(function(){hook();if($('fjPtClientUnified')?.classList.contains('active')&&!$('fjPtNameManager'))refresh()},250);
 })();
 </script>
-<script id="fj-v92-materi-entry-only">
-(function(){'use strict';
-/* V92: Materi & Edukasi entry-point only.  Source baseline is V87.
-   Does not replace the education renderer, data, CSS, or any other module. */
-function byId(id){return document.getElementById(id)}
-function openMateri(){
-  var exNav=byId('fjExLibNav');
-  if(exNav){
-    try{exNav.click()}catch(e){}
-  }
-  var tab=document.querySelector('#fjExerciseLibrary .exl-tab[data-v="materi"]');
-  if(tab){
-    try{tab.click()}catch(e){
-      /* fallback only if the existing tab handler cannot be invoked */
-      var panel=byId('fjExerciseLibrary'),view=byId('exlMateri');
-      if(panel&&view){
-        document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
-        panel.classList.add('active');
-        document.querySelectorAll('#fjExerciseLibrary .exl-view').forEach(function(v){v.classList.remove('active')});
-        view.classList.add('active');
-      }
-    }
-  }
-}
-function install(){
-  var side=document.querySelector('.side'); if(!side)return;
-  var n=byId('fjMateriNav');
-  if(!n){
-    n=document.createElement('button');
-    n.id='fjMateriNav'; n.type='button'; n.className='navbtn';
-    n.textContent='📖 Materi & Edukasi';
-    n.setAttribute('aria-label','Materi & Edukasi');
-    var ex=byId('fjExLibNav');
-    if(ex&&ex.parentNode)ex.parentNode.insertBefore(n,ex.nextSibling);
-    else side.appendChild(n);
-  }
-  if(n.dataset.fj92Bound!=='1'){
-    n.dataset.fj92Bound='1';
-    n.addEventListener('click',function(ev){
-      ev.preventDefault();ev.stopPropagation();
-      side.querySelectorAll('.navbtn').forEach(function(b){b.classList.remove('active');b.classList.remove('fj-v617-active')});
-      n.classList.add('active');
-      openMateri();
-    },true);
-  }
-}
-function ready(){install()}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
-setTimeout(install,250);
-setTimeout(install,800);
-})();
-</script>
 </body></html>
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -9563,12 +9516,30 @@ function can(){return true} // exercise library is informational; available to a
 
 function main(){return document.querySelector('main.main')||document.querySelector('.main')}
 
-function nav(){var side=document.querySelector('.side');if(!side)return;if(q('fjExLibNav'))return;
-  var n=document.createElement('button');n.id='fjExLibNav';n.className='navbtn';n.type='button';
-  n.textContent='📚 Exercise Library';
-  n.onclick=function(){show('browse')};
-  var anchor=document.getElementById('fjPtOpsV2Nav')||document.getElementById('clientCalendarNav');
-  if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
+function nav(){
+  var side=document.querySelector('.side');if(!side)return;
+  var n=q('fjExLibNav');
+  if(!n){
+    n=document.createElement('button');n.id='fjExLibNav';n.className='navbtn';n.type='button';
+    n.textContent='📚 Exercise Library';
+    n.onclick=function(e){if(e){e.preventDefault();e.stopImmediatePropagation()}show('browse')};
+    var anchor=document.getElementById('fjPtOpsV2Nav')||document.getElementById('clientCalendarNav');
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
+  }
+  var edu=q('fjEducationNav');
+  if(!edu){
+    edu=document.createElement('button');edu.id='fjEducationNav';edu.className='navbtn';edu.type='button';
+    edu.textContent='📖 Education';
+    edu.onclick=function(e){
+      if(e){e.preventDefault();e.stopImmediatePropagation()}
+      side.querySelectorAll('.navbtn').forEach(function(b){b.classList.remove('active');b.classList.remove('fj-v617-active')});
+      edu.classList.add('active');
+      show('materi');
+    };
+    if(n.parentNode===side)side.insertBefore(edu,n.nextSibling);else side.appendChild(edu);
+  }else if(edu.previousElementSibling!==n && n.parentNode===side){
+    side.insertBefore(edu,n.nextSibling);
+  }
 }
 
 function catList(){var s={};DATA.forEach(function(d){s[d.cat]=1});return Object.keys(s)}

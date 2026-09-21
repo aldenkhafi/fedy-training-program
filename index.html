@@ -9534,7 +9534,7 @@ function build(){
     '<div class="exl-tabs">'+
       '<button class="exl-tab active" data-v="browse">Cari Exercise</button>'+
       '<button class="exl-tab" data-v="selected">Pilihan Saya (<span id="exlSelCount">0</span>)</button>'+
-      '<button class="exl-tab" data-v="materi">📖 Materi &amp; Edukasi</button>'+
+      '<button type="button" class="exl-tab" data-v="materi" onclick="return window.fjOpenMateriDirect ? window.fjOpenMateriDirect(event) : false;">📖 Materi &amp; Edukasi</button>'+
     '</div>'+
     '<div id="exlBrowse" class="exl-view active"></div>'+
     '<div id="exlSelected" class="exl-view"></div>'+
@@ -9545,7 +9545,7 @@ function build(){
   sec.querySelectorAll('.exl-tab').forEach(function(b){b.onclick=function(){show(b.dataset.v)}});
   /* Materi-only direct binding: no navigation rebuild. */
   var materiTab=sec.querySelector('.exl-tab[data-v=\"materi\"]');
-  if(materiTab)materiTab.onclick=function(e){e.preventDefault();e.stopPropagation();show('materi')};
+  if(materiTab)materiTab.onclick=function(e){return window.fjOpenMateriDirect ? window.fjOpenMateriDirect(e) : show('materi')};
 }
 
 function show(v){
@@ -9823,6 +9823,24 @@ function eduRender(){
   ['eduMuscle','eduJoint'].forEach(function(id){var el=q(id);if(el)el.onchange=function(){EDU_FILTER.muscle=q('eduMuscle').value;EDU_FILTER.joint=q('eduJoint').value;EDU_FILTER.exercise='';EDU_FILTER.pattern='';EDU_FILTER.bone='';EDU_FILTER.sport='';EDU_FILTER.level='';eduRender()}});
 }
 function renderMateri(){eduRender()}
+/* V89: expose the existing Materi view through one direct entry point.
+   This does not create a new panel, CSS layer, observer, or renderer. */
+window.fjOpenMateriDirect=function(ev){
+  try{
+    if(ev){ev.preventDefault();ev.stopPropagation();}
+    var panel=q('fjExerciseLibrary'),view=q('exlMateri');
+    if(!panel||!view)return false;
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+    panel.classList.add('active');
+    panel.querySelectorAll('.exl-tab').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-v')==='materi')});
+    panel.querySelectorAll('.exl-view').forEach(function(x){x.classList.remove('active')});
+    view.classList.add('active');
+    renderMateri();
+  }catch(err){
+    console.error('Materi & Edukasi open failed',err);
+  }
+  return false;
+};
 function boot(){nav();}
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

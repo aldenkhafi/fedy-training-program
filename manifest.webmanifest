@@ -2,10 +2,10 @@
   "name": "FITNESS JOURNEY",
   "short_name": "FITNESS JOURNEY",
   "description": "FITNESS JOURNEY training and fitness management",
-  "start_url": "./FITNESS_JOURNEY_V102_MASTER_ADMIN_ONLY_PT_TRACKER_PT_CLIENT.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "portrait",
   "theme_color": "#102a43",
   "background_color": "#f4f7fa",
   "icons": [

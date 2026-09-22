@@ -1425,6 +1425,7 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #fjPtNameManager .fj-ptm-row button{font-size:12px!important;padding:8px 12px!important;min-height:34px!important;line-height:1.2!important}
 @media(max-width:760px){#fjPtNameManager .fj-ptm-row button{font-size:9px!important;padding:5px 8px!important;min-height:28px!important}}
 </style>
+<style id="fj-v95-nav-target-fix">#fjEducationNav,#fjPtTrackerNav,#fjPtClientNav{position:relative!important;z-index:100001!important;pointer-events:auto!important;cursor:pointer!important;}#fjEducationNav:disabled,#fjPtTrackerNav:disabled,#fjPtClientNav:disabled{pointer-events:none!important;}</style>
 </head><body>
 
 
@@ -6645,7 +6646,8 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
       var cc=document.getElementById('clientCalendarNav');
       if(cc&&cc.parentNode)cc.parentNode.insertBefore(n,cc.nextSibling);else side.appendChild(n);
     }
-    n.style.display=allowed()?'flex':'none';
+    n.style.display=isMaster()?'flex':'none';
+    n.disabled=!isMaster();
     var old=el(OLD_NAV);if(old)old.style.display='none';
   }
   function renameUI(){
@@ -6658,7 +6660,7 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
     var dt=p.querySelector('.ptv2-tab[data-v="detail"]');if(dt)dt.style.display='';
   }
   function openTracker(){
-    if(!allowed())return;
+    if(!isMaster())return;
     var p=el(OLD_PANEL);if(!p){try{window.fjPtV2Build&&window.fjPtV2Build()}catch(_){ }p=el(OLD_PANEL)}
     if(!p)return;
     try{if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar')}catch(err){console.error('PT Tracker open',err)}
@@ -6676,6 +6678,7 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
   var tries=0;function boot(){bind();tries++;if(tries<40&&!el(NAV_ID))setTimeout(boot,500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);
   window.addEventListener('load',function(){setTimeout(boot,1100)});
+  window.addEventListener('fj-v50-refresh',function(){bind()});
   setTimeout(function(){bind();var p=el(OLD_PANEL);if(p&&p.classList.contains('active'))renameUI()},1800);
 })();
 </script>
@@ -6983,8 +6986,20 @@ async function refreshPTAccess(){
   return ok;
 }
 
-function ensurePTClientNav(){return}
+function ensurePTClientNav(){
+  var side=document.querySelector('.side');if(!side)return;
+  var n=q('fjPtClientNav');
+  if(!n){n=document.createElement('button');n.id='fjPtClientNav';n.type='button';n.className='navbtn';n.textContent='▣ PT & Client';
+    n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openPTClient()};
+    var anchor=q('fjPtTrackerNav')||q('fjEducationNav')||q('clientCalendarNav');
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
+  }
+  n.style.display=isMaster()?'flex':'none';
+  n.disabled=!isMaster();
+  return n;
+}
 async function openPTClient(){
+  if(!isMaster())return;
   if(!(await refreshPTAccess()))return;
   var p=q('fjPtOpsV2');
   if(!p)return;
@@ -7083,6 +7098,7 @@ function boot(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1200)},{once:true});else setTimeout(boot,1200);
 window.addEventListener('load',function(){setTimeout(function(){ensurePTClientNav();refreshPTAccess();attachPTClientEdit()},1600)});
+window.addEventListener('fj-v50-refresh',function(){ensurePTClientNav();refreshPTAccess();attachPTClientEdit()});
 /* stability: recurring PT nav/access poll removed */
 })();
 </script>
@@ -9499,7 +9515,6 @@ X.forEach(function(x,i){var n=x[0];if(names[n.toLowerCase()])return;a.push({id:'
 @media(max-width:760px){.exl-search-mode{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.exl-search-mode .exl-mode,.exl-reset-focus{width:100%;min-height:38px}.exl-search-mode .exl-mode[data-mode="exercise"]{grid-column:1 / -1}.exl-reset-focus{grid-column:1 / -1}}
 </style>
 <style id="fj-v74-exlib-controls">.exl-control-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}.exl-control-row .field{margin:0}.exl-control-row select{width:100%}@media(max-width:760px){.exl-control-row{grid-template-columns:1fr}}</style>
-<style id="fj-v94-education-nav">#fjEducationNav{margin-top:3px!important}</style>
 <script id="fj-exlib-runtime">
 (function(){'use strict';
 function q(id){return document.getElementById(id)}
@@ -9515,18 +9530,30 @@ function main(){return document.querySelector('main.main')||document.querySelect
 function nav(){var side=document.querySelector('.side');if(!side)return;
   var n=q('fjExLibNav');
   if(!n){n=document.createElement('button');n.id='fjExLibNav';n.className='navbtn';n.type='button';n.textContent='📚 Exercise Library';
-    n.onclick=function(ev){if(ev){ev.preventDefault();ev.stopImmediatePropagation();}show('browse');setActiveNav(n);};
-    var anchor=document.getElementById('fjPtOpsV2Nav')||document.getElementById('clientCalendarNav');
+    n.onclick=function(e){if(e){e.preventDefault();e.stopImmediatePropagation();}show('browse')};
+    var anchor=document.getElementById('clientCalendarNav')||document.getElementById('fjPtOpsV2Nav');
     if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
   }
   var e=q('fjEducationNav');
   if(!e){e=document.createElement('button');e.id='fjEducationNav';e.className='navbtn';e.type='button';e.textContent='📖 Education';
-    e.onclick=function(ev){if(ev){ev.preventDefault();ev.stopImmediatePropagation();}showEducation();setActiveNav(e);};
+    e.onclick=function(ev){if(ev){ev.preventDefault();ev.stopImmediatePropagation();}openEducation()};
     if(n&&n.parentNode)n.parentNode.insertBefore(e,n.nextSibling);else side.appendChild(e);
   }
 }
-function setActiveNav(active){document.querySelectorAll('.side .navbtn').forEach(function(x){x.classList.remove('active');x.classList.remove('fj-v617-active')});if(active)active.classList.add('active');}
-
+function openEducation(){
+  nav();build();
+  var p=q('fjExerciseLibrary'),v=q('exlMateri');
+  if(!p||!v)return false;
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});
+  p.classList.add('active');
+  document.querySelectorAll('#fjExerciseLibrary .exl-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v==='materi')});
+  document.querySelectorAll('#fjExerciseLibrary .exl-view').forEach(function(x){x.classList.remove('active')});
+  v.classList.add('active');
+  try{renderMateri()}catch(err){console.error('Education render failed',err)}
+  document.querySelectorAll('.side .navbtn').forEach(function(x){x.classList.remove('active');x.classList.remove('fj-v617-active')});
+  var e=q('fjEducationNav');if(e)e.classList.add('active');
+  return true;
+}
 
 function catList(){var s={};DATA.forEach(function(d){s[d.cat]=1});return Object.keys(s)}
 function equipList(){var s={};DATA.forEach(function(d){s[d.equip]=1});return Object.keys(s)}
@@ -9542,9 +9569,11 @@ function build(){
     '<div class="exl-tabs">'+
       '<button class="exl-tab active" data-v="browse">Cari Exercise</button>'+
       '<button class="exl-tab" data-v="selected">Pilihan Saya (<span id="exlSelCount">0</span>)</button>'+
+      '<button class="exl-tab" data-v="materi">📖 Materi &amp; Edukasi</button>'+
     '</div>'+
     '<div id="exlBrowse" class="exl-view active"></div>'+
     '<div id="exlSelected" class="exl-view"></div>'+
+    '<div id="exlMateri" class="exl-view"></div>'+
   '</div>'+
   '<div id="exlModal" class="exl-modal"><div class="exl-modalbox" id="exlModalBody"></div></div>';
   m.appendChild(sec);
@@ -9557,11 +9586,11 @@ function show(v){
   q('fjExerciseLibrary').classList.add('active');
   document.querySelectorAll('#fjExerciseLibrary .exl-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v===v)});
   document.querySelectorAll('#fjExerciseLibrary .exl-view').forEach(function(x){x.classList.remove('active')});
-  var map={browse:'exlBrowse',selected:'exlSelected'};
+  var map={browse:'exlBrowse',selected:'exlSelected',materi:'exlMateri'};
   q(map[v]).classList.add('active');
   if(v==='browse')renderBrowse();
   if(v==='selected')renderSelected();
-
+  if(v==='materi')renderMateri();
 }
 
 function filterData(){
@@ -9811,61 +9840,7 @@ function eduRender(){
   b.innerHTML=html;
   ['eduMuscle','eduJoint'].forEach(function(id){var el=q(id);if(el)el.onchange=function(){EDU_FILTER.muscle=q('eduMuscle').value;EDU_FILTER.joint=q('eduJoint').value;EDU_FILTER.exercise='';EDU_FILTER.pattern='';EDU_FILTER.bone='';EDU_FILTER.sport='';EDU_FILTER.level='';eduRender()}});
 }
-function renderEducation(){
-  var b=q('fjEducationContent');if(!b)return;
-  var muscles=eduMuscleNames().sort(),joints=Object.keys(EDU_JOINTS).sort();
-  var selectedMuscle=EDU_FILTER.muscle||'',activeJoint=EDU_FILTER.joint?EDU_JOINTS[EDU_FILTER.joint]:null,muscleObj=null;
-  if(selectedMuscle)muscleObj=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return x.name===selectedMuscle})||null;
-  if(!muscleObj&&activeJoint)muscleObj=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return activeJoint.muscles.indexOf(x.name)>-1})||null;
-  if(!muscleObj)muscleObj=EDU_MUSCLES['pectoralis-major'];
-  var related=selectedMuscle?Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).filter(function(x){return x.region===muscleObj.region}):activeJoint?Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).filter(function(x){return activeJoint.muscles.indexOf(x.name)>-1}):[muscleObj];
-  var relBase=DATA.map(function(d){
-    var m=fjExMeta(d),pn=(d.primary||[]).map(canonMuscle),sn=(d.secondary||[]).map(canonMuscle);
-    var direct=related.some(function(x){return pn.some(function(pm){return x.name===pm||x.keywords.some(function(k){return String(pm).toLowerCase()===String(k).toLowerCase()})})});
-    var secondary=related.some(function(x){return sn.some(function(sm){return x.name===sm||x.keywords.some(function(k){return String(sm).toLowerCase()===String(k).toLowerCase()})})});
-    return {d:d,s:(direct?220:0)+(secondary?25:0)+eduExerciseMatches(d)};
-  }).filter(function(x){return x.s>0}).sort(function(a,z){return z.s-a.s||String(a.d.name).localeCompare(String(z.d.name))});
-  /* Prefer exercises where the selected muscle is actually primary. Only use
-     secondary matches as a fallback when the direct library is genuinely small. */
-  var directRel=relBase.filter(function(x){
-    var pn=(x.d.primary||[]).map(canonMuscle);
-    return related.some(function(m){return pn.indexOf(m.name)>-1});
-  });
-  var rel=(directRel.length?directRel:relBase).slice(0,12);
-  var prim={},sec={};rel.forEach(function(x){var m=fjExMeta(x.d);String(m.primary||'').split(/[,•|]/).forEach(function(v){v=v.trim();if(v)prim[v]=1});String(m.secondary||'').split(/[,•|]/).forEach(function(v){v=v.trim();if(v)sec[v]=1})});
-  var primary=Object.keys(prim),secondary=Object.keys(sec).filter(function(v){return !prim[v]});
-  var stabMap={'Pectoralis Major':['Serratus Anterior','Rotator Cuff'],'Latissimus Dorsi':['Rotator Cuff','Core / Trunk'],'Trapezius':['Rhomboids','Serratus Anterior'],'Rhomboids':['Trapezius','Rotator Cuff'],'Erector Spinae':['Core / Trunk','Gluteus Maximus'],'Deltoid':['Rotator Cuff','Serratus Anterior'],'Biceps Brachii':['Rotator Cuff','Forearm / Lengan Bawah'],'Triceps Brachii':['Rotator Cuff','Forearm / Lengan Bawah'],'Quadriceps':['Gluteus Maximus','Calves / Betis'],'Hamstrings':['Gluteus Maximus','Core / Trunk'],'Gluteus Maximus':['Core / Trunk','Hamstrings'],'Gastrocnemius':['Soleus','Tibialis Anterior'],'Soleus':['Gastrocnemius','Tibialis Anterior'],'Calves / Betis':['Tibialis Anterior','Gluteus Maximus'],'Forearm / Lengan Bawah':['Brachioradialis','Rotator Cuff'],'Core / Trunk':['Erector Spinae','Gluteus Maximus']};
-  var stab=[];related.forEach(function(m){(stabMap[m.name]||[]).forEach(function(x){if(stab.indexOf(x)<0)stab.push(x)})});
-  var joints=activeJoint?[EDU_FILTER.joint]:related.reduce(function(a,m){return a.concat(m.joints||[])},[]).filter(function(v,i,a){return a.indexOf(v)===i});
-  var bones=related.reduce(function(a,m){return a.concat(m.bones||[])},[]).filter(function(v,i,a){return a.indexOf(v)===i});
-  var patterns=related.reduce(function(a,m){return a.concat(m.moves||[])},[]).filter(function(v,i,a){return a.indexOf(v)===i});
-  var sports=Object.keys(EDU_SPORTS).filter(function(k){return patterns.some(function(p){return (EDU_SPORTS[k].focus||[]).indexOf(p)>-1})});if(!sports.length)sports=['General Fitness'];
-  var warm=activeJoint?activeJoint.warmup:related.map(function(m){return m.warmup}).filter(Boolean).slice(0,2).join(' '),stretch=activeJoint?activeJoint.stretch:related.map(function(m){return m.stretching}).filter(Boolean).slice(0,2).join(' ');
-  var html='<div class="exl-card edu-main-card"><div class="label">MATERI &amp; EDUKASI</div><h2 style="margin:4px 0">Pilih Otot dan/atau Sendi</h2><p class="exl-muted">Hanya <b>Otot</b> dan <b>Sendi</b> yang menjadi pilihan. Semua informasi lain muncul otomatis sebagai rekomendasi.</p><div class="edu-filter-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><label>OTOT<select id="edu2Muscle">'+eduOption(muscles,selectedMuscle,'Pilih otot')+'</select></label><label>SENDI<select id="edu2Joint">'+eduOption(joints,EDU_FILTER.joint,'Pilih sendi')+'</select></label></div></div>'+
-  '<div class="edu-profile-head"><div><div class="label">OTOT TERKAIT</div><h2>'+E(selectedMuscle|| (activeJoint?EDU_FILTER.joint:muscleObj.name))+'</h2><div class="edu-stretch-list">'+related.map(function(m){return '<span>'+E(m.name)+'</span>'}).join('')+'</div></div></div>'+
-  '<div class="edu-info-grid"><section><h3>Otot Primer</h3><p>'+E(primary.join(' • ')||related.map(function(m){return m.name}).join(' • '))+'</p></section><section><h3>Otot Sekunder</h3><p>'+E(secondary.join(' • ')||'—')+'</p></section><section><h3>Stabilizer / Fixator</h3><p>'+E(stab.join(' • ')||'—')+'</p></section><section><h3>Pattern / Gerakan</h3><p>'+E(patterns.join(' • ')||'—')+'</p></section></div>'+
-  '<div class="edu-anatomy-grid"><section><h3>Sendi Terlibat</h3><p>'+E(joints.join(' • ')||'—')+'</p></section><section><h3>Tulang Terkait</h3><p>'+E(bones.join(' • ')||'—')+'</p></section><section><h3>Fungsi</h3><p>'+E(related.map(function(m){return m.function}).filter(Boolean).join(' ')||'—')+'</p></section><section><h3>Olahraga yang Melibatkan</h3><p>'+E(sports.join(' • '))+'</p></section></div>'+
-  '<div class="edu-prep-grid"><section class="edu-prep"><h3>🔥 Warm Up / Preparation</h3><p>'+E(warm||'Dynamic preparation sesuai otot/sendi yang dipilih.')+'</p></section><section class="edu-prep"><h3>🧘 Stretching / Mobility</h3><p>'+E(stretch||'Mobility ringan sesuai otot/sendi yang dipilih.')+'</p></section></div>'+
-  '<section class="edu-exercise-results"><div class="edu-section-head"><div><div class="label">REKOMENDASI EXERCISE</div><h3>Exercise yang direkomendasikan</h3></div><span>'+E(rel.length)+' item</span></div><div class="edu-ex-grid">'+rel.map(eduCardExercise).join('')+'</div></section>';
-  b.innerHTML=html;
-  ['edu2Muscle','edu2Joint'].forEach(function(id){var el=q(id);if(el)el.onchange=function(){EDU_FILTER.muscle=q('edu2Muscle').value;EDU_FILTER.joint=q('edu2Joint').value;EDU_FILTER.exercise='';EDU_FILTER.pattern='';EDU_FILTER.bone='';EDU_FILTER.sport='';EDU_FILTER.level='';renderEducation()}});
-}
-
-function buildEducation(){
-  if(q('fjEducationPanel'))return;
-  var m=main();if(!m)return;
-  var sec=document.createElement('section');sec.className='panel';sec.id='fjEducationPanel';
-  sec.innerHTML='<div class="exl-shell"><div class="exl-head"><div><div class="label">MATERI &amp; EDUKASI</div><h2>Materi &amp; Edukasi</h2><div class="exl-muted">Anatomi • Fungsi • Sendi • Gerakan • Warm Up • Stretching • Rekomendasi Exercise</div></div></div><div id="fjEducationContent" class="exl-view active"></div></div>';
-  m.appendChild(sec);
-}
-function showEducation(){
-  nav();buildEducation();
-  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
-  var p=q('fjEducationPanel');if(p)p.classList.add('active');
-  setActiveNav(q('fjEducationNav'));
-  renderEducation();
-}
-function renderMateri(){return;}
+function renderMateri(){eduRender()}
 function boot(){nav();}
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

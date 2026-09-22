@@ -1425,7 +1425,6 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #fjPtNameManager .fj-ptm-row button{font-size:12px!important;padding:8px 12px!important;min-height:34px!important;line-height:1.2!important}
 @media(max-width:760px){#fjPtNameManager .fj-ptm-row button{font-size:9px!important;padding:5px 8px!important;min-height:28px!important}}
 </style>
-<style id="fj-v95-nav-target-fix">#fjPtTrackerNav,#fjPtClientNav{position:relative!important;z-index:100001!important;pointer-events:auto!important;cursor:pointer!important;}#fjPtTrackerNav:disabled,#fjPtClientNav:disabled{pointer-events:none!important;}</style>
 </head><body>
 
 
@@ -6646,8 +6645,7 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
       var cc=document.getElementById('clientCalendarNav');
       if(cc&&cc.parentNode)cc.parentNode.insertBefore(n,cc.nextSibling);else side.appendChild(n);
     }
-    n.style.display=isMaster()?'flex':'none';
-    n.disabled=!isMaster();
+    n.style.display=allowed()?'flex':'none';
     var old=el(OLD_NAV);if(old)old.style.display='none';
   }
   function renameUI(){
@@ -6660,7 +6658,7 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
     var dt=p.querySelector('.ptv2-tab[data-v="detail"]');if(dt)dt.style.display='';
   }
   function openTracker(){
-    if(!isMaster())return;
+    if(!allowed())return;
     var p=el(OLD_PANEL);if(!p){try{window.fjPtV2Build&&window.fjPtV2Build()}catch(_){ }p=el(OLD_PANEL)}
     if(!p)return;
     try{if(typeof window.fjPtV2Show==='function')window.fjPtV2Show('calendar')}catch(err){console.error('PT Tracker open',err)}
@@ -6678,7 +6676,6 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
   var tries=0;function boot(){bind();tries++;if(tries<40&&!el(NAV_ID))setTimeout(boot,500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);
   window.addEventListener('load',function(){setTimeout(boot,1100)});
-  window.addEventListener('fj-v50-refresh',function(){bind()});
   setTimeout(function(){bind();var p=el(OLD_PANEL);if(p&&p.classList.contains('active'))renameUI()},1800);
 })();
 </script>
@@ -6986,20 +6983,8 @@ async function refreshPTAccess(){
   return ok;
 }
 
-function ensurePTClientNav(){
-  var side=document.querySelector('.side');if(!side)return;
-  var n=q('fjPtClientNav');
-  if(!n){n=document.createElement('button');n.id='fjPtClientNav';n.type='button';n.className='navbtn';n.textContent='▣ PT & Client';
-    n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();openPTClient()};
-    var anchor=q('fjPtTrackerNav')||q('fjEducationNav')||q('clientCalendarNav');
-    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
-  }
-  n.style.display=isMaster()?'flex':'none';
-  n.disabled=!isMaster();
-  return n;
-}
+function ensurePTClientNav(){return}
 async function openPTClient(){
-  if(!isMaster())return;
   if(!(await refreshPTAccess()))return;
   var p=q('fjPtOpsV2');
   if(!p)return;
@@ -7098,7 +7083,6 @@ function boot(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1200)},{once:true});else setTimeout(boot,1200);
 window.addEventListener('load',function(){setTimeout(function(){ensurePTClientNav();refreshPTAccess();attachPTClientEdit()},1600)});
-window.addEventListener('fj-v50-refresh',function(){ensurePTClientNav();refreshPTAccess();attachPTClientEdit()});
 /* stability: recurring PT nav/access poll removed */
 })();
 </script>
@@ -7111,7 +7095,8 @@ window.addEventListener('fj-v50-refresh',function(){ensurePTClientNav();refreshP
 .side .brand{white-space:normal;overflow-wrap:anywhere;word-break:break-word}
 .top h1{white-space:normal;overflow-wrap:anywhere;word-break:break-word}
 /* Only Materi & Edukasi gets a clean text-first presentation; remove the small person/squat icons. */
-
+#exlMateri .prescard-icon,#exlMateri img,.fj-v611-education .edu-icon{display:none!important}
+#exlMateri .fj-v611-education{width:100%}
 .fj-v611-education .edu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .fj-v611-education .edu-box{border:1px solid #d6e6ef;border-radius:12px;background:#fff;padding:13px}
 .fj-v611-education .edu-box h3{margin:0 0 7px;color:#123f60;font-size:14px}
@@ -9503,6 +9488,10 @@ X.forEach(function(x,i){var n=x[0];if(names[n.toLowerCase()])return;a.push({id:'
 .edu-topic-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.edu-topic-tabs .exl-chip{cursor:pointer}.edu-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}.edu-library-card{border:1px solid #d5e6eb;border-radius:14px;background:#fff;padding:13px}.edu-library-card h3{margin:0 0 10px;color:#174f72}.edu-library-card>div{border-top:1px solid #edf2f4;padding-top:7px;margin-top:7px}.edu-library-card b{font-size:11px;color:#315f73}.edu-library-card p{font-size:12px;line-height:1.45;color:#5c7480;margin:3px 0 0}
 @media(max-width:760px){.exl-prescription{grid-template-columns:1fr 1fr}.edu-library-grid{grid-template-columns:1fr}.edu-filter-grid,.edu-info-grid,.edu-anatomy-grid,.edu-ex-grid{grid-template-columns:1fr 1fr}.edu-prep-grid,.edu-dodont{grid-template-columns:1fr}.edu-profile-head{display:block}.edu-context{margin-top:9px}}
 </style>
+<style id="fj-v612-edu-clean">
+#exlMateri img,#exlMateri .prescard-icon,#exlMateri .edu-icon,#exlMateri .icon,#exlMateri [class*="icon"]{display:none!important}
+#exlMateri .edu-ex-title b{display:block}
+</style>
 <style id="fj-v72-exercise-focus-reset">
 .exl-search-mode{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .exl-reset-focus{border:1px solid #cbdde5;background:#fff;color:#49636f;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
@@ -9522,13 +9511,12 @@ function can(){return true} // exercise library is informational; available to a
 
 function main(){return document.querySelector('main.main')||document.querySelector('.main')}
 
-function nav(){var side=document.querySelector('.side');if(!side)return;
-  var n=q('fjExLibNav');
-  if(!n){n=document.createElement('button');n.id='fjExLibNav';n.className='navbtn';n.type='button';n.textContent='📚 Exercise Library';
-    n.onclick=function(e){if(e){e.preventDefault();e.stopImmediatePropagation();}show('browse')};
-    var anchor=document.getElementById('clientCalendarNav')||document.getElementById('fjPtOpsV2Nav');
-    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
-  }
+function nav(){var side=document.querySelector('.side');if(!side)return;if(q('fjExLibNav'))return;
+  var n=document.createElement('button');n.id='fjExLibNav';n.className='navbtn';n.type='button';
+  n.textContent='📚 Exercise Library';
+  n.onclick=function(){show('browse')};
+  var anchor=document.getElementById('fjPtOpsV2Nav')||document.getElementById('clientCalendarNav');
+  if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(n,anchor.nextSibling);else side.appendChild(n);
 }
 
 function catList(){var s={};DATA.forEach(function(d){s[d.cat]=1});return Object.keys(s)}
@@ -9545,9 +9533,11 @@ function build(){
     '<div class="exl-tabs">'+
       '<button class="exl-tab active" data-v="browse">Cari Exercise</button>'+
       '<button class="exl-tab" data-v="selected">Pilihan Saya (<span id="exlSelCount">0</span>)</button>'+
+      '<button class="exl-tab" data-v="materi">📖 Materi &amp; Edukasi</button>'+
     '</div>'+
     '<div id="exlBrowse" class="exl-view active"></div>'+
     '<div id="exlSelected" class="exl-view"></div>'+
+    '<div id="exlMateri" class="exl-view"></div>'+
   '</div>'+
   '<div id="exlModal" class="exl-modal"><div class="exl-modalbox" id="exlModalBody"></div></div>';
   m.appendChild(sec);
@@ -9560,10 +9550,11 @@ function show(v){
   q('fjExerciseLibrary').classList.add('active');
   document.querySelectorAll('#fjExerciseLibrary .exl-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v===v)});
   document.querySelectorAll('#fjExerciseLibrary .exl-view').forEach(function(x){x.classList.remove('active')});
-  var map={browse:'exlBrowse',selected:'exlSelected'};
+  var map={browse:'exlBrowse',selected:'exlSelected',materi:'exlMateri'};
   q(map[v]).classList.add('active');
   if(v==='browse')renderBrowse();
   if(v==='selected')renderSelected();
+  if(v==='materi')renderMateri();
 }
 
 function filterData(){
@@ -9667,7 +9658,7 @@ function renderSelected(){
 window.fjExlClearSelected=function(){SELECTED=[];var c=q('exlSelCount');if(c)c.textContent=0;renderSelected()};
 
 // ---- EXERCISE LIBRARY: INTEGRATED EDUCATION LIBRARY ONLY ----
-// Education engine data retained for the new standalone panel.
+// Scope: this block owns ONLY the content rendered inside #exlMateri.
 // It does not create program generators, modify client programs, or touch other modules.
 var EDU_FILTER={muscle:'',exercise:'',pattern:'',joint:'',bone:'',sport:'',goal:'General Fitness',level:''};
 
@@ -9775,7 +9766,7 @@ function eduRelatedExercises(){
 }
 function eduCardExercise(x){var d=x.d,m=x.d?fjExMeta(d):{};return '<article class="edu-ex-card"><div class="edu-ex-title"><b>'+E(d.name)+'</b><span>'+E(d.level)+'</span></div><div class="edu-ex-tags"><span>'+E(m.type)+'</span><span>'+E(m.pattern)+'</span><span>'+E(d.equip)+'</span></div><div class="edu-ex-small"><b>Otot utama:</b> '+E(m.primary)+'<br><b>Sendi kerja:</b> '+E(m.joints)+'</div><div class="edu-ex-small"><b>Program library:</b> '+E((d.sets&&d.sets.hipertrofi)||'lihat detail exercise')+'</div><button type="button" class="exl-btn alt" onclick="window.fjExlOpen(\''+d.id+'\')">Lihat Detail Exercise</button></article>'}
 function eduRender(){
-  var b=q('fjEducationContent');if(!b)return;
+  var b=q('exlMateri');if(!b)return;
   var muscles=eduMuscleNames().sort(),joints=Object.keys(EDU_JOINTS).sort();
   var selectedMuscle=EDU_FILTER.muscle||'',activeJoint=EDU_FILTER.joint?EDU_JOINTS[EDU_FILTER.joint]:null,muscleObj=null;
   if(selectedMuscle)muscleObj=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return x.name===selectedMuscle})||null;
@@ -9804,16 +9795,16 @@ function eduRender(){
   var patterns=related.reduce(function(a,m){return a.concat(m.moves||[])},[]).filter(function(v,i,a){return a.indexOf(v)===i});
   var sports=Object.keys(EDU_SPORTS).filter(function(k){return patterns.some(function(p){return (EDU_SPORTS[k].focus||[]).indexOf(p)>-1})});if(!sports.length)sports=['General Fitness'];
   var warm=activeJoint?activeJoint.warmup:related.map(function(m){return m.warmup}).filter(Boolean).slice(0,2).join(' '),stretch=activeJoint?activeJoint.stretch:related.map(function(m){return m.stretching}).filter(Boolean).slice(0,2).join(' ');
-  var html='<div class="exl-card edu-main-card"><div class="label">MATERI &amp; EDUKASI</div><h2 style="margin:4px 0">Pilih Otot dan/atau Sendi</h2><p class="exl-muted">Hanya <b>Otot</b> dan <b>Sendi</b> yang menjadi pilihan. Semua informasi lain muncul otomatis sebagai rekomendasi.</p><div class="edu-filter-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><label>OTOT<select id="fjEducationMuscle">'+eduOption(muscles,selectedMuscle,'Pilih otot')+'</select></label><label>SENDI<select id="fjEducationJoint">'+eduOption(joints,EDU_FILTER.joint,'Pilih sendi')+'</select></label></div></div>'+
+  var html='<div class="exl-card edu-main-card"><div class="label">MATERI &amp; EDUKASI</div><h2 style="margin:4px 0">Pilih Otot dan/atau Sendi</h2><p class="exl-muted">Hanya <b>Otot</b> dan <b>Sendi</b> yang menjadi pilihan. Semua informasi lain muncul otomatis sebagai rekomendasi.</p><div class="edu-filter-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><label>OTOT<select id="eduMuscle">'+eduOption(muscles,selectedMuscle,'Pilih otot')+'</select></label><label>SENDI<select id="eduJoint">'+eduOption(joints,EDU_FILTER.joint,'Pilih sendi')+'</select></label></div></div>'+
   '<div class="edu-profile-head"><div><div class="label">OTOT TERKAIT</div><h2>'+E(selectedMuscle|| (activeJoint?EDU_FILTER.joint:muscleObj.name))+'</h2><div class="edu-stretch-list">'+related.map(function(m){return '<span>'+E(m.name)+'</span>'}).join('')+'</div></div></div>'+
   '<div class="edu-info-grid"><section><h3>Otot Primer</h3><p>'+E(primary.join(' • ')||related.map(function(m){return m.name}).join(' • '))+'</p></section><section><h3>Otot Sekunder</h3><p>'+E(secondary.join(' • ')||'—')+'</p></section><section><h3>Stabilizer / Fixator</h3><p>'+E(stab.join(' • ')||'—')+'</p></section><section><h3>Pattern / Gerakan</h3><p>'+E(patterns.join(' • ')||'—')+'</p></section></div>'+
   '<div class="edu-anatomy-grid"><section><h3>Sendi Terlibat</h3><p>'+E(joints.join(' • ')||'—')+'</p></section><section><h3>Tulang Terkait</h3><p>'+E(bones.join(' • ')||'—')+'</p></section><section><h3>Fungsi</h3><p>'+E(related.map(function(m){return m.function}).filter(Boolean).join(' ')||'—')+'</p></section><section><h3>Olahraga yang Melibatkan</h3><p>'+E(sports.join(' • '))+'</p></section></div>'+
   '<div class="edu-prep-grid"><section class="edu-prep"><h3>🔥 Warm Up / Preparation</h3><p>'+E(warm||'Dynamic preparation sesuai otot/sendi yang dipilih.')+'</p></section><section class="edu-prep"><h3>🧘 Stretching / Mobility</h3><p>'+E(stretch||'Mobility ringan sesuai otot/sendi yang dipilih.')+'</p></section></div>'+
   '<section class="edu-exercise-results"><div class="edu-section-head"><div><div class="label">REKOMENDASI EXERCISE</div><h3>Exercise yang direkomendasikan</h3></div><span>'+E(rel.length)+' item</span></div><div class="edu-ex-grid">'+rel.map(eduCardExercise).join('')+'</div></section>';
   b.innerHTML=html;
-  ['fjEducationMuscle','fjEducationJoint'].forEach(function(id){var el=q(id);if(el)el.onchange=function(){EDU_FILTER.muscle=q('fjEducationMuscle').value;EDU_FILTER.joint=q('fjEducationJoint').value;EDU_FILTER.exercise='';EDU_FILTER.pattern='';EDU_FILTER.bone='';EDU_FILTER.sport='';EDU_FILTER.level='';eduRender()}});
+  ['eduMuscle','eduJoint'].forEach(function(id){var el=q(id);if(el)el.onchange=function(){EDU_FILTER.muscle=q('eduMuscle').value;EDU_FILTER.joint=q('eduJoint').value;EDU_FILTER.exercise='';EDU_FILTER.pattern='';EDU_FILTER.bone='';EDU_FILTER.sport='';EDU_FILTER.level='';eduRender()}});
 }
-window.__fjRenderEducation=function(){eduRender()}
+function renderMateri(){eduRender()}
 function boot(){nav();}
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
@@ -10470,7 +10461,7 @@ function refreshExerciseControls(){
    ============================================================ */
 function eduCanonicalName(v){return canonMuscle(v)}
 function selectedEduMuscle(){
-  var s=q('fjEducationMuscle');return s&&s.value?eduCanonicalName(s.value):'';
+  var s=q('eduMuscle');return s&&s.value?eduCanonicalName(s.value):'';
 }
 function dataMuscleHas(d,target){
   target=eduCanonicalName(target).toLowerCase();
@@ -10489,7 +10480,43 @@ function eduMetaText(d){
   var p=(d.primary||[]).map(canonMuscle),s=(d.secondary||[]).map(canonMuscle);
   return {p:p,s:s};
 }
-
+function repairMateriOutput(){
+  var root=q('exlMateri');if(!root)return;
+  var target=selectedEduMuscle();if(!target)return;
+  var primarySec=Array.prototype.find.call(root.querySelectorAll('section'),function(sec){
+    var h=sec.querySelector('h3');return h&&h.textContent.trim()==='Otot Primer';
+  });
+  var secondarySec=Array.prototype.find.call(root.querySelectorAll('section'),function(sec){
+    var h=sec.querySelector('h3');return h&&h.textContent.trim()==='Otot Sekunder';
+  });
+  var list=eduDirectList(target),secSet={},primarySet={};
+  list.forEach(function(d){
+    var m=eduMetaText(d);
+    m.p.forEach(function(x){if(x.toLowerCase()!==target.toLowerCase())primarySet[x]=1});
+    m.s.forEach(function(x){if(x.toLowerCase()!==target.toLowerCase())secSet[x]=1});
+  });
+  if(primarySec){
+    var p=primarySec.querySelector('p');if(p)p.textContent=target;
+  }
+  if(secondarySec){
+    var sp=secondarySec.querySelector('p');
+    if(sp)sp.textContent=Object.keys(secSet).filter(function(x){return !primarySet[x]}).slice(0,8).join(' • ')||'—';
+  }
+  var grid=root.querySelector('.edu-ex-grid');
+  if(grid){
+    function card(d){
+      var p=(d.primary||[]).map(canonMuscle).join(', ')||'—';
+      var m=fjExMeta(d);
+      return '<article class="edu-ex-card"><div class="edu-ex-title"><b>'+esc(d.name)+'</b><span>'+esc(d.level)+'</span></div>'+
+        '<div class="edu-ex-tags"><span>'+esc(m.type)+'</span><span>'+esc(m.pattern)+'</span><span>'+esc(d.equip)+'</span></div>'+
+        '<div class="edu-ex-small"><b>Primary:</b> '+esc(p)+'<br><b>Joints:</b> '+esc(m.joints)+'</div>'+
+        '<div class="edu-ex-small"><b>Programming:</b> '+esc((d.sets&&d.sets.hipertrofi)||'see exercise detail')+'</div>'+
+        '<button type="button" class="exl-btn alt" onclick="window.fjExlOpen(\''+esc(d.id)+'\')">View Exercise Detail</button></article>';
+    }
+    grid.innerHTML=list.map(card).join('');
+    var count=root.querySelector('.edu-section-head>span');if(count)count.textContent=list.length+' direct target';
+  }
+}
 /* stability: broad UI observer removed; renderers are event-driven */
 
 /* ============================================================
@@ -10618,6 +10645,7 @@ function masterGateBoot(){
 [250,700,1500,3000].forEach(function(ms){setTimeout(function(){
   canonicalizeExercises();addVariants();canonicalizeExercises();
   refreshExerciseControls();setupClientPager();capPtDays();masterGateBoot();
+  repairMateriOutput();
 },ms)});
 
 })();
@@ -10644,95 +10672,5 @@ function bind(){
   if(active)activateNav(active.getAttribute('data-tab'));
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-})();
-</script>
-
-
-<!-- V96 CLEAN EDUCATION: the old Exercise Library Materi tab and old Education
-     navigation layer are removed. This is the single standalone Education panel. -->
-<style id="fj-v96-education-css">
-#fjEducationPanel .edu-ex-title b{display:block}
-#fjEducationNav{position:relative!important;z-index:100001!important;pointer-events:auto!important;cursor:pointer!important}
-#fjEducationNav.fj-v96-active{background:#20b79f!important;color:#fff!important}
-</style>
-<script id="fj-v96-education-runtime">
-(function(){
-'use strict';
-function q(id){return document.getElementById(id)}
-function side(){return document.querySelector('.side')}
-function main(){return document.querySelector('main.main')||document.querySelector('.main')}
-function setActive(){
-  document.querySelectorAll('.side .navbtn').forEach(function(b){
-    b.classList.remove('active');
-    b.classList.remove('fj-v617-active');
-    b.classList.remove('fj-v96-active');
-  });
-  var n=q('fjEducationNav'); if(n){n.classList.add('active');n.classList.add('fj-v96-active')}
-}
-function buildPanel(){
-  if(q('fjEducationPanel'))return q('fjEducationPanel');
-  var m=main(); if(!m)return null;
-  var p=document.createElement('section');
-  p.id='fjEducationPanel';
-  p.className='panel';
-  p.innerHTML=
-    '<div class="exl-shell">'+
-      '<div class="exl-head"><div>'+
-        '<div class="label">MATERI &amp; EDUKASI</div>'+
-        '<h2>Materi &amp; Edukasi</h2>'+
-        '<div class="exl-muted">Database Gerakan • Anatomi • Pemrograman Resistance Training • Materi Edukasi</div>'+
-      '</div></div>'+
-      '<div id="fjEducationContent" class="exl-view active"></div>'+
-    '</div>';
-  m.appendChild(p);
-  return p;
-}
-function ensureNav(){
-  var s=side(); if(!s)return null;
-  var n=q('fjEducationNav');
-  if(!n){
-    n=document.createElement('button');
-    n.id='fjEducationNav';
-    n.type='button';
-    n.className='navbtn';
-    n.textContent='📖 Materi & Edukasi';
-    n.setAttribute('aria-label','Materi & Edukasi');
-    n.onclick=function(e){
-      if(e){e.preventDefault();e.stopImmediatePropagation()}
-      open();
-      return false;
-    };
-    var ex=q('fjExLibNav');
-    if(ex && ex.parentNode===s)s.insertAdjacentElement('afterend',n);
-    else {
-      var tracker=q('fjPtTrackerNav');
-      if(tracker && tracker.parentNode===s)s.insertBefore(n,tracker);
-      else s.appendChild(n);
-    }
-  }
-  n.style.display='flex';
-  n.style.visibility='visible';
-  n.style.pointerEvents='auto';
-  return n;
-}
-function open(){
-  var p=buildPanel(); if(!p)return false;
-  ensureNav();
-  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});
-  p.classList.add('active');
-  setActive();
-  try{
-    if(typeof window.__fjRenderEducation==='function')window.__fjRenderEducation();
-  }catch(err){console.error('Materi & Edukasi render failed',err)}
-  return true;
-}
-function boot(){
-  ensureNav();
-  buildPanel();
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
-else boot();
-window.addEventListener('load',function(){setTimeout(ensureNav,300);setTimeout(buildPanel,300)});
-window.fjOpenEducation=open;
 })();
 </script>

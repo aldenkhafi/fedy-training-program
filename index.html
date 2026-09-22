@@ -1425,7 +1425,14 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #fjPtNameManager .fj-ptm-row button{font-size:12px!important;padding:8px 12px!important;min-height:34px!important;line-height:1.2!important}
 @media(max-width:760px){#fjPtNameManager .fj-ptm-row button{font-size:9px!important;padding:5px 8px!important;min-height:28px!important}}
 </style>
-<style id="fj-v98-education-clean">#fjEducationStandalone{display:none}#fjEducationStandalone.active{display:block}#fjEducationNav{position:relative;z-index:1}#fjEducationNav.active{background:#26a789!important;color:#fff!important;box-shadow:none!important;transform:none!important}#fjEducationContent{width:100%;min-height:20px}</style>
+<style id="fj-v98-education-clean">
+#fjEducationStandalone{display:none}
+#fjEducationStandalone.active{display:block}
+#fjEducationNav{position:relative;z-index:1}
+#fjEducationNav.active{background:#26a789!important;color:#fff!important;box-shadow:none!important;transform:none!important}
+#fjEducationContent{width:100%;min-height:20px}
+@media(min-width:761px){#fjEducationStandalone{width:100%}}
+</style>
 </head><body>
 
 
@@ -5949,7 +5956,15 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,
   }
   function buildProHtml(p){
     var client=[['Client Name',p.name||snap('clientName','—')],['Age',snap('programAge',p.age||'—')+' years'],['Gender',snap('programGender','—')],['Body Weight',snap('programWeight','—')+' kg'],['Height',snap('programHeight','—')+' cm'],['Goal',p.g||snap('programGoal','—')],['Fitness Level',p.level||snap('programLevel','AUTO')],['Workout Type',p.wtype||snap('programWorkoutType','—')],['Duration',String(p.months||snap('programMonths','—'))+' months'],['Frequency',String(p.freq||snap('programFreq','—'))+' / week']];
-    var html='<!doctype html><html><head><meta charset="utf-8"><title>Training Program PRO</title><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:10px}h1{font-size:24px;margin:0 0 12px;line-height:1.2}h2{font-size:14px;margin:0 0 6px;line-height:1.2}.cover{min-height:277mm;break-after:page;page-break-after:always;padding:4mm 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;border:1px solid #bfc9d1;padding:12px;border-radius:6px}.grid div{border:1px solid #d0d7dc;padding:10px;border-radius:5px}.grid b{display:block;font-size:10px;text-transform:uppercase;line-height:1.2}.grid span{display:block;margin-top:4px;font-size:16px;font-weight:700;line-height:1.35}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px;break-inside:avoid;page-break-inside:avoid}.session thead{display:table-header-group}.session tr{break-inside:avoid;page-break-inside:avoid}.session th,.session td{border:1px solid #999;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.session th{font-weight:700;background:#f3f3f3}</style></head><body><section class="cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="grid">';
+    var html='<!doctype html><html><head><meta charset="utf-8"><title>Training Program PRO</title><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:10px}h1{font-size:24px;margin:0 0 12px;line-height:1.2}h2{font-size:14px;margin:0 0 6px;line-height:1.2}.cover{min-height:277mm;break-after:page;page-break-after:always;padding:4mm 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;border:1px solid #bfc9d1;padding:12px;border-radius:6px}.grid div{border:1px solid #d0d7dc;padding:10px;border-radius:5px}.grid b{display:block;font-size:10px;text-transform:uppercase;line-height:1.2}.grid span{display:block;margin-top:4px;font-size:16px;font-weight:700;line-height:1.35}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px;break-inside:avoid;page-break-inside:avoid}.session thead{display:table-header-group}.session tr{break-inside:avoid;page-break-inside:avoid}.session th,.session td{border:1px solid #999;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.session th{font-weight:700;background:#f3f3f3}</style><style id="fj-v98-education-clean">
+#fjEducationStandalone{display:none}
+#fjEducationStandalone.active{display:block}
+#fjEducationNav{position:relative;z-index:1}
+#fjEducationNav.active{background:#26a789!important;color:#fff!important;box-shadow:none!important;transform:none!important}
+#fjEducationContent{width:100%;min-height:20px}
+@media(min-width:761px){#fjEducationStandalone{width:100%}}
+</style>
+</head><body><section class="cover"><h1>FITNESS JOURNEY — CLIENT PROGRAM</h1><div class="grid">';
     client.forEach(function(r){html+='<div><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'});
     html+='</div></section><h1>TRAINING PROGRAM PRO</h1>';
     var months=Math.max(1,Number(p.months)||1),freq=Math.max(1,Number(p.freq)||1);
@@ -6054,7 +6069,15 @@ window.fjClientCalendar={state:function(){return ccState},render:renderCalendar,
     try{w=window.open('', 'fjTrainingProgramPrintV22', 'width=1100,height=900,resizable=yes,scrollbars=yes');}catch(e){console.error(e)}
     if(!w){alert('PDF gagal dibuka. Izinkan pop-up untuk situs ini lalu coba lagi.');return false}
     var css='@page{size:A4 portrait;margin:10mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}body{font-size:10px}.cover{min-height:245mm;box-sizing:border-box;padding:10mm;break-after:page;page-break-after:always}.cover h1{font-size:26px;margin:0 0 16px}.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}.client-grid>div{border:1px solid #bfc9d1;padding:12px;border-radius:6px}.client-grid b{display:block;font-size:11px;text-transform:uppercase}.client-grid span{display:block;font-size:15px;font-weight:700;margin-top:4px}.program h1{font-size:22px;margin:0 0 10px}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session h2{font-size:14px;margin:0 0 6px;break-after:avoid;page-break-after:avoid}.session table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8px;break-inside:avoid;page-break-inside:avoid}.session th,.session td{border:1px solid #aaa;padding:3px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.session thead{display:table-header-group}.session tr{break-inside:avoid;page-break-inside:avoid}';
-    var doc='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+css+'</style></head><body>'+bodyHtml+'';
+    var doc='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+css+'</style><style id="fj-v98-education-clean">
+#fjEducationStandalone{display:none}
+#fjEducationStandalone.active{display:block}
+#fjEducationNav{position:relative;z-index:1}
+#fjEducationNav.active{background:#26a789!important;color:#fff!important;box-shadow:none!important;transform:none!important}
+#fjEducationContent{width:100%;min-height:20px}
+@media(min-width:761px){#fjEducationStandalone{width:100%}}
+</style>
+</head><body>'+bodyHtml+'';
     try{
       w.document.open();w.document.write(doc);w.document.close();
       var printed=false;
@@ -6449,14 +6472,47 @@ function printRange(name,from,to){
   var cs=clients(),ci=cs.find(function(c){return norm(c.name)===norm(name)})||{name:name||'All Clients'};
   var w=null;try{w=window.open('','fjV52PTPrint','width=1100,height=900,resizable=yes,scrollbars=yes')}catch(e){}
   if(!w){alert('PDF/Print gagal dibuka. Izinkan pop-up untuk situs ini lalu coba lagi.');return}
-  var h='<!doctype html><html><head><meta charset="utf-8"><title>Fitness Journey — PT Management</title><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:10px}.cover{break-after:page;page-break-after:always;padding:4mm 0}.cover h1{font-size:24px;margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;border:1px solid #cfd8df;padding:10px;border-radius:6px}.grid div{border:1px solid #e0e5e9;padding:7px;border-radius:5px}.grid b,.ba b{display:block;font-size:8px;text-transform:uppercase;color:#66717a}.grid span{display:block;margin-top:2px;font-size:11px;font-weight:700;overflow-wrap:anywhere}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session h2{font-size:13px;margin:0 0 6px}.session table{width:100%;border-collapse:collapse;font-size:8px;table-layout:fixed}.session th,.session td{border:1px solid #aaa;padding:3px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.baCard{border:1px solid #d6dee3;border-radius:6px;padding:7px;break-inside:avoid}.baPhoto{height:120mm;display:flex;align-items:center;justify-content:center;background:#f4f7f8;border-radius:5px;overflow:hidden;margin-top:5px}.baPhoto img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}.baFields{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}.baFields div{border:1px solid #e4e8eb;border-radius:4px;padding:4px;font-size:7.5px}.baFields b{font-size:6.5px}.muted{color:#68737c}</style></head><body>';
+  var h='<!doctype html><html><head><meta charset="utf-8"><title>Fitness Journey — PT Management</title><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:10px}.cover{break-after:page;page-break-after:always;padding:4mm 0}.cover h1{font-size:24px;margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;border:1px solid #cfd8df;padding:10px;border-radius:6px}.grid div{border:1px solid #e0e5e9;padding:7px;border-radius:5px}.grid b,.ba b{display:block;font-size:8px;text-transform:uppercase;color:#66717a}.grid span{display:block;margin-top:2px;font-size:11px;font-weight:700;overflow-wrap:anywhere}.session{break-inside:avoid;page-break-inside:avoid;margin:0 0 7mm}.session h2{font-size:13px;margin:0 0 6px}.session table{width:100%;border-collapse:collapse;font-size:8px;table-layout:fixed}.session th,.session td{border:1px solid #aaa;padding:3px;text-align:left;vertical-align:top;overflow-wrap:anywhere}.ba{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.baCard{border:1px solid #d6dee3;border-radius:6px;padding:7px;break-inside:avoid}.baPhoto{height:120mm;display:flex;align-items:center;justify-content:center;background:#f4f7f8;border-radius:5px;overflow:hidden;margin-top:5px}.baPhoto img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block}.baFields{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}.baFields div{border:1px solid #e4e8eb;border-radius:4px;padding:4px;font-size:7.5px}.baFields b{font-size:6.5px}.muted{color:#68737c}</style><style id="fj-v98-education-clean">
+#fjEducationStandalone{display:none}
+#fjEducationStandalone.active{display:block}
+#fjEducationNav{position:relative;z-index:1}
+#fjEducationNav.active{background:#26a789!important;color:#fff!important;box-shadow:none!important;transform:none!important}
+#fjEducationContent{width:100%;min-height:20px}
+@media(min-width:761px){#fjEducationStandalone{width:100%}}
+</style>
+</head><body>';
   h+='<section class="cover"><h1>FITNESS JOURNEY — PT MANAGEMENT</h1><h2>'+esc(name||'All Clients')+'</h2><p>Periode: '+esc(from)+' s/d '+esc(to)+'</p>';
   if(name){h+='<div class="grid">'+[['Client Name',ci.name],['Age',ci.age],['Gender',ci.gender],['Weight',ci.weight],['Height',ci.height],['Goal',ci.goal],['Fitness Level',ci.level],['Workout Type',ci.wtype],['Duration',ci.duration],['Frequency',ci.freq],['Phone',ci.phone],['Email',ci.email],['Notes',ci.notes]].map(function(v){return '<div><b>'+esc(v[0])+'</b><span>'+esc(v[1]||'—')+'</span></div>'}).join('')+'</div>'}
   h+='<p class="muted">Sessions printed: '+evs.length+'</p></section>';
   if(!evs.length)h+='<p>No sessions found in selected range.</p>';
   evs.forEach(function(x,i){var e=x.event||{},ba=baOf(e,ci);h+='<section class="session"><h2>'+(i+1)+'. '+esc(x.key.replace('T',' '))+' — '+esc(e.title||'Training')+'</h2><p><b>Client:</b> '+esc(e.client?.name||'—')+' &nbsp; <b>Goal:</b> '+esc(e.client?.goal||ci.goal||'—')+' &nbsp; <b>Type:</b> '+esc(e.client?.wtype||ci.wtype||'—')+'</p><table><thead><tr><th>Exercise</th><th>Sets</th><th>Reps / Time</th><th>Load</th><th>RPE</th><th>RIR</th><th>Rest</th></tr></thead><tbody>'+(e.exercises||[]).map(function(r){return '<tr><td>'+esc(r.exercise)+'</td><td>'+esc(r.sets)+'</td><td>'+esc(r.reps)+'</td><td>'+esc(r.load)+'</td><td>'+esc(r.rpe||'—')+'</td><td>'+esc(r.rir||'—')+'</td><td>'+esc(r.rest||'—')+'</td></tr>'}).join('')+'</tbody></table>'+(e.notes?'<p><b>Notes:</b> '+esc(e.notes)+'</p>':'');
     if((ba.before&&Object.keys(ba.before).length)||(ba.after&&Object.keys(ba.after).length)){h+='<div class="ba">';['before','after'].forEach(function(side){var z=ba[side]||{},src=z.image||z.photo;h+='<div class="baCard"><h3>'+side.toUpperCase()+'</h3><div class="baPhoto">'+(src?'<img src="'+esc(src)+'" alt="'+side+'">':'<span class="muted">No photo</span>')+'</div><div class="baFields">'+fields(z).replace(/class="fj-v48[^\"]*"/g,'')+'</div></div>'});h+='</div>'}h+='</section>'});
-h+='</body></html>';
+h+='
+<!-- V99 surgical fix: PT & Client removed; Education panel made visible under existing renderer. -->
+<style id="fj-v99-surgical">
+/* The existing app has a global !important rule that hides non-core panels.
+   Allow only the existing standalone Materi & Edukasi panel through that rule. */
+#fjEducationStandalone.active{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;position:relative!important;z-index:1!important}
+#fjEducationStandalone.active #fjEducationContent{display:block!important;visibility:visible!important;opacity:1!important;min-height:20px!important}
+/* PT & Client is no longer part of this version. Hide both its sidebar entry and
+   the unified child view that was being injected underneath PT Tracker. */
+#fjPtClientNav,#fjV60PtDirectoryNav,#fjPtClientUnified{display:none!important;visibility:hidden!important;pointer-events:none!important}
+</style>
+<script id="fj-v99-surgical-js">
+(function(){'use strict';
+function removePTClientSurface(){
+  ['fjPtClientNav','fjV60PtDirectoryNav','fjPtClientUnified'].forEach(function(id){
+    var x=document.getElementById(id); if(x&&x.parentNode)x.parentNode.removeChild(x);
+  });
+  document.querySelectorAll('.ptv2-tab[data-v="pt-client"]').forEach(function(x){x.remove()});
+}
+function boot(){removePTClientSurface();setTimeout(removePTClientSurface,500);setTimeout(removePTClientSurface,1400)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.addEventListener('load',function(){setTimeout(removePTClientSurface,300)});
+})();
+</script>
+
+</body></html>';
   try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
 
   try{w.document.open();w.document.write(h);w.document.close();setTimeout(function(){try{w.focus();w.print()}catch(e){}},450)}catch(e){try{w.close()}catch(_){ }alert('PDF/Print gagal dibuat: '+(e.message||e))}
@@ -7915,6 +7971,31 @@ function hook(){var old=window.fjOpenPtClientUnified;if(typeof old!=='function')
 setTimeout(function(){hook();if($('fjPtClientUnified')?.classList.contains('active')&&!$('fjPtNameManager'))refresh()},250);
 })();
 </script>
+
+<!-- V99 surgical fix: PT & Client removed; Education panel made visible under existing renderer. -->
+<style id="fj-v99-surgical">
+/* The existing app has a global !important rule that hides non-core panels.
+   Allow only the existing standalone Materi & Edukasi panel through that rule. */
+#fjEducationStandalone.active{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;position:relative!important;z-index:1!important}
+#fjEducationStandalone.active #fjEducationContent{display:block!important;visibility:visible!important;opacity:1!important;min-height:20px!important}
+/* PT & Client is no longer part of this version. Hide both its sidebar entry and
+   the unified child view that was being injected underneath PT Tracker. */
+#fjPtClientNav,#fjV60PtDirectoryNav,#fjPtClientUnified{display:none!important;visibility:hidden!important;pointer-events:none!important}
+</style>
+<script id="fj-v99-surgical-js">
+(function(){'use strict';
+function removePTClientSurface(){
+  ['fjPtClientNav','fjV60PtDirectoryNav','fjPtClientUnified'].forEach(function(id){
+    var x=document.getElementById(id); if(x&&x.parentNode)x.parentNode.removeChild(x);
+  });
+  document.querySelectorAll('.ptv2-tab[data-v="pt-client"]').forEach(function(x){x.remove()});
+}
+function boot(){removePTClientSurface();setTimeout(removePTClientSurface,500);setTimeout(removePTClientSurface,1400)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.addEventListener('load',function(){setTimeout(removePTClientSurface,300)});
+})();
+</script>
+
 </body></html>
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">

@@ -9533,11 +9533,11 @@ function build(){
     '<div class="exl-tabs">'+
       '<button class="exl-tab active" data-v="browse">Cari Exercise</button>'+
       '<button class="exl-tab" data-v="selected">Pilihan Saya (<span id="exlSelCount">0</span>)</button>'+
-      '<button class="exl-tab" data-v="materi">📖 Materi &amp; Edukasi</button>'+
+      '<button class="exl-tab" data-v="education">🎓 Education</button>'+
     '</div>'+
     '<div id="exlBrowse" class="exl-view active"></div>'+
     '<div id="exlSelected" class="exl-view"></div>'+
-    '<div id="exlMateri" class="exl-view"></div>'+
+    '<div id="exlEducation" class="exl-view"></div>'+
   '</div>'+
   '<div id="exlModal" class="exl-modal"><div class="exl-modalbox" id="exlModalBody"></div></div>';
   m.appendChild(sec);
@@ -9550,11 +9550,11 @@ function show(v){
   q('fjExerciseLibrary').classList.add('active');
   document.querySelectorAll('#fjExerciseLibrary .exl-tab').forEach(function(b){b.classList.toggle('active',b.dataset.v===v)});
   document.querySelectorAll('#fjExerciseLibrary .exl-view').forEach(function(x){x.classList.remove('active')});
-  var map={browse:'exlBrowse',selected:'exlSelected',materi:'exlMateri'};
+  var map={browse:'exlBrowse',selected:'exlSelected',education:'exlEducation'};
   q(map[v]).classList.add('active');
   if(v==='browse')renderBrowse();
   if(v==='selected')renderSelected();
-  if(v==='materi')renderMateri();
+  if(v==='education')renderEducationJoint();
 }
 
 function filterData(){
@@ -9732,84 +9732,97 @@ var EDU_SPORTS={
 var EDU_BONES=['Scapula','Clavicle','Humerus','Sternum / Ribs','Radius','Ulna','Carpal bones','Pelvis','Femur','Tibia','Fibula','Patella','Talus','Spine / Vertebrae','Rib cage'];
 var EDU_PATTERNS=['Squat','Hinge','Push','Pull','Lunge','Carry','Core / Anti-Rotation','Cardio','Mobility'];
 
-function eduOption(list,val,label){var out='<option value="">'+E(label||'Semua')+'</option>';list.forEach(function(x){out+='<option value="'+E(x)+'"'+(x===val?' selected':'')+'>'+E(x)+'</option>'});return out}
-function eduMuscleNames(){return Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k].name})}
-function eduExerciseMatches(d){
-  var m=fjExMeta(d), score=0;
-  var muscle=EDU_FILTER.muscle, joint=EDU_FILTER.joint, bone=EDU_FILTER.bone, pattern=EDU_FILTER.pattern;
-  var metaText=[m.primary,m.secondary,m.pattern,m.joints,d.name,d.cat].join(' ').toLowerCase();
-  if(muscle){var md=EDU_MUSCLES[Object.keys(EDU_MUSCLES).find(function(k){return EDU_MUSCLES[k].name===muscle})||''];if(md&&md.keywords.some(function(k){return metaText.indexOf(k.toLowerCase())>-1}))score+=30;else if(metaText.indexOf(muscle.toLowerCase())>-1)score+=25;else return -999}
-  if(pattern){if(m.pattern===pattern)score+=25;else return -999}
-  if(joint&&m.joints.toLowerCase().indexOf(joint.toLowerCase())>-1)score+=18;else if(joint)return -999;
-  if(bone){var bt=(m.joints+' '+m.primary+' '+m.secondary).toLowerCase();if(bt.indexOf(bone.toLowerCase())>-1)score+=12;else if(EDU_FILTER.muscle)return score;}
-  if(EDU_FILTER.level){score+=(d.level===EDU_FILTER.level?8:0)}
-  if(EDU_FILTER.goal){score+=fjGoalPatternScore(m,EDU_FILTER.goal)}
+/* V101 — Education: joint-first interactive education tool. Scoped to Exercise Library only. */
+var FJ_EDU_JOINTS={
+  'Temporomandibular (TMJ)':{region:'Head',desc:'Sendi rahang yang menghubungkan mandibula dengan tulang temporal dan berperan pada membuka/menutup serta gerak rahang.',muscles:['Masseter','Temporalis','Medial Pterygoid','Lateral Pterygoid'],patterns:['Depression / Elevation','Protrusion / Retrusion','Lateral excursion'],bones:['Mandible','Temporal bone'],plane:'Gerak kompleks; bukan target resistance training umum.',role:'Mobilitas dan kontrol rahang; bukan target penguatan beban untuk program fitness umum.',prep:'Tidak memerlukan loading resistance umum. Gunakan gerak nyaman dan hindari memaksa ROM.',caution:'Nyeri rahang, locking, clicking yang nyeri, atau perubahan gigitan memerlukan evaluasi profesional; jangan menjadikan latihan beban sebagai terapi TMJ.'},
+  'Cervical Spine':{region:'Spine',desc:'Bagian leher dari tulang belakang yang mendukung kepala dan menyediakan mobilitas terkontrol.',muscles:['Deep Neck Flexors','Upper Trapezius','Sternocleidomastoid','Suboccipitals'],patterns:['Flexion / Extension','Rotation','Lateral Flexion','Cervical stabilization'],bones:['Cervical vertebrae C1–C7'],plane:'Sagittal, frontal, dan transverse.',role:'Stabilitas kepala/leher dan kontrol posisi saat gerakan upper-body.',prep:'Breathing, postural setup, scapular control, dan gerak leher ringan dalam ROM nyaman.',caution:'Hindari forced end-range dan loading langsung leher; nyeri menjalar, baal, pusing, atau kelemahan bukan target latihan.'},
+  'Thoracic Spine':{region:'Spine',desc:'Segmen punggung atas yang berperan pada ekstensi, rotasi, dan posisi rib cage/scapula.',muscles:['Erector Spinae','Multifidus','Trapezius','Rhomboids'],patterns:['Extension','Rotation','Anti-Rotation','Postural stabilization'],bones:['Thoracic vertebrae T1–T12','Ribs'],plane:'Sagittal, transverse, dan frontal.',role:'Mobilitas thoracic dan stabilitas trunk membantu posisi bahu serta transfer gaya.',prep:'Thoracic rotation, breathing/rib expansion, light row dan controlled hinge.',caution:'Gerakan harus terkontrol; jangan mengejar ROM dengan kompensasi lumbar.'},
+  'Lumbar Spine':{region:'Spine',desc:'Segmen punggung bawah yang terutama berfungsi sebagai bagian dari sistem transfer gaya dan stabilitas trunk.',muscles:['Erector Spinae','Multifidus','Core / Trunk','Quadratus Lumborum'],patterns:['Hip Hinge','Anti-Extension','Anti-Rotation','Trunk stabilization'],bones:['Lumbar vertebrae L1–L5','Sacrum','Pelvis'],plane:'Terutama sagittal dan frontal/transverse untuk kontrol; latihan fitness umumnya menekankan stabilitas.',role:'Transfer gaya antara upper dan lower body; kontrol trunk saat hinge, squat, carry, dan locomotion.',prep:'Bracing, breathing, hip hinge drill, dead bug/bird dog sesuai kemampuan.',caution:'Hindari memaksa fleksi/ekstensi atau loading yang tidak dapat dikontrol; gejala neurologis perlu evaluasi profesional.'},
+  'Shoulder (Glenohumeral)':{region:'Upper Body',desc:'Sendi ball-and-socket dengan ROM besar untuk gerak lengan dalam banyak arah.',muscles:['Deltoid','Pectoralis Major','Latissimus Dorsi','Rotator Cuff'],patterns:['Flexion','Extension','Abduction','Adduction','Horizontal Adduction','Horizontal Abduction','Internal / External Rotation'],bones:['Scapula','Clavicle','Humerus'],plane:'Sagittal, frontal, dan transverse.',role:'Mobilitas tinggi dengan kebutuhan stabilitas dinamis dari rotator cuff dan scapular musculature.',prep:'Scapular control, arm sweep, light push/pull, dan ramp-up sets.',caution:'ROM harus sesuai kontrol; nyeri tajam atau rasa tidak stabil bukan target latihan.'},
+  'Scapulothoracic Complex':{region:'Shoulder Girdle',desc:'Artikulasi fungsional antara scapula dan thorax yang penting untuk posisi dan gerak shoulder complex.',muscles:['Serratus Anterior','Trapezius','Rhomboids','Pectoralis Minor'],patterns:['Protraction / Retraction','Elevation / Depression','Upward / Downward Rotation'],bones:['Scapula','Ribs','Clavicle'],plane:'Frontal, sagittal, dan transverse.',role:'Scapular positioning dan transfer gaya untuk pressing, pulling, reaching, dan overhead movement.',prep:'Scapular circles, wall slide, controlled row/retraction.',caution:'Jangan memaksa scapula ke posisi tertentu; fokus pada kontrol dan koordinasi.'},
+  'Elbow':{region:'Upper Body',desc:'Kompleks sendi lengan yang terutama menghasilkan flexion-extension dan bekerja bersama rotasi radius-ulna.',muscles:['Biceps Brachii','Brachialis','Triceps Brachii','Brachioradialis'],patterns:['Flexion','Extension','Pronation / Supination'],bones:['Humerus','Radius','Ulna'],plane:'Sagittal untuk flexion/extension; transverse untuk pronation/supination.',role:'Transfer gaya antara shoulder dan hand saat push, pull, curl, extension, dan carries.',prep:'Light curl/extension, easy row/press, gradual grip loading.',caution:'Progress volume dan grip secara bertahap; nyeri menetap perlu evaluasi.'},
+  'Proximal Radioulnar':{region:'Forearm',desc:'Sendi yang memungkinkan radius berputar terhadap ulna sehingga tangan dapat pronasi dan supinasi.',muscles:['Pronator Teres','Pronator Quadratus','Supinator','Biceps Brachii'],patterns:['Pronation','Supination'],bones:['Radius','Ulna'],plane:'Transverse.',role:'Orientasi telapak tangan dan kontrol forearm saat gripping, curling, rowing, dan carries.',prep:'Forearm rotation tanpa beban atau dengan beban sangat ringan.',caution:'Hindari memaksa rotasi pada end-range ketika toleransi belum baik.'},
+  'Wrist':{region:'Upper Limb',desc:'Kompleks pergelangan yang mengatur posisi tangan dan mentransfer gaya ke alat/beban.',muscles:['Wrist Flexors','Wrist Extensors','Forearm / Lengan Bawah'],patterns:['Flexion','Extension','Radial / Ulnar Deviation'],bones:['Radius','Ulna','Carpal bones'],plane:'Sagittal dan frontal.',role:'Menjaga posisi tangan saat pressing, pulling, gripping, dan carries.',prep:'Wrist circles, light grip, gradual loading.',caution:'Posisi ekstrem dan volume grip perlu disesuaikan dengan toleransi.'},
+  'Thumb':{region:'Hand',desc:'Kompleks sendi ibu jari yang memungkinkan opposition dan membantu grip.',muscles:['Thenar muscles','Adductor Pollicis','First Dorsal Interosseous'],patterns:['Opposition','Flexion / Extension','Abduction / Adduction'],bones:['Trapezium','First metacarpal','Phalanges'],plane:'Multi-planar.',role:'Grip, pinch, dan kontrol benda.',prep:'Gentle thumb ROM dan grip ringan.',caution:'Jangan memaksakan pinch/loading bila nyeri.'},
+  'Hand / Finger Joints':{region:'Hand',desc:'Sendi MCP dan IP yang mengatur fleksi-ekstensi jari dan kontribusi pada grip.',muscles:['Flexor Digitorum','Extensor Digitorum','Intrinsic hand muscles'],patterns:['Finger Flexion / Extension','Grip / Release'],bones:['Metacarpals','Phalanges'],plane:'Sagittal dominan.',role:'Grip dan manipulasi alat.',prep:'Open-close hand, light grip/release.',caution:'Volume grip bertahap terutama saat banyak pulling/carrying.'},
+  'Sacroiliac (SI) Joint':{region:'Pelvis',desc:'Sendi antara sacrum dan ilium yang terutama berfungsi mentransfer beban antara trunk dan tungkai.',muscles:['Gluteus Maximus','Core / Trunk','Erector Spinae','Hamstrings'],patterns:['Load transfer','Pelvic stabilization','Hip hinge control'],bones:['Sacrum','Ilium / Pelvis'],plane:'Multi-planar; geraknya kecil dan fungsinya terutama stabilitas/load transfer.',role:'Transfer gaya dan stabilitas pelvis saat berjalan, hinge, squat, dan unilateral work.',prep:'Breathing/bracing, glute activation, controlled hinge/squat.',caution:'Tidak tepat menjadikan SI sebagai target stretching agresif; nyeri pelvis menetap perlu evaluasi.'},
+  'Hip':{region:'Lower Body',desc:'Sendi ball-and-socket antara pelvis dan femur dengan kapasitas gerak besar.',muscles:['Gluteus Maximus','Gluteus Medius','Hamstrings','Adductors','Hip Flexors'],patterns:['Flexion','Extension','Abduction','Adduction','Internal / External Rotation'],bones:['Pelvis','Femur'],plane:'Sagittal, frontal, dan transverse.',role:'Produksi dan kontrol gaya pada squat, hinge, lunge, sprint, jump, dan locomotion.',prep:'Walking, hip circles, dynamic lunge/hinge, progressive ramp-up.',caution:'ROM dipilih sesuai kontrol pelvis dan trunk; progreskan load/volume bertahap.'},
+  'Knee':{region:'Lower Body',desc:'Kompleks knee yang dominan pada flexion-extension dan bekerja bersama hip serta ankle.',muscles:['Quadriceps','Hamstrings','Gluteus Maximus','Gastrocnemius'],patterns:['Flexion / Extension','Squat','Lunge','Deceleration'],bones:['Femur','Tibia','Patella'],plane:'Sagittal dominan dengan kontrol frontal/transverse.',role:'Menyerap dan menghasilkan gaya saat squat, lunge, berjalan, berlari, dan melompat.',prep:'Bike/walk, dynamic knee bend, squat/lunge ramp-up.',caution:'Volume impact dan ROM perlu diprogreskan sesuai kemampuan; nyeri/instability perlu evaluasi.'},
+  'Patellofemoral Joint':{region:'Knee',desc:'Artikulasi antara patella dan femur yang membantu mekanika ekstensor lutut.',muscles:['Quadriceps','Gluteus Medius','Gluteus Maximus'],patterns:['Knee extension','Squat / lunge mechanics'],bones:['Patella','Femur'],plane:'Sagittal dominan.',role:'Membantu efisiensi ekstensor lutut saat knee flexion-extension.',prep:'Gradual squat/step pattern dan kontrol hip-knee-foot.',caution:'Jangan memaksa volume atau ROM yang memicu nyeri anterior knee.'},
+  'Ankle (Talocrural)':{region:'Lower Body',desc:'Kompleks ankle yang terutama mengatur dorsiflexion dan plantarflexion.',muscles:['Gastrocnemius','Soleus','Tibialis Anterior'],patterns:['Dorsiflexion','Plantarflexion'],bones:['Tibia','Fibula','Talus'],plane:'Sagittal dominan.',role:'Gait, squat depth, jump/landing, balance, dan propulsion.',prep:'Ankle rocks, calf raises, walking.',caution:'Progres impact dan ROM bertahap; bandingkan sisi bila relevan tanpa memaksakan range.'},
+  'Subtalar Joint':{region:'Foot / Ankle',desc:'Kompleks sendi antara talus dan calcaneus yang membantu adaptasi kaki terhadap permukaan.',muscles:['Tibialis Posterior','Tibialis Anterior','Fibularis / Peroneals','Calves / Betis'],patterns:['Inversion / Eversion','Foot pronation / supination control'],bones:['Talus','Calcaneus'],plane:'Frontal dan transverse.',role:'Adaptasi dan kontrol kaki saat berjalan, berlari, lunge, dan perubahan arah.',prep:'Controlled foot tripod, calf raises, balance drills.',caution:'Latihan kaki harus tetap terkontrol; hindari memaksa posisi ekstrem.'},
+  'Foot / Midfoot':{region:'Foot',desc:'Kompleks sendi kaki yang membantu membentuk dan menyesuaikan foot arch saat menahan beban.',muscles:['Intrinsic Foot Muscles','Tibialis Posterior','Fibularis / Peroneals'],patterns:['Foot arch control','Pronation / Supination control'],bones:['Navicular','Cuboid','Cuneiforms','Metatarsals'],plane:'Multi-planar.',role:'Distribusi tekanan, keseimbangan, dan transfer gaya ke lantai.',prep:'Short-foot/foot tripod drill, controlled calf raise, balance.',caution:'Bangun toleransi bertahap terutama setelah lama tidak latihan.'},
+  'Metatarsophalangeal (MTP)':{region:'Foot',desc:'Sendi pangkal jari kaki yang penting untuk toe-off saat berjalan dan berlari.',muscles:['Flexor Hallucis','Extensor Hallucis','Intrinsic Foot Muscles'],patterns:['Toe extension / flexion','Push-off'],bones:['Metatarsals','Proximal phalanges'],plane:'Sagittal dominan.',role:'Propulsi dan keseimbangan saat gait.',prep:'Gentle toe mobility, foot tripod, gradual walking.',caution:'Jangan memaksa extension jari jika menimbulkan nyeri.'}
+};
+
+function fjEduJointExerciseScore(d,joint){
+  var m=fjExMeta(d),n=String(d.name||'').toLowerCase(),j=FJ_EDU_JOINTS[joint];
+  if(!j)return -999;
+  if(joint==='Temporomandibular (TMJ)'||joint==='Cervical Spine'||joint==='Thumb'||joint==='Hand / Finger Joints'||joint==='Proximal Radioulnar'||joint==='Metatarsophalangeal (MTP)'){
+    var direct=String(m.joints||'').toLowerCase().indexOf(joint.split(' ')[0].toLowerCase())>=0;
+    if(!direct)return -999;
+  }
+  var hay=(m.joints+' '+m.pattern+' '+m.primary+' '+m.secondary+' '+n).toLowerCase();
+  var score=0;
+  if(hay.indexOf(String(joint).toLowerCase().split(' (')[0])>=0)score+=60;
+  var pats=j.patterns||[];
+  pats.forEach(function(p){if(String(m.pattern).toLowerCase()===String(p).toLowerCase())score+=25});
+  if(joint==='Shoulder (Glenohumeral)' && /push|pull|carry/i.test(m.pattern))score+=20;
+  if(joint==='Scapulothoracic Complex' && /push|pull|carry/i.test(m.pattern))score+=20;
+  if(joint==='Hip' && /squat|hinge|lunge|carry|cardio/i.test(m.pattern))score+=25;
+  if(joint==='Knee' && /squat|lunge|cardio/i.test(m.pattern))score+=25;
+  if(joint==='Patellofemoral Joint' && /squat|lunge/i.test(m.pattern))score+=22;
+  if(joint==='Ankle (Talocrural)' && /squat|lunge|cardio/i.test(m.pattern))score+=22;
+  if(joint==='Subtalar Joint' && /lunge|squat|cardio/i.test(m.pattern))score+=15;
+  if(joint==='Foot / Midfoot' && /lunge|squat|cardio|carry/i.test(m.pattern))score+=10;
+  if(joint==='Lumbar Spine' && /hinge|core|carry|squat/i.test(m.pattern))score+=24;
+  if(joint==='Thoracic Spine' && /pull|push|core|carry/i.test(m.pattern))score+=18;
+  if(joint==='Sacroiliac (SI) Joint' && /hinge|squat|lunge|carry/i.test(m.pattern))score+=18;
+  if(joint==='Elbow' && /push|pull/i.test(m.pattern))score+=18;
+  if(joint==='Wrist' && /push|pull|carry/i.test(m.pattern))score+=15;
+  if(!score)return -999;
   return score;
 }
-function eduFindExercise(name){return DATA.find(function(d){return d.name===name})||null}
-function eduProfile(){
-  var selectedEx=eduFindExercise(EDU_FILTER.exercise), muscle=null;
-  if(EDU_FILTER.muscle){muscle=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return x.name===EDU_FILTER.muscle})||null}
-  if(!muscle&&selectedEx){var hay=[selectedEx.primary||[],selectedEx.secondary||[],selectedEx.cat].join(' ').toLowerCase();muscle=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return x.keywords.some(function(k){return hay.indexOf(k.toLowerCase())>-1})})||null}
-  var selectedJoint=EDU_JOINTS[EDU_FILTER.joint]||null;
-  if(!muscle&&selectedJoint){muscle=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return selectedJoint.muscles.indexOf(x.name)>-1})||null}
-  if(!muscle&&EDU_FILTER.bone){muscle=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return x.bones.indexOf(EDU_FILTER.bone)>-1})||null}
-  if(!muscle)muscle=EDU_MUSCLES['pectoralis-major'];
-  var joint=selectedJoint, sport=EDU_SPORTS[EDU_FILTER.sport]||EDU_SPORTS['General Fitness'];
-  return {muscle:muscle,joint:joint,sport:sport,exercise:selectedEx};
+function fjEduLevelLabel(v){return v==='Lanjutan'?'Advanced':(v||'Pemula')}
+function fjEduRenderCard(x){var d=x.d,m=x.m;return '<article class="fj-edu-jcard" onclick="window.fjExlOpen(\''+E(d.id)+'\')"><div class="fj-edu-jtop"><span class="fj-edu-pill '+(m.type==='Isolation'?'iso':'comp')+'">'+E(m.type)+'</span><span class="fj-edu-pill level">'+E(fjEduLevelLabel(d.level))+'</span></div><h4>'+E(d.name)+'</h4><div class="fj-edu-jmeta"><span>Pattern: '+E(m.pattern)+'</span><span>Alat: '+E(d.equip)+'</span></div><p><b>Otot:</b> '+E(m.primary)+'</p><div class="fj-edu-click">Klik untuk detail exercise →</div></article>'}
+function fjEduRender(){
+  var b=q('exlEducation');if(!b)return;
+  var joints=Object.keys(FJ_EDU_JOINTS),joint=q('fjEduJoint')?q('fjEduJoint').value:'Shoulder (Glenohumeral)',type=q('fjEduType')?q('fjEduType').value:'',level=q('fjEduLevel')?q('fjEduLevel').value:'',query=q('fjEduSearch')?q('fjEduSearch').value.trim().toLowerCase():'';
+  var info=FJ_EDU_JOINTS[joint]||FJ_EDU_JOINTS[joints[0]];
+  var arr=DATA.map(function(d){return {d:d,m:fjExMeta(d),score:fjEduJointExerciseScore(d,joint)}}).filter(function(x){return x.score>-900});
+  if(type)arr=arr.filter(function(x){return x.m.type===type});
+  if(level){var wanted=level==='Advanced'?'Lanjutan':level;arr=arr.filter(function(x){return x.d.level===wanted})}
+  if(query)arr=arr.filter(function(x){return String(x.d.name+' '+x.m.primary+' '+x.m.pattern+' '+x.d.equip).toLowerCase().indexOf(query)>-1});
+  arr.sort(function(a,b){return b.score-a.score||String(a.d.name).localeCompare(String(b.d.name))});
+  var exercises=arr.slice(0,24), allCount=arr.length;
+  var noExercise=(joint==='Temporomandibular (TMJ)'||joint==='Cervical Spine'||joint==='Thumb'||joint==='Hand / Finger Joints'||joint==='Proximal Radioulnar'||joint==='Metatarsophalangeal (MTP)') && !allCount;
+  var movement=info.patterns.join(' • '),muscles=info.muscles.join(' • '),bones=info.bones.join(' • ');
+  b.innerHTML='<div class="fj-edu-shell">'+
+    '<div class="fj-edu-head"><div><div class="label">EDUCATION</div><h2>Joint Education &amp; Exercise Automation</h2><p class="exl-muted">Pilih satu sendi. Informasi anatomi, pola gerak, otot, dan exercise akan dibangun otomatis dari database Exercise Library.</p></div><span class="fj-edu-standard">NASM • ACSM • WHO framework</span></div>'+
+    '<div class="fj-edu-controls"><label>SENDI<select id="fjEduJoint">'+joints.map(function(x){return '<option value="'+E(x)+'"'+(x===joint?' selected':'')+'>'+E(x)+'</option>'}).join('')+'</select></label><label>TIPE EXERCISE<select id="fjEduType"><option value=""'+(!type?' selected':'')+'>Compound + Isolation</option><option value="Compound"'+(type==='Compound'?' selected':'')+'>Compound</option><option value="Isolation"'+(type==='Isolation'?' selected':'')+'>Isolation</option></select></label><label>LEVEL<select id="fjEduLevel"><option value=""'+(!level?' selected':'')+'>Semua Level</option><option>Pemula</option><option>Menengah</option><option value="Advanced"'+(level==='Advanced'?' selected':'')+'>Advanced</option></select></label><label>CARI EXERCISE<input id="fjEduSearch" value="'+E(q('fjEduSearch')?q('fjEduSearch').value:'')+'" placeholder="mis. squat, press, row..."></label></div>'+ 
+    '<div class="fj-edu-joint-card"><div><div class="label">SENDI TERPILIH</div><h2>'+E(joint)+'</h2><p>'+E(info.desc)+'</p></div><div class="fj-edu-facts"><div><b>Otot bertanggung jawab</b><span>'+E(muscles)+'</span></div><div><b>Pattern movement</b><span>'+E(movement)+'</span></div><div><b>Tulang</b><span>'+E(bones)+'</span></div><div><b>Plane</b><span>'+E(info.plane)+'</span></div></div></div>'+ 
+    '<div class="fj-edu-info-grid"><section><h3>Peran &amp; fungsi</h3><p>'+E(info.role)+'</p></section><section><h3>Preparation</h3><p>'+E(info.prep)+'</p></section><section><h3>Catatan keamanan</h3><p>'+E(info.caution)+'</p></section><section><h3>Automation logic</h3><p>Rekomendasi diprioritaskan berdasarkan pola gerak sendi, tipe exercise, dan level yang dipilih. Klik kartu untuk membuka detail exercise yang sudah ada di library.</p></section></div>'+ 
+    '<section class="fj-edu-results"><div class="fj-edu-results-head"><div><div class="label">REKOMENDASI EXERCISE</div><h3>'+E(joint)+'</h3></div><span>'+E(allCount)+' match</span></div>'+(noExercise?'<div class="fj-edu-empty"><b>Belum ada exercise resistance yang tepat di database untuk sendi ini.</b><p>Untuk sendi kecil/khusus, Education tidak memaksakan rekomendasi latihan yang tidak tepat. Gunakan informasi anatomi dan movement pattern sebagai konteks, lalu gunakan latihan umum untuk otot/pola yang relevan.</p></div>':(exercises.length?'<div class="fj-edu-grid">'+exercises.map(fjEduRenderCard).join('')+'</div>':'<div class="fj-edu-empty">Tidak ada hasil untuk kombinasi filter ini. Coba Compound + Isolation atau level lain.</div>'))+'</section>'+ 
+    '<section class="fj-edu-guidance"><h3>Bagaimana Education ini dipakai</h3><div class="fj-edu-guidance-grid"><div><b>NASM</b><span>Gunakan kontrol gerak, stabilitas, teknik, dan progresi dari fondasi ke strength/power sesuai readiness.</span></div><div><b>ACSM</b><span>Untuk healthy adults, resistance training diprogram secara konsisten dan disesuaikan dengan tujuan; jenis alat tertentu tidak wajib untuk memperoleh hasil.</span></div><div><b>WHO</b><span>Untuk kesehatan umum, orang dewasa dianjurkan melakukan aktivitas penguatan otot yang melibatkan kelompok otot utama pada ≥2 hari/minggu.</span></div></div></section>'+ 
+    '</div>';
+  ['fjEduJoint','fjEduType','fjEduLevel','fjEduSearch'].forEach(function(id){var el=q(id);if(el){el.onchange=fjEduRender; }});
 }
-function eduRelatedExercises(){
-  var arr=DATA.map(function(d){return {d:d,s:eduExerciseMatches(d)}}).filter(function(x){return x.s>-900});
-  arr.sort(function(a,b){return b.s-a.s});
-  if(EDU_FILTER.exercise){var exact=arr.filter(function(x){return x.d.name===EDU_FILTER.exercise});arr=exact.concat(arr.filter(function(x){return x.d.name!==EDU_FILTER.exercise}));}
-  return arr.slice(0,8);
-}
-function eduCardExercise(x){var d=x.d,m=x.d?fjExMeta(d):{};return '<article class="edu-ex-card"><div class="edu-ex-title"><b>'+E(d.name)+'</b><span>'+E(d.level)+'</span></div><div class="edu-ex-tags"><span>'+E(m.type)+'</span><span>'+E(m.pattern)+'</span><span>'+E(d.equip)+'</span></div><div class="edu-ex-small"><b>Otot utama:</b> '+E(m.primary)+'<br><b>Sendi kerja:</b> '+E(m.joints)+'</div><div class="edu-ex-small"><b>Program library:</b> '+E((d.sets&&d.sets.hipertrofi)||'lihat detail exercise')+'</div><button type="button" class="exl-btn alt" onclick="window.fjExlOpen(\''+d.id+'\')">Lihat Detail Exercise</button></article>'}
-function eduRender(){
-  var b=q('exlMateri');if(!b)return;
-  var muscles=eduMuscleNames().sort(),joints=Object.keys(EDU_JOINTS).sort();
-  var selectedMuscle=EDU_FILTER.muscle||'',activeJoint=EDU_FILTER.joint?EDU_JOINTS[EDU_FILTER.joint]:null,muscleObj=null;
-  if(selectedMuscle)muscleObj=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return x.name===selectedMuscle})||null;
-  if(!muscleObj&&activeJoint)muscleObj=Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).find(function(x){return activeJoint.muscles.indexOf(x.name)>-1})||null;
-  if(!muscleObj)muscleObj=EDU_MUSCLES['pectoralis-major'];
-  var related=selectedMuscle?Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).filter(function(x){return x.region===muscleObj.region}):activeJoint?Object.keys(EDU_MUSCLES).map(function(k){return EDU_MUSCLES[k]}).filter(function(x){return activeJoint.muscles.indexOf(x.name)>-1}):[muscleObj];
-  var relBase=DATA.map(function(d){
-    var m=fjExMeta(d),pn=(d.primary||[]).map(canonMuscle),sn=(d.secondary||[]).map(canonMuscle);
-    var direct=related.some(function(x){return pn.some(function(pm){return x.name===pm||x.keywords.some(function(k){return String(pm).toLowerCase()===String(k).toLowerCase()})})});
-    var secondary=related.some(function(x){return sn.some(function(sm){return x.name===sm||x.keywords.some(function(k){return String(sm).toLowerCase()===String(k).toLowerCase()})})});
-    return {d:d,s:(direct?220:0)+(secondary?25:0)+eduExerciseMatches(d)};
-  }).filter(function(x){return x.s>0}).sort(function(a,z){return z.s-a.s||String(a.d.name).localeCompare(String(z.d.name))});
-  /* Prefer exercises where the selected muscle is actually primary. Only use
-     secondary matches as a fallback when the direct library is genuinely small. */
-  var directRel=relBase.filter(function(x){
-    var pn=(x.d.primary||[]).map(canonMuscle);
-    return related.some(function(m){return pn.indexOf(m.name)>-1});
-  });
-  var rel=(directRel.length?directRel:relBase).slice(0,12);
-  var prim={},sec={};rel.forEach(function(x){var m=fjExMeta(x.d);String(m.primary||'').split(/[,•|]/).forEach(function(v){v=v.trim();if(v)prim[v]=1});String(m.secondary||'').split(/[,•|]/).forEach(function(v){v=v.trim();if(v)sec[v]=1})});
-  var primary=Object.keys(prim),secondary=Object.keys(sec).filter(function(v){return !prim[v]});
-  var stabMap={'Pectoralis Major':['Serratus Anterior','Rotator Cuff'],'Latissimus Dorsi':['Rotator Cuff','Core / Trunk'],'Trapezius':['Rhomboids','Serratus Anterior'],'Rhomboids':['Trapezius','Rotator Cuff'],'Erector Spinae':['Core / Trunk','Gluteus Maximus'],'Deltoid':['Rotator Cuff','Serratus Anterior'],'Biceps Brachii':['Rotator Cuff','Forearm / Lengan Bawah'],'Triceps Brachii':['Rotator Cuff','Forearm / Lengan Bawah'],'Quadriceps':['Gluteus Maximus','Calves / Betis'],'Hamstrings':['Gluteus Maximus','Core / Trunk'],'Gluteus Maximus':['Core / Trunk','Hamstrings'],'Gastrocnemius':['Soleus','Tibialis Anterior'],'Soleus':['Gastrocnemius','Tibialis Anterior'],'Calves / Betis':['Tibialis Anterior','Gluteus Maximus'],'Forearm / Lengan Bawah':['Brachioradialis','Rotator Cuff'],'Core / Trunk':['Erector Spinae','Gluteus Maximus']};
-  var stab=[];related.forEach(function(m){(stabMap[m.name]||[]).forEach(function(x){if(stab.indexOf(x)<0)stab.push(x)})});
-  var joints=activeJoint?[EDU_FILTER.joint]:related.reduce(function(a,m){return a.concat(m.joints||[])},[]).filter(function(v,i,a){return a.indexOf(v)===i});
-  var bones=related.reduce(function(a,m){return a.concat(m.bones||[])},[]).filter(function(v,i,a){return a.indexOf(v)===i});
-  var patterns=related.reduce(function(a,m){return a.concat(m.moves||[])},[]).filter(function(v,i,a){return a.indexOf(v)===i});
-  var sports=Object.keys(EDU_SPORTS).filter(function(k){return patterns.some(function(p){return (EDU_SPORTS[k].focus||[]).indexOf(p)>-1})});if(!sports.length)sports=['General Fitness'];
-  var warm=activeJoint?activeJoint.warmup:related.map(function(m){return m.warmup}).filter(Boolean).slice(0,2).join(' '),stretch=activeJoint?activeJoint.stretch:related.map(function(m){return m.stretching}).filter(Boolean).slice(0,2).join(' ');
-  var html='<div class="exl-card edu-main-card"><div class="label">MATERI &amp; EDUKASI</div><h2 style="margin:4px 0">Pilih Otot dan/atau Sendi</h2><p class="exl-muted">Hanya <b>Otot</b> dan <b>Sendi</b> yang menjadi pilihan. Semua informasi lain muncul otomatis sebagai rekomendasi.</p><div class="edu-filter-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><label>OTOT<select id="eduMuscle">'+eduOption(muscles,selectedMuscle,'Pilih otot')+'</select></label><label>SENDI<select id="eduJoint">'+eduOption(joints,EDU_FILTER.joint,'Pilih sendi')+'</select></label></div></div>'+
-  '<div class="edu-profile-head"><div><div class="label">OTOT TERKAIT</div><h2>'+E(selectedMuscle|| (activeJoint?EDU_FILTER.joint:muscleObj.name))+'</h2><div class="edu-stretch-list">'+related.map(function(m){return '<span>'+E(m.name)+'</span>'}).join('')+'</div></div></div>'+
-  '<div class="edu-info-grid"><section><h3>Otot Primer</h3><p>'+E(primary.join(' • ')||related.map(function(m){return m.name}).join(' • '))+'</p></section><section><h3>Otot Sekunder</h3><p>'+E(secondary.join(' • ')||'—')+'</p></section><section><h3>Stabilizer / Fixator</h3><p>'+E(stab.join(' • ')||'—')+'</p></section><section><h3>Pattern / Gerakan</h3><p>'+E(patterns.join(' • ')||'—')+'</p></section></div>'+
-  '<div class="edu-anatomy-grid"><section><h3>Sendi Terlibat</h3><p>'+E(joints.join(' • ')||'—')+'</p></section><section><h3>Tulang Terkait</h3><p>'+E(bones.join(' • ')||'—')+'</p></section><section><h3>Fungsi</h3><p>'+E(related.map(function(m){return m.function}).filter(Boolean).join(' ')||'—')+'</p></section><section><h3>Olahraga yang Melibatkan</h3><p>'+E(sports.join(' • '))+'</p></section></div>'+
-  '<div class="edu-prep-grid"><section class="edu-prep"><h3>🔥 Warm Up / Preparation</h3><p>'+E(warm||'Dynamic preparation sesuai otot/sendi yang dipilih.')+'</p></section><section class="edu-prep"><h3>🧘 Stretching / Mobility</h3><p>'+E(stretch||'Mobility ringan sesuai otot/sendi yang dipilih.')+'</p></section></div>'+
-  '<section class="edu-exercise-results"><div class="edu-section-head"><div><div class="label">REKOMENDASI EXERCISE</div><h3>Exercise yang direkomendasikan</h3></div><span>'+E(rel.length)+' item</span></div><div class="edu-ex-grid">'+rel.map(eduCardExercise).join('')+'</div></section>';
-  b.innerHTML=html;
-  ['eduMuscle','eduJoint'].forEach(function(id){var el=q(id);if(el)el.onchange=function(){EDU_FILTER.muscle=q('eduMuscle').value;EDU_FILTER.joint=q('eduJoint').value;EDU_FILTER.exercise='';EDU_FILTER.pattern='';EDU_FILTER.bone='';EDU_FILTER.sport='';EDU_FILTER.level='';eduRender()}});
-}
-function renderMateri(){eduRender()}
+function renderEducationJoint(){fjEduRender()}
+
 function boot(){nav();}
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
+
+<style id="fj-v101-education-only">
+/* V101: scoped to Exercise Library Education only. */
+#exlEducation{display:none}
+#exlEducation.active{display:block}
+.fj-edu-shell{display:grid;gap:14px}.fj-edu-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.fj-edu-head h2{margin:4px 0}.fj-edu-standard{font-size:10px;font-weight:900;border:1px solid #cfe2df;border-radius:999px;padding:7px 10px;background:#f3fbf9;color:#37716b;white-space:nowrap}.fj-edu-controls{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.4fr;gap:10px;padding:14px;border:1px solid #d6e9e6;border-radius:12px;background:#fbfefe}.fj-edu-controls label{font-size:9px;font-weight:900;color:#5e8580;text-transform:uppercase}.fj-edu-controls select,.fj-edu-controls input{display:block;width:100%;box-sizing:border-box;margin-top:6px;min-height:42px;border:1px solid #cfe1df;border-radius:9px;padding:9px 10px;background:#fff;color:#173e4d;font-weight:700}.fj-edu-joint-card{display:grid;grid-template-columns:1.1fr 1.9fr;gap:14px;padding:16px;border:1px solid #cfe2df;border-radius:14px;background:#f8fcfb}.fj-edu-joint-card h2{margin:4px 0 8px}.fj-edu-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fj-edu-facts>div,.fj-edu-info-grid>section,.fj-edu-guidance-grid>div{padding:11px;border:1px solid #d8e8e6;border-radius:10px;background:#fff}.fj-edu-facts b,.fj-edu-facts span,.fj-edu-guidance b,.fj-edu-guidance span{display:block}.fj-edu-facts b{font-size:9px;text-transform:uppercase;color:#6a8a86}.fj-edu-facts span{margin-top:4px;font-size:11px;font-weight:700;color:#264b59;line-height:1.45}.fj-edu-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.fj-edu-info-grid h3{margin:0 0 7px;font-size:12px;color:#20475a}.fj-edu-info-grid p{margin:0;font-size:11px;line-height:1.5;color:#55727b}.fj-edu-results{padding:14px;border:1px solid #d6e9e6;border-radius:14px;background:#fff}.fj-edu-results-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.fj-edu-results-head h3{margin:3px 0}.fj-edu-results-head>span{font-size:10px;font-weight:900;color:#5d817d}.fj-edu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.fj-edu-jcard{border:1px solid #d5e5e4;border-radius:12px;padding:12px;background:#fff;cursor:pointer;transition:box-shadow .15s ease,transform .15s ease}.fj-edu-jcard:hover{box-shadow:0 5px 16px rgba(22,60,72,.10);transform:translateY(-1px)}.fj-edu-jtop{display:flex;justify-content:space-between;gap:8px}.fj-edu-pill{font-size:9px;font-weight:900;padding:4px 7px;border-radius:999px;border:1px solid #d3e3e2}.fj-edu-pill.comp{background:#eef8ff;color:#246e9a}.fj-edu-pill.iso{background:#fff7ed;color:#9b671f}.fj-edu-pill.level{background:#f5fbfa;color:#39746d}.fj-edu-jcard h4{margin:9px 0 6px;font-size:13px;color:#173e4d}.fj-edu-jmeta{display:flex;flex-wrap:wrap;gap:5px}.fj-edu-jmeta span{font-size:9px;padding:4px 6px;border-radius:7px;background:#f5f9fa;color:#56727b}.fj-edu-jcard p{font-size:10px;line-height:1.45;color:#4f6e76}.fj-edu-click{font-size:10px;font-weight:900;color:#1477c4;margin-top:8px}.fj-edu-empty{padding:14px;border:1px dashed #cbdedc;border-radius:10px;background:#f8fbfb;color:#587278;font-size:11px;line-height:1.5}.fj-edu-guidance{padding:14px;border:1px solid #d6e9e6;border-radius:14px;background:#f8fcfb}.fj-edu-guidance h3{margin:0 0 9px}.fj-edu-guidance-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.fj-edu-guidance b{font-size:10px;color:#256c65}.fj-edu-guidance span{margin-top:4px;font-size:10px;line-height:1.5;color:#536f77}
+@media(max-width:900px){.fj-edu-controls{grid-template-columns:1fr 1fr}.fj-edu-joint-card{grid-template-columns:1fr}.fj-edu-info-grid{grid-template-columns:1fr 1fr}.fj-edu-grid{grid-template-columns:1fr 1fr}.fj-edu-guidance-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.fj-edu-head{display:block}.fj-edu-standard{display:inline-block;margin-top:8px}.fj-edu-controls{grid-template-columns:1fr}.fj-edu-facts,.fj-edu-info-grid,.fj-edu-grid{grid-template-columns:1fr}}
+</style>
 <style id="fj-v71-smart-exercise-search">
 /* V71: Exercise Library simplified to one primary search intent. Existing data/ranking engines remain intact. */
 .exl-smart-search-card{padding:18px!important}

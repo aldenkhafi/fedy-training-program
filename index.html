@@ -6635,7 +6635,7 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
     try{if(email==='aldenkhafi0203@gmail.com')return 'MASTER_ADMIN';if(typeof fjCurrentRole==='function')return String(fjCurrentRole(email).role||'').toUpperCase()}catch(_){ }
     return '';
   }
-  function allowed(){return ['MASTER_ADMIN','PT','MANAGER','ADMIN'].includes(role())||!!window.__fjPtAccessApproved}
+  function allowed(){return role()==='MASTER_ADMIN'}
   function ensureNav(){
     var side=document.querySelector('.side');if(!side)return;
     var n=el(NAV_ID);
@@ -6921,7 +6921,7 @@ try{var a=window.__fjExerciseData||[],seen={};for(var i=a.length-1;i>=0;i--){var
 <!-- V61 STABILITY PATCH: PT access, PT & Client navigation/editor, deleted-client tombstones,
      and a rebuilt cascading Materi & Edukasi explorer. -->
 <style id="fj-v61-stability-css">
-#fjPtClientNav{display:flex!important}
+#fjPtClientNav{display:none!important}
 #fjPtClientNav.fj-v61-hidden{display:none!important}
 .fj-v61-edit-modal{position:fixed;inset:0;z-index:2147483608;display:none;align-items:center;justify-content:center;background:rgba(8,35,51,.68);padding:12px}
 .fj-v61-edit-modal.open{display:flex}
@@ -6967,19 +6967,11 @@ function role(){try{return String((window.fjCurrentRole?window.fjCurrentRole((me
 function sb(){return window.sb||null}
 
 async function refreshPTAccess(){
-  var u=me(), ok=isMaster()||['PT','MANAGER','ADMIN'].indexOf(role())>=0;
-  if(!ok&&u&&sb()){
-    try{
-      var a=await sb().from('user_access').select('status').eq('user_id',u.id).maybeSingle();
-      var d=await sb().from('pt_directory').select('status').eq('user_id',u.id).maybeSingle();
-      ok=String(a.data&&a.data.status||'').toLowerCase()==='approved' &&
-         String(d.data&&d.data.status||'active').toLowerCase()==='active';
-    }catch(e){}
-  }
+  var ok=isMaster();
   window.__fjPtAccessApproved=!!ok;
   var n=q('fjPtTrackerNav'),pc=q('fjPtClientNav');
   if(n)n.style.display=ok?'flex':'none';
-  if(pc)pc.classList.toggle('fj-v61-hidden',!ok);
+  if(pc){pc.classList.toggle('fj-v61-hidden',!ok);pc.style.display=ok?'flex':'none';}
   return ok;
 }
 

@@ -6649,7 +6649,7 @@ function hide(){var p=$(P);if(p)p.classList.remove('active');var n=$(NAV);if(n)n
 async function boot(){var n=$(NAV);if(!master()){hide();return}if(n){n.style.display='';n.textContent='▣ PT Management — Master';n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();render()};}var old=$('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}/* READY: render first; online sync is background and time-limited */render();try{await Promise.race([syncOnlineMirror(),new Promise(function(resolve){setTimeout(resolve,2500)})]);}catch(e){console.warn('PT Management background sync',e)}render()}
 document.addEventListener('click',function(e){var n=e.target.closest&&e.target.closest('#'+NAV);if(n&&master()){e.preventDefault();e.stopImmediatePropagation();render()}},true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);window.addEventListener('load',function(){setTimeout(boot,1200)});
-var lastMaster='';setTimeout(function(){var m=master()?'1':'0';if(m!==lastMaster){lastMaster=m;boot()}},3000);
+/* stability: no recurring/automatic master boot; navigation is user-driven. */
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#ptm53Modal')){if(e.target.id==='ptm53Modal')closeModal()}},true);
 window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
 })();
@@ -6808,8 +6808,9 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
 <script id="fj-pt-tracker-refresh-hook">
 (function(){
   window.fjPtV2Refresh=async function(){
-    try{window.dispatchEvent(new Event('focus'))}catch(e){}
-    await new Promise(function(r){setTimeout(r,250)});
+    /* Refresh PT Tracker locally only. Never synthesize a window focus event.
+       Online pulling is controlled by the explicit refresh/hourly sync below. */
+    return true;
   };
 })();
 </script>
@@ -6953,7 +6954,9 @@ function bind(){ptOpenObserver();var save=q('ccSaveEvent');if(save&&!save.datase
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('[data-pt]'):null;if(a&&a.closest&&a.closest('#fjPcuList')){showClients(a.dataset.pt)}var c=e.target&&e.target.closest?e.target.closest('[data-client]'):null;if(c&&c.closest&&c.closest('#fjPcuClients')){showClient(c.dataset.client,c.dataset.pt)}var b=e.target&&e.target.closest?e.target.closest('[data-pcu-back-client]'):null;if(b){showClients(b.dataset.pt||'')}} ,true);
 async function boot(){bind();if(sb()){setTimeout(function(){pullRemote(true)},0);try{channel=sb().channel('fj-v61-online').on('postgres_changes',{event:'*',schema:'public',table:'user_access'},function(){handleSession(window.currentSession||null);loadAdminAccess()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_directory'},function(){pullRemote(true);if(typeof fillPT==='function')fillPT()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_clients'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_conducts'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){pullRemote(true)}).subscribe()}catch(e){console.warn('Realtime subscribe',e)}}}
 window.fjLivePush=pushNow;window.fjLivePull=function(){return pullRemote(false)};window.fjCanonicalSync=pushNow;window.fjRefreshOnline=boot;
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,600)},{once:true});else setTimeout(boot,600);window.addEventListener('load',function(){setTimeout(boot,800)});window.addEventListener('online',function(){queue(300)});window.addEventListener('focus',function(){pullRemote(true)});document.addEventListener('visibilitychange',function(){if(!document.hidden)pullRemote(true)});
+/* Online data sync: no page refresh and no navigation. Manual refresh remains available; automatic sync runs once per hour. */
+if(!window.__fjHourlyOnlineSync){window.__fjHourlyOnlineSync=setInterval(function(){try{pullRemote(true)}catch(e){}},3600000);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,600)},{once:true});else setTimeout(boot,600);window.addEventListener('load',function(){setTimeout(boot,800)});window.addEventListener('online',function(){queue(300)});
 // Exercise de-duplication: one display item per normalized exercise name.
 try{var a=window.__fjExerciseData||[],seen={};for(var i=a.length-1;i>=0;i--){var key=norm(a[i]&&a[i].name).replace(/[^a-z0-9]+/g,'');if(seen[key])a.splice(i,1);else seen[key]=1}}catch(e){}
 })();
@@ -7289,7 +7292,7 @@ function hide(){var p=$(P);if(p)p.classList.remove('active');var n=$(NAV);if(n)n
 async function boot(){var n=$(NAV);if(!master()){hide();return}if(n){n.style.display='';n.textContent='▣ PT Management — Master';n.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();render()};}var old=$('fjPtOpsV2');if(old){old.classList.remove('active');old.style.display='none'}/* READY: render first; online sync is background and time-limited */render();try{await Promise.race([syncOnlineMirror(),new Promise(function(resolve){setTimeout(resolve,2500)})]);}catch(e){console.warn('PT Management background sync',e)}render()}
 document.addEventListener('click',function(e){var n=e.target.closest&&e.target.closest('#'+NAV);if(n&&master()){e.preventDefault();e.stopImmediatePropagation();render()}},true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,900)},{once:true});else setTimeout(boot,900);window.addEventListener('load',function(){setTimeout(boot,1200)});
-var lastMaster='';setTimeout(function(){var m=master()?'1':'0';if(m!==lastMaster){lastMaster=m;boot()}},3000);
+/* stability: no recurring/automatic master boot; navigation is user-driven. */
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#ptm53Modal')){if(e.target.id==='ptm53Modal')closeModal()}},true);
 window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
 })();
@@ -7448,8 +7451,9 @@ window.fjPtM53PrintEvents=printEvents;window.fjPtM53Render=render;
 <script id="fj-pt-tracker-refresh-hook">
 (function(){
   window.fjPtV2Refresh=async function(){
-    try{window.dispatchEvent(new Event('focus'))}catch(e){}
-    await new Promise(function(r){setTimeout(r,250)});
+    /* Refresh PT Tracker locally only. Never synthesize a window focus event.
+       Online pulling is controlled by the explicit refresh/hourly sync below. */
+    return true;
   };
 })();
 </script>
@@ -7570,7 +7574,9 @@ function bind(){ptOpenObserver();var save=q('ccSaveEvent');if(save&&!save.datase
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('[data-pt]'):null;if(a&&a.closest&&a.closest('#fjPcuList')){showClients(a.dataset.pt)}var c=e.target&&e.target.closest?e.target.closest('[data-client]'):null;if(c&&c.closest&&c.closest('#fjPcuClients')){showClient(c.dataset.client,c.dataset.pt)}var b=e.target&&e.target.closest?e.target.closest('[data-pcu-back-client]'):null;if(b){showClients(b.dataset.pt||'')}} ,true);
 async function boot(){bind();if(sb()){await pullRemote(true);try{channel=sb().channel('fj-v61-online').on('postgres_changes',{event:'*',schema:'public',table:'user_access'},function(){handleSession(window.currentSession||null);loadAdminAccess()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_directory'},function(){pullRemote(true);if(typeof fillPT==='function')fillPT()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_clients'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_conducts'},function(){pullRemote(true)}).on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){pullRemote(true)}).subscribe()}catch(e){console.warn('Realtime subscribe',e)}}}
 window.fjLivePush=pushNow;window.fjLivePull=function(){return pullRemote(false)};window.fjCanonicalSync=pushNow;window.fjRefreshOnline=boot;
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,600)},{once:true});else setTimeout(boot,600);window.addEventListener('load',function(){setTimeout(boot,800)});window.addEventListener('online',function(){queue(300)});window.addEventListener('focus',function(){pullRemote(true)});document.addEventListener('visibilitychange',function(){if(!document.hidden)pullRemote(true)});
+/* Online data sync: no page refresh and no navigation. Manual refresh remains available; automatic sync runs once per hour. */
+if(!window.__fjHourlyOnlineSync){window.__fjHourlyOnlineSync=setInterval(function(){try{pullRemote(true)}catch(e){}},3600000);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,600)},{once:true});else setTimeout(boot,600);window.addEventListener('load',function(){setTimeout(boot,800)});window.addEventListener('online',function(){queue(300)});
 // Exercise de-duplication: one display item per normalized exercise name.
 try{var a=window.__fjExerciseData||[],seen={};for(var i=a.length-1;i>=0;i--){var key=norm(a[i]&&a[i].name).replace(/[^a-z0-9]+/g,'');if(seen[key])a.splice(i,1);else seen[key]=1}}catch(e){}
 })();

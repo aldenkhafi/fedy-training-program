@@ -8115,7 +8115,9 @@ setTimeout(function(){hook();if($('fjPtClientUnified')?.classList.contains('acti
 </style>
 <style id="fj-pt-monthly-schedule-popup-css">.fj-ptms-popup-backdrop{position:fixed;inset:0;background:rgba(15,35,45,.48);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}.fj-ptms-popup{width:min(620px,100%);max-height:min(82vh,760px);overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.22);border:1px solid #cfe0e9}.fj-ptms-popup-head{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #e2edf1}.fj-ptms-popup-head h3{margin:3px 0;color:#174a6b}.fj-ptms-popup-head button{border:0;background:#eef5f8;border-radius:9px;width:34px;height:34px;font-size:24px;cursor:pointer}.fj-ptms-popup-body{padding:14px;overflow:auto;max-height:52vh}.fj-ptms-popup-event{border:1px solid #d9e7ee;border-left:4px solid #1596c4;border-radius:10px;padding:11px;margin-bottom:8px}.fj-ptms-popup-note{margin-top:6px;color:#506b78;font-size:12px;white-space:pre-wrap}.fj-ptms-popup-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 14px;border-top:1px solid #e2edf1}.fj-ptms-popup-actions button{border:1px solid #cfe0e9;border-radius:9px;padding:9px 12px;background:#fff;color:#31576f;font-weight:900;cursor:pointer}.fj-ptms-popup-actions button:first-child{background:#087eae;color:#fff;border-color:#087eae}@media(max-width:600px){.fj-ptms-popup-backdrop{padding:9px}.fj-ptms-popup{max-height:88vh}.fj-ptms-popup-body{max-height:60vh}}</style>
 <style id="fj105-mobile-schedule-fix">
-#fjPtOpsV2 #fj105SessionManagement,#fjPtOpsV2 .fj105-shell{box-sizing:border-box;max-width:100%;min-width:0;}
+/* V105 Monthly Schedule visibility fix: keep the module visible inside PT Management without changing other modules. */
+#fjPtOpsV2 #fjV105SessionManagement,#fjPtOpsV2 .fj105-shell{box-sizing:border-box;max-width:100%;min-width:0;}
+#fjPtOpsV2 #fjV105SessionManagement{display:block!important;visibility:visible!important;opacity:1!important;}
 #fjPtOpsV2 .fj105-shell{overflow:hidden;}
 #fjPtOpsV2 .fj105-status{max-width:100%;overflow-wrap:anywhere;word-break:break-word;}
 #fjPtOpsV2 .fj105-toolbar{max-width:100%;box-sizing:border-box;}
@@ -11041,6 +11043,28 @@ var newUsed=packageUsed(p)+1;var upd=await s.from('pt_packages').update({used_se
 function boot(){if(!shell())return;bindShell();hookClientCalendar();load();}
 window.fjV105SessionLoad=load;window.fjV105SessionOpen=openForm;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1400)},{once:true});else setTimeout(boot,1400);window.addEventListener('load',function(){setTimeout(boot,1800)});
+/* Mount again when PT Management is created later by the main navigation. This fixes the race that could leave PT Monthly Schedule absent. */
+(function(){
+  var tries=0;
+  function mount(){
+    tries++;
+    var p=q('fjPtOpsV2');
+    if(p){
+      try{ load(); }catch(e){ console.warn('V105 delayed mount',e); }
+      return;
+    }
+    if(tries<60)setTimeout(mount,500);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+  try{
+    var mo=new MutationObserver(function(){
+      var p=q('fjPtOpsV2');
+      if(p && !q(ROOT)){ try{load();}catch(e){console.warn('V105 observer mount',e);} }
+    });
+    mo.observe(document.documentElement,{childList:true,subtree:true});
+    setTimeout(function(){try{mo.disconnect()}catch(_){}},30000);
+  }catch(_){}
+})();
 try{var s=sb();if(s){s.channel('fj-v105-session-management').on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){load()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){load()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_extension_requests'},function(){load()}).subscribe()}}catch(e){console.warn('V105 realtime',e)}
 })();
 </script>

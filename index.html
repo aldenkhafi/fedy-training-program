@@ -10957,7 +10957,7 @@ document.addEventListener('DOMContentLoaded',()=>{try{ptcmpBuild()}catch(e){cons
 <script id="fj-v105-session-management-runtime">
 (function(){
 'use strict';
-var ROOT='fjV105SessionManagement', sb=function(){return window.sb||null}, me=function(){return window.currentUser||null};
+var ROOT='fjV105SessionManagement', sb=function(){return window.sb||null}, me=function(){try{return (typeof currentUser!=='undefined'&&currentUser)||window.currentUser||null}catch(_){return window.currentUser||null}};
 var MASTER='aldenkhafi0203@gmail.com';
 var S={clients:[],packages:[],schedules:[],pts:[],extensions:[],y:new Date().getFullYear(),m:new Date().getMonth(),selected:'',loading:false};
 function q(id){return document.getElementById(id)}

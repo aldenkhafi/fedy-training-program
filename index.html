@@ -8115,9 +8115,7 @@ setTimeout(function(){hook();if($('fjPtClientUnified')?.classList.contains('acti
 </style>
 <style id="fj-pt-monthly-schedule-popup-css">.fj-ptms-popup-backdrop{position:fixed;inset:0;background:rgba(15,35,45,.48);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}.fj-ptms-popup{width:min(620px,100%);max-height:min(82vh,760px);overflow:hidden;background:#fff;border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.22);border:1px solid #cfe0e9}.fj-ptms-popup-head{display:flex;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #e2edf1}.fj-ptms-popup-head h3{margin:3px 0;color:#174a6b}.fj-ptms-popup-head button{border:0;background:#eef5f8;border-radius:9px;width:34px;height:34px;font-size:24px;cursor:pointer}.fj-ptms-popup-body{padding:14px;overflow:auto;max-height:52vh}.fj-ptms-popup-event{border:1px solid #d9e7ee;border-left:4px solid #1596c4;border-radius:10px;padding:11px;margin-bottom:8px}.fj-ptms-popup-note{margin-top:6px;color:#506b78;font-size:12px;white-space:pre-wrap}.fj-ptms-popup-actions{display:flex;justify-content:flex-end;gap:8px;padding:12px 14px;border-top:1px solid #e2edf1}.fj-ptms-popup-actions button{border:1px solid #cfe0e9;border-radius:9px;padding:9px 12px;background:#fff;color:#31576f;font-weight:900;cursor:pointer}.fj-ptms-popup-actions button:first-child{background:#087eae;color:#fff;border-color:#087eae}@media(max-width:600px){.fj-ptms-popup-backdrop{padding:9px}.fj-ptms-popup{max-height:88vh}.fj-ptms-popup-body{max-height:60vh}}</style>
 <style id="fj105-mobile-schedule-fix">
-/* V105 Monthly Schedule visibility fix: keep the module visible inside PT Management without changing other modules. */
-#fjPtOpsV2 #fjV105SessionManagement,#fjPtOpsV2 .fj105-shell{box-sizing:border-box;max-width:100%;min-width:0;}
-#fjPtOpsV2 #fjV105SessionManagement{display:block!important;visibility:visible!important;opacity:1!important;}
+#fjPtOpsV2 #fj105SessionManagement,#fjPtOpsV2 .fj105-shell{box-sizing:border-box;max-width:100%;min-width:0;}
 #fjPtOpsV2 .fj105-shell{overflow:hidden;}
 #fjPtOpsV2 .fj105-status{max-width:100%;overflow-wrap:anywhere;word-break:break-word;}
 #fjPtOpsV2 .fj105-toolbar{max-width:100%;box-sizing:border-box;}
@@ -8141,6 +8139,125 @@ setTimeout(function(){hook();if($('fjPtClientUnified')?.classList.contains('acti
 }
 @media(max-width:390px){#fjPtOpsV2 .fj105-formgrid{grid-template-columns:1fr!important;}#fjPtOpsV2 .fj105-toolbar{grid-template-columns:1fr 1fr!important;}}
 </style>
+<script id="fj-client-calendar-monthly-schedule-v1">
+(function(){
+'use strict';
+/* V105 TARGETED PATCH — Monthly Schedule belongs ONLY inside Client Calendar.
+   No legacy Monthly Schedule UI is added to PT Tracker. */
+var DIR='fj_client_directory_v1';
+function q(id){return document.getElementById(id)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function norm(v){return String(v==null?'':v).trim().toLowerCase()}
+function clone(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
+function readDir(){try{return JSON.parse(localStorage.getItem(DIR)||'{}')||{}}catch(e){return {}}}
+function registeredClients(){
+  var map={},d=readDir();
+  Object.keys(d).forEach(function(k){var c=d[k];if(c&&c.name)map[norm(c.name)]=clone(c)});
+  /* Include clients already stored in Client Calendar as a fallback. */
+  try{
+    var p=JSON.parse(localStorage.getItem('fj_client_calendar_v1')||'null'),ev=p&&p.calendar&&p.calendar.events||{};
+    Object.keys(ev).forEach(function(k){var c=ev[k]&&ev[k].client;if(c&&c.name&&!map[norm(c.name)])map[norm(c.name)]=clone(c)})
+  }catch(e){}
+  return Object.keys(map).map(function(k){return map[k]}).sort(function(a,b){return String(a.name).localeCompare(String(b.name))})
+}
+function currentClientFromFields(){
+  function v(id){var e=q(id);return e?String(e.value||'').trim():''}
+  return {name:v('clientName'),age:v('programAge'),gender:v('programGender'),weight:v('programWeight'),height:v('programHeight'),goal:v('programGoal'),level:v('programLevel'),wtype:v('programWorkoutType'),duration:v('programMonths'),freq:v('programFreq')}
+}
+function fillClientFields(c){
+  c=c||{};
+  var map={ccEditClientName:'name',ccEditAge:'age',ccEditGender:'gender',ccEditWeight:'weight',ccEditHeight:'height',ccEditGoal:'goal',ccEditLevel:'level',ccEditWtype:'wtype',ccEditDuration:'duration',ccEditFreq:'freq'};
+  Object.keys(map).forEach(function(id){var e=q(id);if(!e)return;var v=c[map[id]]==null?'':String(c[map[id]]);if(e.tagName==='SELECT'){var found=Array.from(e.options).some(function(o){return o.value===v});if(found)e.value=v}else e.value=v});
+  var wt=q('ccEditWtype');
+  try{
+    if(wt&&typeof window.allowedWorkoutTypesForGoal==='function'){
+      var allowed=window.allowedWorkoutTypesForGoal(c.goal||'General Fitness')||[],current=String(c.wtype||wt.value||''),opts='';
+      allowed.forEach(function(v){var info=window.WORKOUT_TYPES&&window.WORKOUT_TYPES[v],label=info&&info.label?info.label:v;opts+='<option value="'+esc(v)+'"'+(v===current?' selected':'')+'>'+esc(label)+'</option>'});
+      if(opts)wt.innerHTML=opts;
+    }
+  }catch(e){}
+}
+function ensureClientSelect(){
+  var old=q('ccEditClientName');
+  if(!old)return null;
+  if(old.tagName==='SELECT')return old;
+  var sel=document.createElement('select');
+  sel.id='ccEditClientName';
+  sel.required=true;
+  sel.setAttribute('aria-label','Registered Client');
+  sel.style.width='100%';
+  sel.style.boxSizing='border-box';
+  old.parentNode.replaceChild(sel,old);
+  sel.addEventListener('change',function(){
+    var list=registeredClients(),c=list.find(function(x){return norm(x.name)===norm(sel.value)});
+    if(c){fillClientFields(c);try{if(typeof window.ccCalendarClientSelected==='function')window.ccCalendarClientSelected(c)}catch(e){}}
+  });
+  return sel;
+}
+function populateClientSelect(preferred){
+  var sel=ensureClientSelect();if(!sel)return;
+  var list=registeredClients();
+  var cur=preferred||sel.value||'';
+  /* Keep the current top-level client available if it has not been saved to directory yet. */
+  var top=currentClientFromFields();
+  if(top.name&&!list.some(function(c){return norm(c.name)===norm(top.name)}))list.unshift(top);
+  sel.innerHTML='<option value="">Pilih client terdaftar</option>'+list.map(function(c){
+    var label=String(c.name||'Client');
+    if(c.phone)label+=' • '+c.phone;
+    return '<option value="'+esc(c.name)+'">'+esc(label)+'</option>';
+  }).join('');
+  if(cur&&list.some(function(c){return norm(c.name)===norm(cur)}))sel.value=cur;
+  else if(list.length===1)sel.value=list[0].name;
+  var chosen=list.find(function(c){return norm(c.name)===norm(sel.value)});
+  if(chosen)fillClientFields(chosen);
+}
+function monthlyTitle(){
+  var panel=q('trainingClientCalendar');if(!panel)return;
+  var top=panel.querySelector('.top');
+  if(top&&!top.querySelector('.fj-monthly-schedule-label')){
+    var box=document.createElement('div');box.className='fj-monthly-schedule-label';
+    box.innerHTML='<h1 style="margin:0">Client Calendar</h1><div style="margin-top:3px;font-size:12px;font-weight:800;color:#5f7584">MONTHLY SCHEDULE • Klik kotak tanggal + jam untuk memilih client terdaftar</div>';
+    var first=top.firstElementChild;if(first){first.innerHTML='';first.appendChild(box)}else top.insertBefore(box,top.firstChild);
+  }
+}
+function hideLegacyPtTrackerCalendar(){
+  var p=q('fjPtOpsV2');if(!p)return;
+  var tab=p.querySelector('.ptv2-tab[data-v="calendar"]');
+  if(tab){tab.style.display='none';tab.setAttribute('aria-hidden','true')}
+  var content=p.querySelector('#ptv2Calendar');if(content)content.style.display='none';
+}
+function afterModalOpen(){
+  var modal=q('ccModal');if(!modal||!modal.classList.contains('open'))return;
+  var old=modal.dataset.fjMonthlyPrepared;
+  ensureClientSelect();
+  var key=q('ccEditKey')&&q('ccEditKey').value||'';
+  var existing='';
+  try{
+    var p=window.fjClientCalendar&&window.fjClientCalendar.state?window.fjClientCalendar.state():null;
+    var ev=p&&p.events&&p.events[key];existing=ev&&ev.client&&ev.client.name||'';
+  }catch(e){}
+  populateClientSelect(existing||'');
+  if(!old){modal.dataset.fjMonthlyPrepared='1'}
+}
+function observe(){
+  monthlyTitle();hideLegacyPtTrackerCalendar();afterModalOpen();
+  var modal=q('ccModal');
+  if(modal&&!modal.dataset.fjMonthlyObserver){
+    modal.dataset.fjMonthlyObserver='1';
+    new MutationObserver(function(){afterModalOpen()}).observe(modal,{attributes:true,attributeFilter:['class']});
+  }
+}
+function boot(){
+  observe();
+  setTimeout(observe,300);setTimeout(observe,1000);setTimeout(observe,2000);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+window.addEventListener('load',function(){setTimeout(boot,400)});
+/* Keep the Client Calendar's monthly grid as the single scheduling surface. */
+window.fjMonthlySchedulePatch={refresh:function(){monthlyTitle();hideLegacyPtTrackerCalendar();populateClientSelect()}};
+})();
+</script>
+
 </body></html>
 <!-- V27 TARGETED ADDITIONS: schedule per session + before/after + calendar export metadata + print fit -->
 <style id="fj-v27-targeted-style">
@@ -11043,28 +11160,6 @@ var newUsed=packageUsed(p)+1;var upd=await s.from('pt_packages').update({used_se
 function boot(){if(!shell())return;bindShell();hookClientCalendar();load();}
 window.fjV105SessionLoad=load;window.fjV105SessionOpen=openForm;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,1400)},{once:true});else setTimeout(boot,1400);window.addEventListener('load',function(){setTimeout(boot,1800)});
-/* Mount again when PT Management is created later by the main navigation. This fixes the race that could leave PT Monthly Schedule absent. */
-(function(){
-  var tries=0;
-  function mount(){
-    tries++;
-    var p=q('fjPtOpsV2');
-    if(p){
-      try{ load(); }catch(e){ console.warn('V105 delayed mount',e); }
-      return;
-    }
-    if(tries<60)setTimeout(mount,500);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
-  try{
-    var mo=new MutationObserver(function(){
-      var p=q('fjPtOpsV2');
-      if(p && !q(ROOT)){ try{load();}catch(e){console.warn('V105 observer mount',e);} }
-    });
-    mo.observe(document.documentElement,{childList:true,subtree:true});
-    setTimeout(function(){try{mo.disconnect()}catch(_){}},30000);
-  }catch(_){}
-})();
 try{var s=sb();if(s){s.channel('fj-v105-session-management').on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){load()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){load()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_extension_requests'},function(){load()}).subscribe()}}catch(e){console.warn('V105 realtime',e)}
 })();
 </script>

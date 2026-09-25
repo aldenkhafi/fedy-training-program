@@ -1439,6 +1439,16 @@ button.navbtn[data-tab="training"]:hover{background:rgba(126,87,194,.16)!importa
 #trainingClientCalendar .fj-cc-cell.has-event:hover .fj-cc-event.fj-cc-event-group{border-color:#8eb8d4;background:#e7f5fc}
 @media(max-width:760px){#fjOnlineManualRefresh{right:7px;top:66px;padding:6px 7px}#fjOnlineManualRefresh small{display:none}}
 </style>
+<style id="fj-pt-comparison-visibility-fix">
+/* Keep the new PT Comparison panel visible when selected; legacy global rule hides unregistered panels. */
+#personalTrainerCompare.active,
+#personalTrainerCompare.panel.active,
+#personalTrainerCompare.panel:not(#training):not(#adminAccess).active {
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+</style>
 </head><body>
 
 

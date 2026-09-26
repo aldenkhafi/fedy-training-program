@@ -11084,3 +11084,166 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 try{var s=sb();if(s){s.channel('fj-v105-session-management').on('postgres_changes',{event:'*',schema:'public',table:'pt_packages'},function(){load()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_schedules'},function(){load()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_extension_requests'},function(){load()}).on('postgres_changes',{event:'*',schema:'public',table:'user_access'},function(){load()}).on('postgres_changes',{event:'*',schema:'public',table:'pt_directory'},function(){load()}).subscribe()}}catch(e){console.warn('V105 realtime',e)}
 })();
 </script>
+
+<script id="fj-v105-egress-safety-fix">
+
+(function(){
+  'use strict';
+  if(window.__fjV105EgressSafetyFix)return;
+  window.__fjV105EgressSafetyFix=true;
+
+  /* Coalesce identical Supabase GET requests for a short window.
+     Writes/auth/navigation are untouched. */
+  try{
+    if(!window.__fjV105FetchGuard && window.fetch){
+      window.__fjV105FetchGuard=true;
+      var nativeFetch=window.fetch.bind(window), inflight=new Map(), recent=new Map(), TTL=5000;
+      window.fetch=function(input,init){
+        try{
+          var method=String((init&&init.method)||((input&&input.method)||'GET')).toUpperCase();
+          var url=typeof input==='string'?input:(input&&input.url)||'';
+          if(method==='GET' && /\.supabase\.co\/(rest\/v1|auth\/v1|storage\/v1)\b/i.test(url)){
+            var key=url;
+            var now=Date.now(), hit=recent.get(key);
+            if(hit && now-hit.t<TTL)return hit.p.then(function(r){return r.clone()});
+            if(inflight.has(key))return inflight.get(key).then(function(r){return r.clone()});
+            var pr=nativeFetch(input,init).then(function(r){
+              if(r&&r.ok)recent.set(key,{t:Date.now(),p:Promise.resolve(r.clone())});
+              return r;
+            }).finally(function(){inflight.delete(key)});
+            inflight.set(key,pr);
+            return pr.then(function(r){return r.clone()});
+          }
+        }catch(e){}
+        return nativeFetch(input,init);
+      };
+    }
+  }catch(e){console.warn('FJ egress fetch guard',e)}
+
+  function s(){return window.sb||null}
+  function norm(v){return String(v==null?'':v).trim().toLowerCase()}
+  function user(){return window.currentUser||null}
+  function role(){try{return String((window.fjCurrentRole&&window.fjCurrentRole(user()?.email))?.role||'').toUpperCase()}catch(e){return ''}}
+  function master(){try{return norm(user()?.email)==='aldenkhafi0203@gmail.com'}catch(e){return false}}
+  function cal(){try{return JSON.parse(localStorage.getItem('fj_client_calendar_v1')||'null')}catch(e){return null}}
+  function saveCal(x){try{localStorage.setItem('fj_client_calendar_v1',JSON.stringify(x));return true}catch(e){return false}}
+  function dir(){try{return JSON.parse(localStorage.getItem('fj_client_directory_v1')||'{}')||{}}catch(e){return {}}}
+  function saveDir(x){try{localStorage.setItem('fj_client_directory_v1',JSON.stringify(x));return true}catch(e){return false}}
+  function baseKey(v){var x=String(v||'');return x.length===16?x+':00':x}
+  function compactProfile(){return 'profile->age,profile->gender,profile->weight,profile->height,profile->goal,profile->level,profile->wtype,profile->duration,profile->freq,profile->pt_name'}
+  function clientCols(){return 'id,name,phone,email,notes,pt_user_id,pt_email,'+compactProfile()}
+  function scheduleCols(){return 'id,client_id,scheduled_at,status,pt_user_id,schedule_type'}
+  function packageCols(){return 'id,client_id,package_name,total_sessions,used_sessions,expiry_date,purchase_date,price,status'}
+
+  /* Store only the training payload in schedule notes. Before/After images already live on pt_clients.profile;
+     duplicating those base64 strings in every schedule can multiply bandwidth dramatically. */
+  window.eventNotes=function(e){
+    try{
+      var x=JSON.parse(JSON.stringify(e||{}));
+      delete x.beforeAfter;
+      if(x.client && typeof x.client==='object'){
+        delete x.client.beforeAfter; delete x.client.before; delete x.client.after;
+        delete x.client.photo; delete x.client.image;
+      }
+      return '[[FJ_EVENT_JSON_V48]]'+JSON.stringify(x)+'\n'+String(e&&e.notes||'');
+    }catch(err){return '[[FJ_EVENT_JSON_V48]]'+JSON.stringify(e||{})+'\n'+String(e&&e.notes||'')}
+  };
+
+  async function safePullRemote(silent){
+    var api=s(); if(!api||window.__fjV105PullBusy)return;
+    window.__fjV105PullBusy=true;
+    try{
+      var me=user(), access=(window.fjCurrentRole&&window.fjCurrentRole(me?.email))||{}, isPT=String(access.role||'').toUpperCase()==='PT', uid=String(me?.id||'');
+      var cq=api.from('pt_clients').select(clientCols()).limit(isPT?500:1000);
+      if(isPT)cq=cq.eq('pt_user_id',uid);
+      var cr=await cq; if(cr.error)throw cr.error;
+      var clients=cr.data||[], ids=clients.map(function(x){return x.id}).filter(Boolean), schedules=[];
+      for(var i=0;i<ids.length;i+=150){
+        var sr=await api.from('pt_schedules').select(scheduleCols()).in('client_id',ids.slice(i,i+150)).limit(500);
+        if(sr.error)throw sr.error; schedules=schedules.concat(sr.data||[]);
+      }
+      var cp=cal()||{version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};
+      cp.calendar=cp.calendar||{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}};
+      cp.calendar.events=cp.calendar.events||{};
+      var ev=cp.calendar.events;
+      schedules.forEach(function(r){
+        var c=clients.find(function(z){return String(z.id)===String(r.client_id)}), pr=c&&c.profile||{};
+        var when=String(r.scheduled_at||'').slice(0,16); if(!when)return;
+        var key=Object.keys(ev).find(function(k){return ev[k]&&String(ev[k]._fjOnlineScheduleId||'')===String(r.id)});
+        if(!key)key=when;
+        var old=ev[key];
+        if(!old){
+          old={title:r.schedule_type||'PT Session',notes:'',exercises:[]};
+          if(ev[key])key=when+'#online_'+String(r.id);
+        }
+        old._fjOnlineScheduleId=r.id; old._fjOnlineClientId=r.client_id; old._fjSyncId=old._fjSyncId||('remote_'+r.id);
+        old.pt_user_id=old.pt_user_id||r.pt_user_id||'';
+        old.status=r.status||old.status||'SCHEDULED';
+        old.client=Object.assign({},old.client||{}, {name:c?.name||old.client?.name||'Client',age:pr.age||old.client?.age||'',gender:pr.gender||old.client?.gender||'',weight:pr.weight||old.client?.weight||'',height:pr.height||old.client?.height||'',goal:pr.goal||old.client?.goal||'',level:pr.level||old.client?.level||'',wtype:pr.wtype||old.client?.wtype||'',phone:c?.phone||old.client?.phone||'',email:c?.email||old.client?.email||'',notes:c?.notes||old.client?.notes||''});
+        ev[key]=old;
+      });
+      cp.savedAt=new Date().toISOString();saveCal(cp);
+      if(typeof window.renderAll==='function')try{window.renderAll()}catch(e){}
+      if(!silent && typeof window.badge==='function')try{window.badge('ONLINE • data terbaru','live')}catch(e){}
+    }catch(e){
+      console.error('FJ V105 safe pull',e);
+      if(!silent && typeof window.badge==='function')try{window.badge('ONLINE ERROR • '+(e.message||e),'err')}catch(_){ }
+    }finally{window.__fjV105PullBusy=false}
+  }
+
+  async function safePushCalendar(){
+    var api=s();if(!api)throw new Error('Supabase belum terhubung');
+    var raw=cal(), events=raw?.calendar?.events||{}, list=[];
+    Object.keys(events).forEach(function(k){var e=events[k];if(e&&e.client&&e.client.name)list.push({key:k,event:e})});
+    var access=(window.fjCurrentRole&&window.fjCurrentRole(user()?.email))||{};
+    if(String(access.role||'').toUpperCase()==='PT')list=list.filter(function(x){return String(x.event?.pt_user_id||'')===String(user()?.id||'')});
+    var clientsRes=await api.from('pt_clients').select('id,name,phone,email,pt_user_id,pt_email').limit(5000);
+    if(clientsRes.error)throw clientsRes.error;
+    var clients=clientsRes.data||[];
+    for(var i=0;i<list.length;i++){
+      var x=list[i],e=x.event,c=e.client||{},rc=clients.find(function(z){return (e._fjOnlineClientId&&String(z.id)===String(e._fjOnlineClientId))||(c.phone&&norm(z.phone)===norm(c.phone))||(c.email&&norm(z.email)===norm(c.email))||(norm(z.name)===norm(c.name)&&c.name)});
+      var cp={name:c.name,phone:c.phone||null,email:c.email||null,profile:{age:c.age||'',gender:c.gender||'',weight:c.weight||'',height:c.height||'',goal:c.goal||'',level:c.level||'',wtype:c.wtype||'',duration:c.duration||'',freq:c.freq||'',pt_name:e.pt_name||'',beforeAfter:e.beforeAfter||null},notes:c.notes||'',pt_user_id:e.pt_user_id||null,pt_email:e.pt_email||''};
+      if(rc){var ur=await api.from('pt_clients').update(cp).eq('id',rc.id);if(ur.error)throw ur.error;e._fjOnlineClientId=rc.id}
+      else{var ir=await api.from('pt_clients').insert(cp).select('id,name,phone,email,pt_user_id,pt_email').single();if(ir.error)throw ir.error;rc=ir.data;e._fjOnlineClientId=rc.id;clients.push(rc)}
+      var when=baseKey(x.key), sp={client_id:rc.id,pt_user_id:e.pt_user_id||rc.pt_user_id||null,scheduled_at:when,schedule_type:e.title||'PT Session',notes:window.eventNotes(e),status:e.status||'SCHEDULED'};
+      var wr;
+      if(e._fjOnlineScheduleId){wr=await api.from('pt_schedules').update(sp).eq('id',e._fjOnlineScheduleId).select('id').maybeSingle()}
+      else{wr=await api.from('pt_schedules').insert(sp).select('id').single()}
+      if(wr.error)throw wr.error;if(wr.data?.id)e._fjOnlineScheduleId=wr.data.id;
+    }
+    saveCal(raw);return true;
+  }
+
+  /* Master mirror: no profile images and no schedule-note payloads are downloaded. */
+  async function safeMirror(){
+    var api=s();if(!api||window.__fjV105MirrorBusy)return;
+    window.__fjV105MirrorBusy=true;
+    try{
+      var rs=await Promise.all([
+        api.from('pt_clients').select(clientCols()).limit(5000),
+        api.from('pt_schedules').select(scheduleCols()).order('scheduled_at',{ascending:true}).limit(5000),
+        api.from('pt_packages').select(packageCols()).order('purchase_date',{ascending:false}).limit(1000)
+      ]);
+      if(rs.some(function(r){return r.error}))return;
+      var remClients=rs[0].data||[], remSchedules=rs[1].data||[], remPackages=rs[2].data||[], d=dir();
+      remClients.forEach(function(rc){var pr=rc.profile||{},key=Object.keys(d).find(function(k){return norm(d[k].name)===norm(rc.name)&&(norm(rc.phone)?norm(d[k].phone)===norm(rc.phone):true)})||('online_'+rc.id),old=d[key]||{};d[key]=Object.assign({},old,{id:old.id||key,name:rc.name,age:pr.age||old.age||'',gender:pr.gender||old.gender||'',weight:pr.weight||old.weight||'',height:pr.height||old.height||'',goal:pr.goal||old.goal||'',level:pr.level||old.level||'',wtype:pr.wtype||old.wtype||'',duration:pr.duration||old.duration||'',freq:pr.freq||old.freq||'',phone:rc.phone||old.phone||'',email:rc.email||old.email||'',notes:rc.notes||old.notes||'',pt_user_id:rc.pt_user_id||old.pt_user_id||'',pt_email:rc.pt_email||old.pt_email||''})});
+      remPackages.forEach(function(rp){var rc=remClients.find(function(c){return String(c.id)===String(rp.client_id)});if(!rc)return;var key=Object.keys(d).find(function(k){return norm(d[k].name)===norm(rc.name)});if(!key)return;var oldp=d[key].package||{};if(!oldp.name||String(rp.purchase_date||'')>=String(oldp.purchaseDate||''))d[key].package={name:rp.package_name||oldp.name,totalSessions:Number(rp.total_sessions||0),usedSessions:Number(rp.used_sessions||0),purchaseDate:rp.purchase_date||'',expiryDate:rp.expiry_date||'',price:Number(rp.price||oldp.price||0)}});
+      var cp=cal()||{version:'CLIENT_CALENDAR_V1',savedAt:new Date().toISOString(),calendar:{year:new Date().getFullYear(),month:new Date().getMonth(),events:{}}};cp.calendar=cp.calendar||{events:{}};cp.calendar.events=cp.calendar.events||{};
+      remSchedules.forEach(function(r){var when=String(r.scheduled_at||'').slice(0,16);if(!when)return;var rc=remClients.find(function(c){return String(c.id)===String(r.client_id)}),pr=rc&&rc.profile||{},key=Object.keys(cp.calendar.events).find(function(k){return cp.calendar.events[k]&&String(cp.calendar.events[k]._fjOnlineScheduleId||'')===String(r.id)})||when,e=cp.calendar.events[key]||{title:r.schedule_type||'Training',notes:'',client:{name:rc?.name||'Client'},exercises:[]};e._fjOnlineScheduleId=r.id;e._fjOnlineClientId=r.client_id;e.pt_user_id=e.pt_user_id||r.pt_user_id||'';e.status=r.status||e.status||'SCHEDULED';e.client=Object.assign({},e.client||{},{name:rc?.name||e.client?.name||'Client',age:pr.age||e.client?.age||'',gender:pr.gender||e.client?.gender||'',weight:pr.weight||e.client?.weight||'',height:pr.height||e.client?.height||'',goal:pr.goal||e.client?.goal||'',level:pr.level||e.client?.level||'',wtype:pr.wtype||e.client?.wtype||'',phone:rc?.phone||e.client?.phone||'',email:rc?.email||e.client?.email||''});cp.calendar.events[key]=e});
+      saveDir(d);saveCal(cp);
+    }catch(e){console.warn('FJ V105 safe master mirror',e)}finally{window.__fjV105MirrorBusy=false}
+  }
+
+  /* Override the high-traffic global functions only. UI and storage format stay intact. */
+  window.pullRemote=safePullRemote;
+  window.fjLivePull=function(){return safePullRemote(false)};
+  window.pushCalendar=safePushCalendar;
+  window.fjLivePush=function(){return safePushCalendar()};
+  window.fjCanonicalSync=window.fjLivePush;
+  window.syncOnlineMirror=safeMirror;
+
+  /* Keep automatic online sync deliberately infrequent; the existing hourly timer is retained.
+     Manual Refresh still calls the guarded pull above. */
+})();
+
+</script>
